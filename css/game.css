@@ -30,3 +30,10 @@ button:active,.selected{filter:brightness(1.35);transform:translateY(1px)}
 #battle{background:#050b13f5}.battleTop{height:48px;padding:14px;display:flex;justify-content:space-between;color:#f1d296}.battleTop+canvas{width:100%;height:50%;display:block;image-rendering:pixelated}
 .battleInfo{margin:6px 5%;padding:8px;border:1px solid #b99a62;background:#0b1728;border-radius:7px;display:flex;justify-content:space-between;gap:10px;font-size:12px}.battleCommands{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 5%}.battleCommands button{min-height:48px}.battleCommands button.selected{outline:2px solid #f0c875;background:#66364d}
 @media(max-height:720px){#pad{height:160px}.dpad{transform:scale(.84);transform-origin:left top}#ok{top:28px}#cancel{top:55px}.titlebox{bottom:3%}}
+
+/* β5.1 visual rebuild */
+#titleHero{position:absolute;left:-2%;top:4%;width:62vw;height:auto;max-width:430px;filter:drop-shadow(20px 22px 4px #170d27aa)}
+#title .moon{right:-14vw;top:3vh;background:radial-gradient(circle at 40% 38%,#fffbe5,#f2cf85 58%,#d9976f);box-shadow:0 0 90px #f3b2a477}
+#title:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 15% 15%,#5b274f66,transparent 35%),linear-gradient(180deg,transparent 55%,#03070dbb)}
+.titlebox{backdrop-filter:blur(6px)}
+#game{image-rendering:auto}
