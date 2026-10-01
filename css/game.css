@@ -37,3 +37,14 @@ button:active,.selected{filter:brightness(1.35);transform:translateY(1px)}
 #title:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 15% 15%,#5b274f66,transparent 35%),linear-gradient(180deg,transparent 55%,#03070dbb)}
 .titlebox{backdrop-filter:blur(6px)}
 #game{image-rendering:auto}
+
+/* β6: production-oriented visual pass */
+header{background:linear-gradient(180deg,#1c3858,#0a1727 72%);box-shadow:0 4px 14px #0007;z-index:5}
+#stage:after{content:"";pointer-events:none;position:absolute;inset:0;box-shadow:inset 0 0 35px #07101e66}
+#hud,#objective{backdrop-filter:blur(5px);background:#07131fe8;border-color:#d9b66f}
+.worldWindow{top:2%;max-height:96%;text-align:center}.worldWindow h2{margin-bottom:7px}
+#worldCanvas{display:block;width:min(100%,640px);height:auto;aspect-ratio:1;border:1px solid #b99a62;border-radius:10px;margin:auto;background:#173b55;box-shadow:inset 0 0 35px #0009}
+.mapHint{font-size:11px;color:#c8bda8}
+#pad{background:linear-gradient(135deg,#132c47,#07131f);box-shadow:inset 0 8px 24px #0005}
+.dir,.round{box-shadow:inset 0 0 0 2px #ffffff0b,0 4px 9px #0009}
+@media(max-width:430px){.brand{font-size:12px}.topBtns button{padding:8px 7px;font-size:12px}}
