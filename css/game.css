@@ -50,3 +50,16 @@ header{background:linear-gradient(180deg,#1c3858,#0a1727 72%);box-shadow:0 4px 1
 @media(max-width:430px){.brand{font-size:12px}.topBtns button{padding:8px 7px;font-size:12px}}
 
 #titleHero{border-radius:18px;object-fit:cover;box-shadow:0 12px 35px #0008}
+
+/* β7 real raster asset renderer */
+#game,#battleCanvas,#titleHero{image-rendering:pixelated;image-rendering:crisp-edges}
+
+.hotWindow{top:3%;width:min(94%,700px);text-align:center}.hotWindow h2{margin:4px 0 8px}#hotSpringCanvas{width:100%;height:auto;border:1px solid #c7a86a;border-radius:8px;image-rendering:pixelated}.hotChoices{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.hotChoices button{min-height:44px}
+
+/* β9 approved-art runtime */
+canvas{image-rendering:auto}
+#game{background:#142733}
+button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+/* beta13.3 wardrobe preview */
+.choices button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px}.choices button small{font-size:9px;opacity:.72}.choices button.selected small{opacity:1;color:#ffe0a0}.outfitHud{color:#f4dda7;font-size:9px}
