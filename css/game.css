@@ -48,3 +48,5 @@ header{background:linear-gradient(180deg,#1c3858,#0a1727 72%);box-shadow:0 4px 1
 #pad{background:linear-gradient(135deg,#132c47,#07131f);box-shadow:inset 0 8px 24px #0005}
 .dir,.round{box-shadow:inset 0 0 0 2px #ffffff0b,0 4px 9px #0009}
 @media(max-width:430px){.brand{font-size:12px}.topBtns button{padding:8px 7px;font-size:12px}}
+
+#titleHero{border-radius:18px;object-fit:cover;box-shadow:0 12px 35px #0008}
