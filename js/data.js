@@ -10,11 +10,14 @@ const outfits={
 const areas={
  field:{name:"花霞野",ground:"#88a857",path:"#d6bf8a",water:"#4f93a8",encounter:.045,min:14,grace:9},
  village:{name:"鬼灯の里",ground:"#8ca25d",path:"#c9ad78",water:"#5599aa",encounter:0,min:99,grace:0},
+ teahouse:{name:"花見茶屋",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
+ osumiHome:{name:"お澄の家",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
  shrine:{name:"天妖の社",ground:"#557f57",path:"#a79a72",water:"#467f90",encounter:.028,min:20,grace:12},
  cove:{name:"海の入り江",ground:"#c6b783",path:"#e0c996",water:"#3e8ea7",encounter:.035,min:17,grace:10},
  forest:{name:"忘れの森",ground:"#426d49",path:"#82795c",water:"#3f7882",encounter:.052,min:12,grace:10},
  waterfall:{name:"龍神の滝",ground:"#50765d",path:"#9d997c",water:"#4f9fb8",encounter:.04,min:15,grace:10},
- fox:{name:"九尾の祠",ground:"#665f4f",path:"#9e8965",water:"#526f78",encounter:.048,min:14,grace:12}
+ hotspring:{name:"月見の湯",ground:"#23383a",encounter:0,min:9999,grace:12},
+fox:{name:"九尾の祠",ground:"#665f4f",path:"#9e8965",water:"#526f78",encounter:.048,min:14,grace:12}
 };
 const enemies={
  field:[["野の小鬼",42,8,10,8],["化け狸",48,9,12,9]],
