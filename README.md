@@ -1,15 +1,11 @@
-# 夜叉姫の花結び奇譚 β6
+# 夜叉姫の花結び奇譚 β6.1 ASSET BUILD
 
-iPhone Safari / GitHub Pages向けのグラフィック全面改修版。
+β6.1では assets/ を実データ化し、生成した完成イメージをゲーム内背景・キャラクター参照素材として読み込む方式へ移行しました。
 
-## β6
-- 鬼灯の里を桜・和風家屋・池・橋・灯籠のある村へ刷新
-- 天妖の社、海の入り江、忘れの森、龍神の滝、九尾の祠を個別景観化
-- 主人公の描画を高密度化し、4方向・歩行差分・全衣装を維持
-- NPCを子供、村娘、長老、商人、巫女、社守、妖狐などに差別化
-- 世界地図画面を追加
-- 戦闘背景を和風夜景化
-- β5系のセーブ互換、タッチ操作、ランダムエンカウント基盤を維持
+## 実アセット
+- assets/backgrounds/title-art.jpg
+- village.jpg / world-map.jpg / shrine.jpg / waterfall.jpg / cove.jpg / forest.jpg / battle.jpg / dialogue.jpg
+- assets/characters/yashahime.png / yashahime-battle.png / yashahime-menu.png
+- assets/ui/outfits.jpg / visual-reference.jpg
 
-## GitHub
-ZIPを展開し、中身をリポジトリのルートへ上書きしてください。
+`game.js` は Image + drawImage() を使用し、画像ロード失敗時のみ従来のCanvas描画へフォールバックします。旧セーブ互換を維持しています。
