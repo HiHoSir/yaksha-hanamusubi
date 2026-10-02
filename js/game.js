@@ -1,4 +1,4 @@
-// beta13.5: production background-layer architecture + wardrobe preview
+// beta14.1: production background-layer architecture + wardrobe preview
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
@@ -145,7 +145,7 @@ function drawVillageObjectsFallback(c){
  c.fillStyle="#9c927e";for(const [x,y] of [[286,626],[480,626],[270,646],[496,646]]){c.beginPath();c.ellipse(x,y,12,7,0,0,7);c.fill()}
 }
 function drawVillageMap(c){
- // β13.5: fixed production layer order. Finished transparent PNGs can replace each
+ // β14.1: fixed production layer order. Finished transparent PNGs can replace each
  // procedural fallback independently without changing collision geometry.
  if(!drawFullLayer(c,VILLAGE_LAYERS.ground))drawVillageGroundFallback(c);
  if(!drawFullLayer(c,VILLAGE_LAYERS.buildings))drawVillageBuildingsFallback(c);
@@ -218,15 +218,14 @@ function interiorBlocked(x,y){
  return false;
 }
 function enterInterior(area){S.area=area;S.x=384;S.y=625;S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
-function leaveInterior(){S.area="village";S.x=S.lastInterior==="osumiHome"?635:635;S.y=S.lastInterior==="osumiHome"?575:275;S.dir="d";S.frame=0;YK_SAVE.auto(S);message("鬼灯の里");hud()}
+function leaveInterior(){S.area="village";if(S.lastInterior==="osumiHome"){S.x=598;S.y=452}else{S.x=620;S.y=272}S.dir="d";S.frame=0;YK_SAVE.auto(S);message("鬼灯の里");hud()}
 function villageDoorAction(){
  if(S.area!=="village")return false;
- // NE tea house entrance / SE village home entrance.
- if(Math.hypot(S.x-635,S.y-225)<78){S.lastInterior="teahouse";enterInterior("teahouse");return true}
- if(Math.hypot(S.x-635,S.y-540)<82){S.lastInterior="osumiHome";enterInterior("osumiHome");return true}
- return false;
+ // β14.1: door interaction points are immediately in front of the rendered doors.
+ if(Math.hypot(S.x-620,S.y-272)<38){S.lastInterior="teahouse";enterInterior("teahouse");return true}
+ if(Math.hypot(S.x-598,S.y-452)<38){S.lastInterior="osumiHome";enterInterior("osumiHome");return true}
+ return false
 }
-function interiorDoorAction(){if((S.area==="teahouse"||S.area==="osumiHome")&&S.y>600&&Math.abs(S.x-384)<105){leaveInterior();return true}return false}
 
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
@@ -256,7 +255,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   {x:175,y:370,type:"child",name:"里の子",talk:["夜叉姫さま、おかえりなさい！","川べりに花びらが流れてきたよ。"]},
   {x:570,y:390,type:"merchant",name:"よろず屋",talk:["旅支度なら任せておくれ。","社へ行くなら、森道には気をつけな。"]},
   {id:"village-woman-osumi",x:300,y:565,type:"woman",name:"里の女・お澄",dir:"r",frame:1,role:"村仕事",talk:["夜叉姫さま、お帰りなさい。","今日は花染めの糸がよく乾きそうですね。"]},
-  {id:"teahouse-girl-odango",x:635,y:235,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","ひと休みしたら、天妖の社への坂道も楽になりますよ。"]},
+  {id:"teahouse-girl-odango",x:686,y:315,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","ひと休みしたら、天妖の社への坂道も楽になりますよ。"]},
   {x:455,y:270,type:"elder",name:"里長",talk:["天妖の社へ向かいなされ。","失われた想いを結ぶ鍵が、あそこに眠っております。"]}
  ],
  teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","店の中なら、ゆっくり休んでいけますよ。"]}],
@@ -277,15 +276,26 @@ function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.
 function hud(){const a=D.areas[S.area];$("hud").innerHTML=`HP ${S.hp}/${S.maxhp}<br>Lv.${S.lv}　${S.gold}文<br><span class="outfitHud">衣装：${D.outfits[S.outfit]?.name||"花守り装束"}${OUTFIT_READY[S.outfit]?"":"（制作中）"}</span>`;$("objective").textContent="目的： "+D.objectives[Math.min(S.quest,D.objectives.length-1)];map()}
 function message(t,ms=1300){clearTimeout(msgTimer);$("message").textContent=t;$("message").style.display="block";msgTimer=setTimeout(()=>$("message").style.display="none",ms)}
 function inRect(x,y,r){return x>=r[0]&&x<=r[2]&&y>=r[1]&&y<=r[3]}
-const VILLAGE_HOUSES=[[48,55,222,205],[546,55,722,200],[48,505,222,655],[546,505,722,655]];
+const VILLAGE_BUILDINGS=[
+ // rendered footprint + small safety padding
+ [26,116,258,276],   // inn / NW
+ [498,128,742,284],  // teahouse / NE
+ [516,255,723,371]   // Osumi home / SE
+];
 function villageBlocked(x,y){
-  if(VILLAGE_HOUSES.some(r=>inRect(x,y,r)))return true;
-  const vertical=x>=276&&x<=494&&y<=646;
-  const horizontal=y>=337&&y<=483;
-  const teaPorch=x>=585&&x<=690&&y>=200&&y<=285;
-  const homePorch=x>=585&&x<=690&&y>=483&&y<=600;
-  const bridgePath=x>=304&&x<=464&&y>=610;
-  return !(vertical||horizontal||teaPorch||homePorch||bridgePath);
+ const r=12;
+ if(x<r||y<r||x>768-r||y>768-r)return true;
+ const hit=(a,b,c,d)=>{
+   const qx=Math.max(a,Math.min(x,c)),qy=Math.max(b,Math.min(y,d));
+   return (x-qx)*(x-qx)+(y-qy)*(y-qy)<r*r;
+ };
+ const buildings=[[26,116,258,276],[498,96,742,250],[494,312,701,430]];
+ if(buildings.some(v=>hit(v[0],v[1],v[2],v[3])))return true;
+ // river/canal: only the central bridge corridor is traversable.
+ if(hit(0,477,768,585)){
+   if(!(x>=312&&x<=456))return true;
+ }
+ return false;
 }
 function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"&&y>605)return true;if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){if(S.area==="teahouse"||S.area==="osumiHome")return null;if(S.x<42)return "field";if(S.x>726){const m={field:"village",village:"shrine",shrine:"cove",cove:"forest",forest:"waterfall",waterfall:"hotspring",hotspring:"fox",fox:"field"};return m[S.area]}return null}
