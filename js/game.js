@@ -1,4 +1,4 @@
-// beta14.1: production background-layer architecture + wardrobe preview
+// beta14.2: production background-layer architecture + wardrobe preview
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
@@ -145,7 +145,7 @@ function drawVillageObjectsFallback(c){
  c.fillStyle="#9c927e";for(const [x,y] of [[286,626],[480,626],[270,646],[496,646]]){c.beginPath();c.ellipse(x,y,12,7,0,0,7);c.fill()}
 }
 function drawVillageMap(c){
- // β14.1: fixed production layer order. Finished transparent PNGs can replace each
+ // β14.2: fixed production layer order. Finished transparent PNGs can replace each
  // procedural fallback independently without changing collision geometry.
  if(!drawFullLayer(c,VILLAGE_LAYERS.ground))drawVillageGroundFallback(c);
  if(!drawFullLayer(c,VILLAGE_LAYERS.buildings))drawVillageBuildingsFallback(c);
@@ -221,7 +221,7 @@ function enterInterior(area){S.area=area;S.x=384;S.y=625;S.dir="u";S.frame=0;YK_
 function leaveInterior(){S.area="village";if(S.lastInterior==="osumiHome"){S.x=598;S.y=452}else{S.x=620;S.y=272}S.dir="d";S.frame=0;YK_SAVE.auto(S);message("鬼灯の里");hud()}
 function villageDoorAction(){
  if(S.area!=="village")return false;
- // β14.1: door interaction points are immediately in front of the rendered doors.
+ // β14.2: door interaction points are immediately in front of the rendered doors.
  if(Math.hypot(S.x-620,S.y-272)<38){S.lastInterior="teahouse";enterInterior("teahouse");return true}
  if(Math.hypot(S.x-598,S.y-452)<38){S.lastInterior="osumiHome";enterInterior("osumiHome");return true}
  return false
@@ -346,4 +346,27 @@ window.addEventListener("error",e=>{console.error(e.error||e.message);busy=false
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);const im=B9IMG.title;if(im&&im.complete&&im.naturalWidth){q.drawImage(im,0,0,c.width,c.height)}else{hero(q,210,300,"d",0,"normal",4.4)}}
 function loop(t){if(!busy)S.playtime+=(t-last)/1000;last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
+})();
+
+
+// β14.2 field-test shortcut: does not overwrite manual save slots.
+(function(){
+ const bindVillageTestWarp=()=>{
+   const b=document.getElementById("villageTestWarp");
+   if(!b || b.dataset.bound)return;
+   b.dataset.bound="1";
+   b.addEventListener("pointerup",(e)=>{
+     e.preventDefault(); e.stopPropagation();
+     try{
+       S.area="village";
+       S.x=384; S.y=420;
+       S.dir="u"; S.frame=0;
+       S.busy=false;
+       if(typeof message==="function")message("鬼灯の里：配置・当たり判定テスト");
+       if(typeof hud==="function")hud();
+     }catch(err){ console.error("Village test warp failed",err); }
+   },{passive:false});
+ };
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindVillageTestWarp,{once:true});
+ else bindVillageTestWarp();
 })();
