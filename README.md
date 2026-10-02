@@ -1,6 +1,6 @@
-# 夜叉姫の花結び奇譚 — β13.5 core
+# 夜叉姫の花結び奇譚 — β14.1 core
 
-β13.5 switches 鬼灯の里 to a production 4-layer background architecture while preserving existing collision coordinates. Final background PNGs are not yet complete; missing layers intentionally fall back to the β13.4 procedural rendering.
+β14.1 switches 鬼灯の里 to a production 4-layer background architecture while preserving existing collision coordinates. Final background PNGs are not yet complete; missing layers intentionally fall back to the β14.1 procedural rendering.
 
 See `assets/BACKGROUND_ASSET_SPEC.md` and `ASSET_STATUS.md`.
 
@@ -72,7 +72,7 @@ NPC renderer now accepts independent 4-direction x 3-frame assets per role with 
 - コンセプトボードの切り抜きは使用していません。
 
 
-## β13.1 character readability pass
+## β14.1 character readability pass
 - Hero field render enlarged and anchored consistently at the feet.
 - Hero/NPC ground shadows added to improve separation from busy village scenery.
 - Woman and teahouse-girl NPC render scale/anchor unified while preserving separate assets.
@@ -80,7 +80,7 @@ NPC renderer now accepts independent 4-direction x 3-frame assets per role with 
 - No concept-board crops were added as runtime assets.
 
 
-## β13.2
+## β14.1
 - Replaced the normal-outfit Yashahime placeholder with 12 high-resolution production-candidate frames (down/left/right/up × 3).
 - Standardized transparent canvas, baseline and margins for all 12 frames.
 - Enabled high-quality downscaling for high-resolution hero art.
