@@ -61,5 +61,5 @@ canvas{image-rendering:auto}
 #game{background:#142733}
 button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
-/* beta13.3 wardrobe preview */
+/* beta14.1 wardrobe preview */
 .choices button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px}.choices button small{font-size:9px;opacity:.72}.choices button.selected small{opacity:1;color:#ffe0a0}.outfitHud{color:#f4dda7;font-size:9px}
