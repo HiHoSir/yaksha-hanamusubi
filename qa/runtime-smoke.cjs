@@ -15,7 +15,7 @@ class Element{
  }
  addEventListener(name,fn){(this.events[name]??=[]).push(fn)}
  fire(name,extra={}){const e={target:this,pointerId:1,preventDefault(){},stopPropagation(){},...extra};for(const fn of this.events[name]||[])fn(e)}
- setPointerCapture(){}getContext(){const c=this.canvas.getContext('2d');if(!c.__adapted){const draw=c.drawImage.bind(c);c.drawImage=(im,...args)=>{if(im.id==="worldTerrain"&&!im.snapshot){im.snapshot=new NativeImage();im.snapshot.src=im.canvas.toBuffer("image/png");loaded.push(im.snapshot);}return draw(im.snapshot||im.canvas||im,...args);};c.__adapted=true;}return c}
+ setPointerCapture(){}getContext(){if(this.id==='worldTerrain')this.snapshot=null;const c=this.canvas.getContext('2d');if(!c.__adapted){const draw=c.drawImage.bind(c);c.drawImage=(im,...args)=>{if(im.id==="worldTerrain"&&!im.snapshot){im.snapshot=new NativeImage();im.snapshot.src=im.canvas.toBuffer("image/png");loaded.push(im.snapshot);}return draw(im.snapshot||im.canvas||im,...args);};c.__adapted=true;}return c}
  set innerHTML(s){elements=elements.filter(x=>x.owner!==this);this._html=s;parse(s,this)}get innerHTML(){return this._html||''}
 }
 function parse(html,owner=null){for(const m of html.matchAll(/<([a-zA-Z][\w-]*)\b([^>]*)>/g)){const attrs={};for(const a of m[2].matchAll(/([\w-]+)="([^"]*)"/g))attrs[a[1]]=a[2];new Element(m[1],attrs,owner)}}
@@ -38,7 +38,7 @@ function dataTap(key,value){const e=elements.find(x=>x.dataset[key]===value);ass
 function key(k){for(const f of docEvents.keydown||[])f({key:k,preventDefault(){}});for(const f of docEvents.keyup||[])f({key:k,preventDefault(){}})}
 function shot(name,id='game'){fs.writeFileSync(path.join(output,name+'.png'),el(id).canvas.toBuffer('image/png'))}
 const results=[];function check(name,fn){fn();results.push({name,status:'passed'})}
-(async()=>{await Promise.all(loaded.map(im=>im.decode()));advance(32);sandbox.YK_DATA.rareRules.chance=0;shot('title','titleHero');
+(async()=>{await Promise.all(loaded.map(im=>im.decode()));advance(32);await Promise.all(loaded.map(im=>im.decode()));sandbox.YK_DATA.rareRules.chance=0;shot('title','titleHero');
 check('new game and A advances opening dialogue',()=>{tap('newGame');advance(240);assert(el('dialog').classList.contains('show'));tap('ok');tap('ok');assert(!el('dialog').classList.contains('show'))});
 sandbox.Math.random=()=>1;
 check('hold moves; release returns to neutral',()=>{Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterGrace:100});tap('right');assert.equal(sandbox.gameState.x,238);advance(220);assert.equal(sandbox.gameState.frame,1)});
@@ -267,6 +267,13 @@ check('tile collision matches terrain and beta15.30 saves migrate safely',()=>{
  const W=sandbox.YK_WORLD;
  for(let y=4;y<768;y+=8)for(let x=4;x<768;x+=8)assert.equal(W.walkable(x,y),['grass','road','bridge'].includes(W.tileAt(x,y)));
  const old=sandbox.YK_SAVE.migrate({worldRevision:3,area:'field',x:400,y:350,gold:123,quest:4});assert(W.walkable(old.x,old.y));assert.equal(old.gold,123);assert.equal(old.quest,4);
+});
+check('field atlas finishes loading and renders detailed terrain in the scroll viewport',()=>{
+ assert(sandbox.__qaEval('layerReady(worldAtlas)'));
+ Object.assign(sandbox.gameState,{area:'field',x:230,y:534});sandbox.__qaEval('map()');
+ const pixels=el('game').getContext().getImageData(0,0,768,700).data,colors=new Set();
+ for(let i=0;i<pixels.length;i+=16)colors.add([pixels[i],pixels[i+1],pixels[i+2]].join(','));
+ assert(colors.size>500,'terrain must contain the atlas, not only flat fallback colours');
 });
 check('hold stopAll from immediate callback leaves no delayed repeat',()=>{const b=new Element('button');let n=0;sandbox.YK_INPUT.hold(b,()=>{n++;sandbox.YK_INPUT.stopAll()});b.fire('pointerdown');advance(1000);assert.equal(n,1)});
 const report={environment:'Node VM + native canvas; not Safari or a browser',results,missingAssets:[...new Set(missing)]};

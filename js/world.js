@@ -40,35 +40,46 @@ window.YK_WORLD=(()=>{
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&['grass','road','bridge'].includes(tileAt(x,y));
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=18)||null;
  const camera=(x,y)=>({x:Math.max(0,Math.min(size-viewSize,x-viewSize/2)),y:Math.max(0,Math.min(size-viewSize,y-viewSize/2)),size:viewSize,zoom:768/viewSize});
- function draw(c){
+ const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
+ function draw(c,atlas){
   c.imageSmoothingEnabled=false;
+  const ready=atlas&&atlas.complete&&atlas.naturalWidth;
+  const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,sh=atlas.naturalHeight/4;c.drawImage(atlas,(index%4)*sw,Math.floor(index/4)*sh,sw,sh,x-w/2,y-h/2,w,h);};
+  // Broad low-contrast colour patches follow the land rather than the tile grid.
   for(let ty=0;ty<96;ty++)for(let tx=0;tx<96;tx++){
-   const x=tx*8,y=ty*8,t=tiles[ty*96+tx],v=(tx*7+ty*13)%5;
-   c.fillStyle=t==='water'?'#286baf':t==='road'?'#cbbb73':t==='bridge'?'#245a8a':'#72ac4e';c.fillRect(x,y,8,8);
-   if(t==='water'){c.fillStyle='#438ac1';c.fillRect(x+v,y+3,3,1);c.fillStyle='#1b5594';c.fillRect(x+1,y+6,4,1);}
-   if(t==='grass'){c.fillStyle='#568e3c';c.fillRect(x+v+1,y+3,1,2);c.fillRect(x+v,y+4,3,1);if(v===0){c.fillStyle='#94bd61';c.fillRect(x+5,y+6,2,1);}}
-   if(t==='road'){c.fillStyle='#b4a365';c.fillRect(x+v,y+5,1,1);}
-   if(t==='forest'){
-    c.fillStyle='#304e30';c.fillRect(x+1,y+5,6,2);c.fillStyle='#654c2e';c.fillRect(x+3.5,y+6,1,2);
-    c.fillStyle='#244f30';c.fillRect(x+.5,y+3.5,7,2.5);c.fillRect(x+1.5,y+1.5,5,3);c.fillRect(x+2.5,y+.5,3,2);
-    c.fillStyle='#3d783a';c.fillRect(x+1,y+3,5,2);c.fillRect(x+2,y+1.5,3.5,2);
-    c.fillStyle='#5b9844';c.fillRect(x+2.5,y+1,2,1);c.fillRect(x+1.5,y+3,2,1);c.fillStyle='#30632f';c.fillRect(x+4,y+4.5,2.5,1);
+   const x=tx*8,y=ty*8,t=tiles[ty*96+tx],v=hash(tx,ty),patch=Math.sin(x/36)+Math.cos(y/47)+Math.sin((x+y)/69);
+   const water=t==='water',road=t==='road',bridge=t==='bridge';
+   c.fillStyle=water?(riverDistance(x+4,y+4)<14?'#347f9a':'#286780'):road?'#c6b583':bridge?'#337c92':t==='mountain'?'#6b7956':t==='forest'?(patch>0?'#537b48':'#497344'):(patch>1?'#85a55d':patch<-.8?'#759951':'#7c9f56');c.fillRect(x,y,8,8);
+   if(water){
+    const adjacent=[[0,-8],[8,0],[0,8],[-8,0]].map(([dx,dy])=>tileAt(x+4+dx,y+4+dy)!=='water');
+    if(adjacent.some(Boolean)){c.fillStyle='#559c9c';if(adjacent[0])c.fillRect(x,y,8,2);if(adjacent[1])c.fillRect(x+6,y,2,8);if(adjacent[2])c.fillRect(x,y+6,8,2);if(adjacent[3])c.fillRect(x,y,2,8);c.fillStyle='#91b7a1';if(adjacent[0])c.fillRect(x,y,8,.5);if(adjacent[1])c.fillRect(x+7.5,y,.5,8);if(adjacent[2])c.fillRect(x,y+7.5,8,.5);if(adjacent[3])c.fillRect(x,y,.5,8);}
+    if(v>.62){c.fillStyle='#5694a7';c.fillRect(x+v*4,y+v*6,2+v*2,.5);}
+   }else if(bridge){
+    c.fillStyle='#685036';c.fillRect(x,y,8,8);c.fillStyle='#b59a66';for(let i=0;i<8;i+=2)c.fillRect(x,y+i,8,1.5);
+   }else{
+    for(let n=0;n<4;n++){const f=hash(tx*7+n,ty*3),px=x+f*7,py=y+hash(tx+n,ty+83)*7;c.fillStyle=road?(n%2?'#b3a076':'#d2c398'):(n%2?'#9db67555':'#466d3b40');c.fillRect(px,py,.5+f,.5);}
+    if(t==='grass'&&v>.88){c.fillStyle='#537d43';c.fillRect(x+3,y+4,.5,1.5);c.fillRect(x+2,y+4.5,2,.5);if(v>.965){c.fillStyle=y<300?'#eddcbd':'#d3c573';c.fillRect(x+3,y+3.5,1,.5);}}
+    if(road){c.fillStyle='#af9d73';for(const [dx,dy] of [[0,-8],[8,0],[0,8],[-8,0]])if(tileAt(x+4+dx,y+4+dy)==='grass'){if(dx)c.fillRect(dx>0?x+7.5:x,y,.5,8);else c.fillRect(x,dy>0?y+7.5:y,8,.5);}}
    }
-   if(t==='mountain'){
-    c.fillStyle='#414c3e';c.fillRect(x,y+6,8,2);c.fillRect(x+1,y+4,6,2);c.fillRect(x+2,y+2.5,4,2);c.fillRect(x+3,y+1,2,2);
-    c.fillStyle='#7c8466';c.fillRect(x+1,y+5,3,2);c.fillRect(x+2,y+3,2,3);c.fillRect(x+3,y+2,1,2);
-    c.fillStyle='#b4b394';c.fillRect(x+3,y+1,1,2);c.fillRect(x+2,y+3,1,1);c.fillStyle='#59644e';c.fillRect(x+4,y+3,1.5,3);c.fillRect(x+5,y+5,2,2);
-   }
-   if(t==='bridge'){c.fillStyle='#76532f';c.fillRect(x,y,8,8);c.fillStyle='#c6a169';for(let i=0;i<8;i+=3)c.fillRect(x,y+i,8,2);}
   }
+  // Overlapping, varied groves and ridges replace one identical icon per tile.
+  const fits=(x,y,w)=>{for(let yy=y-w/2;yy<=y+w/2;yy+=4)for(let xx=x-w/2;xx<=x+w/2;xx+=4)if(!['forest','mountain'].includes(tileAt(xx,yy)))return false;return true;};
+  for(let gy=12;gy<758;gy+=12)for(let gx=12;gx<758;gx+=12){
+   const v=hash(gx,gy),x=gx+(v-.5)*6,y=gy+(hash(gy,gx)-.5)*5,t=tileAt(x,y);if(!['forest','mountain'].includes(t))continue;
+   if(t==='mountain'&&(Math.floor(gx/12)%2||Math.floor(gy/12)%2))continue;
+   if(t==='forest'&&v<.16)continue;
+   const w=t==='mountain'?32:18+v*3;
+   if(fits(x,y,w*.85)){
+    const autumn=Math.hypot(x-171,y-111)<80;
+    const index=t==='mountain'?(autumn?7:4+Math.floor(v*3)):(autumn?7:Math.hypot(x-211,y-565)<55&&v>.55?3:y<280||v>.85?1:Math.sin(x/55)+Math.cos(y/51)>0?0:2);
+    stamp(index,x,y,w,w*.86);
+   }else if(fits(x,y,9)){stamp(t==='mountain'?6:Math.floor(v*3),x,y,11,10);}
+  }
+  const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
   for(const [k,p] of Object.entries(places)){
-   const [x,y]=p.point;
-   const house=(hx,hy,roof)=>{c.fillStyle='#594831';c.fillRect(hx-5,hy-7,10,8);c.fillStyle='#ead7a1';c.fillRect(hx-4,hy-6,8,6);c.fillStyle='#293b49';c.fillRect(hx-7,hy-9,14,3);c.fillStyle=roof;c.fillRect(hx-6,hy-10,12,3);c.fillRect(hx-4,hy-12,8,2);c.fillStyle='#769095';c.fillRect(hx-4,hy-11,8,.5);c.fillRect(hx-6,hy-8.5,12,.5);c.fillStyle='#b99e6b';c.fillRect(hx-4,hy-5,1,5);c.fillRect(hx+3,hy-5,1,5);c.fillStyle='#3d3930';c.fillRect(hx-1,hy-3,3,4);};
-   if(k==='village'){house(x-7,y-8,'#38547a');house(x+7,y-1,'#38547a');}
-   else if(k==='shrine'||k==='fox'){house(x,y-5,k==='fox'?'#8c393e':'#485e84');c.fillStyle='#ad453d';c.fillRect(x-9,y-3,18,2);c.fillRect(x-7,y-1,2,6);c.fillRect(x+5,y-1,2,6);}
-   else if(k==='forest'){c.fillStyle='#e8d9a0';c.fillRect(x-2,y-6,4,9);c.fillStyle='#795738';c.fillRect(x-4,y-6,8,4);}
-   else if(k==='waterfall'){c.fillStyle='#5a6b64';c.fillRect(x-10,y-20,20,17);c.fillStyle='#c5eeee';c.fillRect(x-4,y-20,8,19);c.fillStyle='#6fc9dc';c.fillRect(x-1,y-19,3,17);}
-   else {house(x,y-4,'#735d47');if(k==='hotspring'){c.fillStyle='#b4dfd6';c.fillRect(x-8,y+3,15,4);c.fillStyle='#e1f3d6';c.fillRect(x+2,y-17,1,4);c.fillRect(x-3,y-15,1,4);}}
+   const [x,y]=p.point,w=k==='village'?42:k==='waterfall'?36:34;
+   // The south edge is the A-button approach; no canopy covers the player there.
+   stamp(icons[k],x,y-w*.32,w,w*.85);
   }
  }
  return {start,hub,places,roads,walkable,near,revision:4,tileAt,tileSize,size,viewSize,camera,draw};

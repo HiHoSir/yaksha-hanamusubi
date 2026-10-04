@@ -456,9 +456,13 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
 }
 window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;return window.__YK_COLLISION_DEBUG};
 let terrainReady=false;
+const worldAtlas=new Image();
+worldAtlas.onload=()=>{terrainReady=false;assetLoaded();};
+worldAtlas.src="assets/maps/world-atlas-v15.32.png";
 function drawWorldTerrain(c){
  const source=$("worldTerrain");
- if(!terrainReady){const tc=source.getContext("2d");tc.save();tc.scale(2,2);YK_WORLD.draw(tc);tc.restore();terrainReady=true;}
+ if(!layerReady(worldAtlas)){YK_WORLD.draw(c,null);return;}
+ if(!terrainReady){const tc=source.getContext("2d");tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;}
  c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
 }
 function map(){
