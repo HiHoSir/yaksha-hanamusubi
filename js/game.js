@@ -575,7 +575,7 @@ function beginEncounter(){
  if(Math.random()>=area.encounter)return false;
  const e=pool[Math.floor(Math.random()*pool.length)];
  const variant=D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
- resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,clothingBroken:false,hp:e[1],max:e[1],atk:e[2],xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
+ const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];\n resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=false;
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent="どうする？";$("battle").classList.add("show");
@@ -748,7 +748,7 @@ function cmd(n){
  battleLocked=true;
  if(n==="attack"||n==="skill"){
   const d=n==="skill"?20+S.lv*3+relicBonus("skill")+Math.floor(Math.random()*12):S.atk+relicBonus("atk")+Math.floor(Math.random()*8);
-  battle.hp-=d;battlePose="attack";
+  if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,420);return;}\n  battle.hp-=d;battlePose="attack";
   if(battle.rareId&&battle.hp/battle.max<=D.rareRules.breakHpRatio)battle.clothingBroken=true;
   $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
   YK_AUDIO.beep(n==="skill"?720:330,.08);startBattleFx(n==="skill"?"petals":"slash","enemy");renderBattle();
