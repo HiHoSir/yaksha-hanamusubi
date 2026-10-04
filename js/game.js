@@ -676,7 +676,13 @@ function move(dx,dy,dir){
  for(let i=0;i<steps;i++){
   const nx=clamp(S.x+vx/steps,27,741),ny=clamp(S.y+vy/steps,34,736);
   if(!collision(nx,ny)){S.x=nx;S.y=ny;}
-  else if(vx&&vy){if(!collision(nx,S.y))S.x=nx;else if(!collision(S.x,ny))S.y=ny;}
+  // On the open field, a blocked diagonal step must stop instead of sliding
+  // along one axis. This keeps coast, river and mountain edges predictable
+  // under sustained 8-direction touch input.
+  else if(vx&&vy&&S.area!=="field"){
+    if(!collision(nx,S.y))S.x=nx;
+    else if(!collision(S.x,ny))S.y=ny;
+  }
  }
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
