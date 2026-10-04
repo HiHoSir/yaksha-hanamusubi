@@ -468,7 +468,7 @@ function drawWorldTerrain(c){
 function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area==="field"){
-  const camera=YK_WORLD.camera(S.x,S.y);
+  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
   g.save();g.scale(camera.zoom,camera.zoom);g.translate(-camera.x,-camera.y);
   drawWorldTerrain(g);drawActors();g.restore();
   const k=YK_WORLD.near(S.x,S.y);
@@ -578,7 +578,7 @@ function encounter(){return beginEncounter()}
 function action(){
  if($("dialog").classList.contains("show")){nextDialog();return true;}
  if(busy)return false;
- if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}message("街道を進み、入口の近くで A を押してください。",1400);return false;}
+ if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}message("目的地の入口付近で A を押してください。",1400);return false;}
  if(villageDoorAction())return true;
  if(S.area==="teahouse"||S.area==="osumiHome"){
   if(S.y>=590){leaveInterior();return true}
@@ -806,7 +806,7 @@ function drawWorldPins(c,labels){
 function drawWorld(){
  const c=wg;c.clearRect(0,0,720,720);c.save();c.scale(720/768,720/768);c.imageSmoothingEnabled=true;
  drawWorldTerrain(c);
- if(S.area==="field"){const camera=YK_WORLD.camera(S.x,S.y);c.save();c.strokeStyle="#fff3b9";c.lineWidth=2;c.setLineDash([6,4]);c.strokeRect(camera.x,camera.y,camera.size,camera.size);c.restore();}
+ if(S.area==="field"){const camera=YK_WORLD.camera(S.x,S.y,S.dir);c.save();c.strokeStyle="#fff3b9";c.lineWidth=2;c.setLineDash([6,4]);c.strokeRect(camera.x,camera.y,camera.size,camera.size);c.restore();}
  drawWorldPins(c,true);
  const area=S.area==="teahouse"||S.area==="osumiHome"?"village":S.area;
  const pos=area==="field"?[S.x,S.y]:YK_WORLD.places[area]?.point||YK_WORLD.hub;

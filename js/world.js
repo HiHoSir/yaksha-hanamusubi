@@ -1,4 +1,4 @@
-// A journey along one connected road, with roadside stops and a hot-spring detour.
+// An open-field journey with sequential destinations, natural terrain and optional detours.
 window.YK_WORLD=(()=>{
  const start=[230,534],hub=start; // hub retained only as a save/test compatibility alias.
  const places={
@@ -52,8 +52,11 @@ window.YK_WORLD=(()=>{
  }
  const tileAt=(x,y)=>x<0||y<0||x>=size||y>=size?'water':tiles[Math.floor(y/8)*96+Math.floor(x/8)];
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&['grass','road','bridge'].includes(tileAt(x,y));
- const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=18)||null;
- const camera=(x,y)=>({x:Math.max(0,Math.min(size-viewSize,x-viewSize/2)),y:Math.max(0,Math.min(size-viewSize,y-viewSize/2)),size:viewSize,zoom:768/viewSize});
+ const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=26)||null;
+ const camera=(x,y,dir=null)=>{
+  const look=18,offset={l:[-look,0],r:[look,0],u:[0,-look],d:[0,look]}[dir]||[0,0];
+  return {x:Math.max(0,Math.min(size-viewSize,x+offset[0]-viewSize/2)),y:Math.max(0,Math.min(size-viewSize,y+offset[1]-viewSize/2)),size:viewSize,zoom:768/viewSize};
+ };
  const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
  function draw(c,atlas){
   c.imageSmoothingEnabled=false;

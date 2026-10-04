@@ -25,7 +25,8 @@ function directions(bindings,fn){
  const release=key=>{pressed.delete(key);if(!pressed.size){clearTimeout(timer);timer=null;}};
  for(const [el,v] of bindings){
   el.addEventListener("pointerdown",e=>{e.preventDefault();try{el.setPointerCapture?.(e.pointerId)}catch(_){}press("p"+e.pointerId,v);});
-  el.addEventListener("pointermove",e=>{const key="p"+e.pointerId;if(!pressed.has(key))return;const hit=document.elementFromPoint?.(e.clientX,e.clientY);const entry=bindings.find(([b])=>b===hit);if(entry)pressed.set(key,entry[1]);});
+  // Lock the chosen direction until release. On iPhone, a held thumb can drift
+  // across neighboring buttons; changing direction mid-hold caused accidental turns.
   for(const type of ["pointerup","pointercancel","lostpointercapture"])el.addEventListener(type,e=>release("p"+e.pointerId));
  }
  const keys={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
