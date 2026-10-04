@@ -57,10 +57,10 @@ const relics={
 };
 const rareRules={chance:.10,goldMultiplier:1.25,breakHpRatio:.5,repeatDropChance:.25};
 const story=[
- {area:"village",speaker:"里長",target:"shrine",objective:"鬼灯の里で里長の話を聞く",lines:["天妖の社の鈴が、昨夜から鳴らなくなった。","この里の結び札を持って、白妙を訪ねておくれ。"],unlock:"結び札を受け取った。北の街道をたどって天妖の社へ。"},
+ {area:"village",speaker:"里長",target:"shrine",objective:"鬼灯の里で里長の話を聞く",lines:["天妖の社の鈴が、昨夜から鳴らなくなった。","この里の結び札を持って、白妙を訪ねておくれ。"],unlock:"結び札を受け取った。湖を左に見て北の草原へ。山裾の天妖の社を訪ねよう。"},
  {area:"shrine",speaker:"白妙",target:"cove",objective:"天妖の社で白妙に結び札を見せる",lines:["この札は、ほどけた縁をたどる道しるべです。","まずは海の入り江へ。潮平さんが、光る花びらを見たそうです。"],unlock:"次は海の入り江。社の先の川沿いを進み、橋を渡ろう。"},
  {area:"cove",speaker:"漁師・潮平",target:"forest",objective:"入り江で潮平から花びらを受け取る",lines:["探していたのは、この潮花の花びらかい？","ほら、森の方へ光が伸びている。これなら迷わず進めそうだ。"],unlock:"潮花の花びらを入手。浜から北東の忘れの森へ。",petal:true},
- {area:"forest",speaker:"旅の薬師",target:"waterfall",objective:"忘れの森で旅の薬師を探す",lines:["その光は、水鏡に映せば記憶を見せてくれる。","龍神の滝へ向かいなさい。滝の前の子が案内してくれるはず。"],unlock:"森の道を北へ抜け、龍神の滝を訪ねよう。"},
+ {area:"forest",speaker:"旅の薬師",target:"waterfall",objective:"忘れの森で旅の薬師を探す",lines:["その光は、水鏡に映せば記憶を見せてくれる。","龍神の滝へ向かいなさい。滝の前の子が案内してくれるはず。"],unlock:"森から海沿いの草原を北へ進み、龍神の滝を訪ねよう。"},
  {area:"waterfall",speaker:"滝童",target:"fox",objective:"龍神の滝で滝童と水鏡を調べる",lines:["花びらを水鏡へかざしてみて。……赤い葉と、九本の尾が映った！","九尾の祠が君を待っているよ。"],unlock:"次は西の九尾の祠へ。途中の温泉で休むのもよさそう。"},
  {area:"fox",speaker:"白狐の使い",target:null,objective:"九尾の祠で白狐の使いに会う",lines:["その花びらは、かつて交わされた約束の欠片。","続く旅の手がかりは、ここで預かっておこう。今は巡った土地を訪ねてみるといい。"],unlock:"約束の手がかりを得た。続きの物語は制作中です。"}
 ];

@@ -97,7 +97,7 @@ check('world roads connect all entrances at both movement speeds',()=>{
   }
   for(const [k,p] of Object.entries(W.places))assert(q.some(([ix,iy])=>Math.hypot(origin[0]+ix*step-p.point[0],origin[1]+iy*step-p.point[1])<=16),'unreachable '+k+' at '+step+' from '+origin);
  }
- assert(!W.walkable(10,10));assert(!W.walkable(410,350));
+ assert(!W.walkable(10,10));assert(!W.walkable(436,340));
 });
 check('old field saves migrate safely and preserve quest and outfit',()=>{
  const old=sandbox.YK_SAVE.migrate({saveVersion:11,worldRevision:1,area:'field',x:384,y:550,quest:3,outfit:'navy',gold:777});
@@ -259,7 +259,7 @@ check('scroll camera follows the hero and clamps at all map edges',()=>{
   if(y>=128&&y<=640)assert.equal((y-c.y)*c.zoom,384);
  }
  assert(W.camera(300,300).x>W.camera(290,300).x);
- for(const k of ['village','cove','waterfall','fox']){
+ for(const k of ['village','shrine','cove','waterfall','fox']){
   const p=W.places[k].point;Object.assign(sandbox.gameState,{area:'field',x:p[0],y:p[1],outfit:'normal'});sandbox.__qaEval('busy=false;map()');shot('scroll-'+k);
  }
 });
@@ -274,6 +274,15 @@ check('field atlas finishes loading and renders detailed terrain in the scroll v
  const pixels=el('game').getContext().getImageData(0,0,768,700).data,colors=new Set();
  for(let i=0;i<pixels.length;i+=16)colors.add([pixels[i],pixels[i+1],pixels[i+2]].join(','));
  assert(colors.size>500,'terrain must contain the atlas, not only flat fallback colours');
+});
+check('open grasslands allow off-route travel and beta15.32 saves migrate safely',()=>{
+ const W=sandbox.YK_WORLD;
+ const land=[];for(let y=4;y<768;y+=8)for(let x=4;x<768;x+=8)if(W.tileAt(x,y)!=='water')land.push(W.tileAt(x,y));
+ assert(land.filter(t=>t==='grass').length/land.length>.5,'most land should be open grass, not a road corridor');
+ sandbox.__qaEval('busy=false');Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterGrace:9999});
+ for(let i=0;i<8;i++)sandbox.__qaEval('move(22,0,"r")');assert(sandbox.gameState.x>285,'walk freely east of the old road');
+ for(let i=0;i<8;i++)sandbox.__qaEval('move(-22,0,"l")');assert.equal(sandbox.gameState.x,230);
+ const old=sandbox.YK_SAVE.migrate({worldRevision:4,area:'field',x:620,y:580,gold:456,quest:4});assert(W.walkable(old.x,old.y));assert.equal(old.gold,456);assert.equal(old.quest,4);
 });
 check('hold stopAll from immediate callback leaves no delayed repeat',()=>{const b=new Element('button');let n=0;sandbox.YK_INPUT.hold(b,()=>{n++;sandbox.YK_INPUT.stopAll()});b.fire('pointerdown');advance(1000);assert.equal(n,1)});
 const report={environment:'Node VM + native canvas; not Safari or a browser',results,missingAssets:[...new Set(missing)]};

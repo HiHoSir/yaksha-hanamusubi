@@ -458,7 +458,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 let terrainReady=false;
 const worldAtlas=new Image();
 worldAtlas.onload=()=>{terrainReady=false;assetLoaded();};
-worldAtlas.src="assets/maps/world-atlas-v15.32.png";
+worldAtlas.src="assets/maps/world-atlas-v15.33.png";
 function drawWorldTerrain(c){
  const source=$("worldTerrain");
  if(!layerReady(worldAtlas)){YK_WORLD.draw(c,null);return;}
@@ -472,7 +472,7 @@ function map(){
   g.save();g.scale(camera.zoom,camera.zoom);g.translate(-camera.x,-camera.y);
   drawWorldTerrain(g);drawActors();g.restore();
   const k=YK_WORLD.near(S.x,S.y);
-  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"街道と草地を歩いて次の旅先へ · 地図で全体を確認");return;
+  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
  }
  if(S.area==="village"){drawVillageMap(g);drawVillageCollisionDebug(g)}
  else if(S.area==="teahouse") drawInterior(g,"tea");
