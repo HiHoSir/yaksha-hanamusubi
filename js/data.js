@@ -35,7 +35,7 @@ const enemyProfiles={
 // Static artwork must exist for both states before a variant enters the encounter pool.
 const rareKinds={
  "野の小鬼":{id:"oni",name:"紅角の鬼女",art:"oni-woman"},
- "化け狸":{id:"tanuki",name:"葉隠れ狸女"},
+ "化け狸":{id:"tanuki",name:"葉隠れ狸女",art:"tanuki-woman",hpMultiplier:1.35,atkMultiplier:1.15,trait:"leafDodge",traitChance:.22},
  "灯火狐":{id:"lantern",name:"灯籠の狐女"},
  "磯妖":{id:"shell",name:"磯貝の妖女"},
  "泡くらげ":{id:"jelly",name:"泡衣の海月女"},
@@ -48,7 +48,7 @@ const rareKinds={
 };
 const relics={
  oni:{name:"鬼のパンツ♀",text:"虎柄の予備の旅装。攻撃+2・防御+2",atk:2,def:2},
- tanuki:{name:"狸女の葉守り",text:"防御+1・薬草の回復+8",def:1,heal:8},
+ tanuki:{name:"狸女の葉守り",text:"葉隠れ狸女の髪飾り。防御+1・薬草の回復+8",def:1,heal:8},
  lantern:{name:"狐女の灯芯",text:"花結びの威力+4",skill:4},
  shell:{name:"磯姫の貝飾り",text:"防御+3",def:3},
  jelly:{name:"海月女の泡帯",text:"薬草の回復+12",heal:12},
