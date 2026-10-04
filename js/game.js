@@ -486,9 +486,9 @@ function map(){
  drawActors();
  // New village intentionally has no foreground canopy over actors.
  drawDoorHint();
- if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"街道を歩いて入口へ · 地図で目的地を確認");}
- else if(S.area==="village")worldHint("南の橋・北の道から街道へ戻れます");
- else if(YK_WORLD.places[S.area])worldHint("西の端から街道へ戻れます");
+ if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"フィールドを進んで入口へ · 地図で目的地を確認");}
+ else if(S.area==="village")worldHint("南の橋・北の道からフィールドへ戻れます");
+ else if(YK_WORLD.places[S.area])worldHint("西の端からフィールドへ戻れます");
 }const NPCS={
  village:[
   {x:282,y:284,type:"child",name:"里の子",dir:"r",frame:1,talk:["夜叉姫さま、おかえりなさい！","川べりに花びらが流れてきたよ。"]},
