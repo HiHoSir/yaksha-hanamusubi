@@ -1,27 +1,27 @@
-// Positions and road corridors share the artwork's 768 x 768 coordinate space.
+// A journey along one connected road, with roadside stops and a hot-spring detour.
 window.YK_WORLD=(()=>{
- const hub=[378,389];
+ const start=[230,534],hub=start; // hub retained only as a save/test compatibility alias.
  const places={
-  village:{point:[321,479],name:"鬼灯の里",note:"桜に囲まれた故郷。旅の支度と里人との語らい。"},
-  shrine:{point:[278,242],name:"天妖の社",note:"山腹の朱い鳥居。花結びの手がかりを訪ねよう。"},
-  waterfall:{point:[415,286],name:"龍神の滝",note:"社の東、川に架かる橋から水鏡の滝へ。"},
-  forest:{point:[536,239],name:"忘れの森",note:"深緑の木々と石の祈り。妖の気配に気をつけて。"},
-  hotspring:{point:[203,342],name:"月見の湯",note:"西の湯けむり。疲れた身体を休める場所。"},
-  fox:{point:[625,397],name:"九尾の祠",note:"紅葉の奥にたたずむ祠。忘れられた約束の地。"},
-  cove:{point:[625,480],name:"海の入り江",note:"東の坂道を下り、潮風が届く浜辺へ。"}
+  village:{point:[211,565],name:"鬼灯の里",note:"旅の出発点。北へ歩いて天妖の社へ。"},
+  shrine:{point:[194,366],name:"天妖の社",note:"里の北の社。参拝したら東の川沿いを浜へ。"},
+  cove:{point:[467,610],name:"海の入り江",note:"川沿いの橋を渡った先の浜。北東の森へ道が続く。"},
+  forest:{point:[661,405],name:"忘れの森",note:"東の森を抜け、北の龍神の滝を目指そう。"},
+  waterfall:{point:[637,191],name:"龍神の滝",note:"旅路の北端。滝を訪ねたら西の祠へ。"},
+  hotspring:{point:[431,214],name:"月見の湯",note:"滝から祠へ向かう道中の寄り道。湯でひと休み。"},
+  fox:{point:[171,111],name:"九尾の祠",note:"北の街道の先、紅葉に囲まれた祠。"}
  };
- // Trace visible roads; branches meet at identical coordinates.
+ const shrineJunction=[289,415],springJunction=[458,138];
  const roads=[
-  [hub,[363,409],[345,429],[334,454],places.village.point],
-  [hub,[355,366],[332,347],[324,324],[334,300],[326,279],[305,254],places.shrine.point],
-  [[334,300],[359,295],[388,288],places.waterfall.point,[442,289]],
-  [hub,[405,365],[428,339],[451,322],[469,307],[488,278],[511,256],places.forest.point],
-  [hub,[355,408],[324,415],[294,409],[266,400],[243,391],[219,380],[196,369],[203,357],places.hotspring.point],
-  [hub,[402,405],[432,415],[467,417],[501,414],[535,405],[561,408],[577,416],[596,406],places.fox.point],
-  [[577,416],[566,433],[578,449],[601,463],[616,475],places.cove.point]
+  [places.village.point,start,[231,489],[241,471],[265,460],[284,445],shrineJunction],
+  [shrineJunction,[246,405],[216,398],[197,382],places.shrine.point],
+  [shrineJunction,[330,423],[348,435],[348,473],[357,489],[378,503],[379,542],[385,565],[407,581],[429,590],[448,607],places.cove.point],
+  [places.cove.point,[485,587],[507,576],[524,560],[524,551],[549,539],[582,534],[591,515],[591,492],[608,478],[634,468],[660,451],[661,422],places.forest.point],
+  [places.forest.point,[655,386],[638,368],[628,341],[629,326],[647,307],[662,291],[675,274],[678,253],[676,242],[659,225],[657,208],[657,190],places.waterfall.point],
+  [places.waterfall.point,[600,192],[572,188],[555,170],[544,154],[514,142],springJunction,[412,139],[370,131],[318,138],[261,138],[225,138],[203,132],[183,124],places.fox.point],
+  [springJunction,[457,179],[438,199],places.hotspring.point]
  ];
  const distance=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)};
- const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&roads.some(r=>r.slice(1).some((b,i)=>distance(x,y,r[i],b)<=12));
+ const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&(Math.hypot(x-start[0],y-start[1])<=22||roads.some(r=>r.slice(1).some((b,i)=>distance(x,y,r[i],b)<=14)));
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=22)||null;
- return {hub,places,roads,walkable,near,revision:1};
+ return {start,hub,places,roads,walkable,near,revision:3};
 })();

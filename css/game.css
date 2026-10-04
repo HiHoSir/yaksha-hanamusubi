@@ -83,3 +83,9 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 @media(max-width:380px){header{height:auto;min-height:48px;flex-wrap:wrap;gap:4px}.topBtns{margin-left:auto}}
 
 .relicChoices{display:grid;gap:7px}.relicChoices button{min-height:48px;text-align:left;touch-action:pan-y}.relicChoices small{display:block;font-size:11px;color:#ead6b0;margin-top:4px}.relicChoices [aria-pressed="true"]{border:2px solid #f4d185}
+
+/* Eight directions: corner targets are at least 44px, including compact layout. */
+#upLeft{left:4px;top:0}#upRight{left:128px;top:0}
+#downLeft{left:4px;top:112px}#downRight{left:128px;top:112px}
+.dir.diagonal{background:#203c52;font-size:24px}
+@media(max-width:380px){.dpad{left:4px}#cancel{right:78px;width:50px;height:50px}#ok{right:6px;width:70px;height:70px}}

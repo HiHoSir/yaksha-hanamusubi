@@ -23,7 +23,7 @@ const ASSET_PATHS={
  heroYukata:null,heroDemon:null,
  npcSheet:null,hotScene:null,
  enemySheet:null,battle:null,
- world:"assets/maps/world-v15.29.png"
+ world:"assets/maps/world-v15.30.png"
 };
 const IMG={}; for(const [k,v] of Object.entries(ASSET_PATHS)){if(!v)continue;const im=new Image();im.onload=assetLoaded;im.src=v;IMG[k]=im}
 
@@ -38,13 +38,10 @@ const VILLAGE_LAYER_PATHS={
 };
 const villageComposite=new Image();
 villageComposite.onload=assetLoaded;
-villageComposite.src="assets/maps/village-composite.png";
-const villageForeground=new Image();
-villageForeground.onload=assetLoaded;
-villageForeground.src="assets/maps/village-foreground.png";
+villageComposite.src="assets/maps/village-v15.30.png";
 const fieldWorld=new Image();
 fieldWorld.onload=assetLoaded;
-fieldWorld.src="assets/maps/world-v15.29.png";
+fieldWorld.src="assets/maps/world-v15.30.png";
 const VILLAGE_LAYERS={};
 for(const [k,v] of Object.entries(VILLAGE_LAYER_PATHS)){
  if(!v)continue;
@@ -54,7 +51,7 @@ function layerReady(im){return !!(im&&im.complete&&im.naturalWidth&&im.naturalHe
 function drawFullLayer(c,im){if(!layerReady(im))return false;c.drawImage(im,0,0,768,768);return true}
 const B9={
  village:"assets/maps/village.png",forest:"assets/maps/forest.png",
- world:"assets/maps/world-v15.29.png",battle:"assets/scenes/battle.png",
+ world:"assets/maps/world-v15.30.png",battle:"assets/scenes/battle.png",
  hot:"assets/scenes/hotspring.png",dialogue:"assets/scenes/dialogue.png",
  title:"assets/ui/title-yashahime.png",outfits:"assets/ui/outfits.png"
 };
@@ -368,10 +365,10 @@ function interiorBlocked(x,y){
  // Keep the bottom-center doorway usable.
  return false;
 }
-function enterInterior(area){S.area=area;S.x=384;S.y=625;S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
+function enterInterior(area){YK_INPUT.stopAll();S.area=area;S.x=384;S.y=625;S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
 function leaveInterior(){
- S.area="village";
- if(S.lastInterior==="osumiHome"){S.x=603;S.y=428}else{S.x=579;S.y=251}
+ YK_INPUT.stopAll();S.area="village";
+ const door=VILLAGE_LAYOUT.doors.find(d=>d.id===S.lastInterior)||VILLAGE_LAYOUT.doors[0];S.x=door.x;S.y=door.y+8;
  S.dir="d";S.frame=0;
  YK_SAVE.auto(S);message("鬼灯の里");hud();
 }
@@ -450,8 +447,8 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  c.save();
  c.globalAlpha=.32;c.fillStyle="#ff3157";
  for(const b of VILLAGE_LAYOUT.buildings){const [x0,y0,x1,y1]=b.rect;c.fillRect(x0,y0,x1-x0,y1-y0)}
- const [rx0,ry0,rx1,ry1]=VILLAGE_LAYOUT.river.rect;c.fillStyle="#248cff";c.fillRect(rx0,ry0,rx1-rx0,ry1-ry0);
- const [bx0,bx1]=VILLAGE_LAYOUT.river.bridge;c.fillStyle="#33e58a";c.fillRect(bx0,ry0,bx1-bx0,ry1-ry0);
+ c.fillStyle="#248cff";for(let y=424;y<650;y+=4)for(let x=0;x<768;x+=4)if(villageWaterBlocked(x+2,y+2))c.fillRect(x,y,4,4);
+ c.fillStyle="#e69825";for(const [x0,y0,x1,y1] of VILLAGE_LAYOUT.vegetation)c.fillRect(x0,y0,x1-x0,y1-y0);
  c.globalAlpha=.55;c.fillStyle="#ffe03b";
  for(const door of VILLAGE_LAYOUT.doors)c.fillRect(door.x-door.halfW,door.y-door.halfH,door.halfW*2,door.halfH*2);
  c.globalAlpha=.55;c.fillStyle="#d45cff";
@@ -473,18 +470,18 @@ function map(){
  }
  if(S.area==="field")drawWorldPins(g,false);
  drawActors();
- if(S.area==="village"&&layerReady(villageForeground))g.drawImage(villageForeground,0,0,768,768);
+ // New village intentionally has no foreground canopy over actors.
  drawDoorHint();
- if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"街道を歩いて入口へ · 地図で目的地を確認");}
- else if(S.area==="village")worldHint("南の出口から街道へ戻れます");
+ if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"街道を歩いて入口へ · 地図で目的地を確認");}
+ else if(S.area==="village")worldHint("南の橋・北の道から街道へ戻れます");
  else if(YK_WORLD.places[S.area])worldHint("西の端から街道へ戻れます");
 }const NPCS={
  village:[
-  {x:142,y:338,type:"child",name:"里の子",dir:"r",frame:1,talk:["夜叉姫さま、おかえりなさい！","川べりに花びらが流れてきたよ。"]},
-  {x:655,y:335,type:"merchant",name:"よろず屋",dir:"l",frame:1,talk:["旅支度なら任せておくれ。","社へ行くなら、森道には気をつけな。"]},
-  {id:"village-woman-osumi",x:548,y:500,type:"woman",name:"里の女・お澄",dir:"l",frame:1,role:"村仕事",talk:["夜叉姫さま、お帰りなさい。","今日は花染めの糸がよく乾きそうですね。"]},
-  {id:"teahouse-girl-odango",x:690,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"l",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","ひと休みしたら、天妖の社への坂道も楽になりますよ。"]},
-  {x:270,y:390,type:"elder",name:"里長",dir:"r",frame:1,talk:["天妖の社へ向かいなされ。","失われた想いを結ぶ鍵が、あそこに眠っております。"]}
+  {x:282,y:284,type:"child",name:"里の子",dir:"r",frame:1,talk:["夜叉姫さま、おかえりなさい！","川べりに花びらが流れてきたよ。"]},
+  {x:491,y:284,type:"merchant",name:"よろず屋",dir:"l",frame:1,talk:["旅支度なら任せておくれ。","社へ行くなら、森道には気をつけな。"]},
+  {id:"village-woman-osumi",x:480,y:399,type:"woman",name:"里の女・お澄",dir:"l",frame:1,role:"村仕事",talk:["夜叉姫さま、お帰りなさい。","今日は花染めの糸がよく乾きそうですね。"]},
+  {id:"teahouse-girl-odango",x:553,y:218,type:"teagirl",name:"茶屋娘・お団子",dir:"l",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","ひと休みしたら、天妖の社への坂道も楽になりますよ。"]},
+  {x:318,y:354,type:"elder",name:"里長",dir:"r",frame:1,talk:["天妖の社へ向かいなされ。","失われた想いを結ぶ鍵が、あそこに眠っております。"]}
  ],
  teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","店の中なら、ゆっくり休んでいけますよ。"]}],
  osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、夜叉姫さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたところなんです。"]}],
@@ -502,7 +499,7 @@ function drawActors(){
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero")hero(g,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.52:.92);
+   if(a.kind==="hero")hero(g,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.38:["village","teahouse","osumiHome"].includes(S.area)?.68:.92);
    else {const n=a.n;npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
@@ -573,7 +570,13 @@ function action(){
   if(S.y>=590){leaveInterior();return true}
  }
  const n=nearestNPC(100);
- if(n)return talk({n:n.name,t:n.talk});
+ if(n){
+  const event=D.story[S.quest];
+  if(event&&event.area===S.area&&event.speaker===n.name){const stage=S.quest;
+   return talk({n:n.name,t:event.lines},()=>{if(S.quest!==stage)return;S.quest=stage+1;if(event.petal)S.petals++;S.destination=event.target;YK_SAVE.auto(S);message(event.unlock,4200);});
+  }
+  return talk({n:n.name,t:n.talk});
+ }
  if(S.area==="hotspring"){
   hotBathing=false;YK_INPUT.stopAll();
   busy=true;$("hotSpringText").textContent="湯気の向こうで、花びらが静かに揺れている。";
@@ -611,56 +614,31 @@ function renderHotSpring(){
 }
 function inRect(x,y,r){return x>=r[0]&&x<=r[2]&&y>=r[1]&&y<=r[3]}
 const VILLAGE_LAYOUT={
- version:"15.22",
- size:[768,768],
+ version:"15.30",size:[768,768],
+ // Footprint of the visible buildings; obsolete houses no longer block the grass.
  buildings:[
-  {id:"houseNW",rect:[58,82,307,226]},
-  {id:"houseNE",rect:[449,82,709,232]},
-  {id:"teahouse",rect:[495,257,710,407],door:{x:579,y:251,halfW:50,halfH:38,approachW:52,target:"teahouse"}},
-  {id:"smallCentral",rect:[334,274,425,356]},
-  {id:"westHouse",rect:[0,280,118,433]},
-  {id:"osumiLegacy",rect:[210,285,323,443]},
-  {id:"eastObject",rect:[454,274,497,421]}
+  {id:"houseNW",rect:[113,38,254,161]},
+  {id:"teahouse",rect:[501,38,697,170]},
+  {id:"osumiHome",rect:[562,296,694,414]},
+  {id:"well",rect:[108,321,145,370]}
  ],
+ vegetation:[],
+ walkZones:[[345,34,423,736],[253,213,525,438],[146,211,648,260],[162,162,202,242],[605,172,644,252],[604,417,644,468],[410,437,644,470],[148,337,275,381],[95,305,211,396]],
  doors:[
-  {id:"teahouse",x:579,y:251,halfW:50,halfH:38,target:"teahouse"},
-  {id:"osumiHome",x:603,y:428,halfW:50,halfH:38,target:"osumiHome",visualApproach:[545,386,661,466]}
+  {id:"teahouse",x:623,y:185,halfW:25,halfH:16,target:"teahouse"},
+  {id:"osumiHome",x:623,y:430,halfW:25,halfH:16,target:"osumiHome"}
  ],
- river:{rect:[0,459,768,638],bridge:[316,430]},
- exit:{to:"field",rect:[320,720,450,768]},
- npcAnchors:{
-  child:[142,338],merchant:[655,335],osumi:[548,500],teagirl:[690,245],elder:[270,390]
- }
+ river:{rect:[0,539,768,636],bridge:[344,423]},
+ exit:{to:"field",rect:[345,720,423,768]},
+ northExit:{to:"field",rect:[345,0,423,54]},
+ npcAnchors:{child:[282,284],merchant:[491,284],osumi:[480,399],teagirl:[553,218],elder:[318,354]}
 };
+function villageWaterBlocked(x,y){return y>539&&y<636&&(x<344||x>423);}
 function villageBlocked(x,y){
- const r=9;
- if(x<r||y<r||x>768-r||y>768-r)return true;
- const hitRect=(rect)=>{
-  const [a,b,c,d]=rect;
-  const qx=Math.max(a,Math.min(x,c)),qy=Math.max(b,Math.min(y,d));
-  return (x-qx)*(x-qx)+(y-qy)*(y-qy)<r*r;
- };
- // Door approach corridors punch a safe opening into the building collision.
- // osumiHome's current visual/interaction door is at (603,428), outside its legacy collision rectangle;
- // the explicit approach below keeps that visible doorway reachable until the building layer is re-authored.
- const osumiDoor=VILLAGE_LAYOUT.doors.find(d=>d.id==="osumiHome");
- const va=osumiDoor?.visualApproach;
- if(va&&x>=va[0]&&x<=va[2]&&y>=va[1]&&y<=va[3])return false;
- const inDoorApproach=(b)=>{
-  if(!b.door)return false;
-  const {x:dx,y:dy,approachW=52}=b.door;
-  return Math.abs(x-dx)<=approachW && y>=dy-24 && y<=dy+34;
- };
- for(const b of VILLAGE_LAYOUT.buildings){
-  if(inDoorApproach(b))continue;
-  if(hitRect(b.rect))return true;
- }
- const [rx0,ry0,rx1,ry1]=VILLAGE_LAYOUT.river.rect;
- if(hitRect([rx0,ry0,rx1,ry1])){
-  const [bx0,bx1]=VILLAGE_LAYOUT.river.bridge;
-  if(!(x>=bx0&&x<=bx1))return true;
- }
- return false;
+ const r=6;
+ const hitRect=([a,b,c,d])=>Math.hypot(x-Math.max(a,Math.min(x,c)),y-Math.max(b,Math.min(y,d)))<r;
+ return !VILLAGE_LAYOUT.walkZones.some(rect=>inRect(x,y,rect))||
+  VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
 function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
   if(!YK_WORLD.walkable(x,y))return true;
@@ -670,6 +648,7 @@ function exitArea(){
  if(S.area==="village"){
    const [x0,y0,x1,y1]=VILLAGE_LAYOUT.exit.rect;
    if(S.x>x0&&S.x<x1&&S.y>y0&&S.y<y1)return VILLAGE_LAYOUT.exit.to;
+   if(inRect(S.x,S.y,VILLAGE_LAYOUT.northExit.rect))return VILLAGE_LAYOUT.northExit.to;
  }
  if(YK_WORLD.places[S.area]&&S.area!=="village"&&S.x<42)return "field";
  return null;
@@ -677,10 +656,15 @@ function exitArea(){
 function move(dx,dy,dir){
  if(busy)return;
  S.dir=dir;
- // Clamp before collision sampling so a step that crosses the screen edge can still reach an exit.
- const sp=(Number($("speedSelect").value)||1)*(S.area==="field"?8/22:1),nx=clamp(S.x+dx*sp,27,741),ny=clamp(S.y+dy*sp,34,736);
- if([.25,.5,.75,1].some(t=>collision(S.x+(nx-S.x)*t,S.y+(ny-S.y)*t))){S.frame=1;map();return;}
- S.x=clamp(nx,27,741);S.y=clamp(ny,34,736);
+ // Equal diagonal speed; short collision steps follow edges without jumping corners.
+ const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(S.area==="field"?8:22);
+ const vx=dx/norm*sp,vy=dy/norm*sp,steps=Math.ceil(sp/2),startX=S.x,startY=S.y;
+ for(let i=0;i<steps;i++){
+  const nx=clamp(S.x+vx/steps,27,741),ny=clamp(S.y+vy/steps,34,736);
+  if(!collision(nx,ny)){S.x=nx;S.y=ny;}
+  else if(vx&&vy){if(!collision(nx,S.y))S.x=nx;else if(!collision(S.x,ny))S.y=ny;}
+ }
+ if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
@@ -779,10 +763,10 @@ function renderRelics(){
  $("itemsPanel").innerHTML=`<p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
  document.querySelectorAll("[data-relic]").forEach(b=>YK_INPUT.tap(b,()=>{const id=b.dataset.relic;S.equippedRelic=Object.hasOwn(D.relics,id)&&S.relics[id]?id:null;YK_SAVE.auto(S);busy=false;menu();}));
 }
-function menu(){if(busy)return;busy=true;$("statusPanel").innerHTML=`夜叉姫　Lv.${S.lv}<br>HP ${S.hp}/${S.maxhp}　攻撃 ${S.atk+relicBonus("atk")}　防御 ${S.def+relicBonus("def")}<br>武器：${S.weapon}`;renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
+function menu(){if(busy)return;YK_INPUT.stopAll();busy=true;$("statusPanel").innerHTML=`夜叉姫　Lv.${S.lv}<br>HP ${S.hp}/${S.maxhp}　攻撃 ${S.atk+relicBonus("atk")}　防御 ${S.def+relicBonus("def")}<br>武器：${S.weapon}`;renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
 function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n);return `<div class="slot"><b>${n}番</b>　${i?`Lv.${i.lv} / ${i.area}`:"記録なし"}<div class="slotBtns"><button data-save="${n}">保存</button><button data-load="${n}">読込</button></div></div>`}).join("");document.querySelectorAll("[data-save]").forEach(b=>YK_INPUT.tap(b,()=>{YK_SAVE.saveSlot(+b.dataset.save,S);slots()}));document.querySelectorAll("[data-load]").forEach(b=>YK_INPUT.tap(b,()=>{const v=YK_SAVE.loadSlot(+b.dataset.load);if(v){restoreState(v);close("saveMenu")}}))}
 function close(id){YK_INPUT.stopAll();$(id).classList.remove("show");busy=false;hud()}
-function worldMap(){if(busy)return;busy=true;$("worldMap").classList.add("show");drawWorld()}
+function worldMap(){if(busy)return;YK_INPUT.stopAll();busy=true;$("worldMap").classList.add("show");drawWorld()}
 function worldHint(text){rr(g,114,724,540,30,8,"#07131fe8","#c9ad78");g.font="16px sans-serif";g.textAlign="center";g.fillStyle="#fff0ca";g.fillText(text,384,745);}
 function enterWorldPlace(k){
  const p=YK_WORLD.places[k];if(!p)return;
@@ -809,13 +793,13 @@ function drawWorld(){
  c.fillStyle="#70edff";c.beginPath();c.moveTo(pos[0],pos[1]-4);c.lineTo(pos[0]-7,pos[1]-16);c.lineTo(pos[0]+7,pos[1]-16);c.closePath();c.fill();c.restore();
  const target=YK_WORLD.places[S.destination];
  $("worldStatus").textContent="現在地："+D.areas[S.area].name+"　／　"+(target?"目的地："+target.name+" — "+target.note:"白い輪が現在地。地名を選んで旅先の案内を確認できます。");
- $("worldPlaces").innerHTML=Object.entries(YK_WORLD.places).map(([k,p])=>`<button data-world-place="${k}" aria-pressed="${S.destination===k}" class="${S.destination===k?"selected":""}">${p.name}<small>${S.visitedAreas[k]?"訪問済み":"未訪問"}</small></button>`).join("");
- document.querySelectorAll("[data-world-place]").forEach(b=>YK_INPUT.tap(b,()=>{S.destination=b.dataset.worldPlace;YK_SAVE.auto(S);drawWorld();}));
+ $("worldPlaces").innerHTML=Object.entries(YK_WORLD.places).map(([k,p])=>`<button data-world-place="${k}" aria-pressed="${S.destination===k}" class="${S.destination===k?"selected":""}">${p.name}<small>${S.visitedAreas[k]?"訪問済み":"訪問可能"}</small></button>`).join("");
+ document.querySelectorAll("[data-world-place]").forEach(b=>YK_INPUT.tap(b,()=>{const k=b.dataset.worldPlace;S.destination=k;YK_SAVE.auto(S);drawWorld();}));
 }
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
-YK_INPUT.hold($("up"),()=>battlePad("u")||move(0,-22,"u"));YK_INPUT.hold($("down"),()=>battlePad("d")||move(0,22,"d"));YK_INPUT.hold($("left"),()=>battlePad("l")||move(-22,0,"l"));YK_INPUT.hold($("right"),()=>battlePad("r")||move(22,0,"r"));
+YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);});
 YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
-YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),menu);YK_INPUT.tap($("worldBtn"),worldMap);YK_INPUT.tap($("saveBtn"),()=>{if(busy)return;busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(busy)return;busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
+YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),menu);YK_INPUT.tap($("worldBtn"),worldMap);YK_INPUT.tap($("saveBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{selectCmd(i);cmd(b.dataset.cmd)}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
@@ -827,7 +811,7 @@ document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
  if(e.key==="Escape"){for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
  if(["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;
- const fn={ArrowUp:()=>battlePad("u")||move(0,-22,"u"),ArrowDown:()=>battlePad("d")||move(0,22,"d"),ArrowLeft:()=>battlePad("l")||move(-22,0,"l"),ArrowRight:()=>battlePad("r")||move(22,0,"r"),Enter:()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action()}[e.key];
+ const fn={Enter:()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action()}[e.key];
  if(fn){e.preventDefault();fn()}
 });
 $("app")?.addEventListener("contextmenu",e=>e.preventDefault());

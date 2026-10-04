@@ -1,5 +1,6 @@
 window.YK_INPUT=(()=>{
 const timers=new Map();
+const directionStops=[];
 function hold(el,fn){
  if(!el)return;
  const stop=()=>{const t=timers.get(el);if(t){clearTimeout(t.delay);clearInterval(t.repeat);timers.delete(el)}};
@@ -12,7 +13,24 @@ function hold(el,fn){
  ["pointerup","pointercancel","pointerleave","lostpointercapture"].forEach(n=>el.addEventListener(n,stop));
 }
 function tap(el,fn){if(!el)return;el.addEventListener("pointerdown",e=>{e.preventDefault();fn(e)})}
-function stopAll(){for(const [el,t] of timers){clearTimeout(t.delay);clearInterval(t.repeat)}timers.clear()}
+function stopAll(){for(const stop of directionStops)stop();for(const [el,t] of timers){clearTimeout(t.delay);clearInterval(t.repeat)}timers.clear()}
 window.addEventListener("blur",stopAll);window.addEventListener("pagehide",stopAll);document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll()});
-return {hold,tap,stopAll};
+function directions(bindings,fn){
+ const pressed=new Map();let timer=null;
+ const stop=()=>{pressed.clear();clearTimeout(timer);timer=null;};directionStops.push(stop);
+ const vector=()=>{let x=0,y=0;for(const v of pressed.values()){x+=v[0];y+=v[1];}return [Math.sign(x),Math.sign(y)];};
+ const step=()=>{const [x,y]=vector();if(x||y)fn(x,y);};
+ const repeat=()=>{timer=null;if(!pressed.size)return;step();if(pressed.size)timer=setTimeout(repeat,105);};
+ const press=(key,v)=>{if(pressed.has(key))return;pressed.set(key,v);step();if(pressed.size&&timer===null)timer=setTimeout(repeat,260);};
+ const release=key=>{pressed.delete(key);if(!pressed.size){clearTimeout(timer);timer=null;}};
+ for(const [el,v] of bindings){
+  el.addEventListener("pointerdown",e=>{e.preventDefault();try{el.setPointerCapture?.(e.pointerId)}catch(_){}press("p"+e.pointerId,v);});
+  el.addEventListener("pointermove",e=>{const key="p"+e.pointerId;if(!pressed.has(key))return;const hit=document.elementFromPoint?.(e.clientX,e.clientY);const entry=bindings.find(([b])=>b===hit);if(entry)pressed.set(key,entry[1]);});
+  for(const type of ["pointerup","pointercancel","lostpointercapture"])el.addEventListener(type,e=>release("p"+e.pointerId));
+ }
+ const keys={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+ document.addEventListener("keydown",e=>{if(!keys[e.key]||e.metaKey||e.ctrlKey||e.altKey||["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;e.preventDefault();if(!e.repeat)press(e.key,keys[e.key]);});
+ document.addEventListener("keyup",e=>{if(keys[e.key])release(e.key);});
+}
+return {hold,tap,stopAll,directions};
 })();

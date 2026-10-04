@@ -86,6 +86,30 @@
       "status": "passed"
     },
     {
+      "name": "diagonal touch and simultaneous keys have equal speed and release cleanly",
+      "status": "passed"
+    },
+    {
+      "name": "opening map cancels held directions and collision never crosses water",
+      "status": "passed"
+    },
+    {
+      "name": "actual eight-direction movement traverses every road in both directions and speeds",
+      "status": "passed"
+    },
+    {
+      "name": "village and interiors: actual movement reaches all NPCs, doors, north road and well garden at both speeds",
+      "status": "passed"
+    },
+    {
+      "name": "north road exit, walls and old river saves remain safe",
+      "status": "passed"
+    },
+    {
+      "name": "story guides the journey without locking entrances; progress and petal persist",
+      "status": "passed"
+    },
+    {
       "name": "hold stopAll from immediate callback leaves no delayed repeat",
       "status": "passed"
     }

@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1020">
-<title>夜叉姫の花結び奇譚 β15.29</title>
-<link rel="stylesheet" href="css/game.css?v=15.29">
+<title>夜叉姫の花結び奇譚 β15.30</title>
+<link rel="stylesheet" href="css/game.css?v=15.30">
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="brand">夜叉姫の花結び奇譚 <small>β15.29</small></div>
+    <div class="brand">夜叉姫の花結び奇譚 <small>β15.30</small></div>
     <div class="topBtns">
       <button id="worldBtn">地図</button><button id="bookBtn">手帳</button><button id="saveBtn">保存</button><button id="settingsBtn">設定</button>
     </div>
@@ -25,7 +25,11 @@
   </main>
 
   <section id="pad" aria-label="ゲーム操作">
-    <div class="dpad">
+    <div class="dpad" aria-label="8方向移動">
+      <button id="upLeft" class="dir diagonal" aria-label="左上">↖</button>
+      <button id="upRight" class="dir diagonal" aria-label="右上">↗</button>
+      <button id="downLeft" class="dir diagonal" aria-label="左下">↙</button>
+      <button id="downRight" class="dir diagonal" aria-label="右下">↘</button>
       <button id="up" class="dir">▲</button>
       <button id="left" class="dir">◀</button>
       <button id="right" class="dir">▶</button>
@@ -47,7 +51,7 @@
     <div class="subtitle">— 鬼と花と、忘れられた約束 —</div>
     <button id="newGame" class="primary">はじめから</button>
     <button id="continueGame">つづきから</button>
-    <div class="version">BETA 15.29 / WORLD MAP PREVIEW</div>
+    <div class="version">BETA 15.30 / EIGHT DIRECTION MOVEMENT</div>
   </div>
 </div>
 
@@ -89,12 +93,12 @@
 
 <div id="gameover" class="overlay"><div class="titlebox"><h2>力尽きた……</h2><p>最後の自動保存から再開できます。</p><button id="retryBtn" class="primary">再開する</button><button id="goTitleBtn">タイトルへ</button></div></div>
 
-<script src="js/data.js?v=15.29"></script>
-<script src="js/world.js?v=15.29"></script>
-<script src="js/save.js?v=15.29"></script>
-<script src="js/audio.js?v=15.29"></script>
-<script src="js/input.js?v=15.29"></script>
-<script src="js/game.js?v=15.29"></script>
+<script src="js/data.js?v=15.30"></script>
+<script src="js/world.js?v=15.30"></script>
+<script src="js/save.js?v=15.30"></script>
+<script src="js/audio.js?v=15.30"></script>
+<script src="js/input.js?v=15.30"></script>
+<script src="js/game.js?v=15.30"></script>
 
 
 
