@@ -1,0 +1,62 @@
+{
+  "environment": "Node VM + native canvas; not Safari or a browser",
+  "results": [
+    {
+      "name": "new game and A advances opening dialogue",
+      "status": "passed"
+    },
+    {
+      "name": "hold moves; release returns to neutral",
+      "status": "passed"
+    },
+    {
+      "name": "all 7 hero sets retain all four directions (28 checks)",
+      "status": "passed"
+    },
+    {
+      "name": "area transition cancels hold timer synchronously",
+      "status": "passed"
+    },
+    {
+      "name": "pagehide cancels held pointer",
+      "status": "passed"
+    },
+    {
+      "name": "save and restore selected outfit and direction",
+      "status": "passed"
+    },
+    {
+      "name": "keyboard battle cursor and item command",
+      "status": "passed"
+    },
+    {
+      "name": "battle escape returns to movement",
+      "status": "passed"
+    },
+    {
+      "name": "battle victory awards and saves progress",
+      "status": "passed"
+    },
+    {
+      "name": "defeat does not overwrite autosave; retry restores it",
+      "status": "passed"
+    },
+    {
+      "name": "all 6 costumes in dialogue, battle and hot spring",
+      "status": "passed"
+    },
+    {
+      "name": "six costumes show attack, hit and idle; repeated commands cannot stack damage",
+      "status": "passed"
+    },
+    {
+      "name": "loading a state cancels pending battle damage and animation timers",
+      "status": "passed"
+    },
+    {
+      "name": "hold stopAll from immediate callback leaves no delayed repeat",
+      "status": "passed"
+    }
+  ],
+  "missingAssets": []
+}

@@ -1,0 +1,72 @@
+{
+  "version": "beta15.26",
+  "target": "Hozuki Village replacement art",
+  "canvas": [
+    768,
+    768
+  ],
+  "style": [
+    "1990s Japanese folklore/comedic JRPG",
+    "readable top-down layout",
+    "warm colorful SNES-era nostalgia",
+    "modern clean rendering"
+  ],
+  "strict_rules": [
+    "NO characters or NPCs baked into map art",
+    "NO UI, HUD, minimap, labels, signs containing readable text, speech bubbles or button icons",
+    "NO player sprite",
+    "NO collision/debug overlays",
+    "Buildings, paths, bridge and river must visually agree with village-map-spec.json",
+    "Layer assets must preserve exact 768x768 registration"
+  ],
+  "layers": {
+    "ground": {
+      "path": "assets/tiles/village-ground.png",
+      "alpha": "opaque",
+      "contains": [
+        "terrain",
+        "roads",
+        "river base",
+        "bridge base"
+      ]
+    },
+    "buildings": {
+      "path": "assets/buildings/village-buildings.png",
+      "alpha": "transparent",
+      "contains": [
+        "houses",
+        "teahouse",
+        "shop exteriors"
+      ],
+      "no": [
+        "people",
+        "text labels"
+      ]
+    },
+    "nature": {
+      "path": "assets/nature/village-nature.png",
+      "alpha": "transparent",
+      "contains": [
+        "trees",
+        "flowers",
+        "rocks",
+        "river-edge vegetation"
+      ]
+    },
+    "objects": {
+      "path": "assets/objects/village-objects.png",
+      "alpha": "transparent",
+      "contains": [
+        "lanterns",
+        "fences",
+        "barrels",
+        "small props"
+      ],
+      "no": [
+        "people",
+        "UI"
+      ]
+    }
+  },
+  "activation": "Keep VILLAGE_RENDER_POLICY.mode=composite until all four replacement layers pass visual QA."
+}

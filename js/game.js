@@ -1,8 +1,18 @@
-// beta15.1: production background-layer architecture + wardrobe preview
+// beta15.28: registered walking garments and dedicated battle poses
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
-window.gameState=YK_SAVE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
+window.gameState=YK_SAVE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
+let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
+function assetLoaded(){
+ if(assetDrawQueued)return;assetDrawQueued=true;
+ requestAnimationFrame(()=>{assetDrawQueued=false;
+  if($("title").classList.contains("show"))titleHero();
+  if($("hotSpring").classList.contains("show"))renderHotSpring();
+  if($("dialog").classList.contains("show"))renderDialogPortrait();
+  if(battle)renderBattle();else hud();
+ });
+}
 
 const ASSET_PATHS={
  field:"assets/maps/field.png",village:"assets/maps/village.png",shrine:"assets/maps/shrine.png",
@@ -14,7 +24,7 @@ const ASSET_PATHS={
  enemySheet:null,battle:null,
  world:"assets/scenes/world-map.png"
 };
-const IMG={}; for(const [k,v] of Object.entries(ASSET_PATHS)){const im=new Image();im.src=v;im.onload=()=>{if(!busy)hud()};IMG[k]=im}
+const IMG={}; for(const [k,v] of Object.entries(ASSET_PATHS)){if(!v)continue;const im=new Image();im.onload=assetLoaded;im.src=v;IMG[k]=im}
 
 // Production village background layers. Files are optional: until a finished PNG exists,
 // the matching procedural fallback is drawn. This prevents placeholder art from silently
@@ -22,18 +32,22 @@ const IMG={}; for(const [k,v] of Object.entries(ASSET_PATHS)){const im=new Image
 const VILLAGE_LAYER_PATHS={
  ground:"assets/tiles/village-ground.png",
  buildings:"assets/buildings/village-buildings.png",
- nature:"assets/nature/village-nature.png",
- objects:"assets/objects/village-objects.png"
+ nature:null,
+ objects:null
 };
 const villageComposite=new Image();
+villageComposite.onload=assetLoaded;
 villageComposite.src="assets/maps/village-composite.png";
 const villageForeground=new Image();
+villageForeground.onload=assetLoaded;
 villageForeground.src="assets/maps/village-foreground.png";
 const fieldWorld=new Image();
+fieldWorld.onload=assetLoaded;
 fieldWorld.src="assets/maps/field-world.png";
 const VILLAGE_LAYERS={};
 for(const [k,v] of Object.entries(VILLAGE_LAYER_PATHS)){
- const im=new Image(); im.src=v; VILLAGE_LAYERS[k]=im;
+ if(!v)continue;
+ const im=new Image(); im.onload=assetLoaded;im.src=v; VILLAGE_LAYERS[k]=im;
 }
 function layerReady(im){return !!(im&&im.complete&&im.naturalWidth&&im.naturalHeight)}
 function drawFullLayer(c,im){if(!layerReady(im))return false;c.drawImage(im,0,0,768,768);return true}
@@ -43,10 +57,77 @@ const B9={
  hot:"assets/scenes/hotspring.png",dialogue:"assets/scenes/dialogue.png",
  title:"assets/ui/title-yashahime.png",outfits:"assets/ui/outfits.png"
 };
-const B9IMG={};for(const [k,v] of Object.entries(B9)){const im=new Image();im.src=v;B9IMG[k]=im}
-const B9OUT={normal:"normal",light:"travel",white:"swimWhite",navy:"swimNavy",swimWhite:"swimWhite",swimNavy:"swimNavy",yukata:"yukata",demon:"battle"};
-const OUTFIT_READY={normal:true,light:false,white:false,navy:false,yukata:false,demon:false};
-const B9SPR={};["normal","battle","travel","swimWhite","swimNavy","yukata"].forEach(o=>{B9SPR[o]={};["down","left","right","up"].forEach(d=>{B9SPR[o][d]=[];for(let i=0;i<3;i++){const im=new Image();im.src=`assets/characters/yashahime/${o}_${d}_${i}.png`;B9SPR[o][d].push(im)}})});
+const B9IMG={};
+const NPC_ASSET_ROOT="assets/characters/npc";
+// β15.26: only directions with independently verified 3-frame high-resolution sets animate.
+// Other directions use their neutral frame; rejected generation outputs are never loaded.
+const NPC_MOTION_DIRECTIONS={
+ elder:new Set(["r","l","d","u"]),
+ teagirl:new Set(["r","l","d","u"]),
+ osumi:new Set(["r","l","d","u"]),
+ satoko:new Set(["r","l","d","u"]),
+ merchant:new Set(["r","l","d","u"])
+};
+const NPC_ART_QUALITY={
+ elder:{r:"independent-3frame",l:"mirrored-3frame",d:"position-only",u:"position-only"},
+ teagirl:{r:"independent-3frame",l:"mirrored-3frame",d:"position-only",u:"position-only"},
+ osumi:{r:"position-only",l:"position-only",d:"position-only",u:"position-only"},
+ satoko:{r:"position-only",l:"position-only",d:"position-only",u:"position-only"},
+ merchant:{r:"position-only",l:"position-only",d:"position-only",u:"position-only"}
+};
+// d/u currently use safe position-only provisional motion; r/l use full 3-frame art.
+
+window.YKNpcArtQuality=(type=null)=>{
+ if(type)return NPC_ART_QUALITY[type]||null;
+ return JSON.parse(JSON.stringify(NPC_ART_QUALITY));
+};
+const NPC_ASSET_TYPES={
+ child:"satoko",
+ merchant:"merchant",
+ woman:"osumi",
+ teagirl:"teagirl",
+ elder:"elder"
+};
+const NPC_ASSETS={};
+function loadNpcAssetSet(){
+ for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
+   const set={frames:{}};
+   set.frontMaster=new Image();
+   set.frontMaster.src=`${NPC_ASSET_ROOT}/${folder}/front-1.png`;
+   for(const [dir,fileDir] of Object.entries({d:"front",u:"back",l:"left",r:"right"})){
+     set.frames[dir]=[];
+     for(let i=0;i<3;i++){
+       const im=new Image();
+       im.src=`${NPC_ASSET_ROOT}/${folder}/${fileDir}-${i}.png`;
+       set.frames[dir].push(im);
+     }
+   }
+   NPC_ASSETS[type]=set;
+ }
+}
+loadNpcAssetSet();
+for(const [k,v] of Object.entries(B9)){const im=new Image();im.onload=assetLoaded;im.src=v;B9IMG[k]=im}
+const OUTFIT_READY={normal:true,basewear:true,light:true,white:true,navy:true,yukata:true,demon:true};
+const HERO_FOLDERS={normal:"normal-v9",basewear:"basewear",light:"light-v9",white:"white-v9",navy:"navy-v9",yukata:"yukata-v9",demon:"demon-v9"};
+const BATTLE_SPRITES={};
+let battlePose="idle";
+const battleTimers=new Set();
+function resetBattleAnimation(){for(const id of battleTimers)clearTimeout(id);battleTimers.clear();battlePose="idle";}
+function battleLater(fn,ms){const owner=battle;const id=setTimeout(()=>{battleTimers.delete(id);if(battle&&battle===owner)fn();},ms);battleTimers.add(id);}
+for(const outfit of ["normal","light","white","navy","yukata","demon"]){
+ BATTLE_SPRITES[outfit]={};
+ for(const pose of ["attack","hit"]){const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/yashahime/battle-v9/${outfit}-${pose}.png`;BATTLE_SPRITES[outfit][pose]=im;}
+}
+const LAYERED_SPRITES={};
+for(const [outfit,folder] of Object.entries(HERO_FOLDERS)){
+ const set=LAYERED_SPRITES[outfit]={};
+ for(const [dir,prefix] of Object.entries({d:"front",u:"back",l:"left",r:"right"})){
+  set[dir]=["right-leg-up","neutral","left-leg-up"].map(phase=>{
+   const im=new Image();im.onload=assetLoaded;
+   im.src=`assets/characters/yashahime/${folder}/${prefix}-${phase}.png`;return im;
+  });
+ }
+}
 const NPC_ROLES=["woman","teagirl","man","child","elder","merchant","ferryman","miko","guard","traveler","hotkeeper","crow"];
 const B9NPC={};
 NPC_ROLES.forEach(n=>{
@@ -55,16 +136,49 @@ NPC_ROLES.forEach(n=>{
   ["down","left","right","up"].forEach(d=>{
     B9NPC[n].frames[d]=[];
     for(let i=0;i<3;i++){
-      const im=new Image(); im.src=`assets/characters/npc/${n}_${d}_${i}.png`;
-      B9NPC[n].frames[d].push(im);
+      // This archive has standalone legacy art, not legacy directional sheets.
+      // The independently verified directional sets are loaded by loadNpcAssetSet().
+      B9NPC[n].frames[d].push(null);
     }
   });
 });
-const B9EN={};["redoni","crowtengu","umibozu","ninefox","yokai_flower"].forEach(n=>{const im=new Image();im.src=`assets/enemies/${n}.png`;B9EN[n]=im});
+const B9EN={};["redoni","crowtengu","umibozu","ninefox","yokai_flower"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/enemies/${n}.png`;B9EN[n]=im});
+function enemyArt(c,x,y){
+ const name=battle?.name||"";
+ const kind=/狐/.test(name)?"ninefox":/磯|泡|水|滝/.test(name)?"umibozu":/木|蜘蛛/.test(name)?"yokai_flower":"redoni";
+ const im=B9EN[kind];if(!layerReady(im))return;
+ const scale=Math.min(210/im.naturalWidth,220/im.naturalHeight);
+ const w=im.naturalWidth*scale,h=im.naturalHeight*scale;
+ shadow(c,x,y+65,65,15,.28);c.save();c.imageSmoothingEnabled=false;
+ c.drawImage(im,x-w/2,y+65-h,w,h);c.restore();
+}
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
 const D=YK_DATA, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
-function state(v){S=window.gameState=YK_SAVE.migrate(v)}
+function state(v){
+ resetBattleAnimation();
+ S=window.gameState=YK_SAVE.migrate(v);
+ battle=null;battleLocked=false;dialogQueue=[];dialogAfter=null;
+ YK_INPUT.stopAll();
+ document.querySelectorAll(".overlay.show").forEach(el=>el.classList.remove("show"));
+ return S;
+}
+function stabilizeLoadedState(){
+ const area=D.areas[S.area]?S.area:"field";S.area=area;
+ S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
+ S.encounterGrace=Math.max(Number(S.encounterGrace)||0,D.areas[area]?.grace||0);
+ if(area==="teahouse"||area==="osumiHome"){
+   S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
+ }else{
+   S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
+   if(collision(S.x,S.y)){
+     const safe={field:[384,505],village:[373,690],shrine:[70,430],cove:[70,430],forest:[70,430],waterfall:[70,600],hotspring:[70,430],fox:[70,430]}[area]||[384,500];
+     S.x=safe[0];S.y=safe[1];
+   }
+ }
+ S.frame=1;return S;
+}
+function restoreState(v){state(v);stabilizeLoadedState();YK_SAVE.auto(S);return S}
 function rr(c,x,y,w,h,r,fill,stroke){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.stroke()}}
 function flower(c,x,y,col="#f4a0b8",z=1){c.save();c.translate(x,y);c.fillStyle=col;for(let i=0;i<5;i++){c.rotate(1.256);c.beginPath();c.ellipse(0,-5*z,3*z,6*z,0,0,7);c.fill()}c.fillStyle="#f4d579";c.beginPath();c.arc(0,0,2*z,0,7);c.fill();c.restore()}
 function sakura(c,x,y,z=1){c.save();c.translate(x,y);c.scale(z,z);c.fillStyle="#493225";c.fillRect(-7,2,14,48);c.fillStyle="#64432c";c.fillRect(-2,3,5,46);for(const q of [[-22,-6,27,"#d96f99"],[19,-7,29,"#ed8fb0"],[0,-31,32,"#f0a2bc"],[-3,-52,24,"#e783a7"]]){c.fillStyle=q[3];c.beginPath();c.arc(q[0],q[1],q[2],0,7);c.fill()}for(const p of [[-29,-18],[-6,-48],[22,-31],[31,2],[-10,-5]])flower(c,p[0],p[1],"#ffd1dd",.55);c.restore()}
@@ -150,10 +264,35 @@ function drawVillageObjectsFallback(c){
  c.fillStyle="#55392b";c.fillRect(238,292,6,32);c.fillRect(190,289,54,21);c.fillStyle="#f4ddb0";c.fillText("← 宿",217,304);
  c.fillStyle="#9c927e";for(const [x,y] of [[286,626],[480,626],[270,646],[496,646]]){c.beginPath();c.ellipse(x,y,12,7,0,0,7);c.fill()}
 }
+const VILLAGE_RENDER_POLICY={
+ mode:"composite",
+ // Switch to "layers" only after all required replacement assets pass visual QA.
+ requiredLayers:["ground","buildings","nature","objects"],
+ allowPartialLayers:false
+};
+function villageLayersReady(){
+ return VILLAGE_RENDER_POLICY.requiredLayers.every(k=>layerReady(VILLAGE_LAYERS[k]));
+}
+window.YKVillageRenderInfo=()=>({
+ mode:VILLAGE_RENDER_POLICY.mode,
+ compositeReady:layerReady(villageComposite),
+ layersReady:villageLayersReady(),
+ layers:Object.fromEntries(Object.entries(VILLAGE_LAYERS).map(([k,v])=>[k,layerReady(v)]))
+});
 function drawVillageMap(c){
- // β15.1 visual integration: generated Hozuki village composite is the active field art.
- // Characters/NPCs/UI are still rendered by the game after this map.
+ // Production-safe policy:
+ // - composite: current approved opaque map.
+ // - layers: only when every required replacement layer is present.
+ // Never mix an unfinished new layer set with the old composite.
+ if(VILLAGE_RENDER_POLICY.mode==="layers"&&villageLayersReady()){
+   drawFullLayer(c,VILLAGE_LAYERS.ground);
+   drawFullLayer(c,VILLAGE_LAYERS.buildings);
+   drawFullLayer(c,VILLAGE_LAYERS.nature);
+   drawFullLayer(c,VILLAGE_LAYERS.objects);
+   return;
+ }
  if(layerReady(villageComposite)){c.drawImage(villageComposite,0,0,768,768);return}
+ // Emergency fallback only.
  if(!drawFullLayer(c,VILLAGE_LAYERS.ground))drawVillageGroundFallback(c);
  if(!drawFullLayer(c,VILLAGE_LAYERS.buildings))drawVillageBuildingsFallback(c);
  if(!drawFullLayer(c,VILLAGE_LAYERS.nature))drawVillageNatureFallback(c);
@@ -231,15 +370,16 @@ function leaveInterior(){
  S.dir="d";S.frame=0;
  YK_SAVE.auto(S);message("鬼灯の里");hud();
 }
+function nearVillageDoor(door,pad=0){
+ return Math.abs(S.x-door.x)<=door.halfW+pad && Math.abs(S.y-door.y)<=door.halfH+pad;
+}
 function drawDoorHint(){
  if(S.area!=="village"||busy)return;
- const doors=[[579,251],[603,428]];
- let best=null,bd=1e9;
- for(const p of doors){const d=Math.hypot(S.x-p[0],S.y-p[1]);if(d<bd){bd=d;best=p}}
- if(!best||bd>58)return;
- const x=best[0],y=best[1]-34;
+ const door=VILLAGE_LAYOUT.doors.find(d=>nearVillageDoor(d,22));
+ if(!door)return;
+ const x=door.x,y=door.y-42;
  g.save();
- g.font="700 18px sans-serif";g.textAlign="center";g.textBaseline="middle";
+ g.font="700 15px sans-serif";g.textAlign="center";g.textBaseline="middle";
  const label="決定：入る",w=g.measureText(label).width+24;
  g.fillStyle="rgba(25,18,35,.82)";
  g.beginPath();g.roundRect(x-w/2,y-15,w,30,10);g.fill();
@@ -249,36 +389,76 @@ function drawDoorHint(){
 }
 function villageDoorAction(){
  if(S.area!=="village")return false;
- const atDoor=(x,y,r=38)=>{
-   const dx=x-S.x,dy=y-S.y,d=Math.hypot(dx,dy);
-   if(d>=r)return false;
-   const f={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[S.dir]||[0,-1];
-   return d<18||((dx*f[0]+dy*f[1])/(d||1))>.15;
- };
- if(atDoor(579,251)){S.lastInterior="teahouse";enterInterior("teahouse");return true}
- if(atDoor(603,428)){S.lastInterior="osumiHome";enterInterior("osumiHome");return true}
- return false
+ const door=VILLAGE_LAYOUT.doors.find(d=>nearVillageDoor(d,8));
+ if(!door)return false;
+ // In the inner part of the doorway, do not require an exact facing direction.
+ // This is intentional for touch/D-pad play on a phone.
+ S.lastInterior=door.id;
+ enterInterior(door.id);
+ return true;
 }
 
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
- const requested=outfit||"normal"; const ready=!!OUTFIT_READY[requested]; const set=B9SPR[B9OUT[ready?requested:"normal"]||"normal"]; if(!set)return;
- const dk={d:"down",l:"left",r:"right",u:"up"}[dir]||"down";
- const frames=set[dk]||set.down;
- const idx=Math.max(0,Math.min(2,Number(frame)||0));
- const im=frames?.[idx];
- if(im&&im.complete&&im.naturalWidth){c.save();c.imageSmoothingEnabled=!!(im.naturalWidth>256);if(c.imageSmoothingEnabled)c.imageSmoothingQuality="high";const w=88*z,h=104*z;shadow(c,x,y+9*z,31*z,10*z,.32);c.drawImage(im,x-w/2,y-h*.82,w,h);if(!ready){c.font=`700 ${Math.max(10,10*z)}px sans-serif`;c.textAlign="center";c.lineWidth=Math.max(2,2*z);c.strokeStyle="#07131f";c.fillStyle="#ffd98a";c.strokeText("制作中",x,y-h*.88);c.fillText("制作中",x,y-h*.88)}c.restore()}
+ const layered=LAYERED_SPRITES[outfit]||LAYERED_SPRITES.normal;
+ const frameIndex=Math.max(0,Math.min(2,Number(frame)||0));
+ const requested=layered?.[dir]?.[frameIndex];
+ const sprite=layerReady(requested)?requested:layered?.[dir]?.[1];
+ if(layerReady(sprite)){
+  const scale=104*z/312,anchorX={d:256,u:256,l:200,r:314}[dir]||256;
+  c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality="high";
+  shadow(c,x,y+9*z,31*z,10*z,.32);
+  c.drawImage(sprite,x-anchorX*scale,y+9*z-480*scale,512*scale,512*scale);
+  c.restore();return;
+ }
 }function npc(c,x,y,type,name,dir="d",frame=1){
- const k={child:"child",woman:"woman",teagirl:"teagirl",man:"man",elder:"elder",merchant:"merchant",ferryman:"ferryman",miko:"miko",guard:"guard",traveler:"traveler",hotkeeper:"hotkeeper"}[type]||"woman";
- const dk={d:"down",l:"left",r:"right",u:"up"}[dir]||"down", set=B9NPC[k];
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
- const candidate=set?.frames?.[dk]?.[idx];
- const im=(candidate&&candidate.complete&&candidate.naturalWidth)?candidate:set?.legacy;
- if(im&&im.complete&&im.naturalWidth){c.save();c.imageSmoothingEnabled=false;const scale=(k==="woman"||k==="teagirl")?1.04:1;const w=76*scale,h=91*scale;shadow(c,x,y+8,26*scale,8*scale,.25);c.drawImage(im,x-w/2,y-h*.79,w,h);c.restore()}
- c.font="600 12px sans-serif";c.textAlign="center";c.fillStyle="#fff";c.strokeStyle="#07131f";c.lineWidth=4;c.strokeText(name,x,y+36);c.fillText(name,x,y+36)
-}function map(){
+ const set=NPC_ASSETS[type];
+ const animated=NPC_MOTION_DIRECTIONS[type]?.has(dir)===true;
+ const safeIdx=animated?idx:1;
+ const candidate=set?.frames?.[dir]?.[safeIdx];
+ const ready=candidate&&candidate.complete&&candidate.naturalWidth;
+ const master=set?.frontMaster;
+ const masterReady=master&&master.complete&&master.naturalWidth;
+ if(ready||masterReady){
+   const draw=ready?candidate:master;
+   c.save();c.imageSmoothingEnabled=true;
+   const special=(type==="woman"||type==="teagirl"),child=(type==="child"),merchant=(type==="merchant");
+   const w=child?57:(merchant?68:(special?65:63));
+   const h=child?70:(merchant?80:(special?79:77));
+   shadow(c,x,y+7,w*.27,7,.22);
+   c.drawImage(draw,x-w/2,y-h*.84,w,h);
+   c.restore();
+ }else if(!NPC_ASSET_TYPES[type]){
+   // NPCs outside the five Hozuki-village roles keep their existing assets until their own map pass.
+   const k={man:"man",ferryman:"ferryman",miko:"miko",guard:"guard",traveler:"traveler",hotkeeper:"hotkeeper"}[type]||"woman";
+   const dk={d:"down",l:"left",r:"right",u:"up"}[dir]||"down",legacy=B9NPC[k];
+   const old=legacy?.frames?.[dk]?.[idx]||legacy?.legacy;
+   if(old&&old.complete&&old.naturalWidth){c.save();c.imageSmoothingEnabled=false;c.drawImage(old,x-27,y-53,54,65);c.restore()}
+ }else{
+   // Deliberately no old doll fallback: show a neutral loading marker instead of shipping mismatched art.
+   c.save();c.fillStyle="rgba(20,18,28,.72)";c.beginPath();c.arc(x,y-18,8,0,Math.PI*2);c.fill();c.restore();
+ }
+ c.font="600 11px sans-serif";c.textAlign="center";c.fillStyle="#fff";c.strokeStyle="#07131f";c.lineWidth=3;c.strokeText(name,x,y+32);c.fillText(name,x,y+32);
+}function drawVillageCollisionDebug(c){
+ if(!window.__YK_COLLISION_DEBUG||S.area!=="village")return;
+ c.save();
+ c.globalAlpha=.32;c.fillStyle="#ff3157";
+ for(const b of VILLAGE_LAYOUT.buildings){const [x0,y0,x1,y1]=b.rect;c.fillRect(x0,y0,x1-x0,y1-y0)}
+ const [rx0,ry0,rx1,ry1]=VILLAGE_LAYOUT.river.rect;c.fillStyle="#248cff";c.fillRect(rx0,ry0,rx1-rx0,ry1-ry0);
+ const [bx0,bx1]=VILLAGE_LAYOUT.river.bridge;c.fillStyle="#33e58a";c.fillRect(bx0,ry0,bx1-bx0,ry1-ry0);
+ c.globalAlpha=.55;c.fillStyle="#ffe03b";
+ for(const door of VILLAGE_LAYOUT.doors)c.fillRect(door.x-door.halfW,door.y-door.halfH,door.halfW*2,door.halfH*2);
+ c.globalAlpha=.55;c.fillStyle="#d45cff";
+ const [ex0,ey0,ex1,ey1]=VILLAGE_LAYOUT.exit.rect;c.fillRect(ex0,ey0,ex1-ex0,ey1-ey0);
+ c.globalAlpha=.9;c.fillStyle="#ffffff";
+ for(const p of Object.values(VILLAGE_LAYOUT.npcAnchors)){c.beginPath();c.arc(p[0],p[1],5,0,Math.PI*2);c.fill()}
+ c.restore();
+}
+window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;return window.__YK_COLLISION_DEBUG};
+function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
- if(S.area==="village") drawVillageMap(g);
+ if(S.area==="village"){drawVillageMap(g);drawVillageCollisionDebug(g)}
  else if(S.area==="teahouse") drawInterior(g,"tea");
  else if(S.area==="osumiHome") drawInterior(g,"home");
  else {
@@ -291,11 +471,11 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  drawDoorHint();
 }const NPCS={
  village:[
-  {x:150,y:275,type:"child",name:"里の子",talk:["夜叉姫さま、おかえりなさい！","川べりに花びらが流れてきたよ。"]},
-  {x:470,y:245,type:"merchant",name:"よろず屋",talk:["旅支度なら任せておくれ。","社へ行くなら、森道には気をつけな。"]},
-  {id:"village-woman-osumi",x:545,y:435,type:"woman",name:"里の女・お澄",dir:"r",frame:1,role:"村仕事",talk:["夜叉姫さま、お帰りなさい。","今日は花染めの糸がよく乾きそうですね。"]},
-  {id:"teahouse-girl-odango",x:515,y:250,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","ひと休みしたら、天妖の社への坂道も楽になりますよ。"]},
-  {x:380,y:385,type:"elder",name:"里長",talk:["天妖の社へ向かいなされ。","失われた想いを結ぶ鍵が、あそこに眠っております。"]}
+  {x:142,y:338,type:"child",name:"里の子",dir:"r",frame:1,talk:["夜叉姫さま、おかえりなさい！","川べりに花びらが流れてきたよ。"]},
+  {x:655,y:335,type:"merchant",name:"よろず屋",dir:"l",frame:1,talk:["旅支度なら任せておくれ。","社へ行くなら、森道には気をつけな。"]},
+  {id:"village-woman-osumi",x:548,y:500,type:"woman",name:"里の女・お澄",dir:"l",frame:1,role:"村仕事",talk:["夜叉姫さま、お帰りなさい。","今日は花染めの糸がよく乾きそうですね。"]},
+  {id:"teahouse-girl-odango",x:690,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"l",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","ひと休みしたら、天妖の社への坂道も楽になりますよ。"]},
+  {x:270,y:390,type:"elder",name:"里長",dir:"r",frame:1,talk:["天妖の社へ向かいなされ。","失われた想いを結ぶ鍵が、あそこに眠っております。"]}
  ],
  teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","店の中なら、ゆっくり休んでいけますよ。"]}],
  osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、夜叉姫さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたところなんです。"]}],
@@ -313,31 +493,161 @@ function drawActors(){
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero")hero(g,S.x,S.y,S.dir,S.frame,S.outfit,1.12);
+   if(a.kind==="hero")hero(g,S.x,S.y,S.dir,S.frame,S.outfit,.92);
    else {const n=a.n;npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
 function nearestNPC(max=92){let best=null,bd=max;for(const n of areaNPCs()){const dx=n.x-S.x,dy=n.y-S.y,d=Math.hypot(dx,dy);if(d>=bd)continue;const facing={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[S.dir]||[0,1],dot=(dx*facing[0]+dy*facing[1])/(d||1);if(dot<-.15)continue;best=n;bd=d}return best}
-function npcBlocked(x,y){return areaNPCs().some(n=>Math.hypot(x-n.x,y-n.y)<40)}
+function npcBlocked(x,y){
+ const list=NPCS[S.area]||[];
+ // Artwork can be wide; collision only uses the character's foot/body core.
+ return list.some(n=>{
+   const dx=x-n.x,dy=y-n.y;
+   const radius=n.type==="merchant"?20:(n.type==="child"?15:18);
+   return dx*dx+dy*dy<radius*radius;
+ });
+}
 function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.dir=dx>0?"r":"l";n.dir=dx>0?"l":"r"}else{S.dir=dy>0?"d":"u";n.dir=dy>0?"u":"d"}}
 
 function hud(){const a=D.areas[S.area];$("hud").innerHTML=`HP ${S.hp}/${S.maxhp}<br>Lv.${S.lv}　${S.gold}文<br><span class="outfitHud">衣装：${D.outfits[S.outfit]?.name||"花守り装束"}${OUTFIT_READY[S.outfit]?"":"（制作中）"}</span>`;$("objective").textContent="目的： "+D.objectives[Math.min(S.quest,D.objectives.length-1)];map()}
 function message(t,ms=1300){clearTimeout(msgTimer);$("message").textContent=t;$("message").style.display="block";msgTimer=setTimeout(()=>$("message").style.display="none",ms)}
+
+function talk(entry,after=null){
+ if(!entry)return false;
+ const speaker=entry.n||entry.name||"";
+ const lines=Array.isArray(entry.t)?entry.t:(Array.isArray(entry.talk)?entry.talk:[String(entry.t||entry.talk||"")]);
+ dialogQueue=lines.filter(Boolean).map(t=>({speaker,text:String(t)}));
+ if(!dialogQueue.length)return false;
+ dialogAfter=typeof after==="function"?after:null;
+ busy=true;$("dialog").classList.add("show");
+ nextDialog();return true;
+}
+function nextDialog(){
+ if(dialogQueue.length){
+  const d=dialogQueue.shift();
+  $("speaker").textContent=d.speaker;
+  $("dialogText").textContent=d.text;
+  $("dialogNext").textContent=dialogQueue.length?"次へ":"閉じる";
+  renderDialogPortrait();
+  return;
+ }
+ $("dialog").classList.remove("show");
+ const after=dialogAfter;dialogAfter=null;busy=false;
+ if(after)after();hud();
+}
+function renderDialogPortrait(){
+ const c=$("dialogPortrait");if(!c)return;
+ c.style.display=$("speaker").textContent==="夜叉姫"?"block":"none";
+ const q=c.getContext("2d");q.clearRect(0,0,c.width,c.height);
+ if(c.style.display!=="none")hero(q,90,160,"d",1,S.outfit,1.3);
+}
+function beginEncounter(){
+ const area=D.areas[S.area],pool=D.enemies[S.area];
+ if(!area||!pool?.length||area.encounter<=0)return false;
+ if(S.encounterGrace>0||S.encounterSteps<(area.min||12))return false;
+ if(Math.random()>=area.encounter)return false;
+ const e=pool[Math.floor(Math.random()*pool.length)];
+ resetBattleAnimation();battle={name:e[0],hp:e[1],max:e[1],atk:e[2],xp:e[3],gold:e[4]};
+ S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=false;
+ YK_INPUT.stopAll();S.frame=1;
+ $("battleText").textContent="どうする？";$("battle").classList.add("show");
+ selectCmd(0);renderBattle();YK_AUDIO.beep(220,.06);return true;
+}
+function encounter(){return beginEncounter()}
+function action(){
+ if($("dialog").classList.contains("show")){nextDialog();return true;}
+ if(busy)return false;
+ if(villageDoorAction())return true;
+ if(S.area==="teahouse"||S.area==="osumiHome"){
+  if(S.y>=590){leaveInterior();return true}
+ }
+ const n=nearestNPC(100);
+ if(n)return talk({n:n.name,t:n.talk});
+ if(S.area==="hotspring"){
+  hotBathing=false;YK_INPUT.stopAll();
+  busy=true;$("hotSpringText").textContent="湯気の向こうで、花びらが静かに揺れている。";
+  $("hotSpring").classList.add("show");renderHotSpring();return true;
+ }
+ message("ここには特に何もない。",800);return false;
+}
+function hotChoice(choice){
+ if(!$("hotSpring").classList.contains("show"))return;
+ if(choice==="bath"){
+  hotBathing=true;renderHotSpring();
+  S.hp=S.maxhp;S.teaVisits=(Number(S.teaVisits)||0)+1;
+  $("hotSpringText").textContent="花の香りの湯で、HPが全回復した。";
+  YK_SAVE.auto(S);hud();return;
+ }
+ if(choice==="overheat"){
+  hotBathing=true;renderHotSpring();
+  S.hp=Math.max(1,S.hp-5);
+  $("hotSpringText").textContent="少し長湯しすぎた……。HPが5減った。";
+  YK_SAVE.auto(S);hud();return;
+ }
+ $("hotSpring").classList.remove("show");busy=false;hud();
+}
+function renderHotSpring(){
+ const c=$("hotSpringCanvas"),q=c.getContext("2d");q.clearRect(0,0,c.width,c.height);
+ cover(q,B9IMG.hot,c.width,c.height);
+ if(!hotBathing){hero(q,384,365,"d",1,S.outfit,1.8);return;}
+ // The same covered white water outfit is used; the lower body sits behind water.
+ q.save();q.beginPath();q.rect(0,0,c.width,245);q.clip();
+ hero(q,384,295,"d",1,"white",1.5);q.restore();
+ q.save();q.beginPath();q.ellipse(384,192,202,85,0,0,Math.PI*2);q.clip();
+ q.fillStyle="#60969b";q.fillRect(170,240,430,60);q.restore();
+ q.strokeStyle="rgba(221,246,240,.62)";q.lineWidth=2;
+ q.beginPath();q.ellipse(384,243,57,7,0,0,Math.PI*2);q.stroke();
+}
 function inRect(x,y,r){return x>=r[0]&&x<=r[2]&&y>=r[1]&&y<=r[3]}
+const VILLAGE_LAYOUT={
+ version:"15.22",
+ size:[768,768],
+ buildings:[
+  {id:"houseNW",rect:[58,82,307,226]},
+  {id:"houseNE",rect:[449,82,709,232]},
+  {id:"teahouse",rect:[495,257,710,407],door:{x:579,y:251,halfW:50,halfH:38,approachW:52,target:"teahouse"}},
+  {id:"smallCentral",rect:[334,274,425,356]},
+  {id:"westHouse",rect:[0,280,118,433]},
+  {id:"osumiLegacy",rect:[210,285,323,443]},
+  {id:"eastObject",rect:[454,274,497,421]}
+ ],
+ doors:[
+  {id:"teahouse",x:579,y:251,halfW:50,halfH:38,target:"teahouse"},
+  {id:"osumiHome",x:603,y:428,halfW:50,halfH:38,target:"osumiHome",visualApproach:[545,386,661,466]}
+ ],
+ river:{rect:[0,459,768,638],bridge:[316,430]},
+ exit:{to:"field",rect:[320,720,450,768]},
+ npcAnchors:{
+  child:[142,338],merchant:[655,335],osumi:[548,500],teagirl:[690,245],elder:[270,390]
+ }
+};
 function villageBlocked(x,y){
  const r=9;
  if(x<r||y<r||x>768-r||y>768-r)return true;
- const hit=(a,b,c,d)=>{
-   const qx=Math.max(a,Math.min(x,c)),qy=Math.max(b,Math.min(y,d));
-   return (x-qx)*(x-qx)+(y-qy)*(y-qy)<r*r;
+ const hitRect=(rect)=>{
+  const [a,b,c,d]=rect;
+  const qx=Math.max(a,Math.min(x,c)),qy=Math.max(b,Math.min(y,d));
+  return (x-qx)*(x-qx)+(y-qy)*(y-qy)<r*r;
  };
- const solids=[
-   [58,82,307,226],[449,82,709,232],[495,257,710,407],
-   [334,274,425,356],[0,280,118,433],[210,285,323,443],[454,274,497,421]
- ];
- if(solids.some(v=>hit(v[0],v[1],v[2],v[3])))return true;
- if(hit(0,459,768,638)){
-   if(!(x>=325&&x<=421))return true;
+ // Door approach corridors punch a safe opening into the building collision.
+ // osumiHome's current visual/interaction door is at (603,428), outside its legacy collision rectangle;
+ // the explicit approach below keeps that visible doorway reachable until the building layer is re-authored.
+ const osumiDoor=VILLAGE_LAYOUT.doors.find(d=>d.id==="osumiHome");
+ const va=osumiDoor?.visualApproach;
+ if(va&&x>=va[0]&&x<=va[2]&&y>=va[1]&&y<=va[3])return false;
+ const inDoorApproach=(b)=>{
+  if(!b.door)return false;
+  const {x:dx,y:dy,approachW=52}=b.door;
+  return Math.abs(x-dx)<=approachW && y>=dy-24 && y<=dy+34;
+ };
+ for(const b of VILLAGE_LAYOUT.buildings){
+  if(inDoorApproach(b))continue;
+  if(hitRect(b.rect))return true;
+ }
+ const [rx0,ry0,rx1,ry1]=VILLAGE_LAYOUT.river.rect;
+ if(hitRect([rx0,ry0,rx1,ry1])){
+  const [bx0,bx1]=VILLAGE_LAYOUT.river.bridge;
+  if(!(x>=bx0&&x<=bx1))return true;
  }
  return false;
 }
@@ -348,7 +658,10 @@ function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,
 }if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome")return null;
- if(S.area==="village"&&S.y>720&&S.x>320&&S.x<450)return "field";
+ if(S.area==="village"){
+   const [x0,y0,x1,y1]=VILLAGE_LAYOUT.exit.rect;
+   if(S.x>x0&&S.x<x1&&S.y>y0&&S.y<y1)return VILLAGE_LAYOUT.exit.to;
+ }
  if(S.area==="field"){
    if(S.x>330&&S.x<445&&S.y>335&&S.y<455)return "village";
    if(S.x>345&&S.x<440&&S.y<175)return "shrine";
@@ -364,8 +677,9 @@ function move(dx,dy,dir){
  if(busy)return;
  S.dir=dir;
  const sp=Number($("speedSelect").value)||1,nx=S.x+dx*sp,ny=S.y+dy*sp;
- if(collision(nx,ny))return;
- S.x=clamp(nx,27,741);S.y=clamp(ny,34,736);S.frame=(S.frame+1)%3;
+ if(collision(nx,ny)){S.frame=1;map();return;}
+ S.x=clamp(nx,27,741);S.y=clamp(ny,34,736);
+ walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  if(ex&&ex!==S.area){
@@ -375,26 +689,58 @@ function move(dx,dy,dir){
    else if(from==="field"&&ex==="shrine"){S.x=70;S.y=430;S.dir="r"}
    else if(from==="shrine"&&ex==="field"){S.x=390;S.y=185;S.dir="d"}
    else {S.x=ex==="field"?690:70;S.y=430}
-   S.encounterSteps=0;message(D.areas[ex].name);YK_SAVE.auto(S)
+   S.frame=1;walkPhase=0;S.encounterSteps=0;S.encounterGrace=D.areas[ex]?.grace||0;YK_INPUT.stopAll();message(D.areas[ex].name);YK_SAVE.auto(S)
  }else encounter();
  hud();if(S.walk%10===0)YK_SAVE.auto(S)
 }function renderBattle(){
+ if(!battle)return;
  bg.clearRect(0,0,768,430);bg.imageSmoothingEnabled=false;
  const im=B9IMG.battle;if(im&&im.complete&&im.naturalWidth)bg.drawImage(im,0,0,768,430);else{bg.fillStyle="#14283d";bg.fillRect(0,0,768,430)}
  // Darken lower UI baked into reference so live battle UI remains readable.
  bg.fillStyle="rgba(5,15,25,.48)";bg.fillRect(0,315,768,115);
- hero(bg,150,275,"r",S.frame,S.outfit,2.0);enemyArt(bg,585,225);
+ const sprite=BATTLE_SPRITES[S.outfit]?.[battlePose];
+ if(battlePose!=="idle"&&layerReady(sprite)){
+  const scale=2/3,x=battlePose==="attack"?228:150,y=293;
+  shadow(bg,x,y,62,20,.32);bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
+  bg.drawImage(sprite,x-384*scale,y-480*scale,768*scale,512*scale);bg.restore();
+ }else hero(bg,150,275,"r",1,S.outfit,2.0);
+ enemyArt(bg,585,225);
  $("enemyName").textContent=battle.name;$("enemyHp").textContent=Math.max(0,battle.hp)+"/"+battle.max;$("battleHp").textContent=S.hp+"/"+S.maxhp
 }
 function selectCmd(i){battleCursor=(i+4)%4;document.querySelectorAll("[data-cmd]").forEach((b,n)=>b.classList.toggle("selected",n===battleCursor))}
-function cmd(n){if(!battle)return;if(n==="attack"||n==="skill"){const d=n==="skill"?20+S.lv*3+Math.floor(Math.random()*12):S.atk+Math.floor(Math.random()*8);battle.hp-=d;$("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;YK_AUDIO.beep(n==="skill"?720:330,.08);renderBattle();if(battle.hp<=0)return win();setTimeout(foe,330)}else if(n==="item"){if(S.potions<=0)return $("battleText").textContent="薬草がない！";S.potions--;S.hp=Math.min(S.maxhp,S.hp+35);$("battleText").textContent="HPを35回復！";renderBattle();setTimeout(foe,300)}else{if(Math.random()<.78){$("battleText").textContent="逃げ切った！";setTimeout(endBattle,350)}else{ $("battleText").textContent="逃げられない！";setTimeout(foe,300)}}}
-function foe(){if(!battle)return;const d=Math.max(1,battle.atk-Math.floor(S.def/2)+Math.floor(Math.random()*5));S.hp-=d;$("battleText").textContent=`${battle.name}の攻撃！ ${d}ダメージ`;renderBattle();YK_AUDIO.beep(110,.08);if(S.hp<=0)setTimeout(defeat,400)}
-function win(){S.wins++;S.xp+=battle.xp;S.gold+=battle.gold;$("battleText").textContent=`勝利！ ${battle.xp}経験 / ${battle.gold}文`;while(S.xp>=S.lv*40){S.xp-=S.lv*40;S.lv++;S.maxhp+=12;S.hp=S.maxhp;S.atk+=3;S.def++}setTimeout(endBattle,650)}
-function endBattle(){battle=null;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud()}
-function defeat(){battle=null;$("battle").classList.remove("show");S.hp=1;YK_SAVE.auto(S);$("gameover").classList.add("show");busy=true}
-function menu(){if(busy)return;busy=true;$("statusPanel").innerHTML=`夜叉姫　Lv.${S.lv}<br>HP ${S.hp}/${S.maxhp}　攻撃 ${S.atk}　防御 ${S.def}<br>武器：${S.weapon}`;$("itemsPanel").textContent=`薬草 × ${S.potions}　潮花の花びら × ${S.petals}`;$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><span>${v.name}</span><small>${OUTFIT_READY[k]?"実装済":"制作中・切替確認用"}</small></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
-function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n);return `<div class="slot"><b>${n}番</b>　${i?`Lv.${i.lv} / ${i.area}`:"記録なし"}<div class="slotBtns"><button data-save="${n}">保存</button><button data-load="${n}">読込</button></div></div>`}).join("");document.querySelectorAll("[data-save]").forEach(b=>YK_INPUT.tap(b,()=>{YK_SAVE.saveSlot(+b.dataset.save,S);slots()}));document.querySelectorAll("[data-load]").forEach(b=>YK_INPUT.tap(b,()=>{const v=YK_SAVE.loadSlot(+b.dataset.load);if(v){state(v);close("saveMenu")}}))}
-function close(id){$(id).classList.remove("show");busy=false;hud()}
+function cmd(n){
+ if(!battle||battleLocked)return;
+ battleLocked=true;
+ if(n==="attack"||n==="skill"){
+  const d=n==="skill"?20+S.lv*3+Math.floor(Math.random()*12):S.atk+Math.floor(Math.random()*8);
+  battle.hp-=d;battlePose="attack";
+  $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
+  YK_AUDIO.beep(n==="skill"?720:330,.08);renderBattle();
+  battleLater(()=>{battlePose="idle";renderBattle()},320);
+  if(battle.hp<=0)return win();
+  battleLater(foe,480);
+ }else if(n==="item"){
+  if(S.potions<=0){battleLocked=false;return $("battleText").textContent="薬草がない！"}
+  S.potions--;S.hp=Math.min(S.maxhp,S.hp+35);$("battleText").textContent="HPを35回復！";renderBattle();battleLater(foe,300);
+ }else{
+  if(Math.random()<.78){$("battleText").textContent="逃げ切った！";battleLater(endBattle,350)}
+  else{$("battleText").textContent="逃げられない！";battleLater(foe,300)}
+ }
+}
+function foe(){
+ if(!battle)return;
+ battleLocked=true;battlePose="hit";
+ const d=Math.max(1,battle.atk-Math.floor(S.def/2)+Math.floor(Math.random()*5));
+ S.hp=Math.max(0,S.hp-d);$("battleText").textContent=`${battle.name}の攻撃！ ${d}ダメージ`;
+ renderBattle();YK_AUDIO.beep(110,.08);
+ battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;renderBattle()},420);
+}
+function win(){S.wins++;S.xp+=battle.xp;S.gold+=battle.gold;$("battleText").textContent=`勝利！ ${battle.xp}経験 / ${battle.gold}文`;while(S.xp>=S.lv*40){S.xp-=S.lv*40;S.lv++;S.maxhp+=12;S.hp=S.maxhp;S.atk+=3;S.def++}battleLater(endBattle,650)}
+function endBattle(){resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud()}
+function defeat(){resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
+function menu(){if(busy)return;busy=true;$("statusPanel").innerHTML=`夜叉姫　Lv.${S.lv}<br>HP ${S.hp}/${S.maxhp}　攻撃 ${S.atk}　防御 ${S.def}<br>武器：${S.weapon}`;$("itemsPanel").textContent=`薬草 × ${S.potions}　潮花の花びら × ${S.petals}`;$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
+function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n);return `<div class="slot"><b>${n}番</b>　${i?`Lv.${i.lv} / ${i.area}`:"記録なし"}<div class="slotBtns"><button data-save="${n}">保存</button><button data-load="${n}">読込</button></div></div>`}).join("");document.querySelectorAll("[data-save]").forEach(b=>YK_INPUT.tap(b,()=>{YK_SAVE.saveSlot(+b.dataset.save,S);slots()}));document.querySelectorAll("[data-load]").forEach(b=>YK_INPUT.tap(b,()=>{const v=YK_SAVE.loadSlot(+b.dataset.load);if(v){restoreState(v);close("saveMenu")}}))}
+function close(id){YK_INPUT.stopAll();$(id).classList.remove("show");busy=false;hud()}
 function worldMap(){if(busy)return;busy=true;$("worldMap").classList.add("show");drawWorld()}
 function drawWorld(){const c=wg;c.clearRect(0,0,720,720);if(cover(c,IMG.world,720,720,1)){c.fillStyle="#06111c33";c.fillRect(0,0,720,720);return;}const grad=c.createLinearGradient(0,0,720,720);grad.addColorStop(0,"#2c7793");grad.addColorStop(1,"#17455e");c.fillStyle=grad;c.fillRect(0,0,720,720);c.fillStyle="#75975c";c.beginPath();c.moveTo(95,580);c.bezierCurveTo(15,430,100,190,270,110);c.bezierCurveTo(430,20,650,125,665,310);c.bezierCurveTo(690,500,525,665,335,650);c.bezierCurveTo(210,665,145,635,95,580);c.fill();c.fillStyle="#c9b078";c.lineWidth=14;c.strokeStyle="#c9b078";c.beginPath();c.moveTo(180,535);c.quadraticCurveTo(260,440,325,370);c.quadraticCurveTo(390,290,520,170);c.stroke();const pts={village:[190,535,"鬼灯の里"],shrine:[520,170,"天妖の社"],cove:[115,590,"海の入り江"],forest:[320,370,"忘れの森"],waterfall:[410,230,"龍神の滝"],fox:[565,485,"九尾の祠"]};for(const [k,p] of Object.entries(pts)){if(k==="village"||k==="shrine"||k==="fox")torii(c,p[0],p[1]-30,.65);else if(k==="waterfall")water(c,p[0]-20,p[1]-45,40,60);else sakura(c,p[0],p[1]-20,.55);rr(c,p[0]-55,p[1]+20,110,28,5,k===S.area?"#9c3e5d":"#07131fe8","#d8b66e");c.font="13px sans-serif";c.fillStyle="#fff";c.textAlign="center";c.fillText(p[2],p[0],p[1]+39)}}
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
@@ -406,15 +752,21 @@ document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
 YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
-YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");state(v);$("title").classList.remove("show");busy=false;hud()});
-YK_INPUT.tap($("retryBtn"),()=>{state(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
-document.addEventListener("keydown",e=>{if(e.repeat)return;({ArrowUp:()=>move(0,-22,"u"),ArrowDown:()=>move(0,22,"d"),ArrowLeft:()=>move(-22,0,"l"),ArrowRight:()=>move(22,0,"r"),Enter:()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action()}[e.key]||(()=>{}))()});
+YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
+YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
+document.addEventListener("keydown",e=>{
+ if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
+ if(["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;
+ const fn={ArrowUp:()=>battlePad("u")||move(0,-22,"u"),ArrowDown:()=>battlePad("d")||move(0,22,"d"),ArrowLeft:()=>battlePad("l")||move(-22,0,"l"),ArrowRight:()=>battlePad("r")||move(22,0,"r"),Enter:()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action()}[e.key];
+ if(fn){e.preventDefault();fn()}
+});
+$("app")?.addEventListener("contextmenu",e=>e.preventDefault());
 window.addEventListener("error",e=>{console.error(e.error||e.message);busy=false;message("操作を復旧しました",1500)});
-function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);const im=B9IMG.title;if(im&&im.complete&&im.naturalWidth){q.drawImage(im,0,0,c.width,c.height)}else{hero(q,210,300,"d",0,"normal",4.4)}}
-function loop(t){if(!busy)S.playtime+=(t-last)/1000;last=t;requestAnimationFrame(loop)}
+function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
+function loop(t){if(!busy){S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
-// β15.1 field-test shortcut — inside the game scope so S/busy/hud are accessible.
+// β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
 const villageTestWarpBtn=document.getElementById("villageTestWarp");
 if(villageTestWarpBtn){
   villageTestWarpBtn.addEventListener("pointerup",(e)=>{

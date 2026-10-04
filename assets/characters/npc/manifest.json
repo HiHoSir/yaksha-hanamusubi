@@ -1,0 +1,248 @@
+{
+  "version": "beta15.26",
+  "policy": "independent assets only; no crops from generated character sheets",
+  "directions": {
+    "front": "down",
+    "back": "up",
+    "left": "left",
+    "right": "right"
+  },
+  "frames": [
+    0,
+    1,
+    2
+  ],
+  "characters": {
+    "satoko": "里の子",
+    "merchant": "よろず屋",
+    "osumi": "お澄",
+    "teagirl": "茶屋娘・お団子",
+    "elder": "里長"
+  },
+  "design_status": "five Hozuki village NPC designs locked",
+  "render_contract": {
+    "source_policy": "independently authored frames only; no crops from sheets/collages",
+    "format": "transparent RGBA PNG",
+    "directions": [
+      "front",
+      "back",
+      "left",
+      "right"
+    ],
+    "walk_frames": [
+      0,
+      1,
+      2
+    ],
+    "walk_cycle": "left step / neutral / right step",
+    "mirror_policy": "no mirroring",
+    "adult_heads": 2.5,
+    "child_heads": 2.3,
+    "player_presence_over_npc_percent": "10-15",
+    "adult_display_px": "54-58 x 65-70",
+    "child_display_px": "48-52 x 58-63"
+  },
+  "locked_designs": {
+    "elder": "blue kimono; white topknot/brows/beard; subtle hozuki crest; flower-knot staff",
+    "teagirl": "pink/red kimono; dark-purple hair; red knot; tea/dango motif",
+    "osumi": "white/pale-blue kimono; blue obi; indigo hair; water motif",
+    "satoko": "red/blue clothes; short hair; pinwheel; drawstring pouch; energetic child",
+    "merchant": "green/earth clothes; beard; carrying box; abstract hozuki merchant crest; no text"
+  },
+  "design_reference": {
+    "path": "design-reference/hozuki-npc-five-reference.png",
+    "usage": "design-only",
+    "may_crop": false,
+    "may_load_in_game": false,
+    "merchant_text_rule": "Do not use 商 or any literal text on headwear; use abstract hozuki merchant crest."
+  },
+  "production_order": [
+    "elder",
+    "teagirl",
+    "osumi",
+    "satoko",
+    "merchant"
+  ],
+  "frame_authoring_order": [
+    "front-1",
+    "front-0",
+    "front-2",
+    "back-1",
+    "back-0",
+    "back-2",
+    "left-1",
+    "left-0",
+    "left-2",
+    "right-1",
+    "right-0",
+    "right-2"
+  ],
+  "completed_frames": {
+    "elder": [
+      "front-1",
+      "right-1",
+      "back-1",
+      "left-1"
+    ],
+    "teagirl": [
+      "front-1",
+      "right-1",
+      "back-1",
+      "left-1"
+    ],
+    "osumi": [
+      "front-1",
+      "right-1",
+      "back-1",
+      "left-1"
+    ],
+    "satoko": [
+      "front-1",
+      "right-1",
+      "back-1",
+      "left-1"
+    ],
+    "merchant": [
+      "front-1",
+      "right-1",
+      "back-1",
+      "left-1"
+    ]
+  },
+  "front_master_status": {
+    "elder": "formal independent transparent master",
+    "teagirl": "formal independent transparent master",
+    "osumi": "formal independent transparent master",
+    "satoko": "pending: independent boy image exists but does not match locked red/blue pinwheel design",
+    "merchant": "pending: design reference exists but no independent single-character file yet"
+  },
+  "runtime_preview_fallback": "missing formal frame -> independent front-1 master if available; preview only",
+  "sheet_split_policy": {
+    "allowed": true,
+    "conditions": "high-resolution separation-oriented sheet; non-overlapping poses; genuine alpha; no shared effects; inspect contact sheet before acceptance",
+    "source": "design-reference/sheets/hozuki-five-4dir-source.png",
+    "method": "cell isolate -> alpha bbox -> high-quality resize -> 512x512 RGBA -> common foot baseline"
+  },
+  "walk_frames_pending": {
+    "elder": [
+      "front-0",
+      "right-0",
+      "back-0",
+      "left-0",
+      "front-2",
+      "right-2",
+      "back-2",
+      "left-2"
+    ],
+    "teagirl": [
+      "front-0",
+      "right-0",
+      "back-0",
+      "left-0",
+      "front-2",
+      "right-2",
+      "back-2",
+      "left-2"
+    ],
+    "osumi": [
+      "front-0",
+      "right-0",
+      "back-0",
+      "left-0",
+      "front-2",
+      "right-2",
+      "back-2",
+      "left-2"
+    ],
+    "satoko": [
+      "front-0",
+      "right-0",
+      "back-0",
+      "left-0",
+      "front-2",
+      "right-2",
+      "back-2",
+      "left-2"
+    ],
+    "merchant": [
+      "front-0",
+      "right-0",
+      "back-0",
+      "left-0",
+      "front-2",
+      "right-2",
+      "back-2",
+      "left-2"
+    ]
+  },
+  "high_resolution_direction_sets": {
+    "teagirl/right": {
+      "frames": 3,
+      "source": "design-reference/sheets/teagirl-right-3frame-source.png",
+      "separate_components": 3,
+      "status": "accepted candidate"
+    },
+    "elder/right": {
+      "frames": 3,
+      "source": "design-reference/sheets/elder-right-3frame-source.png",
+      "separate_components": 3,
+      "status": "accepted"
+    }
+  },
+  "runtime_quality_gate": {
+    "verified_animated_directions": {
+      "elder": [
+        "right",
+        "left",
+        "front-provisional",
+        "back-provisional"
+      ],
+      "teagirl": [
+        "right",
+        "left",
+        "front-provisional",
+        "back-provisional"
+      ],
+      "osumi": [
+        "front-provisional",
+        "right-provisional",
+        "back-provisional",
+        "left-provisional"
+      ],
+      "satoko": [
+        "front-provisional",
+        "right-provisional",
+        "back-provisional",
+        "left-provisional"
+      ],
+      "merchant": [
+        "front-provisional",
+        "right-provisional",
+        "back-provisional",
+        "left-provisional"
+      ]
+    },
+    "other_directions": "neutral frame only",
+    "rule": "Only independently verified high-resolution 3-frame direction sets animate."
+  },
+  "provisional_mirrored_sets": {
+    "elder/left": {
+      "source": "elder/right",
+      "reason": "lossless mirror avoids generation defects; replace when independent left set passes QA"
+    },
+    "teagirl/left": {
+      "source": "teagirl/right",
+      "reason": "lossless mirror avoids generation defects; replace when independent left set passes QA"
+    }
+  },
+  "provisional_position_motion": {
+    "elder/front-back": "neutral art reposition only; no pixel deformation",
+    "teagirl/front-back": "neutral art reposition only; no pixel deformation",
+    "osumi/all-directions": "accepted neutral art reposition only; no pixel deformation; replace per-direction when independent 3-frame art passes QA",
+    "satoko/all-directions": "accepted neutral art reposition only; no pixel deformation; replace per-direction when independent 3-frame art passes QA",
+    "merchant/all-directions": "accepted neutral art reposition only; no pixel deformation; replace per-direction when independent 3-frame art passes QA"
+  },
+  "runtime_registry_name": "NPC_MOTION_DIRECTIONS",
+  "quality_registry_name": "NPC_ART_QUALITY",
+  "quality_note": "Motion availability and art quality are separate. position-only is provisional, not high-quality walking art."
+}

@@ -61,5 +61,8 @@ canvas{image-rendering:auto}
 #game{background:#142733}
 button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
-/* beta14.1 wardrobe preview */
+/* beta15.26 wardrobe preview */
 .choices button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px}.choices button small{font-size:9px;opacity:.72}.choices button.selected small{opacity:1;color:#ffe0a0}.outfitHud{color:#f4dda7;font-size:9px}
+
+/* Shared hero artwork in wardrobe and dialogue. */
+#dialogPortrait{float:left;width:90px;height:90px;margin:-8px 10px 0 -8px} .choices button{align-items:center;text-align:center;min-height:108px}.choices button img{width:88px;height:72px;object-fit:cover;object-position:center bottom;margin-top:-6px;pointer-events:none}.choices button span{font-size:12px}

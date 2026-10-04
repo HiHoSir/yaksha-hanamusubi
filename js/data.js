@@ -1,6 +1,7 @@
 window.YK_DATA=(()=>{
 const outfits={
  normal:{name:"花守り装束",body:"#f0e1cf",trim:"#c13e67",skirt:"#7a294f"},
+ basewear:{name:"白の稽古着",body:"#ffffff",trim:"#c13e67",skirt:"#ffffff"},
  light:{name:"軽装・薄紅",body:"#f4b9c9",trim:"#fff0df",skirt:"#a34867"},
  white:{name:"水辺の白装束",body:"#f7f5ee",trim:"#71b7c5",skirt:"#dce8e7"},
  navy:{name:"水辺の藍装束",body:"#183b67",trim:"#f1d6a0",skirt:"#102844"},

@@ -1,11 +1,14 @@
 window.YK_SAVE=(()=>{
-const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=8;
+const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=9;
 const fresh=()=>({saveVersion:VER,x:384,y:500,dir:"d",frame:0,area:"field",hp:100,maxhp:100,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの剣",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
  if(!YK_DATA.outfits[s.outfit])s.outfit="normal";
- s.hp=Math.max(1,Math.min(Number(s.hp)||100,Number(s.maxhp)||100));
+ s.maxhp=Math.max(1,Number(s.maxhp)||100);
+ s.hp=Math.max(1,Math.min(Number(s.hp)||100,s.maxhp));
+ s.x=Number.isFinite(Number(s.x))?Number(s.x):384;s.y=Number.isFinite(Number(s.y))?Number(s.y):500;
+ if(s.lastInterior!=="teahouse"&&s.lastInterior!=="osumiHome")s.lastInterior=null;
  if((s.area==="teahouse"||s.area==="osumiHome")&&(!Number.isFinite(Number(s.x))||!Number.isFinite(Number(s.y)))){s.x=384;s.y=650;}
  s.saveVersion=VER;s.encounterSteps=Number(s.encounterSteps)||0;s.encounterGrace=Number(s.encounterGrace)||0;s.teaVisits=Number(s.teaVisits)||0;
  return s;

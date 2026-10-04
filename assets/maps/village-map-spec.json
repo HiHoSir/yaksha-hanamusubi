@@ -1,0 +1,84 @@
+{
+  "version": "beta15.26",
+  "canvas": {
+    "width": 768,
+    "height": 768
+  },
+  "active_visual": "assets/maps/village-composite.png",
+  "visual_policy": "The opaque composite is the authoritative visual until it is replaced by a new authored map.",
+  "doors": {
+    "teahouse": {
+      "center": [
+        579,
+        251
+      ],
+      "half_size": [
+        50,
+        38
+      ],
+      "target": "teahouse"
+    },
+    "osumiHome": {
+      "center": [
+        603,
+        428
+      ],
+      "half_size": [
+        50,
+        38
+      ],
+      "target": "osumiHome",
+      "temporary_visual_approach": [
+        545,
+        386,
+        661,
+        466
+      ]
+    }
+  },
+  "river": {
+    "collision_rect": [
+      0,
+      459,
+      768,
+      638
+    ],
+    "bridge_x": [
+      316,
+      430
+    ]
+  },
+  "exit": {
+    "field": [
+      320,
+      720,
+      450,
+      768
+    ]
+  },
+  "npc_anchors": {
+    "child": [
+      142,
+      338
+    ],
+    "merchant": [
+      655,
+      335
+    ],
+    "osumi": [
+      548,
+      500
+    ],
+    "teagirl": [
+      690,
+      245
+    ],
+    "elder": [
+      270,
+      390
+    ]
+  },
+  "known_debt": [
+    "osumiHome visual door and legacy collision building are not yet authored as one matching asset"
+  ]
+}
