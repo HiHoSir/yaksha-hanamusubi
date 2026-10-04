@@ -767,9 +767,9 @@ function foe(){
  if(!battle)return;
  battleLocked=true;battlePose="hit";
  const profile=D.enemyProfiles?.[battle.baseName],variance=profile?.variance??5;
- const d=Math.max(1,battle.atk-Math.floor((S.def+relicBonus("def"))/2)+Math.floor(Math.random()*variance));
- S.hp=Math.max(0,S.hp-d);$("battleText").textContent=`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
- startBattleFx(profile?.fx||"impact","hero");renderBattle();YK_AUDIO.beep(profile?.style==="trickster"?180:110,.08);
+ const foxfire=battle.rareTrait==="foxfire"&&Math.random()<battle.rareTraitChance;\n const base=Math.max(1,battle.atk-Math.floor((S.def+relicBonus("def"))/2)+Math.floor(Math.random()*variance));\n const d=foxfire?Math.ceil(base*1.35):base;
+ S.hp=Math.max(0,S.hp-d);$("battleText").textContent=foxfire?`${battle.name}の妖火！ ${d}ダメージ`:`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
+ startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero");renderBattle();YK_AUDIO.beep(foxfire?520:(profile?.style==="trickster"?180:110),.08);
  battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;renderBattle()},420);
 }
 function win(){
