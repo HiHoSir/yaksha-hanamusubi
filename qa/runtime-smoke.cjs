@@ -15,7 +15,7 @@ class Element{
  }
  addEventListener(name,fn){(this.events[name]??=[]).push(fn)}
  fire(name,extra={}){const e={target:this,pointerId:1,preventDefault(){},stopPropagation(){},...extra};for(const fn of this.events[name]||[])fn(e)}
- setPointerCapture(){}getContext(){return this.canvas.getContext('2d')}
+ setPointerCapture(){}getContext(){const c=this.canvas.getContext('2d');if(!c.__adapted){const draw=c.drawImage.bind(c);c.drawImage=(im,...args)=>{if(im.id==="worldTerrain"&&!im.snapshot){im.snapshot=new NativeImage();im.snapshot.src=im.canvas.toBuffer("image/png");loaded.push(im.snapshot);}return draw(im.snapshot||im.canvas||im,...args);};c.__adapted=true;}return c}
  set innerHTML(s){elements=elements.filter(x=>x.owner!==this);this._html=s;parse(s,this)}get innerHTML(){return this._html||''}
 }
 function parse(html,owner=null){for(const m of html.matchAll(/<([a-zA-Z][\w-]*)\b([^>]*)>/g)){const attrs={};for(const a of m[2].matchAll(/([\w-]+)="([^"]*)"/g))attrs[a[1]]=a[2];new Element(m[1],attrs,owner)}}
@@ -250,6 +250,23 @@ check('story guides the journey without locking entrances; progress and petal pe
  }
  assert.equal(sandbox.gameState.petals,1);assert.equal(sandbox.YK_SAVE.loadAuto().petals,1);
  const old=sandbox.YK_SAVE.migrate({quest:0,visitedAreas:{fox:true}});sandbox.__qaEval('state('+JSON.stringify(old)+');busy=false');const fox=sandbox.YK_WORLD.places.fox.point;Object.assign(sandbox.gameState,{area:'field',x:fox[0],y:fox[1]});tap('ok');assert.equal(sandbox.gameState.area,'fox');
+});
+check('scroll camera follows the hero and clamps at all map edges',()=>{
+ const W=sandbox.YK_WORLD;
+ for(const [x,y] of [[0,0],[768,0],[0,768],[768,768],[230,534],[637,191]]){
+  const c=W.camera(x,y);assert(c.x>=0&&c.y>=0);assert(c.x+c.size<=W.size&&c.y+c.size<=W.size);assert.equal(c.zoom,3);
+  if(x>=128&&x<=640)assert.equal((x-c.x)*c.zoom,384);
+  if(y>=128&&y<=640)assert.equal((y-c.y)*c.zoom,384);
+ }
+ assert(W.camera(300,300).x>W.camera(290,300).x);
+ for(const k of ['village','cove','waterfall','fox']){
+  const p=W.places[k].point;Object.assign(sandbox.gameState,{area:'field',x:p[0],y:p[1],outfit:'normal'});sandbox.__qaEval('busy=false;map()');shot('scroll-'+k);
+ }
+});
+check('tile collision matches terrain and beta15.30 saves migrate safely',()=>{
+ const W=sandbox.YK_WORLD;
+ for(let y=4;y<768;y+=8)for(let x=4;x<768;x+=8)assert.equal(W.walkable(x,y),['grass','road','bridge'].includes(W.tileAt(x,y)));
+ const old=sandbox.YK_SAVE.migrate({worldRevision:3,area:'field',x:400,y:350,gold:123,quest:4});assert(W.walkable(old.x,old.y));assert.equal(old.gold,123);assert.equal(old.quest,4);
 });
 check('hold stopAll from immediate callback leaves no delayed repeat',()=>{const b=new Element('button');let n=0;sandbox.YK_INPUT.hold(b,()=>{n++;sandbox.YK_INPUT.stopAll()});b.fire('pointerdown');advance(1000);assert.equal(n,1)});
 const report={environment:'Node VM + native canvas; not Safari or a browser',results,missingAssets:[...new Set(missing)]};

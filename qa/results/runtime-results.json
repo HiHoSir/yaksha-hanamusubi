@@ -110,6 +110,14 @@
       "status": "passed"
     },
     {
+      "name": "scroll camera follows the hero and clamps at all map edges",
+      "status": "passed"
+    },
+    {
+      "name": "tile collision matches terrain and beta15.30 saves migrate safely",
+      "status": "passed"
+    },
+    {
       "name": "hold stopAll from immediate callback leaves no delayed repeat",
       "status": "passed"
     }

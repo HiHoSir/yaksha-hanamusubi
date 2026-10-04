@@ -23,7 +23,7 @@ const ASSET_PATHS={
  heroYukata:null,heroDemon:null,
  npcSheet:null,hotScene:null,
  enemySheet:null,battle:null,
- world:"assets/maps/world-v15.30.png"
+ world:null
 };
 const IMG={}; for(const [k,v] of Object.entries(ASSET_PATHS)){if(!v)continue;const im=new Image();im.onload=assetLoaded;im.src=v;IMG[k]=im}
 
@@ -39,9 +39,6 @@ const VILLAGE_LAYER_PATHS={
 const villageComposite=new Image();
 villageComposite.onload=assetLoaded;
 villageComposite.src="assets/maps/village-v15.30.png";
-const fieldWorld=new Image();
-fieldWorld.onload=assetLoaded;
-fieldWorld.src="assets/maps/world-v15.30.png";
 const VILLAGE_LAYERS={};
 for(const [k,v] of Object.entries(VILLAGE_LAYER_PATHS)){
  if(!v)continue;
@@ -51,7 +48,7 @@ function layerReady(im){return !!(im&&im.complete&&im.naturalWidth&&im.naturalHe
 function drawFullLayer(c,im){if(!layerReady(im))return false;c.drawImage(im,0,0,768,768);return true}
 const B9={
  village:"assets/maps/village.png",forest:"assets/maps/forest.png",
- world:"assets/maps/world-v15.30.png",battle:"assets/scenes/battle.png",
+ battle:"assets/scenes/battle.png",
  hot:"assets/scenes/hotspring.png",dialogue:"assets/scenes/dialogue.png",
  title:"assets/ui/title-yashahime.png",outfits:"assets/ui/outfits.png"
 };
@@ -458,13 +455,26 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  c.restore();
 }
 window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;return window.__YK_COLLISION_DEBUG};
+let terrainReady=false;
+function drawWorldTerrain(c){
+ const source=$("worldTerrain");
+ if(!terrainReady){const tc=source.getContext("2d");tc.save();tc.scale(2,2);YK_WORLD.draw(tc);tc.restore();terrainReady=true;}
+ c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
+}
 function map(){
- g.clearRect(0,0,768,768);g.imageSmoothingEnabled=S.area==="field";
+ g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
+ if(S.area==="field"){
+  const camera=YK_WORLD.camera(S.x,S.y);
+  g.save();g.scale(camera.zoom,camera.zoom);g.translate(-camera.x,-camera.y);
+  drawWorldTerrain(g);drawActors();g.restore();
+  const k=YK_WORLD.near(S.x,S.y);
+  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"街道と草地を歩いて次の旅先へ · 地図で全体を確認");return;
+ }
  if(S.area==="village"){drawVillageMap(g);drawVillageCollisionDebug(g)}
  else if(S.area==="teahouse") drawInterior(g,"tea");
  else if(S.area==="osumiHome") drawInterior(g,"home");
  else {
-  const art=S.area==="field"?fieldWorld:(S.area==="forest"?B9IMG.forest:null);
+  const art=S.area==="forest"?B9IMG.forest:null;
   if(art&&art.complete&&art.naturalWidth)g.drawImage(art,0,0,768,768);
   else {const im=IMG[S.area]||IMG.field;if(im&&im.complete&&im.naturalWidth)g.drawImage(im,0,0,768,768);else{g.fillStyle="#274738";g.fillRect(0,0,768,768)}}
  }
@@ -499,7 +509,7 @@ function drawActors(){
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero")hero(g,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.38:["village","teahouse","osumiHome"].includes(S.area)?.68:.92);
+   if(a.kind==="hero")hero(g,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.13:["village","teahouse","osumiHome"].includes(S.area)?.68:.92);
    else {const n=a.n;npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
@@ -785,7 +795,8 @@ function drawWorldPins(c,labels){
 }
 function drawWorld(){
  const c=wg;c.clearRect(0,0,720,720);c.save();c.scale(720/768,720/768);c.imageSmoothingEnabled=true;
- if(!cover(c,IMG.world,768,768,1)){c.fillStyle="#1b4e5e";c.fillRect(0,0,768,768);}
+ drawWorldTerrain(c);
+ if(S.area==="field"){const camera=YK_WORLD.camera(S.x,S.y);c.save();c.strokeStyle="#fff3b9";c.lineWidth=2;c.setLineDash([6,4]);c.strokeRect(camera.x,camera.y,camera.size,camera.size);c.restore();}
  drawWorldPins(c,true);
  const area=S.area==="teahouse"||S.area==="osumiHome"?"village":S.area;
  const pos=area==="field"?[S.x,S.y]:YK_WORLD.places[area]?.point||YK_WORLD.hub;
