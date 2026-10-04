@@ -138,18 +138,25 @@ NPC_ROLES.forEach(n=>{
   });
 });
 const B9EN={};["redoni","crowtengu","umibozu","ninefox","yokai_flower"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/enemies/${n}.png`;B9EN[n]=im});
+const ENEMY_ART={};["field-oni","field-tanuki"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/enemies/standard/${n}.png`;ENEMY_ART[n]=im});
 const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.src=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function rareReady(r){return !!r&&layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);}
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0);}
 function enemyArt(c,x,y){
- const name=battle?.name||"";
+ const name=battle?.baseName||battle?.name||"",profile=D.enemyProfiles?.[name];
  const kind=/狐/.test(name)?"ninefox":/磯|泡|水|滝/.test(name)?"umibozu":/木|蜘蛛/.test(name)?"yokai_flower":"redoni";
- const im=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:B9EN[kind];if(!layerReady(im))return;
- const scale=Math.min(210/im.naturalWidth,220/im.naturalHeight);
+ const dedicated=profile?.art&&ENEMY_ART[profile.art],fallback=B9EN[profile?.fallback||kind];
+ const im=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:(layerReady(dedicated)?dedicated:fallback);if(!layerReady(im))return;
+ const scale=Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);
  const w=im.naturalWidth*scale,h=im.naturalHeight*scale;
- shadow(c,x,y+65,65,15,.28);c.save();c.imageSmoothingEnabled=!!battle?.rareId;c.imageSmoothingQuality="high";
- c.drawImage(im,x-w/2,y+65-h,w,h);c.restore();
+ let ox=0,oy=0;
+ if(battleFx?.target==="hero"&&battleFx?.source==="enemy"&&!battleFx.reduced){
+  const p=Math.min(1,(performance.now()-battleFx.start)/battleFx.duration);
+  const rush=Math.sin(p*Math.PI); ox=(profile?.style==="trickster"?-16:26)*rush;oy=-Math.sin(p*Math.PI)*8;
+ }
+ shadow(c,x+ox,y+65,65,15,.28);c.save();c.imageSmoothingEnabled=!!battle?.rareId||layerReady(dedicated);c.imageSmoothingQuality="high";
+ c.drawImage(im,x+ox-w/2,y+oy+65-h,w,h);c.restore();
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
 const D=YK_DATA, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -568,7 +575,7 @@ function beginEncounter(){
  if(Math.random()>=area.encounter)return false;
  const e=pool[Math.floor(Math.random()*pool.length)];
  const variant=D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
- resetBattleAnimation();battle={name:rare?rare.name:e[0],rareId:rare?.id||null,clothingBroken:false,hp:e[1],max:e[1],atk:e[2],xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
+ resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,clothingBroken:false,hp:e[1],max:e[1],atk:e[2],xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=false;
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent="どうする？";$("battle").classList.add("show");
@@ -716,7 +723,7 @@ function move(dx,dy,dir){
 }
 // Enemy artwork stays a single still; brief overlays carry each impact.
 function startBattleFx(kind,target){
- const fx=battleFx={kind,target,start:performance.now(),duration:320,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
+ const fx=battleFx={kind,target,source:target==="hero"?"enemy":"hero",start:performance.now(),duration:320,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
  const tick=()=>{if(battleFx!==fx)return;if(performance.now()-fx.start>=fx.duration){battleFx=null;renderBattle();return;}renderBattle();battleLater(tick,16);};
  battleLater(tick,16);
 }
@@ -759,9 +766,10 @@ function cmd(n){
 function foe(){
  if(!battle)return;
  battleLocked=true;battlePose="hit";
- const d=Math.max(1,battle.atk-Math.floor((S.def+relicBonus("def"))/2)+Math.floor(Math.random()*5));
- S.hp=Math.max(0,S.hp-d);$("battleText").textContent=`${battle.name}の攻撃！ ${d}ダメージ`;
- startBattleFx("impact","hero");renderBattle();YK_AUDIO.beep(110,.08);
+ const profile=D.enemyProfiles?.[battle.baseName],variance=profile?.variance??5;
+ const d=Math.max(1,battle.atk-Math.floor((S.def+relicBonus("def"))/2)+Math.floor(Math.random()*variance));
+ S.hp=Math.max(0,S.hp-d);$("battleText").textContent=`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
+ startBattleFx(profile?.fx||"impact","hero");renderBattle();YK_AUDIO.beep(profile?.style==="trickster"?180:110,.08);
  battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;renderBattle()},420);
 }
 function win(){
