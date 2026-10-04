@@ -54,6 +54,38 @@
       "status": "passed"
     },
     {
+      "name": "world roads connect all entrances at both movement speeds",
+      "status": "passed"
+    },
+    {
+      "name": "old field saves migrate safely and preserve quest and outfit",
+      "status": "passed"
+    },
+    {
+      "name": "all seven entrances enter on A, mark visits and return to the same road",
+      "status": "passed"
+    },
+    {
+      "name": "both movement speeds can leave village from different step offsets",
+      "status": "passed"
+    },
+    {
+      "name": "world map closes with B or Escape and preserves destination",
+      "status": "passed"
+    },
+    {
+      "name": "still enemy overlays animate, respect reduced motion and cancel on load",
+      "status": "passed"
+    },
+    {
+      "name": "rare clothing threshold, first drop, money, repeat rolls and equip persistence",
+      "status": "passed"
+    },
+    {
+      "name": "relic bonuses affect actual attack, defence, skill and healing without changing base stats",
+      "status": "passed"
+    },
+    {
       "name": "hold stopAll from immediate callback leaves no delayed repeat",
       "status": "passed"
     }

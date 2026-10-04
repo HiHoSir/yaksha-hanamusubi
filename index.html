@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1020">
-<title>夜叉姫の花結び奇譚 β15.28</title>
-<link rel="stylesheet" href="css/game.css?v=15.28">
+<title>夜叉姫の花結び奇譚 β15.29</title>
+<link rel="stylesheet" href="css/game.css?v=15.29">
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="brand">夜叉姫の花結び奇譚 <small>β15.28</small></div>
+    <div class="brand">夜叉姫の花結び奇譚 <small>β15.29</small></div>
     <div class="topBtns">
       <button id="worldBtn">地図</button><button id="bookBtn">手帳</button><button id="saveBtn">保存</button><button id="settingsBtn">設定</button>
     </div>
@@ -47,13 +47,13 @@
     <div class="subtitle">— 鬼と花と、忘れられた約束 —</div>
     <button id="newGame" class="primary">はじめから</button>
     <button id="continueGame">つづきから</button>
-    <div class="version">BETA 15.28 / HERO BATTLE & WALK UPDATE</div>
+    <div class="version">BETA 15.29 / WORLD MAP PREVIEW</div>
   </div>
 </div>
 
 <div id="hotSpring" class="overlay"><div class="window hotWindow"><h2>月見の湯</h2><canvas id="hotSpringCanvas" width="768" height="430"></canvas><p id="hotSpringText">湯気の向こうで、花びらが静かに揺れている。</p><div class="hotChoices"><button data-hot="bath">入浴する</button><button data-hot="overheat">のぼせる</button><button data-hot="leave">やめる</button></div></div></div><div id="worldMap" class="overlay"><div class="window worldWindow">
 <h2>世界地図</h2><canvas id="worldCanvas" width="720" height="720"></canvas>
-<p class="mapHint">訪れた土地を選ぶと旅の記録を確認できます。</p>
+<p id="worldStatus" class="mapHint"></p><div id="worldPlaces" class="worldPlaces"></div><p class="mapHint">地名を選ぶと目的地の印を付けられます。街道を歩き、入口で A を押して入ります。</p>
 <button data-close="worldMap">閉じる</button></div></div>
 <div id="dialog" class="overlay"><div class="dialogWindow"><canvas id="dialogPortrait" width="180" height="180" aria-label="夜叉姫" style="display:none"></canvas><div id="speaker"></div><div id="dialogText"></div><button id="dialogNext">次へ</button></div></div>
 
@@ -89,11 +89,12 @@
 
 <div id="gameover" class="overlay"><div class="titlebox"><h2>力尽きた……</h2><p>最後の自動保存から再開できます。</p><button id="retryBtn" class="primary">再開する</button><button id="goTitleBtn">タイトルへ</button></div></div>
 
-<script src="js/data.js?v=15.28"></script>
-<script src="js/save.js?v=15.28"></script>
-<script src="js/audio.js?v=15.28"></script>
-<script src="js/input.js?v=15.28"></script>
-<script src="js/game.js?v=15.28"></script>
+<script src="js/data.js?v=15.29"></script>
+<script src="js/world.js?v=15.29"></script>
+<script src="js/save.js?v=15.29"></script>
+<script src="js/audio.js?v=15.29"></script>
+<script src="js/input.js?v=15.29"></script>
+<script src="js/game.js?v=15.29"></script>
 
 
 

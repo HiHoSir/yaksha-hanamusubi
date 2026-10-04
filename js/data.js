@@ -28,6 +28,34 @@ const enemies={
  waterfall:[["水蛇",86,16,30,20],["滝童",80,15,28,18]],
  fox:[["妖狐",98,18,38,25],["影九尾",120,20,48,32]]
 };
+// Static artwork must exist for both states before a variant enters the encounter pool.
+const rareKinds={
+ "野の小鬼":{id:"oni",name:"紅角の鬼女",art:"oni-woman"},
+ "化け狸":{id:"tanuki",name:"葉隠れ狸女"},
+ "灯火狐":{id:"lantern",name:"灯籠の狐女"},
+ "磯妖":{id:"shell",name:"磯貝の妖女"},
+ "泡くらげ":{id:"jelly",name:"泡衣の海月女"},
+ "木霊":{id:"tree",name:"若葉の木霊女"},
+ "迷い蜘蛛":{id:"spider",name:"糸織り蜘蛛女"},
+ "水蛇":{id:"snake",name:"水鏡の蛇女"},
+ "滝童":{id:"falls",name:"滝守りの妖女"},
+ "妖狐":{id:"fox",name:"宵火の狐女"},
+ "影九尾":{id:"ninefox",name:"朧九尾の妖女"}
+};
+const relics={
+ oni:{name:"鬼のパンツ♀",text:"虎柄の予備の旅装。攻撃+2・防御+2",atk:2,def:2},
+ tanuki:{name:"狸女の葉守り",text:"防御+1・薬草の回復+8",def:1,heal:8},
+ lantern:{name:"狐女の灯芯",text:"花結びの威力+4",skill:4},
+ shell:{name:"磯姫の貝飾り",text:"防御+3",def:3},
+ jelly:{name:"海月女の泡帯",text:"薬草の回復+12",heal:12},
+ tree:{name:"木霊女の若葉櫛",text:"花結びの威力+2・薬草の回復+6",skill:2,heal:6},
+ spider:{name:"蜘蛛女の糸巻き",text:"攻撃+1・花結びの威力+3",atk:1,skill:3},
+ snake:{name:"蛇女の水鱗",text:"防御+2・花結びの威力+2",def:2,skill:2},
+ falls:{name:"滝守りの水帯",text:"防御+2・薬草の回復+6",def:2,heal:6},
+ fox:{name:"狐女の火扇",text:"攻撃+2・花結びの威力+2",atk:2,skill:2},
+ ninefox:{name:"九尾女の影鈴",text:"攻撃+2・防御+1・花結びの威力+2",atk:2,def:1,skill:2}
+};
+const rareRules={chance:.10,goldMultiplier:1.25,breakHpRatio:.5,repeatDropChance:.25};
 const objectives=[
 "鬼灯の里で村人の話を聞く",
 "天妖の社を訪ねる",
@@ -36,5 +64,5 @@ const objectives=[
 "龍神の滝で水鏡を調べる",
 "九尾の祠へ向かう"
 ];
-return {outfits,areas,enemies,objectives};
+return {outfits,areas,enemies,objectives,rareKinds,relics,rareRules};
 })();

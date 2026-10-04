@@ -66,3 +66,20 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 
 /* Shared hero artwork in wardrobe and dialogue. */
 #dialogPortrait{float:left;width:90px;height:90px;margin:-8px 10px 0 -8px} .choices button{align-items:center;text-align:center;min-height:108px}.choices button img{width:88px;height:72px;object-fit:cover;object-position:center bottom;margin-top:-6px;pointer-events:none}.choices button span{font-size:12px}
+
+/* World map: readable on phone, with native-size touch targets. */
+#game,#worldCanvas{image-rendering:auto}
+.worldPlaces{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px 0}
+.worldPlaces button{min-height:44px;padding:6px 3px;font-size:12px}
+.worldPlaces small{display:block;font-size:10px;opacity:.72;margin-top:3px}
+.worldPlaces .selected{background:#71364f;border-color:#f8da93;color:#fff3cb}
+#worldStatus{min-height:2.8em;line-height:1.6;text-align:left}
+
+/* Keep maps undistorted and the world-map exit reachable on small screens. */
+#game{object-fit:contain}
+.worldWindow{overscroll-behavior:contain;touch-action:pan-y;padding-bottom:8px}
+.worldPlaces button{touch-action:pan-y}
+.worldWindow>button[data-close]{position:sticky;bottom:0;min-height:44px;background:#19334d;z-index:1}
+@media(max-width:380px){header{height:auto;min-height:48px;flex-wrap:wrap;gap:4px}.topBtns{margin-left:auto}}
+
+.relicChoices{display:grid;gap:7px}.relicChoices button{min-height:48px;text-align:left;touch-action:pan-y}.relicChoices small{display:block;font-size:11px;color:#ead6b0;margin-top:4px}.relicChoices [aria-pressed="true"]{border:2px solid #f4d185}
