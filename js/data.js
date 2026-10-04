@@ -36,7 +36,7 @@ const enemyProfiles={
 const rareKinds={
  "野の小鬼":{id:"oni",name:"紅角の鬼女",art:"oni-woman"},
  "化け狸":{id:"tanuki",name:"葉隠れ狸女",art:"tanuki-woman",hpMultiplier:1.35,atkMultiplier:1.15,trait:"leafDodge",traitChance:.22},
- "灯火狐":{id:"lantern",name:"灯籠の狐女"},
+ "灯火狐":{id:"lantern",name:"灯籠の狐女",art:"lantern-woman",hpMultiplier:1.35,atkMultiplier:1.2,trait:"foxfire",traitChance:.28},
  "磯妖":{id:"shell",name:"磯貝の妖女"},
  "泡くらげ":{id:"jelly",name:"泡衣の海月女"},
  "木霊":{id:"tree",name:"若葉の木霊女"},
@@ -49,7 +49,7 @@ const rareKinds={
 const relics={
  oni:{name:"鬼のパンツ♀",text:"虎柄の予備の旅装。攻撃+2・防御+2",atk:2,def:2},
  tanuki:{name:"狸女の葉守り",text:"葉隠れ狸女の髪飾り。防御+1・薬草の回復+8",def:1,heal:8},
- lantern:{name:"狐女の灯芯",text:"花結びの威力+4",skill:4},
+ lantern:{name:"狐女の灯芯",text:"灯籠の狐女が残す妖火の灯芯。花結びの威力+4",skill:4},
  shell:{name:"磯姫の貝飾り",text:"防御+3",def:3},
  jelly:{name:"海月女の泡帯",text:"薬草の回復+12",heal:12},
  tree:{name:"木霊女の若葉櫛",text:"花結びの威力+2・薬草の回復+6",skill:2,heal:6},
