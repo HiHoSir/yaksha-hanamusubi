@@ -28,6 +28,10 @@ const enemies={
  waterfall:[["水蛇",86,16,30,20],["滝童",80,15,28,18]],
  fox:[["妖狐",98,18,38,25],["影九尾",120,20,48,32]]
 };
+const enemyProfiles={
+ "野の小鬼":{art:"field-oni",fallback:"redoni",style:"bruiser",scale:1.04,attack:"角突進",fx:"impact",variance:3},
+ "化け狸":{art:"field-tanuki",fallback:"redoni",style:"trickster",scale:.94,attack:"木の葉ばらまき",fx:"petals",variance:5}
+};
 // Static artwork must exist for both states before a variant enters the encounter pool.
 const rareKinds={
  "野の小鬼":{id:"oni",name:"紅角の鬼女",art:"oni-woman"},
@@ -65,5 +69,5 @@ const story=[
  {area:"fox",speaker:"白狐の使い",target:null,objective:"九尾の祠で白狐の使いに会う",lines:["その花びらは、かつて交わされた約束の欠片。","続く旅の手がかりは、ここで預かっておこう。今は巡った土地を訪ねてみるといい。"],unlock:"約束の手がかりを得た。続きの物語は制作中です。"}
 ];
 const objectives=[...story.map(s=>s.objective),"手がかりを得た。各地を探索する（物語の続きは制作中）"];
-return {outfits,areas,enemies,objectives,story,rareKinds,relics,rareRules};
+return {outfits,areas,enemies,enemyProfiles,objectives,story,rareKinds,relics,rareRules};
 })();
