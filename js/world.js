@@ -35,7 +35,10 @@ window.YK_WORLD=(()=>{
   [springJunction,[457,179],[438,199],places.hotspring.point]
  ];
  const distance=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)};
- const tileSize=8,size=768,viewSize=220;
+ // 32px logical grid for collision/events. Visual terrain may use larger image assets.
+ const tileSize=32,size=768,viewSize=220,gridCols=Math.ceil(size/tileSize),gridRows=Math.ceil(size/tileSize);
+ const TILE={GRASS:0,MOUNTAIN:1,FOREST:2,WATER:3,SHALLOW:4,BRIDGE:5,SAND:6,SPECIAL:7};
+ const TILE_NAME=['grass','mountain','forest','water','shallow','bridge','sand','special'];
  // These polylines are journey/QA guides, not visible corridors or collision walls.
  const roadDistance=(x,y)=>Math.min(...roads.flatMap(r=>r.slice(1).map((b,i)=>distance(x,y,r[i],b))));
  const coast=[[0,0],[575,0],[592,58],[629,85],[627,129],[702,151],[720,212],[707,239],[746,267],[722,311],[736,342],[711,373],[718,418],[684,455],[650,490],[647,530],[608,559],[575,590],[540,615],[480,608],[455,630],[451,659],[409,643],[372,679],[331,673],[291,721],[260,768],[0,768]];
@@ -46,26 +49,27 @@ window.YK_WORLD=(()=>{
  const river=[[388,325],[433,338],[458,366],[417,391],[396,429],[429,466],[413,508],[401,558],[398,610],[454,660]];
  const westRiver=[[115,514],[164,548],[159,586],[179,623],[148,658],[183,704],[214,768]];
  const riverDistance=(x,y)=>Math.min(...[river,westRiver].flatMap(line=>line.slice(1).map((b,i)=>distance(x,y,line[i],b))));
- const tiles=[];
- for(let ty=0;ty<96;ty++)for(let tx=0;tx<96;tx++){
-  const x=tx*8+4,y=ty*8+4,d=roadDistance(x,y),r=riverDistance(x,y);
+ const mapData=Array.from({length:gridRows},()=>Array(gridCols).fill(TILE.GRASS));
+ for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+  const x=tx*tileSize+tileSize/2,y=ty*tileSize+tileSize/2,d=roadDistance(x,y),r=riverDistance(x,y);
   const lake=((x-109)/66)**2+((y-487)/42)**2<1;
-  let type=inside(x,y,coast)?'grass':'water';
-  if(type==='grass'){
-   if(inside(x,y,ridge)||inside(x,y,southRidge))type='mountain';
-   else if(groves.some(([cx,cy,rx,ry])=>((x-cx)/rx)**2+((y-cy)/ry)**2<1))type='forest';
-   // Generous mountain passes and settlement clearings, with open plains elsewhere.
-   if(d<23)type='grass';
-   if(lake||r<7)type='water';
-   if(r<7&&d<10)type='bridge';
-   // Optional west-bank crossing, distinct from the main story's southern bridge.
-   if(r<7&&Math.abs(y-582)<8)type='bridge';
+  let type=inside(x,y,coast)?TILE.GRASS:TILE.WATER;
+  if(type===TILE.GRASS){
+   if(inside(x,y,ridge)||inside(x,y,southRidge))type=TILE.MOUNTAIN;
+   else if(groves.some(([cx,cy,rx,ry])=>((x-cx)/rx)**2+((y-cy)/ry)**2<1))type=TILE.FOREST;
+   if(d<23)type=TILE.GRASS;
+   if(lake||r<7)type=TILE.WATER;
+   if(r<7&&d<10)type=TILE.BRIDGE;
+   if(r<7&&Math.abs(y-582)<8)type=TILE.BRIDGE;
   }
-  if(Object.values(places).some(p=>Math.hypot(x-p.point[0],y-p.point[1])<14))type='grass';
-  tiles.push(type);
+  if(Object.values(places).some(p=>Math.hypot(x-p.point[0],y-p.point[1])<18))type=TILE.GRASS;
+  mapData[ty][tx]=type;
  }
- const tileAt=(x,y)=>x<0||y<0||x>=size||y>=size?'water':tiles[Math.floor(y/8)*96+Math.floor(x/8)];
- const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&['grass','road','bridge'].includes(tileAt(x,y));
+ const tileIdAt=(x,y)=>x<0||y<0||x>=size||y>=size?TILE.WATER:mapData[Math.floor(y/tileSize)][Math.floor(x/tileSize)];
+ const tileAt=(x,y)=>TILE_NAME[tileIdAt(x,y)];
+ const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&[TILE.GRASS,TILE.SHALLOW,TILE.BRIDGE,TILE.SAND,TILE.SPECIAL].includes(tileIdAt(x,y));
+ // Villages and destinations are fixed objects independent from terrain artwork.
+ const worldObjects=Object.entries(places).map(([id,p])=>({id,type:id==='village'?'village':'destination',x:p.point[0],y:p.point[1],sprite:id,destination:id,name:p.name}));
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=26)||null;
  const camera=(x,y)=>{
   // Keep the hero on one stable camera anchor. Direction changes must never move the world.
@@ -214,5 +218,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:13,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:14,tileAt,tileSize,size,viewSize,camera,draw};
 })();
