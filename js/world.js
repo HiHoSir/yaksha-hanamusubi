@@ -35,7 +35,7 @@ window.YK_WORLD=(()=>{
   [springJunction,[457,179],[438,199],places.hotspring.point]
  ];
  const distance=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)};
- const tileSize=8,size=768,viewSize=256;
+ const tileSize=8,size=768,viewSize=220;
  // These polylines are journey/QA guides, not visible corridors or collision walls.
  const roadDistance=(x,y)=>Math.min(...roads.flatMap(r=>r.slice(1).map((b,i)=>distance(x,y,r[i],b))));
  const coast=[[0,0],[575,0],[592,58],[629,85],[627,129],[702,151],[720,212],[707,239],[746,267],[722,311],[736,342],[711,373],[718,418],[684,455],[650,490],[647,530],[608,559],[575,590],[540,615],[480,608],[455,630],[451,659],[409,643],[372,679],[331,673],[291,721],[260,768],[0,768]];
@@ -176,5 +176,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:9,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:10,tileAt,tileSize,size,viewSize,camera,draw};
 })();
