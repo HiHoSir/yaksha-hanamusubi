@@ -476,35 +476,48 @@ const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
 const fieldFrameCtx=fieldFrame.getContext("2d");
 function drawRoundedField(c,source){
- // Bend only the distant half of the already-rendered field. Collision remains
- // on the original flat map, while scenery visually rolls away toward a horizon.
- c.fillStyle="#b8d98c";c.fillRect(0,0,768,768);
- const horizon=82,anchor=430,strip=3;
+ // Bevel-view style projection: the ground recedes and rolls away instead of
+ // becoming a simple trapezoid. This is visual only; gameplay stays on flat coordinates.
+ c.fillStyle="#a9cd72";c.fillRect(0,0,768,768);
+ const cx=384,anchor=456,horizon=72,strip=2;
  for(let sy=0;sy<768;sy+=strip){
-  let dy=sy,scale=1;
+  let dy=sy,scale=1,dh=strip+1;
   if(sy<anchor){
-   const far=(anchor-sy)/(anchor-horizon);
-   const t=Math.max(0,Math.min(1,far));
-   scale=1-.20*t*t;
-   // Raise/compress distant rows so the ground appears to curve away.
-   dy=anchor-(anchor-sy)*(1-.10*t);
+   const t=Math.max(0,Math.min(1,(anchor-sy)/(anchor-horizon)));
+   // Perspective is gentle near the hero, then increases toward the horizon.
+   const eased=t*t*(3-2*t);
+   scale=1-.145*eased;
+   // Compress distance more than width: the surface appears to tilt away.
+   dy=anchor-(anchor-sy)*(1-.205*eased);
+   dh=strip*(1-.18*eased)+1.2;
+  }else{
+   // Very subtle foreground expansion makes the player's plane feel closer.
+   const near=Math.min(1,(sy-anchor)/312);
+   scale=1+.025*near;
   }
-  const dw=768*scale,dx=(768-dw)/2;
-  c.drawImage(source,0,sy,768,strip,dx,dy,dw,strip+1);
+  const dw=768*scale,dx=cx-dw/2;
+  c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
  }
- // Readable atmospheric perspective begins in the middle distance, not just under the HUD.
- const haze=c.createLinearGradient(0,70,0,500);
- haze.addColorStop(0,"rgba(231,239,210,.42)");
- haze.addColorStop(.28,"rgba(218,232,202,.25)");
- haze.addColorStop(.62,"rgba(206,224,194,.09)");
- haze.addColorStop(1,"rgba(206,224,194,0)");
- c.fillStyle=haze;c.fillRect(0,55,768,470);
- // Curved mist shelf makes the rounded horizon visible even over bright grass.
- const mist=c.createRadialGradient(384,35,120,384,85,520);
- mist.addColorStop(0,"rgba(245,242,213,.20)");
- mist.addColorStop(.55,"rgba(235,238,209,.08)");
- mist.addColorStop(1,"rgba(235,238,209,0)");
- c.fillStyle=mist;c.fillRect(0,0,768,390);
+ // Atmospheric perspective follows projected distance.
+ const haze=c.createLinearGradient(0,horizon-10,0,anchor+30);
+ haze.addColorStop(0,"rgba(232,239,211,.48)");
+ haze.addColorStop(.18,"rgba(224,235,207,.35)");
+ haze.addColorStop(.46,"rgba(211,227,197,.18)");
+ haze.addColorStop(.74,"rgba(202,220,190,.065)");
+ haze.addColorStop(1,"rgba(202,220,190,0)");
+ c.fillStyle=haze;c.fillRect(0,horizon-12,768,anchor-horizon+55);
+ // Broad bowed bands hide the mechanical horizon and imply a rounded landmass.
+ c.save();c.globalCompositeOperation="screen";
+ const glow=c.createRadialGradient(cx,horizon+12,95,cx,horizon+28,475);
+ glow.addColorStop(0,"rgba(244,241,213,.17)");
+ glow.addColorStop(.52,"rgba(229,235,205,.07)");
+ glow.addColorStop(1,"rgba(229,235,205,0)");
+ c.fillStyle=glow;c.fillRect(0,0,768,350);c.restore();
+ // Feather the lateral projection edges so there are no visible straight walls.
+ const sideL=c.createLinearGradient(0,0,95,0);sideL.addColorStop(0,"rgba(169,205,114,.42)");sideL.addColorStop(1,"rgba(169,205,114,0)");
+ c.fillStyle=sideL;c.fillRect(0,60,100,390);
+ const sideR=c.createLinearGradient(768,0,673,0);sideR.addColorStop(0,"rgba(169,205,114,.42)");sideR.addColorStop(1,"rgba(169,205,114,0)");
+ c.fillStyle=sideR;c.fillRect(668,60,100,390);
 }
 function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
