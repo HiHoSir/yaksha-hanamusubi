@@ -756,9 +756,14 @@ function villageBlocked(x,y){
  return !VILLAGE_LAYOUT.walkZones.some(rect=>inRect(x,y,rect))||
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
-function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
-  if(!YK_WORLD.walkable(x,y))return true;
-}if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
+function collision(x,y){if(x<27||x>741||y<34||y>736)return true;
+ // Field is currently rendered from the recovery image. Until visual terrain and the 32px
+ // logical grid are reconciled, never let stale collision data freeze the startup path.
+ if(S.area==="field")return false;
+ if(npcBlocked(x,y))return true;
+ if(S.area==="village"&&villageBlocked(x,y))return true;
+ if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;
+ if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome")return null;
  if(S.area==="village"){
@@ -926,6 +931,11 @@ function drawWorld(){
 }
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
 YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x,y,dir);});
+// iOS startup-critical movement fallback. Touch events bypass PointerEvent/capture regressions.
+for(const [id,dx,dy,dir] of [["up",0,-1,"u"],["down",0,1,"d"],["left",-1,0,"l"],["right",1,0,"r"],["upLeft",-1,-1,"l"],["upRight",1,-1,"r"],["downLeft",-1,1,"l"],["downRight",1,1,"r"]]){
+ const el=$(id);if(!el)continue;
+ el.addEventListener("touchstart",e=>{e.preventDefault();if(!battle)move(dx,dy,dir)},{passive:false});
+}
 YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),menu);YK_INPUT.tap($("worldBtn"),worldMap);YK_INPUT.tap($("saveBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{selectCmd(i);cmd(b.dataset.cmd)}));
