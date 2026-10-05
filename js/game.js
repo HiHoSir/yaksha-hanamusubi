@@ -26,6 +26,7 @@ const ASSET_PATHS={
  world:null
 };
 const IMG={}; for(const [k,v] of Object.entries(ASSET_PATHS)){if(!v)continue;const im=new Image();im.onload=assetLoaded;im.src=v;IMG[k]=im}
+const FIELD_SAFE=new Image();FIELD_SAFE.onload=assetLoaded;FIELD_SAFE.src="assets/maps/field-world.png";
 
 // Production village background layers. Files are optional: until a finished PNG exists,
 // the matching procedural fallback is drawn. This prevents placeholder art from silently
@@ -534,11 +535,22 @@ function drawRoundedField(c,source){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
-  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
-  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
-  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
-  drawWorldTerrain(fieldFrameCtx);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
-  drawRoundedField(g,fieldFrame);
+  // Startup-critical path: render independently from the experimental terrain buffer/projection.
+  // This guarantees a visible field on iOS even if terrain composition or atlas loading fails.
+  const camera=YK_WORLD.camera(S.x,S.y);
+  g.fillStyle="#88b95a";g.fillRect(0,0,768,768);
+  if(layerReady(FIELD_SAFE)){
+   const sx=Math.max(0,Math.min(FIELD_SAFE.naturalWidth-1,camera.x/768*FIELD_SAFE.naturalWidth));
+   const sy=Math.max(0,Math.min(FIELD_SAFE.naturalHeight-1,camera.y/768*FIELD_SAFE.naturalHeight));
+   const sw=Math.min(FIELD_SAFE.naturalWidth-sx,camera.size/768*FIELD_SAFE.naturalWidth);
+   const sh=Math.min(FIELD_SAFE.naturalHeight-sy,camera.size/768*FIELD_SAFE.naturalHeight);
+   if(sw>1&&sh>1)g.drawImage(FIELD_SAFE,sx,sy,sw,sh,0,0,768,768);
+  }else{
+   // Procedural world is a second independent fallback; failure cannot leave a transparent canvas.
+   try{g.save();g.scale(camera.zoom,camera.zoom);g.translate(-camera.x,-camera.y);YK_WORLD.draw(g,null);g.restore()}catch(e){console.error("field fallback failed",e);try{g.restore()}catch(_){}}
+  }
+  // Draw the player in screen space so camera/asset failures cannot hide the protagonist.
+  hero(g,384,420,S.dir,S.frame,S.outfit,.62);
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
  }
