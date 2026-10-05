@@ -917,6 +917,10 @@ const startNewGame=()=>{try{
  const fresh=YK_SAVE.fresh();
  state(fresh);
  $("title").classList.remove("show");busy=false;
+ // Force Safari to composite the game canvas after the fixed title overlay disappears.
+ C.style.visibility="visible";C.style.opacity="1";C.style.background="#88b95a";
+ g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation="source-over";
+ g.fillStyle="#88b95a";g.fillRect(0,0,C.width,C.height);
  hud();map();
  // Saving is deliberately non-blocking: storage failure must never prevent game startup.
  try{YK_SAVE.auto(S)}catch(saveErr){console.warn("initial autosave failed",saveErr)}
