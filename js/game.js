@@ -894,7 +894,7 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
+YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;hud();map();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
 const continueFromTitle=()=>{try{
  const v=YK_SAVE.loadAuto();
  if(!v){alert("自動保存データがありません");return;}
