@@ -476,50 +476,57 @@ const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
 const fieldFrameCtx=fieldFrame.getContext("2d");
 function drawRoundedField(c,source){
- // Bevel-view style projection: the ground recedes and rolls away instead of
- // becoming a simple trapezoid. This is visual only; gameplay stays on flat coordinates.
- c.fillStyle="#a9cd72";c.fillRect(0,0,768,768);
- const cx=384,anchor=456,horizon=72,strip=2;
+ // Bevel-view world: sky -> atmospheric horizon -> curved land. The field is
+ // deliberately wider than the viewport so no straight projection edges can appear.
+ const cx=384,anchor=470,horizon=116,strip=2;
+ const sky=c.createLinearGradient(0,0,0,360);
+ sky.addColorStop(0,"#a9c9d0");
+ sky.addColorStop(.42,"#c8d9c5");
+ sky.addColorStop(.78,"#dce2bd");
+ sky.addColorStop(1,"#b8d37e");
+ c.fillStyle=sky;c.fillRect(0,0,768,768);
+ // Soft distant cloud/haze banks, kept abstract so they merge with any region.
+ c.save();c.globalAlpha=.22;c.fillStyle="#f2efd0";
+ for(const [x,y,rx,ry] of [[115,92,155,40],[370,70,205,48],[650,106,170,43]]){
+  c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();
+ }
+ c.restore();
  for(let sy=0;sy<768;sy+=strip){
-  let dy=sy,scale=1,dh=strip+1;
+  let dy=sy,scale=1,dh=strip+1,alpha=1;
   if(sy<anchor){
    const t=Math.max(0,Math.min(1,(anchor-sy)/(anchor-horizon)));
-   // Perspective is gentle near the hero, then increases toward the horizon.
    const eased=t*t*(3-2*t);
-   scale=1-.145*eased;
-   // Compress distance more than width: the surface appears to tilt away.
-   dy=anchor-(anchor-sy)*(1-.205*eased);
-   dh=strip*(1-.18*eased)+1.2;
+   // Keep the projected land wider than screen. Perspective comes mainly from
+   // vertical compression and atmospheric fade, avoiding visible trapezoid sides.
+   scale=1.055-.055*eased;
+   dy=anchor-(anchor-sy)*(1-.235*eased);
+   dh=strip*(1-.20*eased)+1.2;
+   alpha=1-.50*Math.pow(t,1.45);
   }else{
-   // Very subtle foreground expansion makes the player's plane feel closer.
-   const near=Math.min(1,(sy-anchor)/312);
-   scale=1+.025*near;
+   const near=Math.min(1,(sy-anchor)/298);
+   scale=1.055+.018*near;
   }
   const dw=768*scale,dx=cx-dw/2;
-  c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
+  c.globalAlpha=alpha;c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
  }
- // Atmospheric perspective follows projected distance.
- const haze=c.createLinearGradient(0,horizon-10,0,anchor+30);
- haze.addColorStop(0,"rgba(232,239,211,.48)");
- haze.addColorStop(.18,"rgba(224,235,207,.35)");
- haze.addColorStop(.46,"rgba(211,227,197,.18)");
- haze.addColorStop(.74,"rgba(202,220,190,.065)");
- haze.addColorStop(1,"rgba(202,220,190,0)");
- c.fillStyle=haze;c.fillRect(0,horizon-12,768,anchor-horizon+55);
- // Broad bowed bands hide the mechanical horizon and imply a rounded landmass.
+ c.globalAlpha=1;
+ // Strong horizon veil dissolves the farthest land into the sky rather than
+ // leaving a hard top edge.
+ const horizonVeil=c.createLinearGradient(0,78,0,420);
+ horizonVeil.addColorStop(0,"rgba(230,235,204,.76)");
+ horizonVeil.addColorStop(.18,"rgba(224,233,201,.58)");
+ horizonVeil.addColorStop(.45,"rgba(214,228,194,.30)");
+ horizonVeil.addColorStop(.72,"rgba(203,220,186,.10)");
+ horizonVeil.addColorStop(1,"rgba(203,220,186,0)");
+ c.fillStyle=horizonVeil;c.fillRect(0,72,768,365);
+ // A low luminous horizon arc gives the impression of a rounded world.
  c.save();c.globalCompositeOperation="screen";
- const glow=c.createRadialGradient(cx,horizon+12,95,cx,horizon+28,475);
- glow.addColorStop(0,"rgba(244,241,213,.17)");
- glow.addColorStop(.52,"rgba(229,235,205,.07)");
- glow.addColorStop(1,"rgba(229,235,205,0)");
- c.fillStyle=glow;c.fillRect(0,0,768,350);c.restore();
- // Feather the lateral projection edges so there are no visible straight walls.
- const sideL=c.createLinearGradient(0,0,95,0);sideL.addColorStop(0,"rgba(169,205,114,.42)");sideL.addColorStop(1,"rgba(169,205,114,0)");
- c.fillStyle=sideL;c.fillRect(0,60,100,390);
- const sideR=c.createLinearGradient(768,0,673,0);sideR.addColorStop(0,"rgba(169,205,114,.42)");sideR.addColorStop(1,"rgba(169,205,114,0)");
- c.fillStyle=sideR;c.fillRect(668,60,100,390);
-}
-function map(){
+ const glow=c.createRadialGradient(cx,112,90,cx,132,520);
+ glow.addColorStop(0,"rgba(250,244,210,.27)");
+ glow.addColorStop(.48,"rgba(239,239,207,.12)");
+ glow.addColorStop(1,"rgba(239,239,207,0)");
+ c.fillStyle=glow;c.fillRect(0,42,768,330);c.restore();
+}function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area==="field"){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
