@@ -10,7 +10,7 @@ function assetLoaded(){
   if($("title").classList.contains("show"))titleHero();
   if($("hotSpring").classList.contains("show"))renderHotSpring();
   if($("dialog").classList.contains("show"))renderDialogPortrait();
-  if(battle)renderBattle();else hud();
+  if(battle)renderBattle();else {hud();if(!$("title").classList.contains("show"))map();}
   if($("worldMap").classList.contains("show"))drawWorld();
  });
 }
@@ -538,7 +538,19 @@ function drawRoundedField(c,source){
  const veil=c.createLinearGradient(0,185,0,355);
  veil.addColorStop(0,"rgba(231,237,207,.28)");veil.addColorStop(.45,"rgba(220,231,199,.13)");veil.addColorStop(1,"rgba(214,227,193,0)");
  c.fillStyle=veil;c.fillRect(0,180,768,185);
-}function map(){
+}
+function syncFieldHeroDom(){
+ const el=$("fieldHeroDom");if(!el)return;
+ const active=S.area==="field";$("stage")?.classList.toggle("field-active",active);
+ if(!active)return;
+ const folder=HERO_FOLDERS[S.outfit]||HERO_FOLDERS.normal;
+ const prefix={d:"front",u:"back",l:"left",r:"right"}[S.dir]||"front";
+ const phase=["right-leg-up","neutral","left-leg-up"][Math.max(0,Math.min(2,Number(S.frame)||0))];
+ const src=`assets/characters/yashahime/${folder}/${prefix}-${phase}.png`;
+ if(el.getAttribute("src")!==src)el.setAttribute("src",src);
+}
+function map(){
+ syncFieldHeroDom();
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
