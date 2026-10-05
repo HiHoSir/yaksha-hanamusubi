@@ -10,11 +10,13 @@ function migrate(raw){
  s.x=Number.isFinite(Number(s.x))?Number(s.x):384;s.y=Number.isFinite(Number(s.y))?Number(s.y):500;
  if(s.lastInterior!=="teahouse"&&s.lastInterior!=="osumiHome")s.lastInterior=null;
  if((s.area==="teahouse"||s.area==="osumiHome")&&(!Number.isFinite(Number(s.x))||!Number.isFinite(Number(s.y)))){s.x=384;s.y=650;}
- if(raw?.worldRevision!==YK_WORLD.revision&&s.area==="field"){[s.x,s.y]=YK_WORLD.hub;}
+ // World art/collision revisions must not make Continue unusable. Preserve a valid saved field position;
+ // only relocate when the saved point is actually invalid on the current map.
+ if(s.area==="field"&&!YK_WORLD.walkable(s.x,s.y)){[s.x,s.y]=YK_WORLD.hub;}
  if(raw?.villageRevision!==2&&s.area==="village"){s.x=373;s.y=690;}
  s.villageRevision=2;
  s.worldRevision=YK_WORLD.revision;
- s.worldPosition=Array.isArray(s.worldPosition)&&YK_WORLD.walkable(...s.worldPosition)?s.worldPosition.slice(0,2):YK_WORLD.hub.slice();
+ s.worldPosition=Array.isArray(s.worldPosition)&&Number.isFinite(Number(s.worldPosition[0]))&&Number.isFinite(Number(s.worldPosition[1]))&&YK_WORLD.walkable(Number(s.worldPosition[0]),Number(s.worldPosition[1]))?[Number(s.worldPosition[0]),Number(s.worldPosition[1])]:YK_WORLD.hub.slice();
  s.visitedAreas={...(s.visitedAreas||{}),field:true,[s.area]:true};
  if(!YK_WORLD.places[s.destination])s.destination=null;
  s.quest=Math.max(0,Math.min(YK_DATA.story.length,Math.floor(Number(s.quest)||0)));
