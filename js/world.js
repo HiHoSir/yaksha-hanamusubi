@@ -15,10 +15,14 @@ window.YK_WORLD=(()=>{
  // the field back into a narrow road corridor.
  const scenicZones=[
   {kind:"farmland",x:238,y:535,rx:92,ry:76},
+  {kind:"foothill",x:286,y:438,rx:88,ry:62},
   {kind:"shrine",x:205,y:360,rx:72,ry:66},
   {kind:"coast",x:466,y:590,rx:94,ry:68},
+  {kind:"seaVista",x:557,y:527,rx:88,ry:62},
+  {kind:"forestEdge",x:610,y:455,rx:82,ry:66},
   {kind:"deepForest",x:650,y:408,rx:78,ry:88},
   {kind:"falls",x:632,y:206,rx:78,ry:70},
+  {kind:"highland",x:540,y:160,rx:94,ry:48},
   {kind:"autumn",x:210,y:132,rx:108,ry:58}
  ];
  const roads=[
@@ -138,15 +142,27 @@ window.YK_WORLD=(()=>{
      c.fillRect(-7,-3,14,6);c.strokeStyle="#8e8649";c.lineWidth=.7;
      for(let q=-5;q<=5;q+=4){c.beginPath();c.moveTo(q,-3);c.lineTo(q,3);c.stroke();}c.restore();
      if(i%5===0){c.fillStyle="#e8a4b7";dot(x+5,y-6,2.5,"#e8a4b7");}
+    }else if(z.kind==="foothill"){
+     // Sparse rocks and low shrubs tighten the view before the shrine without making a corridor.
+     dot(x-2,y+1,2.7,i%2?"#74805b":"#68755a");dot(x+3,y-2,2.2,"#6c8450");
     }else if(z.kind==="shrine"){
      c.fillStyle="#314f35";c.fillRect(x-1.2,y-7,2.4,8);dot(x,y-8,4.5,"#426b42");
      if(i%4===0){c.fillStyle="#aaa18a";c.fillRect(x+5,y-3,2,5);c.fillRect(x+3.5,y-4.5,5,1.5);}
     }else if(z.kind==="coast"){
      c.fillStyle="#c9b77c";c.fillRect(x-4,y-1,8,2);c.fillStyle="#80775d";dot(x+3,y-2,2.2,"#80775d");
+    }else if(z.kind==="seaVista"){
+     // Keep this leg visually open: tiny grasses only, so the coastline becomes the landmark.
+     if(i%3===0){c.fillStyle="#7fa94b";c.fillRect(x,y,1,3);c.fillRect(x-2,y+2,4,.7);}
+    }else if(z.kind==="forestEdge"){
+     // The forest approaches gradually before becoming dense.
+     c.fillStyle="#4c7540";dot(x,y-3,4.2,"#4c7540");c.fillStyle="#60472e";c.fillRect(x-.8,y,1.6,4);
     }else if(z.kind==="deepForest"){
      c.fillStyle=i%2?"#294c35":"#365d3a";dot(x,y-5,6,"#294c35");c.fillStyle="#503b29";c.fillRect(x-1,y-3,2,6);
     }else if(z.kind==="falls"){
      c.fillStyle="#66756b";dot(x,y,3.5,"#66756b");if(i%3===0){c.strokeStyle="#d8edf0";c.lineWidth=1;c.beginPath();c.moveTo(x-5,y+5);c.lineTo(x+5,y+5);c.stroke();}
+    }else if(z.kind==="highland"){
+     // Cool, sparse alpine grass separates the waterfall basin from the autumn shrine region.
+     c.fillStyle=i%2?"#76945b":"#879d68";c.fillRect(x-3,y,6,1);if(i%4===0)dot(x+2,y-2,1.5,"#d8dfbd");
     }else if(z.kind==="autumn"){
      c.fillStyle="#65412d";c.fillRect(x-1,y-2,2,7);dot(x,y-5,5,i%2?"#b74e39":"#d0783e");
     }
@@ -160,5 +176,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:7,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:8,tileAt,tileSize,size,viewSize,camera,draw};
 })();
