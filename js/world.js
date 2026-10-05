@@ -14,7 +14,7 @@ window.YK_WORLD=(()=>{
  // Scenic landmarks make each leg of the journey visually distinct without turning
  // the field back into a narrow road corridor.
  const scenicZones=[
-  {kind:"farmland",x:238,y:535,rx:92,ry:76},
+  {kind:"farmland",x:225,y:555,rx:58,ry:46},
   {kind:"foothill",x:286,y:438,rx:88,ry:62},
   {kind:"shrine",x:205,y:360,rx:72,ry:66},
   {kind:"coast",x:466,y:590,rx:94,ry:68},
@@ -83,9 +83,8 @@ window.YK_WORLD=(()=>{
    if(water||bridge){c.fillStyle='#245d72';c.fillRect(x,y,8,8)}
    else{
     // Layered grass tones break the flat neon-green plane without changing tiles.
-    const grassTone=v<.18?'#9fc951':v<.52?'#a7cf58':v<.82?'#a1ca50':'#96c249';
-    c.fillStyle=grassTone;c.fillRect(x,y,8,8);
-    if(v>.42&&v<.62){c.fillStyle='rgba(190,174,105,.16)';c.fillRect(x+1,y+2,6,3)}
+    c.fillStyle='#a3cc55';c.fillRect(x,y,8,8);
+    // Avoid per-tile colour blocks: broad overlays below provide terrain variation.
    }
    if(water){
     // Low-contrast ripples; stone bank and thin foam at the actual collision edge.
@@ -107,9 +106,9 @@ window.YK_WORLD=(()=>{
     c.fillStyle='#765739';if(tileAt(x+4,y-4)!=='bridge')c.fillRect(x,y,8,.75);if(tileAt(x+4,y+12)!=='bridge')c.fillRect(x,y+7.25,8,.75);
    }else{
     // Irregular tufts, dry grass and tiny flowers give the plain material variation.
-    if(v>.62){c.fillStyle=v>.84?'#789f43':'#8db747';c.fillRect(x+1+v*4,y+3,1,.7);}
-    if(v>.79&&v<.91){c.strokeStyle='rgba(93,130,61,.55)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
-    if(t==='grass'&&v>.95){c.fillStyle=v>.985?'#f3d6d0':'#e9e5b1';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
+    if(v>.90){c.fillStyle='#7fa846';c.fillRect(x+1+v*4,y+3,1,.7);}
+    if(v>.965){c.strokeStyle='rgba(93,130,61,.48)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
+    if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
   // Irregular shoreline caps cover the 8px stair-step silhouette with grass, sand and reeds.
@@ -117,13 +116,13 @@ window.YK_WORLD=(()=>{
    const t=tileAt(x,y);if(t==='water'||t==='bridge')continue;
    const nearWater=[[8,0],[-8,0],[0,8],[0,-8]].some(([dx,dy])=>tileAt(x+dx,y+dy)==='water');
    if(!nearWater)continue;
-   const v=hash(x+19,y+41);
-   c.fillStyle=v>.48?'#bcae72':'#829e55';c.beginPath();c.ellipse(x+(v-.5)*5,y+(v-.5)*3,4.5+v*3,2.1+v,0,0,Math.PI*2);c.fill();
+   const v=hash(x+19,y+41);if(v<.58)continue;
+   c.fillStyle=v>.48?'#bcae72':'#829e55';c.beginPath();c.ellipse(x+(v-.5)*5,y+(v-.5)*3,3.2+v*2,1.5+v*.8,0,0,Math.PI*2);c.fill();
    if(v>.58){c.strokeStyle='rgba(83,112,66,.72)';c.lineWidth=.7;for(let q=-2;q<=2;q+=2){c.beginPath();c.moveTo(x+q,y+2);c.lineTo(x+q+(v-.5)*2,y-3-v*2);c.stroke();}}
   }
   // Broad tonal patches make grassland read as terrain rather than a tiled green canvas.
-  c.save();c.globalAlpha=.12;
-  for(const [x,y,rx,ry,col] of [[305,520,125,68,'#d2c56d'],[520,530,150,78,'#7faf4d'],[405,330,165,72,'#91b85b'],[610,285,95,70,'#6e9e53'],[255,210,115,62,'#a8b86a']]){
+  c.save();c.globalAlpha=.075;
+  for(const [x,y,rx,ry,col] of [[305,520,170,92,'#c6bd68'],[545,535,205,110,'#77a84c'],[410,330,210,96,'#91b45a'],[610,275,145,90,'#719b52'],[250,205,165,86,'#a8b46a']]){
    c.fillStyle=col;c.beginPath();c.ellipse(x,y,rx,ry,-.08,0,Math.PI*2);c.fill();
   }c.restore();
   // Layer terrain from north to south so ranges and woods read as masses instead of icon grids.
@@ -170,7 +169,7 @@ window.YK_WORLD=(()=>{
   // Regional scenery: visual breadcrumbs rather than collision corridors.
   const dot=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();};
   for(const z of scenicZones){
-   const count=z.kind==="farmland"?18:z.kind==="autumn"?16:12;
+   const count=z.kind==="farmland"?9:z.kind==="autumn"?14:10;
    for(let i=0;i<count;i++){
     const a=hash(i*37+Math.floor(z.x),Math.floor(z.y))*Math.PI*2;
     const rr=Math.sqrt(hash(i*71+13,Math.floor(z.x)))*.82;
@@ -178,8 +177,8 @@ window.YK_WORLD=(()=>{
     if(tileAt(x,y)!=="grass")continue;
     if(z.kind==="farmland"){
      c.save();c.translate(x,y);c.rotate((i%3-1)*.12);c.fillStyle=i%2?"#d6c86b":"#b9b957";
-     c.fillRect(-7,-3,14,6);c.strokeStyle="#8e8649";c.lineWidth=.7;
-     for(let q=-5;q<=5;q+=4){c.beginPath();c.moveTo(q,-3);c.lineTo(q,3);c.stroke();}c.restore();
+     c.fillRect(-6,-2.5,12,5);c.strokeStyle="#8e8649";c.lineWidth=.7;
+     for(let q=-4;q<=4;q+=4){c.beginPath();c.moveTo(q,-3);c.lineTo(q,3);c.stroke();}c.restore();
      if(i%5===0){c.fillStyle="#e8a4b7";dot(x+5,y-6,2.5,"#e8a4b7");}
     }else if(z.kind==="foothill"){
      // Sparse rocks and low shrubs tighten the view before the shrine without making a corridor.
@@ -215,5 +214,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:12,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:13,tileAt,tileSize,size,viewSize,camera,draw};
 })();
