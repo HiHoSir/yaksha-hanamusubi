@@ -477,8 +477,8 @@ worldAtlas.src="assets/maps/world-atlas-v15.33.png";
 function drawWorldTerrain(c){
  const source=$("worldTerrain");
  if(!layerReady(worldAtlas)){YK_WORLD.draw(c,null);return;}
- if(!terrainReady){const tc=source.getContext("2d");tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;}
- c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
+ if(!terrainReady){const tc=source.getContext("2d");tc.setTransform(1,0,0,1,0,0);tc.clearRect(0,0,source.width,source.height);tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;}
+ c.imageSmoothingEnabled=false;c.drawImage(source,0,0,source.width,source.height,0,0,768,768);
 }
 const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
