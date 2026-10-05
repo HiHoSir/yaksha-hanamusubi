@@ -37,7 +37,7 @@ function loadAuto(){try{
  }
  return best?migrate(best):null;
 }catch(e){return null}}
-function auto(s){try{s.lastSave=Date.now();localStorage.setItem(AUTO,JSON.stringify(s));localStorage.setItem(LEGACY,JSON.stringify(s));return true}catch(e){return false}}
+function auto(s){try{const v=JSON.stringify({...s,lastSave:Date.now()});localStorage.setItem(AUTO,v);localStorage.setItem(LEGACY,v);return localStorage.getItem(AUTO)===v||localStorage.getItem(LEGACY)===v}catch(e){console.error("autosave failed",e);return false}}
 function saveSlot(n,s){try{s.lastSave=Date.now();localStorage.setItem("yaksha_beta_slot"+n,JSON.stringify(s));auto(s);return true}catch(e){return false}}
 function loadSlot(n){try{const r=localStorage.getItem("yaksha_beta_slot"+n);return r?migrate(JSON.parse(r)):null}catch(e){return null}}
 function slotInfo(n){const s=loadSlot(n);return s?{lv:s.lv,area:(YK_DATA.areas[s.area]||{}).name||s.area,time:s.lastSave}:null}
