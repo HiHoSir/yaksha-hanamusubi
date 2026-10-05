@@ -56,7 +56,10 @@ window.YK_WORLD=(()=>{
   let type=inside(x,y,coast)?TILE.GRASS:TILE.WATER;
   if(type===TILE.GRASS){
    if(inside(x,y,ridge)||inside(x,y,southRidge))type=TILE.MOUNTAIN;
-   else if(groves.some(([cx,cy,rx,ry])=>((x-cx)/rx)**2+((y-cy)/ry)**2<1))type=TILE.FOREST;
+   else if(groves.some(([cx,cy,rx,ry])=>{
+    const samples=[[x,y],[x-12,y],[x+12,y],[x,y-12],[x,y+12]];
+    return samples.some(([sx,sy])=>((sx-cx)/rx)**2+((sy-cy)/ry)**2<1);
+   }))type=TILE.FOREST;
    if(d<23)type=TILE.GRASS;
    if(lake||r<7)type=TILE.WATER;
    if(r<7&&d<10)type=TILE.BRIDGE;
@@ -64,6 +67,13 @@ window.YK_WORLD=(()=>{
   }
   if(Object.values(places).some(p=>Math.hypot(x-p.point[0],y-p.point[1])<18))type=TILE.GRASS;
   mapData[ty][tx]=type;
+ }
+ // Guarantee recognizable forest masses around authored grove centers on the coarse 32px grid.
+ for(const [cx,cy,rx,ry] of groves){
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   const x=tx*tileSize+tileSize/2,y=ty*tileSize+tileSize/2;
+   if(((x-cx)/(rx*.82))**2+((y-cy)/(ry*.82))**2<1 && mapData[ty][tx]===TILE.GRASS)mapData[ty][tx]=TILE.FOREST;
+  }
  }
  const tileIdAt=(x,y)=>x<0||y<0||x>=size||y>=size?TILE.WATER:mapData[Math.floor(y/tileSize)][Math.floor(x/tileSize)];
  const tileAt=(x,y)=>TILE_NAME[tileIdAt(x,y)];
@@ -236,5 +246,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:17,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:18,tileAt,tileSize,size,viewSize,camera,draw};
 })();
