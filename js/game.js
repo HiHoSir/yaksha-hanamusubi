@@ -426,6 +426,13 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   c.drawImage(sprite,x-anchorX*scale,y+9*z-480*scale,512*scale,512*scale);
   c.restore();return;
  }
+ // Startup-critical fallback: never allow the protagonist to disappear while HD frames load/fail.
+ const legacyDir={d:"down",u:"up",l:"left",r:"right"}[dir]||"down";
+ const legacyIndex=Math.max(0,Math.min(2,frameIndex));
+ const legacy=new Image();legacy.src=`assets/characters/yashahime/normal_${legacyDir}_${legacyIndex}.png`;
+ if(legacy.complete&&legacy.naturalWidth){const h=76*z,w=h*(legacy.naturalWidth/legacy.naturalHeight);shadow(c,x,y+7*z,24*z,7*z,.25);c.drawImage(legacy,x-w/2,y-h*.88,w,h);return;}
+ // Last-resort visible marker: movement/startup remains testable even on a failed image request.
+ c.save();shadow(c,x,y+7*z,18*z,6*z,.22);c.fillStyle="#b94f79";c.beginPath();c.arc(x,y-18*z,13*z,0,Math.PI*2);c.fill();c.fillStyle="#f4d7c6";c.beginPath();c.arc(x,y-34*z,8*z,0,Math.PI*2);c.fill();c.restore();
 }function npc(c,x,y,type,name,dir="d",frame=1){
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
  const set=NPC_ASSETS[type];
@@ -923,13 +930,13 @@ const startNewGame=()=>{try{
  g.fillStyle="#88b95a";g.fillRect(0,0,C.width,C.height);
  hud();map();
  // Saving is deliberately non-blocking: storage failure must never prevent game startup.
- try{YK_SAVE.auto(S)}catch(saveErr){console.warn("initial autosave failed",saveErr)}
+ const saved=YK_SAVE.auto(S);if(!saved)console.warn("initial autosave could not be verified")
  setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200);
 }catch(err){console.error("new game failed",err);$("title").classList.remove("show");busy=false;alert("ゲーム開始処理を復旧します");}};
 YK_INPUT.tap($("newGame"),startNewGame);
 const continueFromTitle=()=>{try{
  const v=YK_SAVE.loadAuto();
- if(!v){alert("自動保存データがありません");return;}
+ if(!v){message("保存データが見つかりません",2200);return;}
  // Close title first. Continue must never appear unresponsive even if an old save needs repair.
  $("title").classList.remove("show");busy=false;
  try{restoreState(v)}catch(loadErr){
