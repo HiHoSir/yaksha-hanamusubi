@@ -476,56 +476,43 @@ const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
 const fieldFrameCtx=fieldFrame.getContext("2d");
 function drawRoundedField(c,source){
- // Bevel-view world: sky -> atmospheric horizon -> curved land. The field is
- // deliberately wider than the viewport so no straight projection edges can appear.
- const cx=384,anchor=470,horizon=116,strip=2;
+ // Closer bevel-view: readable hero/landmarks in the foreground, with the world
+ // shrinking rapidly only in the distance and disappearing behind a curved horizon.
+ const cx=384,anchor=474,horizon=126,strip=2;
  const sky=c.createLinearGradient(0,0,0,360);
- sky.addColorStop(0,"#a9c9d0");
- sky.addColorStop(.42,"#c8d9c5");
- sky.addColorStop(.78,"#dce2bd");
- sky.addColorStop(1,"#b8d37e");
+ sky.addColorStop(0,"#8fb8ca");sky.addColorStop(.46,"#bdd2c6");sky.addColorStop(.78,"#dce1bc");sky.addColorStop(1,"#b6d17b");
  c.fillStyle=sky;c.fillRect(0,0,768,768);
- // Soft distant cloud/haze banks, kept abstract so they merge with any region.
- c.save();c.globalAlpha=.22;c.fillStyle="#f2efd0";
- for(const [x,y,rx,ry] of [[115,92,155,40],[370,70,205,48],[650,106,170,43]]){
-  c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();
- }
+ // Distant clouds.
+ c.save();c.globalAlpha=.24;c.fillStyle="#f5efd0";
+ for(const [x,y,rx,ry] of [[90,78,150,35],[350,61,190,42],[650,88,165,38]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()}
  c.restore();
+ // Faint mountain silhouettes behind the horizon: atmosphere, not collision terrain.
+ c.save();c.globalAlpha=.18;c.fillStyle="#668a72";
+ c.beginPath();c.moveTo(-40,190);c.lineTo(70,130);c.lineTo(138,168);c.lineTo(235,105);c.lineTo(326,171);c.lineTo(430,118);c.lineTo(520,168);c.lineTo(635,112);c.lineTo(810,188);c.lineTo(810,245);c.lineTo(-40,245);c.closePath();c.fill();
+ c.globalAlpha=.12;c.fillStyle="#527667";
+ c.beginPath();c.moveTo(-30,215);c.lineTo(105,164);c.lineTo(205,205);c.lineTo(340,150);c.lineTo(468,210);c.lineTo(590,157);c.lineTo(800,214);c.lineTo(800,255);c.lineTo(-30,255);c.closePath();c.fill();c.restore();
  for(let sy=0;sy<768;sy+=strip){
-  let dy=sy,scale=1,dh=strip+1,alpha=1;
+  let dy=sy,scale=1.07,dh=strip+1,alpha=1;
   if(sy<anchor){
    const t=Math.max(0,Math.min(1,(anchor-sy)/(anchor-horizon)));
    const eased=t*t*(3-2*t);
-   // Keep the projected land wider than screen. Perspective comes mainly from
-   // vertical compression and atmospheric fade, avoiding visible trapezoid sides.
-   scale=1.055-.055*eased;
-   dy=anchor-(anchor-sy)*(1-.235*eased);
-   dh=strip*(1-.20*eased)+1.2;
-   alpha=1-.50*Math.pow(t,1.45);
+   // Strong depth at distance, almost no perspective change around the hero.
+   scale=1.07-.11*Math.pow(eased,1.25);
+   dy=anchor-(anchor-sy)*(1-.28*Math.pow(eased,1.15));
+   dh=strip*(1-.22*eased)+1.15;
+   alpha=1-.68*Math.pow(t,1.6);
   }else{
-   const near=Math.min(1,(sy-anchor)/298);
-   scale=1.055+.018*near;
+   const near=Math.min(1,(sy-anchor)/294);scale=1.07+.025*near;
   }
-  const dw=768*scale,dx=cx-dw/2;
-  c.globalAlpha=alpha;c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
+  const dw=768*scale,dx=cx-dw/2;c.globalAlpha=alpha;c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
  }
  c.globalAlpha=1;
- // Strong horizon veil dissolves the farthest land into the sky rather than
- // leaving a hard top edge.
- const horizonVeil=c.createLinearGradient(0,78,0,420);
- horizonVeil.addColorStop(0,"rgba(230,235,204,.76)");
- horizonVeil.addColorStop(.18,"rgba(224,233,201,.58)");
- horizonVeil.addColorStop(.45,"rgba(214,228,194,.30)");
- horizonVeil.addColorStop(.72,"rgba(203,220,186,.10)");
- horizonVeil.addColorStop(1,"rgba(203,220,186,0)");
- c.fillStyle=horizonVeil;c.fillRect(0,72,768,365);
- // A low luminous horizon arc gives the impression of a rounded world.
- c.save();c.globalCompositeOperation="screen";
- const glow=c.createRadialGradient(cx,112,90,cx,132,520);
- glow.addColorStop(0,"rgba(250,244,210,.27)");
- glow.addColorStop(.48,"rgba(239,239,207,.12)");
- glow.addColorStop(1,"rgba(239,239,207,0)");
- c.fillStyle=glow;c.fillRect(0,42,768,330);c.restore();
+ // Curved horizon mask: centre rises slightly and sides fall away, removing the straight filter seam.
+ c.fillStyle="rgba(224,233,202,.34)";
+ c.beginPath();c.moveTo(0,205);c.quadraticCurveTo(384,150,768,205);c.lineTo(768,270);c.quadraticCurveTo(384,218,0,270);c.closePath();c.fill();
+ const veil=c.createLinearGradient(0,108,0,430);
+ veil.addColorStop(0,"rgba(235,238,209,.62)");veil.addColorStop(.28,"rgba(224,233,201,.40)");veil.addColorStop(.58,"rgba(211,226,193,.17)");veil.addColorStop(1,"rgba(205,221,188,0)");
+ c.fillStyle=veil;c.fillRect(0,102,768,350);
 }function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area==="field"){
