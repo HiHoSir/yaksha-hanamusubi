@@ -11,6 +11,16 @@ window.YK_WORLD=(()=>{
   fox:{point:[171,111],name:"九尾の祠",note:"北の山間を西へ抜けた先、紅葉に囲まれた祠。"}
  };
  const shrineJunction=[289,415],springJunction=[458,138];
+ // Scenic landmarks make each leg of the journey visually distinct without turning
+ // the field back into a narrow road corridor.
+ const scenicZones=[
+  {kind:"farmland",x:238,y:535,rx:92,ry:76},
+  {kind:"shrine",x:205,y:360,rx:72,ry:66},
+  {kind:"coast",x:466,y:590,rx:94,ry:68},
+  {kind:"deepForest",x:650,y:408,rx:78,ry:88},
+  {kind:"falls",x:632,y:206,rx:78,ry:70},
+  {kind:"autumn",x:210,y:132,rx:108,ry:58}
+ ];
  const roads=[
   [places.village.point,start,[231,489],[241,471],[265,460],[284,445],shrineJunction],
   [shrineJunction,[246,405],[216,398],[197,382],places.shrine.point],
@@ -96,6 +106,35 @@ window.YK_WORLD=(()=>{
     stamp(Math.hypot(x-211,y-565)<80&&v>.7?3:Math.floor(v*3),x,y,w,w*.85);
    }
   }
+  // Regional scenery: visual breadcrumbs rather than collision corridors.
+  const dot=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();};
+  for(const z of scenicZones){
+   const count=z.kind==="farmland"?18:z.kind==="autumn"?16:12;
+   for(let i=0;i<count;i++){
+    const a=hash(i*37+Math.floor(z.x),Math.floor(z.y))*Math.PI*2;
+    const rr=Math.sqrt(hash(i*71+13,Math.floor(z.x)))*.82;
+    const x=z.x+Math.cos(a)*z.rx*rr,y=z.y+Math.sin(a)*z.ry*rr;
+    if(tileAt(x,y)!=="grass")continue;
+    if(z.kind==="farmland"){
+     c.save();c.translate(x,y);c.rotate((i%3-1)*.12);c.fillStyle=i%2?"#d6c86b":"#b9b957";
+     c.fillRect(-7,-3,14,6);c.strokeStyle="#8e8649";c.lineWidth=.7;
+     for(let q=-5;q<=5;q+=4){c.beginPath();c.moveTo(q,-3);c.lineTo(q,3);c.stroke();}c.restore();
+     if(i%5===0){c.fillStyle="#e8a4b7";dot(x+5,y-6,2.5,"#e8a4b7");}
+    }else if(z.kind==="shrine"){
+     c.fillStyle="#314f35";c.fillRect(x-1.2,y-7,2.4,8);dot(x,y-8,4.5,"#426b42");
+     if(i%4===0){c.fillStyle="#aaa18a";c.fillRect(x+5,y-3,2,5);c.fillRect(x+3.5,y-4.5,5,1.5);}
+    }else if(z.kind==="coast"){
+     c.fillStyle="#c9b77c";c.fillRect(x-4,y-1,8,2);c.fillStyle="#80775d";dot(x+3,y-2,2.2,"#80775d");
+    }else if(z.kind==="deepForest"){
+     c.fillStyle=i%2?"#294c35":"#365d3a";dot(x,y-5,6,"#294c35");c.fillStyle="#503b29";c.fillRect(x-1,y-3,2,6);
+    }else if(z.kind==="falls"){
+     c.fillStyle="#66756b";dot(x,y,3.5,"#66756b");if(i%3===0){c.strokeStyle="#d8edf0";c.lineWidth=1;c.beginPath();c.moveTo(x-5,y+5);c.lineTo(x+5,y+5);c.stroke();}
+    }else if(z.kind==="autumn"){
+     c.fillStyle="#65412d";c.fillRect(x-1,y-2,2,7);dot(x,y-5,5,i%2?"#b74e39":"#d0783e");
+    }
+   }
+  }
+  // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
   for(const [k,p] of Object.entries(places)){
@@ -103,5 +142,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:5,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:6,tileAt,tileSize,size,viewSize,camera,draw};
 })();
