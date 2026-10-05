@@ -476,45 +476,45 @@ const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
 const fieldFrameCtx=fieldFrame.getContext("2d");
 function drawRoundedField(c,source){
- // Stable close scale + a real visual horizon. Far map rows are clipped away
- // instead of being faded over the sky, so water/terrain can never float in mid-air.
- const cx=384,anchor=474,landTop=226,strip=2;
+ // The near-field scale stays stable; only the distant ground bends sharply away.
+ const cx=384,anchor=474,curveTop=188,landTop=214,strip=2;
  const sky=c.createLinearGradient(0,0,0,300);
- sky.addColorStop(0,"#86b3c9");sky.addColorStop(.48,"#b8cfca");sky.addColorStop(.82,"#d8dfbf");sky.addColorStop(1,"#dfe2b8");
+ sky.addColorStop(0,"#87b5cb");sky.addColorStop(.52,"#bfd4cb");sky.addColorStop(.86,"#dce1c0");sky.addColorStop(1,"#dfe2b9");
  c.fillStyle=sky;c.fillRect(0,0,768,768);
- // Soft cloud banks.
- c.save();c.globalAlpha=.22;c.fillStyle="#f7f0d4";
- for(const [x,y,rx,ry] of [[85,72,145,34],[345,56,185,40],[650,82,160,36]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()}
- c.restore();
- // Two distant mountain layers sit entirely behind the land horizon.
- c.save();c.globalAlpha=.24;c.fillStyle="#6d927c";
- c.beginPath();c.moveTo(-30,220);c.lineTo(70,154);c.lineTo(145,196);c.lineTo(238,128);c.lineTo(330,194);c.lineTo(432,143);c.lineTo(526,197);c.lineTo(632,132);c.lineTo(798,215);c.lineTo(798,250);c.lineTo(-30,250);c.closePath();c.fill();
- c.globalAlpha=.15;c.fillStyle="#557765";
- c.beginPath();c.moveTo(-20,232);c.lineTo(104,182);c.lineTo(205,220);c.lineTo(337,164);c.lineTo(465,218);c.lineTo(590,174);c.lineTo(790,226);c.lineTo(790,255);c.lineTo(-20,255);c.closePath();c.fill();c.restore();
- // Project only rows that belong in front of the horizon. The first source rows
- // are intentionally discarded, not made translucent.
- const sourceCut=178;
+ c.save();c.globalAlpha=.20;c.fillStyle="#f7f1d7";
+ for(const [x,y,rx,ry] of [[70,72,140,32],[335,53,180,38],[650,80,155,34]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()}c.restore();
+ // Organic low mountain ridges replace the old triangular peaks.
+ c.save();c.globalAlpha=.22;c.fillStyle="#76947e";c.beginPath();c.moveTo(-20,220);
+ c.bezierCurveTo(55,181,90,178,145,201);c.bezierCurveTo(205,158,250,148,314,198);c.bezierCurveTo(365,172,415,160,468,199);c.bezierCurveTo(525,154,580,153,638,196);c.bezierCurveTo(690,172,735,181,790,216);
+ c.lineTo(790,250);c.lineTo(-20,250);c.closePath();c.fill();
+ c.globalAlpha=.12;c.fillStyle="#547462";c.beginPath();c.moveTo(-20,230);
+ c.bezierCurveTo(90,198,150,204,220,226);c.bezierCurveTo(315,182,370,187,445,224);c.bezierCurveTo(535,190,620,193,790,229);
+ c.lineTo(790,258);c.lineTo(-20,258);c.closePath();c.fill();c.restore();
+ // Far ground remains visible just long enough to establish continuity, then rapidly
+ // compresses into the curved horizon instead of ending in a horizontal band.
+ const sourceCut=150;
  for(let sy=sourceCut;sy<768;sy+=strip){
-  let dy=sy,scale=1.07,dh=strip+1;
+  let dy=sy,scale=1.075,dh=strip+1,alpha=1;
   if(sy<anchor){
    const t=Math.max(0,Math.min(1,(anchor-sy)/(anchor-sourceCut)));
-   const eased=t*t*(3-2*t);
-   scale=1.07-.085*Math.pow(eased,1.2);
-   dy=landTop+(sy-sourceCut)*(anchor-landTop)/(anchor-sourceCut);
-   dy+=18*Math.pow(1-t,2)*t;
-   dh=strip*(.78+.22*(1-t))+1.1;
+   const bend=Math.pow(t,1.65);
+   scale=1.075-.14*bend;
+   dy=anchor-(anchor-sy)*(1-.34*bend);
+   dh=strip*(1-.30*bend)+1.05;
+   if(sy<curveTop+80)alpha=Math.max(0,Math.min(1,(sy-curveTop)/80));
   }else{
-   const near=Math.min(1,(sy-anchor)/294);scale=1.07+.025*near;
+   const near=Math.min(1,(sy-anchor)/294);scale=1.075+.025*near;
   }
-  const dw=768*scale,dx=cx-dw/2;
-  c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
+  if(alpha<=0)continue;
+  const dw=768*scale,dx=cx-dw/2;c.globalAlpha=alpha;c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
  }
- // Curved atmospheric lip overlaps the first land rows, hiding the crop seam.
- c.fillStyle="rgba(224,232,199,.34)";
- c.beginPath();c.moveTo(0,244);c.quadraticCurveTo(384,198,768,244);c.lineTo(768,274);c.quadraticCurveTo(384,230,0,274);c.closePath();c.fill();
- const veil=c.createLinearGradient(0,196,0,390);
- veil.addColorStop(0,"rgba(235,238,208,.48)");veil.addColorStop(.38,"rgba(222,232,198,.24)");veil.addColorStop(1,"rgba(211,225,190,0)");
- c.fillStyle=veil;c.fillRect(0,190,768,210);
+ c.globalAlpha=1;
+ // A shallow bowed mist edge follows the curvature rather than forming a stripe.
+ c.save();c.globalCompositeOperation="screen";c.fillStyle="rgba(235,238,211,.18)";
+ c.beginPath();c.moveTo(-20,238);c.quadraticCurveTo(384,186,788,238);c.quadraticCurveTo(384,218,-20,238);c.fill();c.restore();
+ const veil=c.createLinearGradient(0,185,0,355);
+ veil.addColorStop(0,"rgba(231,237,207,.28)");veil.addColorStop(.45,"rgba(220,231,199,.13)");veil.addColorStop(1,"rgba(214,227,193,0)");
+ c.fillStyle=veil;c.fillRect(0,180,768,185);
 }function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area==="field"){
@@ -565,7 +565,7 @@ function drawActorsOn(c){
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero")hero(c,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.13:["village","teahouse","osumiHome"].includes(S.area)?.68:.92);
+   if(a.kind==="hero")hero(c,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.16:["village","teahouse","osumiHome"].includes(S.area)?.68:.92);
    else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
