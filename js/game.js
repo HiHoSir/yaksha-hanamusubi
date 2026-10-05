@@ -100,7 +100,8 @@ function loadNpcAssetSet(){
    NPC_ASSETS[type]=set;
  }
 }
-loadNpcAssetSet();
+let npcAssetsLoaded=false;
+function ensureNpcAssets(){if(npcAssetsLoaded)return;npcAssetsLoaded=true;loadNpcAssetSet();}
 for(const [k,v] of Object.entries(B9)){const im=new Image();im.onload=assetLoaded;im.src=v;B9IMG[k]=im}
 const OUTFIT_READY={normal:true,basewear:true,light:true,white:true,navy:true,yukata:true,demon:true};
 const HERO_FOLDERS={normal:"normal-v9",basewear:"basewear",light:"light-v9",white:"white-v9",navy:"navy-v9",yukata:"yukata-v9",demon:"demon-v9"};
@@ -111,7 +112,7 @@ function resetBattleAnimation(){for(const id of battleTimers)clearTimeout(id);ba
 function battleLater(fn,ms){const owner=battle;const id=setTimeout(()=>{battleTimers.delete(id);if(battle&&battle===owner)fn();},ms);battleTimers.add(id);}
 for(const outfit of ["normal","light","white","navy","yukata","demon"]){
  BATTLE_SPRITES[outfit]={};
- for(const pose of ["attack","hit"]){const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/yashahime/battle-v9/${outfit}-${pose}.png`;BATTLE_SPRITES[outfit][pose]=im;}
+ for(const pose of ["attack","hit"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/battle-v9/${outfit}-${pose}.png`;BATTLE_SPRITES[outfit][pose]=im;}
 }
 const LAYERED_SPRITES={};
 for(const [outfit,folder] of Object.entries(HERO_FOLDERS)){
@@ -137,11 +138,18 @@ NPC_ROLES.forEach(n=>{
     }
   });
 });
-const B9EN={};["redoni","crowtengu","umibozu","ninefox","yokai_flower"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/enemies/${n}.png`;B9EN[n]=im});
-const ENEMY_ART={};["field-oni","field-tanuki"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/enemies/standard/${n}.png`;ENEMY_ART[n]=im});
+const B9EN={};["redoni","crowtengu","umibozu","ninefox","yokai_flower"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/${n}.png`;B9EN[n]=im});
+const ENEMY_ART={};["field-oni","field-tanuki"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/standard/${n}.png`;ENEMY_ART[n]=im});
 const RARE_ART={};
-for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.src=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
-function rareReady(r){return !!r&&layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);}
+for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
+function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
+function ensureBattleAssets(){
+ const set=BATTLE_SPRITES[S.outfit]||BATTLE_SPRITES.normal;if(set)for(const im of Object.values(set))ensureImage(im);
+ for(const im of Object.values(B9EN))ensureImage(im);
+ for(const im of Object.values(ENEMY_ART))ensureImage(im);
+ for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
+}
+function rareReady(r){if(r){ensureImage(RARE_ART[r.id]?.intact);ensureImage(RARE_ART[r.id]?.worn)}return !!r&&layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);}
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0);}
 function enemyArt(c,x,y){
  const name=battle?.baseName||battle?.name||"",profile=D.enemyProfiles?.[name];
@@ -517,6 +525,7 @@ function drawRoundedField(c,source){
  c.fillStyle=veil;c.fillRect(0,180,768,185);
 }function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
+ if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
   fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
@@ -615,6 +624,7 @@ function renderDialogPortrait(){
  if(c.style.display!=="none")hero(q,90,160,"d",1,S.outfit,1.3);
 }
 function beginEncounter(){
+ ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
  if(!area||!pool?.length||area.encounter<=0)return false;
  if(S.encounterGrace>0||S.encounterSteps<(area.min||12))return false;
