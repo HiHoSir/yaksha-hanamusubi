@@ -87,7 +87,7 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-range-v15.53.3.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
@@ -168,9 +168,17 @@ window.YK_WORLD=(()=>{
   for(const [x,y,rx,ry,col] of [[305,520,170,92,'#c6bd68'],[545,535,205,110,'#77a84c'],[410,330,210,96,'#91b45a'],[610,275,145,90,'#719b52'],[250,205,165,86,'#a8b46a']]){
    c.fillStyle=col;c.beginPath();c.ellipse(x,y,rx,ry,-.08,0,Math.PI*2);c.fill();
   }c.restore();
-  // Mountain visuals are a single transparent image layer. Logical MOUNTAIN tiles remain collision-only.
-  // The PNG is authored against the same 768x768 world coordinates, so movement/collision geometry is unchanged.
-  if(artReady(TERRAIN_ART.mountainRange))c.drawImage(TERRAIN_ART.mountainRange,0,0,768,768);
+  // Mountain visuals use an image asset independently from the logical 32px MOUNTAIN collision grid.
+  // Staggered placement masks the blocky collision boundary without changing ridge/southRidge/mapData/walkable.
+  if(artReady(TERRAIN_ART.mountainRange)){
+   const mountainObjects=[
+    [70,55,138,90],[168,72,142,92],[270,82,140,91],[374,96,145,94],[466,92,137,89],
+    [62,145,132,86],[154,165,139,90],[248,178,136,88],[350,180,142,92],[430,226,132,86],
+    [46,244,128,83],[126,268,136,88],[208,292,130,84],[294,214,125,81],
+    [34,338,118,77],[91,375,126,82],[46,608,128,83],[83,660,132,86],[120,714,128,83],[84,754,122,79]
+   ];
+   for(const [mx,my,mw,mh] of mountainObjects)drawTerrainArt(c,"mountainRange",mx,my,mw,mh);
+  }
   // Ground-contact dressing merges stamped terrain into the landscape.
   for(let gy=6;gy<768;gy+=13)for(let gx=6;gx<768;gx+=15){
    const t=tileAt(gx,gy),v=hash(gx+31,gy+17);
