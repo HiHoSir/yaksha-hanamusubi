@@ -112,10 +112,24 @@ window.YK_WORLD=(()=>{
     if(t==='grass'&&v>.95){c.fillStyle=v>.985?'#f3d6d0':'#e9e5b1';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
+  // Irregular shoreline caps cover the 8px stair-step silhouette with grass, sand and reeds.
+  for(let y=4;y<764;y+=8)for(let x=4;x<764;x+=8){
+   const t=tileAt(x,y);if(t==='water'||t==='bridge')continue;
+   const nearWater=[[8,0],[-8,0],[0,8],[0,-8]].some(([dx,dy])=>tileAt(x+dx,y+dy)==='water');
+   if(!nearWater)continue;
+   const v=hash(x+19,y+41);
+   c.fillStyle=v>.48?'#bcae72':'#829e55';c.beginPath();c.ellipse(x+(v-.5)*5,y+(v-.5)*3,4.5+v*3,2.1+v,0,0,Math.PI*2);c.fill();
+   if(v>.58){c.strokeStyle='rgba(83,112,66,.72)';c.lineWidth=.7;for(let q=-2;q<=2;q+=2){c.beginPath();c.moveTo(x+q,y+2);c.lineTo(x+q+(v-.5)*2,y-3-v*2);c.stroke();}}
+  }
+  // Broad tonal patches make grassland read as terrain rather than a tiled green canvas.
+  c.save();c.globalAlpha=.12;
+  for(const [x,y,rx,ry,col] of [[305,520,125,68,'#d2c56d'],[520,530,150,78,'#7faf4d'],[405,330,165,72,'#91b85b'],[610,285,95,70,'#6e9e53'],[255,210,115,62,'#a8b86a']]){
+   c.fillStyle=col;c.beginPath();c.ellipse(x,y,rx,ry,-.08,0,Math.PI*2);c.fill();
+  }c.restore();
   // Layer terrain from north to south so ranges and woods read as masses instead of icon grids.
   const fits=(x,y,w,type)=>{for(let yy=y-w/2;yy<=y+w/2;yy+=4)for(let xx=x-w/2;xx<=x+w/2;xx+=4)if(tileAt(xx,yy)!==type)return false;return true;};
-  for(let gy=2;gy<768;gy+=10)for(let gx=2;gx<768;gx+=11){
-   const v=hash(gx,gy),x=gx+(Math.floor(gy/10)%2)*5,y=gy,t=tileAt(x,y);
+  for(let gy=2;gy<768;gy+=9)for(let gx=2;gx<768;gx+=10){
+   const v=hash(gx,gy),x=gx+(Math.floor(gy/9)%2)*5+(v-.5)*4,y=gy+(hash(gx+9,gy+5)-.5)*3,t=tileAt(x,y);
    if(t==='mountain'){
     const deep=fits(x,y,20,'mountain'),mid=fits(x,y,9,'mountain');
     const w=deep?38:mid?23:13,h=w*(deep?.76:.72);
@@ -124,11 +138,16 @@ window.YK_WORLD=(()=>{
     c.beginPath();c.ellipse(x,y+h*.24,w*.46,h*.22,0,0,Math.PI*2);c.fill();
     stamp(deep?4+Math.floor(v*3):mid?5+Math.floor(v*2):7,x,y-(deep?3:0),w,h);
     if(deep&&v>.66){c.fillStyle='rgba(224,235,194,.34)';c.beginPath();c.moveTo(x-2,y-h*.34);c.lineTo(x+4,y-h*.12);c.lineTo(x+1,y-h*.15);c.closePath();c.fill();}
+    if(deep){c.fillStyle='rgba(62,105,53,.30)';c.beginPath();c.ellipse(x,y+h*.34,w*.48,h*.14,0,0,Math.PI*2);c.fill();}
    }else if(t==='forest'){
     const deep=fits(x,y,17,'forest'),mid=fits(x,y,8,'forest');
     const w=deep?31:mid?22:14;
-    if(deep){c.fillStyle='rgba(29,69,42,.25)';c.beginPath();c.ellipse(x,y+2,w*.5,w*.22,0,0,Math.PI*2);c.fill();}
-    stamp(Math.hypot(x-211,y-565)<80&&v>.72?3:Math.floor(v*3),x,y-(deep?2:0),w,w*.86);
+    if(deep){
+     c.fillStyle='rgba(28,73,39,.30)';c.beginPath();c.ellipse(x,y+1,w*.68,w*.30,0,0,Math.PI*2);c.fill();
+     // dark canopy seams visually weld neighbouring trees into one forest mass
+     if(v>.35){c.fillStyle='rgba(37,91,42,.32)';c.beginPath();c.arc(x-w*.28,y-2,w*.25,0,Math.PI*2);c.arc(x+w*.26,y-1,w*.27,0,Math.PI*2);c.fill();}
+    }
+    stamp(Math.hypot(x-211,y-565)<80&&v>.72?3:Math.floor(v*3),x,y-(deep?2:0),w*(deep?1.08:1),w*(deep?.91:.86));
    }
   }
   // Ground-contact dressing merges stamped terrain into the landscape.
@@ -196,5 +215,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:11,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:12,tileAt,tileSize,size,viewSize,camera,draw};
 })();
