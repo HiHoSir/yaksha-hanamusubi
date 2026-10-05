@@ -87,8 +87,8 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png"};
- for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.src=src;TERRAIN_ART[k]=im;}
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-range-v15.53.3.png"};
+ for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
  const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
@@ -168,23 +168,9 @@ window.YK_WORLD=(()=>{
   for(const [x,y,rx,ry,col] of [[305,520,170,92,'#c6bd68'],[545,535,205,110,'#77a84c'],[410,330,210,96,'#91b45a'],[610,275,145,90,'#719b52'],[250,205,165,86,'#a8b46a']]){
    c.fillStyle=col;c.beginPath();c.ellipse(x,y,rx,ry,-.08,0,Math.PI*2);c.fill();
   }c.restore();
-  // Layer terrain from north to south so ranges and woods read as masses instead of icon grids.
-  const fits=(x,y,w,type)=>{for(let yy=y-w/2;yy<=y+w/2;yy+=4)for(let xx=x-w/2;xx<=x+w/2;xx+=4)if(tileAt(xx,yy)!==type)return false;return true;};
-  for(let gy=2;gy<768;gy+=9)for(let gx=2;gx<768;gx+=10){
-   const v=hash(gx,gy),x=gx+(Math.floor(gy/9)%2)*5+(v-.5)*4,y=gy+(hash(gx+9,gy+5)-.5)*3,t=tileAt(x,y);
-   if(t==='mountain'){
-    const deep=fits(x,y,20,'mountain'),mid=fits(x,y,9,'mountain');
-    const w=deep?38:mid?23:13,h=w*(deep?.76:.72);
-    // dark foot shadow + staggered atlas peaks creates one continuous ridge silhouette
-    c.fillStyle=deep?'rgba(47,83,53,.32)':'rgba(54,91,58,.22)';
-    c.beginPath();c.ellipse(x,y+h*.24,w*.46,h*.22,0,0,Math.PI*2);c.fill();
-    stamp(deep?4+Math.floor(v*3):mid?5+Math.floor(v*2):7,x,y-(deep?3:0),w,h);
-    if(deep&&v>.66){c.fillStyle='rgba(224,235,194,.34)';c.beginPath();c.moveTo(x-2,y-h*.34);c.lineTo(x+4,y-h*.12);c.lineTo(x+1,y-h*.15);c.closePath();c.fill();}
-    if(deep){c.fillStyle='rgba(62,105,53,.30)';c.beginPath();c.ellipse(x,y+h*.34,w*.48,h*.14,0,0,Math.PI*2);c.fill();}
-   }else if(t==='forest'){
-    // Forest visuals are supplied by large image objects below. The logical FOREST tile remains collision-only.
-   }
-  }
+  // Mountain visuals are a single transparent image layer. Logical MOUNTAIN tiles remain collision-only.
+  // The PNG is authored against the same 768x768 world coordinates, so movement/collision geometry is unchanged.
+  if(artReady(TERRAIN_ART.mountainRange))c.drawImage(TERRAIN_ART.mountainRange,0,0,768,768);
   // Ground-contact dressing merges stamped terrain into the landscape.
   for(let gy=6;gy<768;gy+=13)for(let gx=6;gx<768;gx+=15){
    const t=tileAt(gx,gy),v=hash(gx+31,gy+17);
@@ -192,7 +178,7 @@ window.YK_WORLD=(()=>{
     c.fillStyle=v>.5?'rgba(48,104,52,.34)':'rgba(65,119,55,.28)';
     c.beginPath();c.ellipse(gx,gy+4,5+v*5,2+v*2,0,0,Math.PI*2);c.fill();
     if(v>.72){c.fillStyle='#5e7c43';c.beginPath();c.arc(gx+5,gy,2.2,0,Math.PI*2);c.fill();}
-   }else if(t==='mountain'&&v>.45){
+   }else if(false&&t==='mountain'&&v>.45){
     c.fillStyle='rgba(91,105,69,.25)';c.beginPath();c.ellipse(gx,gy+3,6+v*4,2.5,0,0,Math.PI*2);c.fill();
    }
   }
