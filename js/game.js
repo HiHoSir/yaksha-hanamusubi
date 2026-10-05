@@ -10,7 +10,7 @@ function assetLoaded(){
   if($("title").classList.contains("show"))titleHero();
   if($("hotSpring").classList.contains("show"))renderHotSpring();
   if($("dialog").classList.contains("show"))renderDialogPortrait();
-  if(battle)renderBattle();else {hud();if(!$("title").classList.contains("show"))map();}
+  if(battle)renderBattle();else hud();
   if($("worldMap").classList.contains("show"))drawWorld();
  });
 }
@@ -26,7 +26,6 @@ const ASSET_PATHS={
  world:null
 };
 const IMG={}; for(const [k,v] of Object.entries(ASSET_PATHS)){if(!v)continue;const im=new Image();im.onload=assetLoaded;im.src=v;IMG[k]=im}
-const FIELD_SAFE=new Image();FIELD_SAFE.onload=assetLoaded;FIELD_SAFE.src="assets/maps/field-world.png";
 
 // Production village background layers. Files are optional: until a finished PNG exists,
 // the matching procedural fallback is drawn. This prevents placeholder art from silently
@@ -426,13 +425,6 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   c.drawImage(sprite,x-anchorX*scale,y+9*z-480*scale,512*scale,512*scale);
   c.restore();return;
  }
- // Startup-critical fallback: never allow the protagonist to disappear while HD frames load/fail.
- const legacyDir={d:"down",u:"up",l:"left",r:"right"}[dir]||"down";
- const legacyIndex=Math.max(0,Math.min(2,frameIndex));
- const legacy=new Image();legacy.src=`assets/characters/yashahime/normal_${legacyDir}_${legacyIndex}.png`;
- if(legacy.complete&&legacy.naturalWidth){const h=76*z,w=h*(legacy.naturalWidth/legacy.naturalHeight);shadow(c,x,y+7*z,24*z,7*z,.25);c.drawImage(legacy,x-w/2,y-h*.88,w,h);return;}
- // Last-resort visible marker: movement/startup remains testable even on a failed image request.
- c.save();shadow(c,x,y+7*z,18*z,6*z,.22);c.fillStyle="#b94f79";c.beginPath();c.arc(x,y-18*z,13*z,0,Math.PI*2);c.fill();c.fillStyle="#f4d7c6";c.beginPath();c.arc(x,y-34*z,8*z,0,Math.PI*2);c.fill();c.restore();
 }function npc(c,x,y,type,name,dir="d",frame=1){
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
  const set=NPC_ASSETS[type];
@@ -484,16 +476,9 @@ worldAtlas.onload=()=>{terrainReady=false;assetLoaded();};
 worldAtlas.src="assets/maps/world-atlas-v15.33.png";
 function drawWorldTerrain(c){
  const source=$("worldTerrain");
- // Always paint a world immediately. The atlas enhances it after loading; it is never a prerequisite.
  if(!layerReady(worldAtlas)){YK_WORLD.draw(c,null);return;}
- if(!terrainReady){
-  const tc=source.getContext("2d");
-  tc.setTransform(1,0,0,1,0,0);tc.clearRect(0,0,source.width,source.height);
-  // world.draw already targets the 768x768 world coordinate system.
-  // Rendering it into a 1536 buffer with a 2x transform and then resampling caused a blank camera crop on iOS.
-  YK_WORLD.draw(tc,worldAtlas);terrainReady=true;
- }
- c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768,0,0,768,768);
+ if(!terrainReady){const tc=source.getContext("2d");tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;}
+ c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
 }
 const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
@@ -538,40 +523,15 @@ function drawRoundedField(c,source){
  const veil=c.createLinearGradient(0,185,0,355);
  veil.addColorStop(0,"rgba(231,237,207,.28)");veil.addColorStop(.45,"rgba(220,231,199,.13)");veil.addColorStop(1,"rgba(214,227,193,0)");
  c.fillStyle=veil;c.fillRect(0,180,768,185);
-}
-function syncFieldHeroDom(){
- const el=$("fieldHeroDom");if(!el)return;
- const active=S.area==="field";$("stage")?.classList.toggle("field-active",active);
- if(!active)return;
- const folder=HERO_FOLDERS[S.outfit]||HERO_FOLDERS.normal;
- const prefix={d:"front",u:"back",l:"left",r:"right"}[S.dir]||"front";
- const phase=["right-leg-up","neutral","left-leg-up"][Math.max(0,Math.min(2,Number(S.frame)||0))];
- const src=`assets/characters/yashahime/${folder}/${prefix}-${phase}.png`;
- if(el.getAttribute("src")!==src)el.setAttribute("src",src);
- // Recovery renderer: show actual world movement directly instead of pinning the DOM sprite.
- el.style.left=(S.x/768*100)+"%";el.style.top=(S.y/768*100)+"%";
-}
-function map(){
- syncFieldHeroDom();
+}function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
-  // Startup-critical path: render independently from the experimental terrain buffer/projection.
-  // This guarantees a visible field on iOS even if terrain composition or atlas loading fails.
-  const camera=YK_WORLD.camera(S.x,S.y);
-  g.fillStyle="#88b95a";g.fillRect(0,0,768,768);
-  if(layerReady(FIELD_SAFE)){
-   const sx=Math.max(0,Math.min(FIELD_SAFE.naturalWidth-1,camera.x/768*FIELD_SAFE.naturalWidth));
-   const sy=Math.max(0,Math.min(FIELD_SAFE.naturalHeight-1,camera.y/768*FIELD_SAFE.naturalHeight));
-   const sw=Math.min(FIELD_SAFE.naturalWidth-sx,camera.size/768*FIELD_SAFE.naturalWidth);
-   const sh=Math.min(FIELD_SAFE.naturalHeight-sy,camera.size/768*FIELD_SAFE.naturalHeight);
-   if(sw>1&&sh>1)g.drawImage(FIELD_SAFE,sx,sy,sw,sh,0,0,768,768);
-  }else{
-   // Procedural world is a second independent fallback; failure cannot leave a transparent canvas.
-   try{g.save();g.scale(camera.zoom,camera.zoom);g.translate(-camera.x,-camera.y);YK_WORLD.draw(g,null);g.restore()}catch(e){console.error("field fallback failed",e);try{g.restore()}catch(_){}}
-  }
-  // Draw the player in screen space so camera/asset failures cannot hide the protagonist.
-  hero(g,384,420,S.dir,S.frame,S.outfit,.62);
+  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
+  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
+  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
+  drawWorldTerrain(fieldFrameCtx);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
+  drawRoundedField(g,fieldFrame);
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
  }
@@ -758,14 +718,9 @@ function villageBlocked(x,y){
  return !VILLAGE_LAYOUT.walkZones.some(rect=>inRect(x,y,rect))||
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
-function collision(x,y){if(x<27||x>741||y<34||y>736)return true;
- // Field is currently rendered from the recovery image. Until visual terrain and the 32px
- // logical grid are reconciled, never let stale collision data freeze the startup path.
- if(S.area==="field")return false;
- if(npcBlocked(x,y))return true;
- if(S.area==="village"&&villageBlocked(x,y))return true;
- if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;
- if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
+function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
+  if(!YK_WORLD.walkable(x,y))return true;
+}if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome")return null;
  if(S.area==="village"){
@@ -932,57 +887,15 @@ function drawWorld(){
  document.querySelectorAll("[data-world-place]").forEach(b=>YK_INPUT.tap(b,()=>{const k=b.dataset.worldPlace;S.destination=k;YK_SAVE.auto(S);drawWorld();}));
 }
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
-YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x,y,dir);});
-// Startup-critical direct movement path. It intentionally bypasses the experimental camera/collision stack.
-let directMoveAt=0;
-function directFieldMove(dx,dy,dir){
- if(busy||battle||S.area!=="field")return;
- S.dir=dir;const step=18,nx=clamp(S.x+dx*step,28,740),ny=clamp(S.y+dy*step,35,735);
- S.x=nx;S.y=ny;S.walk=(Number(S.walk)||0)+1;walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];
- syncFieldHeroDom();map();hud();if(S.walk%10===0)YK_SAVE.auto(S);
-}
-for(const [id,dx,dy,dir] of [["up",0,-1,"u"],["down",0,1,"d"],["left",-1,0,"l"],["right",1,0,"r"],["upLeft",-1,-1,"l"],["upRight",1,-1,"r"],["downLeft",-1,1,"l"],["downRight",1,1,"r"]]){
- const el=$(id);if(!el)continue;
- el.addEventListener("touchstart",e=>{e.preventDefault();e.stopImmediatePropagation();directMoveAt=performance.now();directFieldMove(dx,dy,dir)},{passive:false,capture:true});
- el.addEventListener("click",e=>{e.preventDefault();if(performance.now()-directMoveAt<500)return;directFieldMove(dx,dy,dir)},true);
-}
+YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);});
 YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),menu);YK_INPUT.tap($("worldBtn"),worldMap);YK_INPUT.tap($("saveBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{selectCmd(i);cmd(b.dataset.cmd)}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-const startNewGame=()=>{try{
- const fresh=YK_SAVE.fresh();
- state(fresh);
- // A fresh game must always start on a valid field cell; never let collision lock all directions.
- if(S.area==="field"&&!YK_WORLD.walkable(S.x,S.y)){[S.x,S.y]=YK_WORLD.hub;}
- $("title").classList.remove("show");busy=false;
- // Force Safari to composite the game canvas after the fixed title overlay disappears.
- C.style.visibility="visible";C.style.opacity="1";C.style.background="#88b95a";
- g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation="source-over";
- g.fillStyle="#88b95a";g.fillRect(0,0,C.width,C.height);
- hud();map();
- // Saving is deliberately non-blocking: storage failure must never prevent game startup.
- const saved=YK_SAVE.auto(S);if(!saved)console.warn("initial autosave could not be verified")
- setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200);
-}catch(err){console.error("new game failed",err);$("title").classList.remove("show");busy=false;alert("ゲーム開始処理を復旧します");}};
-YK_INPUT.tap($("newGame"),startNewGame);
-const continueFromTitle=()=>{try{
- const v=YK_SAVE.loadAuto();
- if(!v){message("保存データが見つかりません",2200);return;}
- // Close title first. Continue must never appear unresponsive even if an old save needs repair.
- $("title").classList.remove("show");busy=false;
- try{restoreState(v)}catch(loadErr){
-  console.error("save restore failed; recovering",loadErr);
-  const safe=YK_SAVE.fresh();
-  // Preserve basic progress while discarding stale positional/state fields that can break startup.
-  for(const k of ["lv","xp","gold","potions","petals","quest","boss","atk","def","charm","weapon","outfit","relics","rareWins","equippedRelic","chests","sound","playtime","battles","wins","teaVisits"])if(v[k]!==undefined)safe[k]=v[k];
-  restoreState(safe);
- }
- hud();map();
-}catch(err){console.error("continue failed",err);busy=true;alert("セーブデータの読み込みに失敗しました。ページを再読み込みしてください。");}};
-YK_INPUT.tap($("continueGame"),continueFromTitle);
+YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
+YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
