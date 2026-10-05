@@ -897,13 +897,19 @@ YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期
 YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
 const continueFromTitle=()=>{try{
  const v=YK_SAVE.loadAuto();
- if(!v){message("自動保存データがありません");return;}
- restoreState(v);
- $("title").classList.remove("show");busy=false;hud();map();
-}catch(err){console.error("continue failed",err);busy=true;message("セーブデータの読み込みに失敗しました");}};
+ if(!v){alert("自動保存データがありません");return;}
+ // Close title first. Continue must never appear unresponsive even if an old save needs repair.
+ $("title").classList.remove("show");busy=false;
+ try{restoreState(v)}catch(loadErr){
+  console.error("save restore failed; recovering",loadErr);
+  const safe=YK_SAVE.fresh();
+  // Preserve basic progress while discarding stale positional/state fields that can break startup.
+  for(const k of ["lv","xp","gold","potions","petals","quest","boss","atk","def","charm","weapon","outfit","relics","rareWins","equippedRelic","chests","sound","playtime","battles","wins","teaVisits"])if(v[k]!==undefined)safe[k]=v[k];
+  restoreState(safe);
+ }
+ hud();map();
+}catch(err){console.error("continue failed",err);busy=true;alert("セーブデータの読み込みに失敗しました。ページを再読み込みしてください。");}};
 YK_INPUT.tap($("continueGame"),continueFromTitle);
-// iOS Safari safety path: title Continue must work even if Pointer Events are interrupted.
-$("continueGame")?.addEventListener("click",e=>{e.preventDefault();continueFromTitle()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
