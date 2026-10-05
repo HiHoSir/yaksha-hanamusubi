@@ -205,3 +205,7 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
     bottom:max(6.5%,calc(env(safe-area-inset-bottom) + 18px));
   }
 }
+
+/* beta15.63 startup-critical canvas visibility: must remain last */
+#stage{background:#88b95a url("../assets/maps/field-world.png") center/cover no-repeat!important}
+#game{background:transparent!important;visibility:visible!important;opacity:1!important;position:relative;z-index:1}
