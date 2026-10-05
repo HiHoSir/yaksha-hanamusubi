@@ -77,17 +77,23 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestLarge:"assets/terrain/forest-large.png",forestMedium:"assets/terrain/forest-medium.png",forestSmall:"assets/terrain/forest-small.png",forestEdge:"assets/terrain/forest-edge.png",forestSingle:"assets/terrain/forest-single.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
- const forestArtObjects=[
-  ["forestLarge",683,415,160,96],["forestMedium",604,361,96,64],["forestMedium",510,439,96,64],
-  ["forestSmall",268,478,64,48],["forestSmall",135,596,64,48],["forestSmall",333,535,64,48],
-  ["forestSmall",301,640,64,48],["forestSmall",348,344,64,48],["forestSmall",558,254,64,48],
-  ["forestSmall",488,196,64,48],["forestSmall",214,120,64,48],["forestMedium",305,90,96,64],
-  ["forestEdge",473,522,128,48],["forestSingle",561,122,32,32]
- ];
+ const forestTreeKeys=["forestTreeA","forestTreeB","forestTreeC"];
+ const forestTreeObjects=[];
+ // Build compact SFC-style forest masses from real 32px tree sprites.
+ // Trees are visual only; collision continues to use mapData FOREST cells.
+ for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+  if(mapData[ty][tx]!==TILE.FOREST)continue;
+  const cx=tx*tileSize+tileSize/2,cy=ty*tileSize+tileSize/2;
+  const seed=(tx*17+ty*29)%3;
+  // one back tree + two lower overlapping trees makes a dense low forest symbol
+  forestTreeObjects.push([forestTreeKeys[seed],cx,cy-7,30,30]);
+  if((tx+ty)%2===0)forestTreeObjects.push([forestTreeKeys[(seed+1)%3],cx-9,cy+5,28,28]);
+  if((tx*3+ty)%3!==0)forestTreeObjects.push([forestTreeKeys[(seed+2)%3],cx+9,cy+6,28,28]);
+ }
  const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
  function draw(c,atlas){
   c.imageSmoothingEnabled=false;
@@ -175,7 +181,7 @@ window.YK_WORLD=(()=>{
   }
   // Image-based forest objects: visual scale is independent from the 32px collision grid.
   // Until PNGs are uploaded, forest tiles intentionally remain visually quiet rather than falling back to procedural trees.
-  for(const [key,x,y,w,h] of forestArtObjects)drawTerrainArt(c,key,x,y,w,h);
+  for(const [key,x,y,w,h] of forestTreeObjects)drawTerrainArt(c,key,x,y,w,h);
   // Offshore rock clusters give the sea depth without changing collision.
   for(const [rx,ry,s] of [[46,456,1],[84,445,.8],[525,678,.9],[565,645,.65],[702,505,.75],[735,544,.55]]){
    if(tileAt(rx,ry)!=='water')continue;
@@ -230,5 +236,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:16,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:17,tileAt,tileSize,size,viewSize,camera,draw};
 })();
