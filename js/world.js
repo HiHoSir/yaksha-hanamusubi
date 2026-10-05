@@ -81,6 +81,11 @@ window.YK_WORLD=(()=>{
     // Low-contrast ripples; stone bank and thin foam at the actual collision edge.
     for(let n=0;n<2;n++){const f=hash(tx+n*23,ty+9);c.fillStyle=n?'#2d697a':'#205669';c.fillRect(x+f*5,y+n*4+f,2+f*2,.5);}
     const edges=[[0,-8],[8,0],[0,8],[-8,0]].map(([dx,dy])=>!['water','bridge'].includes(tileAt(x+4+dx,y+4+dy)));
+    // A shallow turquoise shelf and broken foam soften the coastline into a readable shore.
+    if(edges.some(Boolean)){
+     c.fillStyle='rgba(83,151,150,.45)';c.fillRect(x+.5,y+.5,7,7);
+     if(v>.38){c.fillStyle='rgba(220,239,203,.62)';c.fillRect(x+1+(v*4|0),y+2+(v*3|0),2.5,.6);}
+    }
     for(let e=0;e<4;e++)if(edges[e]){
      c.fillStyle='#927e53';if(e===0)c.fillRect(x,y,8,1.5);if(e===1)c.fillRect(x+6.5,y,1.5,8);if(e===2)c.fillRect(x,y+6.5,8,1.5);if(e===3)c.fillRect(x,y,1.5,8);
      c.fillStyle='#e3e8ba';const o=(tx+ty)%3;if(e===0)c.fillRect(x+o,y+1.5,3,.5);if(e===1)c.fillRect(x+6,y+o,.5,3);if(e===2)c.fillRect(x+o,y+6,3,.5);if(e===3)c.fillRect(x+1.5,y+o,.5,3);
@@ -94,17 +99,30 @@ window.YK_WORLD=(()=>{
     if(t==='grass'&&v>.94){c.fillStyle='#6eaa43';c.fillRect(x+3,y+4,.5,1.5);c.fillRect(x+2,y+4.5,2,.5);if(v>.988){c.fillStyle='#fff0bf';c.fillRect(x+3,y+3.5,1,1);}}
    }
   }
-  // Long overlapping green ranges share a silhouette; woods remain small separated groves.
+  // Layer terrain from north to south so ranges and woods read as masses instead of icon grids.
   const fits=(x,y,w,type)=>{for(let yy=y-w/2;yy<=y+w/2;yy+=4)for(let xx=x-w/2;xx<=x+w/2;xx+=4)if(tileAt(xx,yy)!==type)return false;return true;};
-  for(let gy=4;gy<768;gy+=12)for(let gx=4;gx<768;gx+=12){
-   const v=hash(gx,gy),x=gx+(Math.floor(gy/12)%2)*5,y=gy,t=tileAt(x,y);
+  for(let gy=2;gy<768;gy+=10)for(let gx=2;gx<768;gx+=11){
+   const v=hash(gx,gy),x=gx+(Math.floor(gy/10)%2)*5,y=gy,t=tileAt(x,y);
    if(t==='mountain'){
-    const w=fits(x,y,18,'mountain')?32:fits(x,y,7,'mountain')?16:9;
-    stamp(w===32?4+Math.floor(v*3):7,x,y,w,w*.8);
+    const deep=fits(x,y,20,'mountain'),mid=fits(x,y,9,'mountain');
+    const w=deep?38:mid?23:13,h=w*(deep?.76:.72);
+    // dark foot shadow + staggered atlas peaks creates one continuous ridge silhouette
+    c.fillStyle=deep?'rgba(47,83,53,.32)':'rgba(54,91,58,.22)';
+    c.beginPath();c.ellipse(x,y+h*.24,w*.46,h*.22,0,0,Math.PI*2);c.fill();
+    stamp(deep?4+Math.floor(v*3):mid?5+Math.floor(v*2):7,x,y-(deep?3:0),w,h);
+    if(deep&&v>.66){c.fillStyle='rgba(224,235,194,.34)';c.beginPath();c.moveTo(x-2,y-h*.34);c.lineTo(x+4,y-h*.12);c.lineTo(x+1,y-h*.15);c.closePath();c.fill();}
    }else if(t==='forest'){
-    const w=fits(x,y,18,'forest')?30:fits(x,y,8,'forest')?20:14;
-    stamp(Math.hypot(x-211,y-565)<80&&v>.7?3:Math.floor(v*3),x,y,w,w*.85);
+    const deep=fits(x,y,17,'forest'),mid=fits(x,y,8,'forest');
+    const w=deep?31:mid?22:14;
+    if(deep){c.fillStyle='rgba(29,69,42,.25)';c.beginPath();c.ellipse(x,y+2,w*.5,w*.22,0,0,Math.PI*2);c.fill();}
+    stamp(Math.hypot(x-211,y-565)<80&&v>.72?3:Math.floor(v*3),x,y-(deep?2:0),w,w*.86);
    }
+  }
+  // Offshore rock clusters give the sea depth without changing collision.
+  for(const [rx,ry,s] of [[46,456,1],[84,445,.8],[525,678,.9],[565,645,.65],[702,505,.75],[735,544,.55]]){
+   if(tileAt(rx,ry)!=='water')continue;
+   c.fillStyle='#596b62';c.beginPath();c.moveTo(rx-6*s,ry+4*s);c.lineTo(rx-2*s,ry-7*s);c.lineTo(rx+2*s,ry-3*s);c.lineTo(rx+6*s,ry+4*s);c.closePath();c.fill();
+   c.strokeStyle='rgba(232,241,211,.72)';c.lineWidth=1;c.beginPath();c.arc(rx,ry+4*s,8*s,Math.PI*.08,Math.PI*.92);c.stroke();
   }
   // Regional scenery: visual breadcrumbs rather than collision corridors.
   const dot=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();};
@@ -142,5 +160,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:6,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:7,tileAt,tileSize,size,viewSize,camera,draw};
 })();
