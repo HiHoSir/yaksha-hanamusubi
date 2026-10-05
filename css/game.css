@@ -89,3 +89,83 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 #downLeft{left:4px;top:112px}#downRight{left:128px;top:112px}
 .dir.diagonal{background:#203c52;font-size:24px}
 @media(max-width:380px){.dpad{left:4px}#cancel{right:78px;width:50px;height:50px}#ok{right:6px;width:70px;height:70px}}
+
+
+/* beta15.35 illustrated title screen */
+#title{
+  padding:0;
+  background:#101b26;
+  overflow:hidden;
+  isolation:isolate;
+}
+#title .titleArt{position:absolute;inset:0;overflow:hidden}
+#title .titleBackdrop{
+  position:absolute;inset:-2%;
+  background-image:url("../assets/ui/title-background.webp");
+  background-size:cover;
+  background-position:center center;
+  background-repeat:no-repeat;
+  transform:scale(1.02);
+}
+#title .titleShade{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(180deg,rgba(5,10,16,.04) 0%,rgba(5,10,16,0) 42%,rgba(5,10,16,.26) 67%,rgba(4,8,13,.78) 100%),
+    linear-gradient(90deg,rgba(3,8,12,.08),transparent 35%,transparent 70%,rgba(3,8,12,.08));
+}
+#title .titleLogo{
+  position:absolute;
+  left:50%;top:max(4.5%,env(safe-area-inset-top));
+  transform:translateX(-50%);
+  width:min(88vw,720px);
+  height:auto;
+  max-height:30%;
+  object-fit:contain;
+  filter:drop-shadow(0 4px 2px rgba(255,248,218,.35)) drop-shadow(0 8px 14px rgba(0,0,0,.48));
+}
+#title:before{display:none}
+#title .moon,#title .petals,#titleHero,#title .kicker,#title .titlebox h1{display:none!important}
+#title .titlebox{
+  left:50%;right:auto;bottom:max(4.5%,env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(88%,430px);
+  padding:12px 14px 10px;
+  background:linear-gradient(180deg,rgba(7,18,27,.34),rgba(5,12,19,.78));
+  border:1px solid rgba(240,210,145,.76);
+  border-radius:14px;
+  box-shadow:0 10px 32px rgba(0,0,0,.38),inset 0 0 0 1px rgba(255,255,255,.07);
+  backdrop-filter:blur(7px);
+}
+#title .subtitle{
+  margin:0 0 7px;
+  font-size:12px;
+  color:#fff1ce;
+  text-shadow:0 2px 5px #000;
+}
+#title .titlebox button{
+  width:86%;
+  min-height:46px;
+  margin:7px auto;
+  border-color:#e5c782;
+  background:linear-gradient(180deg,rgba(34,56,70,.94),rgba(13,30,43,.96));
+  font-weight:800;
+  letter-spacing:.12em;
+  text-shadow:0 2px 3px #000;
+}
+#title .titlebox .primary{
+  background:linear-gradient(180deg,#a94858,#692a39)!important;
+}
+#title .version{margin-top:5px;color:#d4c7ad;opacity:.82}
+@media(max-width:520px){
+  #title .titleBackdrop{background-position:52% center}
+  #title .titleLogo{top:max(5%,env(safe-area-inset-top));width:94vw;max-height:24%}
+  #title .titlebox{bottom:max(3%,env(safe-area-inset-bottom));width:90%;padding:10px 12px 8px}
+  #title .subtitle{font-size:11px}
+  #title .titlebox button{min-height:44px;margin:6px auto}
+}
+@media(max-height:720px){
+  #title .titleLogo{top:max(2.5%,env(safe-area-inset-top));max-height:21%}
+  #title .titlebox{bottom:max(2%,env(safe-area-inset-bottom));padding:8px 10px 7px}
+  #title .subtitle{margin-bottom:4px}
+  #title .titlebox button{min-height:42px;margin:5px auto}
+}
