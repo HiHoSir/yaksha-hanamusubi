@@ -476,9 +476,16 @@ worldAtlas.onload=()=>{terrainReady=false;assetLoaded();};
 worldAtlas.src="assets/maps/world-atlas-v15.33.png";
 function drawWorldTerrain(c){
  const source=$("worldTerrain");
+ // Always paint a world immediately. The atlas enhances it after loading; it is never a prerequisite.
  if(!layerReady(worldAtlas)){YK_WORLD.draw(c,null);return;}
- if(!terrainReady){const tc=source.getContext("2d");tc.setTransform(1,0,0,1,0,0);tc.clearRect(0,0,source.width,source.height);tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;}
- c.imageSmoothingEnabled=false;c.drawImage(source,0,0,source.width,source.height,0,0,768,768);
+ if(!terrainReady){
+  const tc=source.getContext("2d");
+  tc.setTransform(1,0,0,1,0,0);tc.clearRect(0,0,source.width,source.height);
+  // world.draw already targets the 768x768 world coordinate system.
+  // Rendering it into a 1536 buffer with a 2x transform and then resampling caused a blank camera crop on iOS.
+  YK_WORLD.draw(tc,worldAtlas);terrainReady=true;
+ }
+ c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768,0,0,768,768);
 }
 const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
@@ -919,10 +926,6 @@ const continueFromTitle=()=>{try{
  hud();map();
 }catch(err){console.error("continue failed",err);busy=true;alert("セーブデータの読み込みに失敗しました。ページを再読み込みしてください。");}};
 YK_INPUT.tap($("continueGame"),continueFromTitle);
-let titleNativeLock=0;
-const nativeTitleAction=(fn,e)=>{e.preventDefault();const now=performance.now();if(now-titleNativeLock<350)return;titleNativeLock=now;fn();};
-$("newGame")?.addEventListener("click",e=>nativeTitleAction(startNewGame,e));
-$("continueGame")?.addEventListener("click",e=>nativeTitleAction(continueFromTitle,e));
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
