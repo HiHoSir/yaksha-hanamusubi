@@ -120,7 +120,17 @@ window.YK_WORLD=(()=>{
   const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,row=Math.floor(index/4),sy=rows[row]*atlas.naturalHeight,sh=(rows[row+1]-rows[row])*atlas.naturalHeight;c.drawImage(atlas,(index%4)*sw,sy,sw,sh,x-w/2,y-h/2,w,h);};
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const x=tx*tileSize,y=ty*tileSize,t=TILE_NAME[mapData[ty][tx]],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
-   if(water||bridge){c.fillStyle='#245d72';c.fillRect(x,y,tileSize,tileSize)}
+   if(water||bridge){
+    // Visual water is deliberately larger than its logical 32px cell so adjacent cells blend into one body.
+    // Collision still comes exclusively from mapData/tileIdAt.
+    const g=c.createLinearGradient(x,y,x,y+tileSize);
+    g.addColorStop(0,'#397d88');g.addColorStop(.55,'#2f7180');g.addColorStop(1,'#286777');
+    c.fillStyle=g;c.fillRect(x-.75,y-.75,tileSize+1.5,tileSize+1.5);
+    if(water){
+     c.strokeStyle='rgba(185,222,207,.20)';c.lineWidth=1;
+     const yy=y+7+(v*13|0);c.beginPath();c.moveTo(x+4,yy);c.quadraticCurveTo(x+tileSize*.5,yy-2,x+tileSize-5,yy);c.stroke();
+    }
+   }
    else{
     // Layered grass tones break the flat neon-green plane without changing tiles.
     c.fillStyle='#a3cc55';c.fillRect(x,y,tileSize,tileSize);
@@ -152,6 +162,27 @@ window.YK_WORLD=(()=>{
     if(v>.90){c.fillStyle='#7fa846';c.fillRect(x+1+v*4,y+3,1,.7);}
     if(v>.965){c.strokeStyle='rgba(93,130,61,.48)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
+   }
+  }
+  // Visual shoreline pass: paint organic shelves across logical water/land boundaries.
+  // This hides square WATER cells while preserving their exact collision footprint.
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   if(mapData[ty][tx]!==TILE.WATER)continue;
+   const x=tx*tileSize,y=ty*tileSize;
+   const sides=[
+    [0,-1,x+tileSize/2,y,0],[1,0,x+tileSize,y+tileSize/2,1],
+    [0,1,x+tileSize/2,y+tileSize,2],[-1,0,x,y+tileSize/2,3]
+   ];
+   for(const [dx,dy,cx,cy,side] of sides){
+    const nx=tx+dx,ny=ty+dy;
+    if(nx<0||ny<0||nx>=gridCols||ny>=gridRows)continue;
+    const nt=mapData[ny][nx];if(nt===TILE.WATER||nt===TILE.BRIDGE)continue;
+    const seed=hash(tx*41+side*7,ty*53+side*11),len=tileSize*(.78+seed*.18);
+    c.save();c.translate(cx,cy);if(side===1)c.rotate(Math.PI/2);else if(side===2)c.rotate(Math.PI);else if(side===3)c.rotate(-Math.PI/2);
+    c.fillStyle='#8fb25d';c.beginPath();c.moveTo(-len/2,-5);c.bezierCurveTo(-len*.28,-1-seed*3,-len*.12,3,len*.02,1);c.bezierCurveTo(len*.18,-2,len*.32,3,len/2,-4);c.lineTo(len/2,1);c.lineTo(-len/2,1);c.closePath();c.fill();
+    c.fillStyle='rgba(204,190,126,.78)';c.beginPath();c.moveTo(-len*.46,0);c.bezierCurveTo(-len*.2,3,len*.08,-1,len*.44,1);c.lineTo(len*.42,4);c.bezierCurveTo(len*.1,2,-len*.2,6,-len*.44,3);c.closePath();c.fill();
+    c.strokeStyle='rgba(222,238,208,.68)';c.lineWidth=1;c.beginPath();c.moveTo(-len*.38,4);c.bezierCurveTo(-len*.12,6,len*.16,2,len*.38,5);c.stroke();
+    c.restore();
    }
   }
   // Irregular shoreline caps cover the 8px stair-step silhouette with grass, sand and reeds.
