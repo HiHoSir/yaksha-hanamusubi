@@ -75,6 +75,19 @@ window.YK_WORLD=(()=>{
   // Keep the hero on one stable camera anchor. Direction changes must never move the world.
   return {x:Math.max(0,Math.min(size-viewSize,x-viewSize/2)),y:Math.max(0,Math.min(size-viewSize,y-viewSize/2)),size:viewSize,zoom:768/viewSize};
  };
+ // Optional large terrain art. Missing files are harmless while assets are staged.
+ const TERRAIN_ART={};
+ const TERRAIN_PATHS={forestLarge:"assets/terrain/forest-large.png",forestMedium:"assets/terrain/forest-medium.png",forestSmall:"assets/terrain/forest-small.png",forestEdge:"assets/terrain/forest-edge.png",forestSingle:"assets/terrain/forest-single.png"};
+ for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.src=src;TERRAIN_ART[k]=im;}
+ const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
+ const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
+ const forestArtObjects=[
+  ["forestLarge",683,415,160,96],["forestMedium",604,361,96,64],["forestMedium",510,439,96,64],
+  ["forestSmall",268,478,64,48],["forestSmall",135,596,64,48],["forestSmall",333,535,64,48],
+  ["forestSmall",301,640,64,48],["forestSmall",348,344,64,48],["forestSmall",558,254,64,48],
+  ["forestSmall",488,196,64,48],["forestSmall",214,120,64,48],["forestMedium",305,90,96,64],
+  ["forestEdge",473,522,128,48],["forestSingle",561,122,32,32]
+ ];
  const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
  function draw(c,atlas){
   c.imageSmoothingEnabled=false;
@@ -146,20 +159,13 @@ window.YK_WORLD=(()=>{
     if(deep&&v>.66){c.fillStyle='rgba(224,235,194,.34)';c.beginPath();c.moveTo(x-2,y-h*.34);c.lineTo(x+4,y-h*.12);c.lineTo(x+1,y-h*.15);c.closePath();c.fill();}
     if(deep){c.fillStyle='rgba(62,105,53,.30)';c.beginPath();c.ellipse(x,y+h*.34,w*.48,h*.14,0,0,Math.PI*2);c.fill();}
    }else if(t==='forest'){
-    const deep=fits(x,y,17,'forest'),mid=fits(x,y,8,'forest');
-    const w=deep?31:mid?22:14;
-    if(deep){
-     c.fillStyle='rgba(28,73,39,.30)';c.beginPath();c.ellipse(x,y+1,w*.68,w*.30,0,0,Math.PI*2);c.fill();
-     // dark canopy seams visually weld neighbouring trees into one forest mass
-     if(v>.35){c.fillStyle='rgba(37,91,42,.32)';c.beginPath();c.arc(x-w*.28,y-2,w*.25,0,Math.PI*2);c.arc(x+w*.26,y-1,w*.27,0,Math.PI*2);c.fill();}
-    }
-    stamp(Math.hypot(x-211,y-565)<80&&v>.72?3:Math.floor(v*3),x,y-(deep?2:0),w*(deep?1.08:1),w*(deep?.91:.86));
+    // Forest visuals are supplied by large image objects below. The logical FOREST tile remains collision-only.
    }
   }
   // Ground-contact dressing merges stamped terrain into the landscape.
   for(let gy=6;gy<768;gy+=13)for(let gx=6;gx<768;gx+=15){
    const t=tileAt(gx,gy),v=hash(gx+31,gy+17);
-   if(t==='forest'){
+   if(false&&t==='forest'){
     c.fillStyle=v>.5?'rgba(48,104,52,.34)':'rgba(65,119,55,.28)';
     c.beginPath();c.ellipse(gx,gy+4,5+v*5,2+v*2,0,0,Math.PI*2);c.fill();
     if(v>.72){c.fillStyle='#5e7c43';c.beginPath();c.arc(gx+5,gy,2.2,0,Math.PI*2);c.fill();}
@@ -167,6 +173,9 @@ window.YK_WORLD=(()=>{
     c.fillStyle='rgba(91,105,69,.25)';c.beginPath();c.ellipse(gx,gy+3,6+v*4,2.5,0,0,Math.PI*2);c.fill();
    }
   }
+  // Image-based forest objects: visual scale is independent from the 32px collision grid.
+  // Until PNGs are uploaded, forest tiles intentionally remain visually quiet rather than falling back to procedural trees.
+  for(const [key,x,y,w,h] of forestArtObjects)drawTerrainArt(c,key,x,y,w,h);
   // Offshore rock clusters give the sea depth without changing collision.
   for(const [rx,ry,s] of [[46,456,1],[84,445,.8],[525,678,.9],[565,645,.65],[702,505,.75],[735,544,.55]]){
    if(tileAt(rx,ry)!=='water')continue;
@@ -221,5 +230,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:15,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:16,tileAt,tileSize,size,viewSize,camera,draw};
 })();
