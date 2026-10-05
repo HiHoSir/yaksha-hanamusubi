@@ -67,9 +67,9 @@ window.YK_WORLD=(()=>{
  const tileAt=(x,y)=>x<0||y<0||x>=size||y>=size?'water':tiles[Math.floor(y/8)*96+Math.floor(x/8)];
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&['grass','road','bridge'].includes(tileAt(x,y));
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=26)||null;
- const camera=(x,y,dir=null)=>{
-  const look=18,offset={l:[-look,0],r:[look,0],u:[0,-look],d:[0,look]}[dir]||[0,0];
-  return {x:Math.max(0,Math.min(size-viewSize,x+offset[0]-viewSize/2)),y:Math.max(0,Math.min(size-viewSize,y+offset[1]-viewSize/2)),size:viewSize,zoom:768/viewSize};
+ const camera=(x,y)=>{
+  // Keep the hero on one stable camera anchor. Direction changes must never move the world.
+  return {x:Math.max(0,Math.min(size-viewSize,x-viewSize/2)),y:Math.max(0,Math.min(size-viewSize,y-viewSize/2)),size:viewSize,zoom:768/viewSize};
  };
  const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
  function draw(c,atlas){
@@ -176,5 +176,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:8,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:9,tileAt,tileSize,size,viewSize,camera,draw};
 })();
