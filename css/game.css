@@ -169,3 +169,39 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
   #title .subtitle{margin-bottom:4px}
   #title .titlebox button{min-height:42px;margin:5px auto}
 }
+
+
+/* beta15.35 iPhone title-screen polish */
+@media(max-width:520px){
+  #title .titleLogo{
+    width:82vw;
+    max-height:21%;
+    top:max(3.6%,env(safe-area-inset-top));
+  }
+  #title .titlebox{
+    width:86%;
+    bottom:max(5.5%,calc(env(safe-area-inset-bottom) + 12px));
+    padding:8px 10px 6px;
+    border-radius:12px;
+  }
+  #title .subtitle{
+    margin:0 0 4px;
+    font-size:10px;
+  }
+  #title .titlebox button{
+    width:84%;
+    min-height:40px;
+    margin:5px auto;
+    padding:6px 9px;
+    font-size:15px;
+  }
+  #title .version{
+    margin-top:3px;
+    font-size:8px;
+  }
+}
+@media(max-width:520px) and (min-height:760px){
+  #title .titlebox{
+    bottom:max(6.5%,calc(env(safe-area-inset-bottom) + 18px));
+  }
+}
