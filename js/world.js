@@ -91,20 +91,27 @@ window.YK_WORLD=(()=>{
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
+ const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
  const forestTreeKeys=["forestTreeA","forestTreeB","forestTreeC"];
  const forestTreeObjects=[];
- // Build compact SFC-style forest masses from real 32px tree sprites.
- // Trees are visual only; collision continues to use mapData FOREST cells.
+ // Dense low forest: small overlapping crowns read as one field symbol, not giant individual trees.
+ const isForestCell=(tx,ty)=>tx>=0&&ty>=0&&tx<gridCols&&ty<gridRows&&mapData[ty][tx]===TILE.FOREST;
  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-  if(mapData[ty][tx]!==TILE.FOREST)continue;
+  if(!isForestCell(tx,ty))continue;
   const cx=tx*tileSize+tileSize/2,cy=ty*tileSize+tileSize/2;
   const seed=(tx*17+ty*29)%3;
-  // one back tree + two lower overlapping trees makes a dense low forest symbol
-  forestTreeObjects.push([forestTreeKeys[seed],cx,cy-7,30,30]);
-  if((tx+ty)%2===0)forestTreeObjects.push([forestTreeKeys[(seed+1)%3],cx-9,cy+5,28,28]);
-  if((tx*3+ty)%3!==0)forestTreeObjects.push([forestTreeKeys[(seed+2)%3],cx+9,cy+6,28,28]);
+  const edge=![[-1,0],[1,0],[0,-1],[0,1]].every(([dx,dy])=>isForestCell(tx+dx,ty+dy));
+  const stagger=(ty&1)?7:-3, jx=(hash(tx*13+7,ty*19)-.5)*7, jy=(hash(tx*23,ty*11+5)-.5)*5;
+  const pts=[
+   [-8+stagger,-7,19],[7+stagger,-8,19],[-14+stagger,5,18],[1+stagger,5,20],[15+stagger,6,18],
+   [-6+stagger,15,19],[10+stagger,15,19]
+  ];
+  for(let i=0;i<pts.length;i++){
+   if(edge&&i>4&&hash(tx*31+i,ty*37)<.42)continue;
+   const [ox,oy,s]=pts[i];
+   forestTreeObjects.push([forestTreeKeys[(seed+i)%3],cx+ox+jx,cy+oy+jy,s,s]);
+  }
  }
- const hash=(x,y)=>{let n=Math.imul(x+419,374761393)^Math.imul(y+911,668265263);n=Math.imul(n^(n>>>13),1274126177);return (n>>>0)/4294967295;};
  function draw(c,atlas){
   c.imageSmoothingEnabled=false;
   const ready=atlas&&atlas.complete&&atlas.naturalWidth;
