@@ -120,16 +120,11 @@ window.YK_WORLD=(()=>{
   const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,row=Math.floor(index/4),sy=rows[row]*atlas.naturalHeight,sh=(rows[row+1]-rows[row])*atlas.naturalHeight;c.drawImage(atlas,(index%4)*sw,sy,sw,sh,x-w/2,y-h/2,w,h);};
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const x=tx*tileSize,y=ty*tileSize,t=TILE_NAME[mapData[ty][tx]],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
-   if(water||bridge){
-    // Visual water is deliberately larger than its logical 32px cell so adjacent cells blend into one body.
-    // Collision still comes exclusively from mapData/tileIdAt.
-    const g=c.createLinearGradient(x,y,x,y+tileSize);
-    g.addColorStop(0,'#397d88');g.addColorStop(.55,'#2f7180');g.addColorStop(1,'#286777');
-    c.fillStyle=g;c.fillRect(x-.75,y-.75,tileSize+1.5,tileSize+1.5);
-    if(water){
-     c.strokeStyle='rgba(185,222,207,.20)';c.lineWidth=1;
-     const yy=y+7+(v*13|0);c.beginPath();c.moveTo(x+4,yy);c.quadraticCurveTo(x+tileSize*.5,yy-2,x+tileSize-5,yy);c.stroke();
-    }
+   if(water){
+    // WATER cells are collision-only. Continuous visual water is painted below as authored shapes.
+    c.fillStyle='#a3cc55';c.fillRect(x,y,tileSize,tileSize);
+   }else if(bridge){
+    c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
    }
    else{
     // Layered grass tones break the flat neon-green plane without changing tiles.
@@ -164,27 +159,6 @@ window.YK_WORLD=(()=>{
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
-  // Visual shoreline pass: paint organic shelves across logical water/land boundaries.
-  // This hides square WATER cells while preserving their exact collision footprint.
-  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-   if(mapData[ty][tx]!==TILE.WATER)continue;
-   const x=tx*tileSize,y=ty*tileSize;
-   const sides=[
-    [0,-1,x+tileSize/2,y,0],[1,0,x+tileSize,y+tileSize/2,1],
-    [0,1,x+tileSize/2,y+tileSize,2],[-1,0,x,y+tileSize/2,3]
-   ];
-   for(const [dx,dy,cx,cy,side] of sides){
-    const nx=tx+dx,ny=ty+dy;
-    if(nx<0||ny<0||nx>=gridCols||ny>=gridRows)continue;
-    const nt=mapData[ny][nx];if(nt===TILE.WATER||nt===TILE.BRIDGE)continue;
-    const seed=hash(tx*41+side*7,ty*53+side*11),len=tileSize*(.78+seed*.18);
-    c.save();c.translate(cx,cy);if(side===1)c.rotate(Math.PI/2);else if(side===2)c.rotate(Math.PI);else if(side===3)c.rotate(-Math.PI/2);
-    c.fillStyle='#8fb25d';c.beginPath();c.moveTo(-len/2,-5);c.bezierCurveTo(-len*.28,-1-seed*3,-len*.12,3,len*.02,1);c.bezierCurveTo(len*.18,-2,len*.32,3,len/2,-4);c.lineTo(len/2,1);c.lineTo(-len/2,1);c.closePath();c.fill();
-    c.fillStyle='rgba(204,190,126,.78)';c.beginPath();c.moveTo(-len*.46,0);c.bezierCurveTo(-len*.2,3,len*.08,-1,len*.44,1);c.lineTo(len*.42,4);c.bezierCurveTo(len*.1,2,-len*.2,6,-len*.44,3);c.closePath();c.fill();
-    c.strokeStyle='rgba(222,238,208,.68)';c.lineWidth=1;c.beginPath();c.moveTo(-len*.38,4);c.bezierCurveTo(-len*.12,6,len*.16,2,len*.38,5);c.stroke();
-    c.restore();
-   }
-  }
   // Irregular shoreline caps cover the 8px stair-step silhouette with grass, sand and reeds.
   for(let y=4;y<764;y+=8)for(let x=4;x<764;x+=8){
    const t=tileAt(x,y);if(t==='water'||t==='bridge')continue;
@@ -199,6 +173,34 @@ window.YK_WORLD=(()=>{
   for(const [x,y,rx,ry,col] of [[305,520,170,92,'#c6bd68'],[545,535,205,110,'#77a84c'],[410,330,210,96,'#91b45a'],[610,275,145,90,'#719b52'],[250,205,165,86,'#a8b46a']]){
    c.fillStyle=col;c.beginPath();c.ellipse(x,y,rx,ry,-.08,0,Math.PI*2);c.fill();
   }c.restore();
+  // Continuous visual water layer. Logical WATER cells above are intentionally invisible.
+  // Curved authored shapes remove the 32px/T-shaped collision-grid silhouette.
+  c.save();
+  const waterFill=(path)=>{
+   c.save();c.clip(path);
+   const g=c.createLinearGradient(0,300,0,768);g.addColorStop(0,'#3f8990');g.addColorStop(.55,'#327784');g.addColorStop(1,'#286776');
+   c.fillStyle=g;c.fillRect(0,0,768,768);
+   c.strokeStyle='rgba(199,230,213,.20)';c.lineWidth=1.2;
+   for(let yy=18;yy<768;yy+=18){c.beginPath();c.moveTo(0,yy);c.bezierCurveTo(190,yy-2,420,yy+2,768,yy);c.stroke();}
+   c.restore();
+  };
+  // Offshore sea follows the authored coast polygon rather than mapData cells.
+  const sea=new Path2D();sea.moveTo(coast[0][0],coast[0][1]);for(let i=1;i<coast.length;i++)sea.lineTo(coast[i][0],coast[i][1]);sea.lineTo(0,768);sea.lineTo(768,768);sea.lineTo(768,0);sea.closePath();sea.addPath((()=>{const p=new Path2D();p.moveTo(coast[0][0],coast[0][1]);for(let i=1;i<coast.length;i++)p.lineTo(coast[i][0],coast[i][1]);p.closePath();return p;})());
+  // Fill offshore with even-odd rule directly because Path2D clipping winding support varies on iOS.
+  c.fillStyle='#317783';c.beginPath();c.moveTo(575,0);c.bezierCurveTo(603,72,640,92,627,129);c.bezierCurveTo(704,157,716,214,707,239);c.bezierCurveTo(752,273,720,313,736,342);c.bezierCurveTo(714,385,724,424,684,455);c.bezierCurveTo(642,506,655,541,608,559);c.bezierCurveTo(555,612,507,601,480,608);c.bezierCurveTo(449,638,457,661,409,643);c.bezierCurveTo(367,687,327,674,291,721);c.lineTo(260,768);c.lineTo(768,768);c.lineTo(768,0);c.closePath();c.fill();
+  // Lake near the western route.
+  const lakePath=new Path2D();lakePath.ellipse(109,487,67,43,-.08,0,Math.PI*2);waterFill(lakePath);
+  // Two narrow rivers follow the same authored centerlines used by collision, but are smooth and continuous.
+  const riverStroke=(pts,width)=>{
+   c.save();c.lineCap='round';c.lineJoin='round';
+   c.strokeStyle='#347b86';c.lineWidth=width;c.beginPath();c.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i];const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;c.quadraticCurveTo(a[0],a[1],mx,my);}c.lineTo(pts.at(-1)[0],pts.at(-1)[1]);c.stroke();
+   c.strokeStyle='rgba(211,235,216,.35)';c.lineWidth=1.1;c.stroke();c.restore();
+  };
+  riverStroke(river,12);riverStroke(westRiver,12);
+  // Organic banks visually merge water into grass without changing collision.
+  c.strokeStyle='rgba(196,181,117,.70)';c.lineWidth=2.2;c.lineCap='round';
+  c.beginPath();c.ellipse(109,487,69,45,-.08,0,Math.PI*2);c.stroke();
+  c.restore();
   // Mountain art is independent from the logical 32px MOUNTAIN collision grid.
   // Broad overlapping ranges remove thin vertical fragments and repetitive stair-steps.
   if(artReady(TERRAIN_ART.mountainRange)){
