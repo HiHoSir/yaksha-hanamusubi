@@ -894,7 +894,16 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;hud();map();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
+const startNewGame=()=>{try{
+ const fresh=YK_SAVE.fresh();
+ state(fresh);
+ $("title").classList.remove("show");busy=false;
+ hud();map();
+ // Saving is deliberately non-blocking: storage failure must never prevent game startup.
+ try{YK_SAVE.auto(S)}catch(saveErr){console.warn("initial autosave failed",saveErr)}
+ setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200);
+}catch(err){console.error("new game failed",err);$("title").classList.remove("show");busy=false;alert("ゲーム開始処理を復旧します");}};
+YK_INPUT.tap($("newGame"),startNewGame);
 const continueFromTitle=()=>{try{
  const v=YK_SAVE.loadAuto();
  if(!v){alert("自動保存データがありません");return;}
@@ -910,6 +919,10 @@ const continueFromTitle=()=>{try{
  hud();map();
 }catch(err){console.error("continue failed",err);busy=true;alert("セーブデータの読み込みに失敗しました。ページを再読み込みしてください。");}};
 YK_INPUT.tap($("continueGame"),continueFromTitle);
+let titleNativeLock=0;
+const nativeTitleAction=(fn,e)=>{e.preventDefault();const now=performance.now();if(now-titleNativeLock<350)return;titleNativeLock=now;fn();};
+$("newGame")?.addEventListener("click",e=>nativeTitleAction(startNewGame,e));
+$("continueGame")?.addEventListener("click",e=>nativeTitleAction(continueFromTitle,e));
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
