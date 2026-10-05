@@ -472,12 +472,36 @@ function drawWorldTerrain(c){
  if(!terrainReady){const tc=source.getContext("2d");tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;}
  c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
 }
+function drawFieldAtmosphere(c){
+ // Screen-space distance treatment: no map transition and no collision distortion.
+ // A pale curved horizon makes the field feel like a broad rounded world while
+ // keeping the hero and nearby terrain crisp and readable.
+ c.save();
+ const haze=c.createLinearGradient(0,0,0,390);
+ haze.addColorStop(0,"rgba(224,235,207,.30)");
+ haze.addColorStop(.22,"rgba(207,225,198,.17)");
+ haze.addColorStop(.52,"rgba(196,216,190,.055)");
+ haze.addColorStop(1,"rgba(196,216,190,0)");
+ c.fillStyle=haze;c.fillRect(0,0,768,430);
+ // Soft bowed horizon bands suggest the ground falling away in the distance.
+ c.strokeStyle="rgba(235,240,211,.11)";c.lineWidth=22;
+ c.beginPath();c.ellipse(384,-38,510,196,0,0,Math.PI);c.stroke();
+ c.strokeStyle="rgba(255,247,215,.075)";c.lineWidth=8;
+ c.beginPath();c.ellipse(384,5,450,158,0,0,Math.PI);c.stroke();
+ // Gentle edge haze prevents a flat square-map feeling.
+ const edge=c.createRadialGradient(384,430,180,384,410,520);
+ edge.addColorStop(.55,"rgba(255,255,255,0)");
+ edge.addColorStop(1,"rgba(36,57,55,.16)");
+ c.fillStyle=edge;c.fillRect(0,0,768,768);
+ c.restore();
+}
 function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area==="field"){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
   g.save();g.scale(camera.zoom,camera.zoom);g.translate(-camera.x,-camera.y);
   drawWorldTerrain(g);drawActors();g.restore();
+  drawFieldAtmosphere(g);
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
  }
