@@ -26,18 +26,8 @@ function migrate(raw){
  s.saveVersion=VER;s.encounterSteps=Number(s.encounterSteps)||0;s.encounterGrace=Number(s.encounterGrace)||0;s.teaVisits=Number(s.teaVisits)||0;
  return s;
 }
-function loadAuto(){try{
- const raw=localStorage.getItem(AUTO)||localStorage.getItem(LEGACY);
- if(raw)return migrate(JSON.parse(raw));
- // Recover from manual slots when the autosave key was lost or never created.
- let best=null,bestTime=-1;
- for(let n=1;n<=3;n++){
-  const r=localStorage.getItem("yaksha_beta_slot"+n);if(!r)continue;
-  try{const v=JSON.parse(r),t=Number(v?.lastSave)||0;if(t>=bestTime){best=v;bestTime=t}}catch(_){}
- }
- return best?migrate(best):null;
-}catch(e){return null}}
-function auto(s){try{const v=JSON.stringify({...s,lastSave:Date.now()});localStorage.setItem(AUTO,v);localStorage.setItem(LEGACY,v);return localStorage.getItem(AUTO)===v||localStorage.getItem(LEGACY)===v}catch(e){console.error("autosave failed",e);return false}}
+function loadAuto(){try{const raw=localStorage.getItem(AUTO)||localStorage.getItem(LEGACY);return raw?migrate(JSON.parse(raw)):null}catch(e){return null}}
+function auto(s){try{s.lastSave=Date.now();localStorage.setItem(AUTO,JSON.stringify(s));localStorage.setItem(LEGACY,JSON.stringify(s));return true}catch(e){return false}}
 function saveSlot(n,s){try{s.lastSave=Date.now();localStorage.setItem("yaksha_beta_slot"+n,JSON.stringify(s));auto(s);return true}catch(e){return false}}
 function loadSlot(n){try{const r=localStorage.getItem("yaksha_beta_slot"+n);return r?migrate(JSON.parse(r)):null}catch(e){return null}}
 function slotInfo(n){const s=loadSlot(n);return s?{lv:s.lv,area:(YK_DATA.areas[s.area]||{}).name||s.area,time:s.lastSave}:null}
