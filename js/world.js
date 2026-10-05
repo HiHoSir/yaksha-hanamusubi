@@ -80,15 +80,23 @@ window.YK_WORLD=(()=>{
   const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,row=Math.floor(index/4),sy=rows[row]*atlas.naturalHeight,sh=(rows[row+1]-rows[row])*atlas.naturalHeight;c.drawImage(atlas,(index%4)*sw,sy,sw,sh,x-w/2,y-h/2,w,h);};
   for(let ty=0;ty<96;ty++)for(let tx=0;tx<96;tx++){
    const x=tx*8,y=ty*8,t=tiles[ty*96+tx],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
-   c.fillStyle=water||bridge?'#245d72':'#a5cf52';c.fillRect(x,y,8,8);
+   if(water||bridge){c.fillStyle='#245d72';c.fillRect(x,y,8,8)}
+   else{
+    // Layered grass tones break the flat neon-green plane without changing tiles.
+    const grassTone=v<.18?'#9fc951':v<.52?'#a7cf58':v<.82?'#a1ca50':'#96c249';
+    c.fillStyle=grassTone;c.fillRect(x,y,8,8);
+    if(v>.42&&v<.62){c.fillStyle='rgba(190,174,105,.16)';c.fillRect(x+1,y+2,6,3)}
+   }
    if(water){
     // Low-contrast ripples; stone bank and thin foam at the actual collision edge.
     for(let n=0;n<2;n++){const f=hash(tx+n*23,ty+9);c.fillStyle=n?'#2d697a':'#205669';c.fillRect(x+f*5,y+n*4+f,2+f*2,.5);}
     const edges=[[0,-8],[8,0],[0,8],[-8,0]].map(([dx,dy])=>!['water','bridge'].includes(tileAt(x+4+dx,y+4+dy)));
     // A shallow turquoise shelf and broken foam soften the coastline into a readable shore.
     if(edges.some(Boolean)){
-     c.fillStyle='rgba(83,151,150,.45)';c.fillRect(x+.5,y+.5,7,7);
-     if(v>.38){c.fillStyle='rgba(220,239,203,.62)';c.fillRect(x+1+(v*4|0),y+2+(v*3|0),2.5,.6);}
+     c.fillStyle='rgba(82,151,151,.55)';c.fillRect(x+.5,y+.5,7,7);
+     // Broken sand/grass shelf disguises the square tile edge.
+     if(v>.22){c.fillStyle='rgba(199,184,123,.62)';c.beginPath();c.ellipse(x+4,y+4,3.6,2.4,(v-.5)*.5,0,Math.PI*2);c.fill()}
+     if(v>.38){c.fillStyle='rgba(229,239,207,.70)';c.fillRect(x+1+(v*4|0),y+2+(v*3|0),2.5,.7);}
     }
     for(let e=0;e<4;e++)if(edges[e]){
      c.fillStyle='#927e53';if(e===0)c.fillRect(x,y,8,1.5);if(e===1)c.fillRect(x+6.5,y,1.5,8);if(e===2)c.fillRect(x,y+6.5,8,1.5);if(e===3)c.fillRect(x,y,1.5,8);
@@ -98,9 +106,10 @@ window.YK_WORLD=(()=>{
     c.fillStyle='#674a30';c.fillRect(x,y,8,8);c.fillStyle='#c2a16a';for(let n=0;n<8;n+=2)c.fillRect(x,y+n,8,1.5);
     c.fillStyle='#765739';if(tileAt(x+4,y-4)!=='bridge')c.fillRect(x,y,8,.75);if(tileAt(x+4,y+12)!=='bridge')c.fillRect(x,y+7.25,8,.75);
    }else{
-    // Mostly quiet grass, with a few tufts and flowers rather than dense texture noise.
-    if(v>.75){c.fillStyle='#94c14b';c.fillRect(x+v*4,y+3,1,.5);}
-    if(t==='grass'&&v>.94){c.fillStyle='#6eaa43';c.fillRect(x+3,y+4,.5,1.5);c.fillRect(x+2,y+4.5,2,.5);if(v>.988){c.fillStyle='#fff0bf';c.fillRect(x+3,y+3.5,1,1);}}
+    // Irregular tufts, dry grass and tiny flowers give the plain material variation.
+    if(v>.62){c.fillStyle=v>.84?'#789f43':'#8db747';c.fillRect(x+1+v*4,y+3,1,.7);}
+    if(v>.79&&v<.91){c.strokeStyle='rgba(93,130,61,.55)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
+    if(t==='grass'&&v>.95){c.fillStyle=v>.985?'#f3d6d0':'#e9e5b1';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
   // Layer terrain from north to south so ranges and woods read as masses instead of icon grids.
@@ -120,6 +129,17 @@ window.YK_WORLD=(()=>{
     const w=deep?31:mid?22:14;
     if(deep){c.fillStyle='rgba(29,69,42,.25)';c.beginPath();c.ellipse(x,y+2,w*.5,w*.22,0,0,Math.PI*2);c.fill();}
     stamp(Math.hypot(x-211,y-565)<80&&v>.72?3:Math.floor(v*3),x,y-(deep?2:0),w,w*.86);
+   }
+  }
+  // Ground-contact dressing merges stamped terrain into the landscape.
+  for(let gy=6;gy<768;gy+=13)for(let gx=6;gx<768;gx+=15){
+   const t=tileAt(gx,gy),v=hash(gx+31,gy+17);
+   if(t==='forest'){
+    c.fillStyle=v>.5?'rgba(48,104,52,.34)':'rgba(65,119,55,.28)';
+    c.beginPath();c.ellipse(gx,gy+4,5+v*5,2+v*2,0,0,Math.PI*2);c.fill();
+    if(v>.72){c.fillStyle='#5e7c43';c.beginPath();c.arc(gx+5,gy,2.2,0,Math.PI*2);c.fill();}
+   }else if(t==='mountain'&&v>.45){
+    c.fillStyle='rgba(91,105,69,.25)';c.beginPath();c.ellipse(gx,gy+3,6+v*4,2.5,0,0,Math.PI*2);c.fill();
    }
   }
   // Offshore rock clusters give the sea depth without changing collision.
@@ -176,5 +196,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,walkable,near,revision:10,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,walkable,near,revision:11,tileAt,tileSize,size,viewSize,camera,draw};
 })();
