@@ -209,3 +209,7 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 /* beta15.63 startup-critical canvas visibility: must remain last */
 #stage{background:#88b95a url("../assets/maps/field-world.png") center/cover no-repeat!important}
 #game{background:transparent!important;visibility:visible!important;opacity:1!important;position:relative;z-index:1}
+
+/* beta15.65: protagonist is an independent startup-critical layer, above the field canvas. */
+#fieldHeroDom{display:none;position:absolute;z-index:3;left:50%;top:55%;width:82px;height:82px;object-fit:contain;object-position:center bottom;transform:translate(-50%,-100%);pointer-events:none;filter:drop-shadow(0 5px 3px rgba(0,0,0,.32))}
+#stage.field-active #fieldHeroDom{display:block}
