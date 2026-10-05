@@ -895,7 +895,15 @@ document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
 YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
-YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
+const continueFromTitle=()=>{try{
+ const v=YK_SAVE.loadAuto();
+ if(!v){message("自動保存データがありません");return;}
+ restoreState(v);
+ $("title").classList.remove("show");busy=false;hud();map();
+}catch(err){console.error("continue failed",err);busy=true;message("セーブデータの読み込みに失敗しました");}};
+YK_INPUT.tap($("continueGame"),continueFromTitle);
+// iOS Safari safety path: title Continue must work even if Pointer Events are interrupted.
+$("continueGame")?.addEventListener("click",e=>{e.preventDefault();continueFromTitle()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
