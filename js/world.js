@@ -82,15 +82,17 @@ window.YK_WORLD=(()=>{
   // The generated sheet has slightly uneven row padding; explicit cell crops keep every base intact.
   const rows=[0,.282,.505,.726,1];
   const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,row=Math.floor(index/4),sy=rows[row]*atlas.naturalHeight,sh=(rows[row+1]-rows[row])*atlas.naturalHeight;c.drawImage(atlas,(index%4)*sw,sy,sw,sh,x-w/2,y-h/2,w,h);};
-  for(let ty=0;ty<96;ty++)for(let tx=0;tx<96;tx++){
-   const x=tx*8,y=ty*8,t=tiles[ty*96+tx],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
-   if(water||bridge){c.fillStyle='#245d72';c.fillRect(x,y,8,8)}
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   const x=tx*tileSize,y=ty*tileSize,t=TILE_NAME[mapData[ty][tx]],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
+   if(water||bridge){c.fillStyle='#245d72';c.fillRect(x,y,tileSize,tileSize)}
    else{
     // Layered grass tones break the flat neon-green plane without changing tiles.
-    c.fillStyle='#a3cc55';c.fillRect(x,y,8,8);
+    c.fillStyle='#a3cc55';c.fillRect(x,y,tileSize,tileSize);
     // Avoid per-tile colour blocks: broad overlays below provide terrain variation.
    }
    if(water){
+    // Transitional placeholder only; image-based shoreline assets replace legacy 8px decoration.
+    /* legacy shoreline disabled
     // Low-contrast ripples; stone bank and thin foam at the actual collision edge.
     for(let n=0;n<2;n++){const f=hash(tx+n*23,ty+9);c.fillStyle=n?'#2d697a':'#205669';c.fillRect(x+f*5,y+n*4+f,2+f*2,.5);}
     const edges=[[0,-8],[8,0],[0,8],[-8,0]].map(([dx,dy])=>!['water','bridge'].includes(tileAt(x+4+dx,y+4+dy)));
@@ -105,6 +107,7 @@ window.YK_WORLD=(()=>{
      c.fillStyle='#927e53';if(e===0)c.fillRect(x,y,8,1.5);if(e===1)c.fillRect(x+6.5,y,1.5,8);if(e===2)c.fillRect(x,y+6.5,8,1.5);if(e===3)c.fillRect(x,y,1.5,8);
      c.fillStyle='#e3e8ba';const o=(tx+ty)%3;if(e===0)c.fillRect(x+o,y+1.5,3,.5);if(e===1)c.fillRect(x+6,y+o,.5,3);if(e===2)c.fillRect(x+o,y+6,3,.5);if(e===3)c.fillRect(x+1.5,y+o,.5,3);
     }
+   */
    }else if(bridge){
     c.fillStyle='#674a30';c.fillRect(x,y,8,8);c.fillStyle='#c2a16a';for(let n=0;n<8;n+=2)c.fillRect(x,y+n,8,1.5);
     c.fillStyle='#765739';if(tileAt(x+4,y-4)!=='bridge')c.fillRect(x,y,8,.75);if(tileAt(x+4,y+12)!=='bridge')c.fillRect(x,y+7.25,8,.75);
@@ -218,5 +221,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:14,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:15,tileAt,tileSize,size,viewSize,camera,draw};
 })();
