@@ -472,36 +472,48 @@ function drawWorldTerrain(c){
  if(!terrainReady){const tc=source.getContext("2d");tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;}
  c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
 }
-function drawFieldAtmosphere(c){
- // Screen-space distance treatment: no map transition and no collision distortion.
- // A pale curved horizon makes the field feel like a broad rounded world while
- // keeping the hero and nearby terrain crisp and readable.
- c.save();
- const haze=c.createLinearGradient(0,0,0,390);
- haze.addColorStop(0,"rgba(224,235,207,.30)");
- haze.addColorStop(.22,"rgba(207,225,198,.17)");
- haze.addColorStop(.52,"rgba(196,216,190,.055)");
- haze.addColorStop(1,"rgba(196,216,190,0)");
- c.fillStyle=haze;c.fillRect(0,0,768,430);
- // Soft bowed horizon bands suggest the ground falling away in the distance.
- c.strokeStyle="rgba(235,240,211,.11)";c.lineWidth=22;
- c.beginPath();c.ellipse(384,-38,510,196,0,0,Math.PI);c.stroke();
- c.strokeStyle="rgba(255,247,215,.075)";c.lineWidth=8;
- c.beginPath();c.ellipse(384,5,450,158,0,0,Math.PI);c.stroke();
- // Gentle edge haze prevents a flat square-map feeling.
- const edge=c.createRadialGradient(384,430,180,384,410,520);
- edge.addColorStop(.55,"rgba(255,255,255,0)");
- edge.addColorStop(1,"rgba(36,57,55,.16)");
- c.fillStyle=edge;c.fillRect(0,0,768,768);
- c.restore();
+const fieldFrame=document.createElement("canvas");
+fieldFrame.width=768;fieldFrame.height=768;
+const fieldFrameCtx=fieldFrame.getContext("2d");
+function drawRoundedField(c,source){
+ // Bend only the distant half of the already-rendered field. Collision remains
+ // on the original flat map, while scenery visually rolls away toward a horizon.
+ c.fillStyle="#b8d98c";c.fillRect(0,0,768,768);
+ const horizon=82,anchor=430,strip=3;
+ for(let sy=0;sy<768;sy+=strip){
+  let dy=sy,scale=1;
+  if(sy<anchor){
+   const far=(anchor-sy)/(anchor-horizon);
+   const t=Math.max(0,Math.min(1,far));
+   scale=1-.20*t*t;
+   // Raise/compress distant rows so the ground appears to curve away.
+   dy=anchor-(anchor-sy)*(1-.10*t);
+  }
+  const dw=768*scale,dx=(768-dw)/2;
+  c.drawImage(source,0,sy,768,strip,dx,dy,dw,strip+1);
+ }
+ // Readable atmospheric perspective begins in the middle distance, not just under the HUD.
+ const haze=c.createLinearGradient(0,70,0,500);
+ haze.addColorStop(0,"rgba(231,239,210,.42)");
+ haze.addColorStop(.28,"rgba(218,232,202,.25)");
+ haze.addColorStop(.62,"rgba(206,224,194,.09)");
+ haze.addColorStop(1,"rgba(206,224,194,0)");
+ c.fillStyle=haze;c.fillRect(0,55,768,470);
+ // Curved mist shelf makes the rounded horizon visible even over bright grass.
+ const mist=c.createRadialGradient(384,35,120,384,85,520);
+ mist.addColorStop(0,"rgba(245,242,213,.20)");
+ mist.addColorStop(.55,"rgba(235,238,209,.08)");
+ mist.addColorStop(1,"rgba(235,238,209,0)");
+ c.fillStyle=mist;c.fillRect(0,0,768,390);
 }
 function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area==="field"){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
-  g.save();g.scale(camera.zoom,camera.zoom);g.translate(-camera.x,-camera.y);
-  drawWorldTerrain(g);drawActors();g.restore();
-  drawFieldAtmosphere(g);
+  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
+  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
+  drawWorldTerrain(fieldFrameCtx);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
+  drawRoundedField(g,fieldFrame);
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
  }
@@ -539,15 +551,16 @@ function map(){
 };
 function areaNPCs(){return NPCS[S.area]||[]}
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
-function drawActors(){
+function drawActorsOn(c){
  const actors=areaNPCs().map(n=>({y:n.y,kind:"npc",n}));
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero")hero(g,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.13:["village","teahouse","osumiHome"].includes(S.area)?.68:.92);
-   else {const n=a.n;npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
+   if(a.kind==="hero")hero(c,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.13:["village","teahouse","osumiHome"].includes(S.area)?.68:.92);
+   else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
+function drawActors(){drawActorsOn(g)}
 function nearestNPC(max=92){let best=null,bd=max;for(const n of areaNPCs()){const dx=n.x-S.x,dy=n.y-S.y,d=Math.hypot(dx,dy);if(d>=bd)continue;const facing={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[S.dir]||[0,1],dot=(dx*facing[0]+dy*facing[1])/(d||1);if(dot<-.15)continue;best=n;bd=d}return best}
 function npcBlocked(x,y){
  const list=NPCS[S.area]||[];
