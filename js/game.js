@@ -548,6 +548,8 @@ function syncFieldHeroDom(){
  const phase=["right-leg-up","neutral","left-leg-up"][Math.max(0,Math.min(2,Number(S.frame)||0))];
  const src=`assets/characters/yashahime/${folder}/${prefix}-${phase}.png`;
  if(el.getAttribute("src")!==src)el.setAttribute("src",src);
+ // Recovery renderer: show actual world movement directly instead of pinning the DOM sprite.
+ el.style.left=(S.x/768*100)+"%";el.style.top=(S.y/768*100)+"%";
 }
 function map(){
  syncFieldHeroDom();
@@ -931,10 +933,18 @@ function drawWorld(){
 }
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
 YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x,y,dir);});
-// iOS startup-critical movement fallback. Touch events bypass PointerEvent/capture regressions.
+// Startup-critical direct movement path. It intentionally bypasses the experimental camera/collision stack.
+let directMoveAt=0;
+function directFieldMove(dx,dy,dir){
+ if(busy||battle||S.area!=="field")return;
+ S.dir=dir;const step=18,nx=clamp(S.x+dx*step,28,740),ny=clamp(S.y+dy*step,35,735);
+ S.x=nx;S.y=ny;S.walk=(Number(S.walk)||0)+1;walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];
+ syncFieldHeroDom();map();hud();if(S.walk%10===0)YK_SAVE.auto(S);
+}
 for(const [id,dx,dy,dir] of [["up",0,-1,"u"],["down",0,1,"d"],["left",-1,0,"l"],["right",1,0,"r"],["upLeft",-1,-1,"l"],["upRight",1,-1,"r"],["downLeft",-1,1,"l"],["downRight",1,1,"r"]]){
  const el=$(id);if(!el)continue;
- el.addEventListener("touchstart",e=>{e.preventDefault();if(!battle)move(dx,dy,dir)},{passive:false});
+ el.addEventListener("touchstart",e=>{e.preventDefault();e.stopImmediatePropagation();directMoveAt=performance.now();directFieldMove(dx,dy,dir)},{passive:false,capture:true});
+ el.addEventListener("click",e=>{e.preventDefault();if(performance.now()-directMoveAt<500)return;directFieldMove(dx,dy,dir)},true);
 }
 YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),menu);YK_INPUT.tap($("worldBtn"),worldMap);YK_INPUT.tap($("saveBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
