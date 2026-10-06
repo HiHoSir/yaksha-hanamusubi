@@ -14,10 +14,10 @@ function migrate(raw){
  // avoiding world/canvas work inside the synchronous localStorage Continue path.
  if(raw?.villageRevision!==2&&s.area==="village"){s.x=373;s.y=690;}
  s.villageRevision=2;
- s.worldRevision=YK_WORLD.revision;
- s.worldPosition=Array.isArray(s.worldPosition)&&Number.isFinite(Number(s.worldPosition[0]))&&Number.isFinite(Number(s.worldPosition[1]))?[Number(s.worldPosition[0]),Number(s.worldPosition[1])]:YK_WORLD.hub.slice();
+ s.worldRevision=(typeof YK_WORLD!=="undefined"&&YK_WORLD)?YK_WORLD.revision:(Number(s.worldRevision)||5);
+ s.worldPosition=Array.isArray(s.worldPosition)&&Number.isFinite(Number(s.worldPosition[0]))&&Number.isFinite(Number(s.worldPosition[1]))?[Number(s.worldPosition[0]),Number(s.worldPosition[1])]:(typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.hub?YK_WORLD.hub.slice():[230,534]);
  s.visitedAreas={...(s.visitedAreas||{}),field:true,[s.area]:true};
- if(!YK_WORLD.places[s.destination])s.destination=null;
+ if(typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.places&&!YK_WORLD.places[s.destination])s.destination=null;
  s.quest=Math.max(0,Math.min(YK_DATA.story.length,Math.floor(Number(s.quest)||0)));
  const cleanCounts=value=>Object.fromEntries(Object.keys(YK_DATA.relics).filter(k=>Number.isFinite(value?.[k])&&value[k]>0).map(k=>[k,Math.min(999999,Math.floor(value[k]))]));
  s.relics=cleanCounts(s.relics);s.rareWins=cleanCounts(s.rareWins);
