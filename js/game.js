@@ -895,13 +895,18 @@ document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
 let gameStartPending=false;
-async function startFromTitle(saved){
- if(gameStartPending)return;gameStartPending=true;busy=true;
+function showStartLoader(){
+ const box=$("bootLoader"),bar=$("bootBar"),pct=$("bootPct"),detail=$("bootDetail");
+ if(!box)return;
+ box.classList.remove("bootDormant","bootDone","bootError");bar.style.width="100%";pct.textContent="100%";detail.textContent="準備完了";
+ setTimeout(()=>{box.classList.add("bootDone");setTimeout(()=>box.classList.add("bootDormant"),380)},180);
+}
+function startFromTitle(saved){
+ if(gameStartPending)return;gameStartPending=true;
  try{
-  await (window.YK_BOOT_LOAD?window.YK_BOOT_LOAD():Promise.resolve());
   if(saved)restoreState(saved);else state(YK_SAVE.fresh());
-  $("title").classList.remove("show");busy=false;hud();map();
-  if(!saved)setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200);
+  $("title").classList.remove("show");busy=false;hud();map();showStartLoader();
+  if(!saved)setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),650);
  }catch(e){console.error(e);busy=true;$("title").classList.add("show");}
  finally{gameStartPending=false;}
 }
