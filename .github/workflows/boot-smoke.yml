@@ -34,3 +34,7 @@ jobs:
         run: |
           test -s assets/terrain/world-ground-qv-32.png
           test -s assets/terrain/world-road-qv-32.png
+          test -s assets/terrain/world-shore-qv-32.png
+          test -s assets/terrain/world-forest-qv.png
+          test -s assets/terrain/world-mountain-qv.png
+          test -s assets/terrain/world-landmarks-qv.png
