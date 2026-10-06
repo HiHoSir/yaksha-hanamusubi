@@ -23,7 +23,7 @@ jobs:
           let last=-1;
           for(const p of order){const i=html.indexOf(p);if(i<0||i<=last)throw new Error('bad script order: '+p);last=i}
           const world=fs.readFileSync('js/world.js','utf8');
-          if(!/const YK_WORLD\s*=\s*\(\(\)=>\{/.test(world))throw new Error('YK_WORLD module missing');
+          if(!/(?:window\.)?YK_WORLD\s*=\s*\(\(\)=>\{/.test(world))throw new Error('YK_WORLD module missing');
           if(!/return \{start,hub,places,roads/.test(world))throw new Error('YK_WORLD export missing');
           const game=fs.readFileSync('js/game.js','utf8');
           if(!game.includes('YK_INPUT.tap($("newGame")'))throw new Error('new game handler missing');
