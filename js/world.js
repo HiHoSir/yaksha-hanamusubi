@@ -482,7 +482,7 @@ window.YK_WORLD=(()=>{
   }
   // Quarter-view mountain ranges. One logical mountain cell is still one blocked step,
   // but visible peaks overlap neighboring cells so the range reads as a landform, not icons.
-  if(!ready){
+  if(!ready&&!mapChipReady('mountain')){
    for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
     if(mapData[ty][tx]!==TILE.MOUNTAIN)continue;
     const x=tx*tileSize,y=ty*tileSize,v=hash(tx+811,ty+773);
@@ -516,7 +516,7 @@ window.YK_WORLD=(()=>{
   // Forest visuals now come from FIELD_TILE_ROWS + unified 32px chips.
   // Quarter-view forest: several small trees per logical cell form one continuous canopy.
   // The 32px FOREST grid remains collision-only; visible trunks/crowns deliberately cross its seams.
-  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+  if(!mapChipReady('forest')) for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    if(mapData[ty][tx]!==TILE.FOREST)continue;
    const edge=![[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.FOREST);
    const seed=hash(tx+733,ty+691),x=tx*tileSize,y=ty*tileSize;
@@ -783,7 +783,7 @@ window.YK_WORLD=(()=>{
   // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
-  for(const [k,p] of Object.entries(places)){
+  if(!mapChipReady('landmarks')) for(const [k,p] of Object.entries(places)){
    const [x,y]=p.point;
    // Landmark footprints are measured against the 32px walking cell:
    // village ~= 3x2 cells, major shrine ~= 2x2, minor destinations ~= 1-2 cells.
