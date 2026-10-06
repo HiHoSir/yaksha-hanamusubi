@@ -527,15 +527,15 @@ function drawRoundedField(c,source){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
-  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
-  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
-  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
-  drawWorldTerrain(fieldFrameCtx);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
-  // Temporary recovery path: bypass the curved-strip compositor on iOS.
-  // It was blanking the entire field canvas even though the terrain cache was valid.
-  g.drawImage(fieldFrame,0,0,768,768);
+  // Emergency direct renderer: no terrain cache, atlas, offscreen canvas or curved compositor.
+  // Used to isolate the runtime exception reported by iOS.
+  g.fillStyle="#9fbd62";g.fillRect(0,0,768,768);
+  g.save();g.globalAlpha=.20;g.fillStyle="#6d914f";
+  for(let y=28;y<768;y+=54)for(let x=24;x<768;x+=62){g.beginPath();g.ellipse(x,y,28,10,-.15,0,Math.PI*2);g.fill()}
+  g.restore();
+  drawActors();
   const k=YK_WORLD.near(S.x,S.y);
-  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
+  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"復旧確認中 · フィールド表示テスト");return;
  }
  if(S.area==="village"){drawVillageMap(g);drawVillageCollisionDebug(g)}
  else if(S.area==="teahouse") drawInterior(g,"tea");
@@ -907,7 +907,7 @@ document.addEventListener("keydown",e=>{
  if(fn){e.preventDefault();fn()}
 });
 $("app")?.addEventListener("contextmenu",e=>e.preventDefault());
-window.addEventListener("error",e=>{console.error(e.error||e.message);busy=false;message("操作を復旧しました",1500)});
+window.addEventListener("error",e=>{console.error(e.error||e.message);busy=false;message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,80),5000)});
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
 function loop(t){if(!busy){S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
