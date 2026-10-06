@@ -142,8 +142,8 @@ window.YK_WORLD=(()=>{
    // Water shoreline remains on the proven autotile sheet until its shore IDs are migrated.
    const fieldTiles=TERRAIN_ART.fieldTiles;
    if(!water&&!bridge&&artReady(fieldTiles)){
-    const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
-    c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
+    // A single quiet base prevents the grassland from reading as a 32px patchwork.
+    c.drawImage(fieldTiles,0,0,32,32,x,y,32,32);
    }
    // Forest/mountain collision still uses the 32px grid, but their visible forms are
    // rendered later as overlapping quarter-view symbols. Never expose the square source cells.
@@ -209,8 +209,26 @@ window.YK_WORLD=(()=>{
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
-  // Keep the plain free of large geometric overlays. Material variation comes from
-  // small irregular details so the 32px logic grid never becomes a visible shape.
+  // Organic ground wash: many overlapping translucent shapes cross cell boundaries.
+  // This creates broad meadow/dry-grass regions without revealing the movement grid.
+  c.save();
+  for(let gy=24;gy<size;gy+=58)for(let gx=20;gx<size;gx+=67){
+   if(tileAt(gx,gy)!=='grass')continue;
+   const v=hash(gx+97,gy+131),w=34+v*42,h=12+hash(gx+17,gy+43)*18;
+   c.globalAlpha=.035+v*.025;
+   c.fillStyle=v>.56?'#779650':'#c1b66d';
+   c.beginPath();c.ellipse(gx+(v-.5)*22,gy,w,h,(v-.5)*.55,0,Math.PI*2);c.fill();
+  }
+  c.restore();
+  // Fine grass is distributed in world space rather than once per tile, breaking the checkerboard rhythm.
+  c.save();c.strokeStyle='rgba(82,112,60,.25)';c.lineWidth=.7;
+  for(let gy=17;gy<size;gy+=23)for(let gx=13;gx<size;gx+=29){
+   if(tileAt(gx,gy)!=='grass')continue;
+   const v=hash(gx+211,gy+173); if(v<.42)continue;
+   const x=gx+(v-.5)*13,y=gy+(hash(gx,gy)-.5)*11;
+   c.beginPath();c.moveTo(x-2,y+2);c.lineTo(x-1,y-2-v*2);c.moveTo(x+1,y+2);c.lineTo(x+3,y-1-v);c.stroke();
+  }
+  c.restore();
   // Mountain art is independent from the logical 32px MOUNTAIN collision grid.
   // Broad overlapping ranges remove thin vertical fragments and repetitive stair-steps.
   if(false&&artReady(TERRAIN_ART.mountainRange)){
@@ -458,5 +476,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:39,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:40,tileAt,tileSize,size,viewSize,camera,draw};
 })();
