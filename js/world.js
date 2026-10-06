@@ -292,6 +292,8 @@ window.YK_WORLD=(()=>{
    c.fillStyle='#5e6758';c.beginPath();c.moveTo(cx-wide,base);c.lineTo(cx-9,base-10);c.lineTo(cx,base-peak);c.lineTo(cx+9,base-12);c.lineTo(cx+wide,base);c.closePath();c.fill();
    c.fillStyle='#929985';c.beginPath();c.moveTo(cx,base-peak);c.lineTo(cx-5,base-14);c.lineTo(cx,base-17);c.lineTo(cx+6,base-11);c.closePath();c.fill();
    c.fillStyle='#496343';c.fillRect(cx-wide+3,base-3,wide*2-6,3);
+   // darker front skirt anchors the ridge to the ground plane
+   c.globalAlpha=.34;c.fillStyle='#344b38';c.beginPath();c.ellipse(cx+3,base+2,wide*.78,3.2,-.06,0,Math.PI*2);c.fill();
    c.restore();
   }
   // Quarter-view forest canopy pass: irregular crowns overlap tile seams in screen-depth order.
@@ -307,6 +309,8 @@ window.YK_WORLD=(()=>{
    c.beginPath();c.arc(cx-4,base-8,4.6,0,Math.PI*2);c.arc(cx+3,base-9,5.2,0,Math.PI*2);c.arc(cx,base-13,5.5,0,Math.PI*2);c.fill();
    if(v>.38){c.fillStyle='#4b7a47';c.beginPath();c.arc(cx-2,base-14,2.7,0,Math.PI*2);c.arc(cx+4,base-12,2.4,0,Math.PI*2);c.fill();}
    c.fillStyle='#68472f';c.fillRect(cx-1,base-6,2,6);
+   // front-facing undergrowth makes lower rows overlap upper rows visually
+   c.globalAlpha=edge?.42:.55;c.fillStyle='#36583a';c.beginPath();c.ellipse(cx+1,base+1,8.5,2.5,-.1,0,Math.PI*2);c.fill();
    c.restore();
   }
   // Offshore rock clusters give the sea depth without changing collision.
@@ -507,9 +511,10 @@ window.YK_WORLD=(()=>{
    if(k==='village'){
     c.save();
     c.globalAlpha=.18;c.fillStyle='#45663f';c.beginPath();c.ellipse(x,y+8,46,12,-.08,0,Math.PI*2);c.fill();c.globalAlpha=1;
-    stamp(icons[k],x-22,y-15,42,36);
-    stamp(icons[k],x+20,y-18,40,34);
-    stamp(icons[k],x-2,y+7,46,39);
+    // back row first, foreground building last: stable painter's order for quarter-view depth
+    stamp(icons[k],x+20,y-20,39,33);
+    stamp(icons[k],x-22,y-16,41,35);
+    stamp(icons[k],x-2,y+9,48,41);
     c.restore();
    }else{
     const w=k==='shrine'?42:k==='fox'?44:k==='hotspring'?38:k==='waterfall'?40:k==='forest'?36:k==='cove'?34:32;
@@ -517,5 +522,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:42,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:43,tileAt,tileSize,size,viewSize,camera,draw};
 })();
