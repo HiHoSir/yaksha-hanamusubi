@@ -932,19 +932,30 @@ titleHero();hud();requestAnimationFrame(loop);
 // β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
 
 const DEBUG_ORTHO_PATHS={
- ground:"assets/terrain/world-ortho-ground-v2.webp",
- road:"assets/terrain/world-ortho-road-v2.webp",
- shore:"assets/terrain/world-ortho-shore-v2.webp",
- forest:"assets/terrain/world-ortho-forest-v2.webp",
- mountain:"assets/terrain/world-ortho-mountain-v2.webp",
- landmarks:"assets/terrain/world-ortho-landmarks-v2.webp"
+ ground:{v2:"assets/terrain/world-ortho-ground-v2.webp",v1:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
+ road:{v2:"assets/terrain/world-ortho-road-v2.webp",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
+ shore:{v2:"assets/terrain/world-ortho-shore-v2.webp",v1:"assets/terrain/world-ortho-shore-v1.png",size:[128,128]},
+ forest:{v2:"assets/terrain/world-ortho-forest-v2.webp",v1:"assets/terrain/world-ortho-forest-v1.png",size:[192,128]},
+ mountain:{v2:"assets/terrain/world-ortho-mountain-v2.webp",v1:"assets/terrain/world-ortho-mountain-v1.png",size:[288,192]},
+ landmarks:{v2:"assets/terrain/world-ortho-landmarks-v2.webp",v1:"assets/terrain/world-ortho-landmarks-v1.png",size:[384,192]}
 };
-const DEBUG_ORTHO_ART={};
-for(const [key,src] of Object.entries(DEBUG_ORTHO_PATHS)){
+const DEBUG_ORTHO_ART={},DEBUG_ORTHO_FALLBACK={};
+for(const [key,spec] of Object.entries(DEBUG_ORTHO_PATHS)){
  const im=new Image();
- im.onload=()=>{if(S.area==="debugField")map()};
- im.onerror=()=>{window.__YK_DEBUG_ATLAS_ERROR=key;if(S.area==="debugField")map()};
- im.src=src;DEBUG_ORTHO_ART[key]=im;
+ const useFallback=()=>{
+  if(DEBUG_ORTHO_FALLBACK[key])return;
+  DEBUG_ORTHO_FALLBACK[key]=true;
+  const fb=new Image();
+  fb.onload=()=>{DEBUG_ORTHO_ART[key]=fb;if(S.area==="debugField")map()};
+  fb.onerror=()=>{window.__YK_DEBUG_ATLAS_ERROR=key;if(S.area==="debugField")map()};
+  fb.src=spec.v1;
+ };
+ im.onload=()=>{
+  if(im.naturalWidth!==spec.size[0]||im.naturalHeight!==spec.size[1]){useFallback();return;}
+  DEBUG_ORTHO_ART[key]=im;if(S.area==="debugField")map();
+ };
+ im.onerror=useFallback;
+ im.src=spec.v2;DEBUG_ORTHO_ART[key]=im;
 }
 const debugAtlasReady=()=>Object.values(DEBUG_ORTHO_ART).every(im=>im.complete&&im.naturalWidth>0);
 const debug32=(c,key,cols,slot,x,y)=>{const im=DEBUG_ORTHO_ART[key];c.drawImage(im,(slot%cols)*32,Math.floor(slot/cols)*32,32,32,x,y,32,32)};
@@ -953,7 +964,7 @@ const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{co
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
- c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — ORTHOGONAL TILESET v2 / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る",31,66);c.restore();
+ c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — ORTHOGONAL TILESET v2 PREVIEW / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";const fb=Object.keys(DEBUG_ORTHO_FALLBACK);c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る"+(fb.length?" · fallback: "+fb.join(", "):""),31,66);c.restore();
  if(!debugAtlasReady()){
   c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(window.__YK_DEBUG_ATLAS_ERROR?("DEBUG sheet load error: "+window.__YK_DEBUG_ATLAS_ERROR):"DEBUG sheets loading…",240,380);return;
  }
