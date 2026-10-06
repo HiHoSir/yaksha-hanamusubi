@@ -23,9 +23,9 @@ window.YK_WORLD=(()=>{
   {kind:"seaVista",x:548,y:526,rx:98,ry:66},
   {kind:"forestEdge",x:603,y:462,rx:94,ry:72},
   {kind:"deepForest",x:650,y:408,rx:78,ry:88},
-  {kind:"falls",x:632,y:206,rx:78,ry:70},
-  {kind:"highland",x:540,y:160,rx:94,ry:48},
-  {kind:"autumn",x:210,y:132,rx:108,ry:58}
+  {kind:"falls",x:638,y:210,rx:86,ry:78},
+  {kind:"highland",x:526,y:166,rx:112,ry:56},
+  {kind:"autumn",x:218,y:136,rx:116,ry:64}
  ];
  const roads=[
   // Opening leg bends gradually north-east so the next objective is suggested by terrain,
@@ -35,9 +35,11 @@ window.YK_WORLD=(()=>{
   [shrineJunction,[322,424],[343,438],[351,459],[351,482],[365,500],[381,516],[383,541],[391,563],[411,579],[434,590],[452,603],places.cove.point],
   // The coast leg follows the shoreline before turning inland through a visible forest fringe.
   [places.cove.point,[487,590],[507,579],[526,565],[544,551],[565,540],[584,526],[592,505],[602,486],[620,472],[640,457],[655,438],[661,420],places.forest.point],
-  [places.forest.point,[655,386],[638,368],[628,341],[629,326],[647,307],[662,291],[675,274],[678,253],[676,242],[659,225],[657,208],[657,190],places.waterfall.point],
-  [places.waterfall.point,[600,192],[572,188],[555,170],[544,154],[514,142],springJunction,[412,139],[370,131],[318,138],[261,138],[225,138],[203,132],[183,124],places.fox.point],
-  [springJunction,[457,179],[438,199],places.hotspring.point]
+  // Forest climbs into a narrow mountain-waterfall approach instead of a straight northern lane.
+  [places.forest.point,[654,385],[642,367],[631,347],[629,327],[640,309],[654,292],[666,274],[672,255],[669,238],[660,222],[653,207],[645,196],places.waterfall.point],
+  // The final traverse runs west along the highland; the hot spring branches naturally off the saddle.
+  [places.waterfall.point,[611,194],[584,190],[560,181],[542,168],[516,154],springJunction,[430,145],[401,141],[369,137],[335,140],[301,145],[267,145],[233,140],[205,132],[184,123],places.fox.point],
+  [springJunction,[459,164],[455,181],[444,198],places.hotspring.point]
  ];
  const distance=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)};
  // 32px logical grid for collision/events. Visual terrain may use larger image assets.
@@ -411,5 +413,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:31,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:32,tileAt,tileSize,size,viewSize,camera,draw};
 })();
