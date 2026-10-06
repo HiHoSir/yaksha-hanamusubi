@@ -836,13 +836,18 @@ window.YK_WORLD=(()=>{
   // Never invoke this at module scope: doing so previously prevented YK_WORLD from initializing.
   drawProductionOverhangs(c);
  }
- const drawProductionOverhangs=c=>{
-  if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return false;
+ const productionDepthQueue=()=>{
   const q=[];
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){const t=mapData[ty][tx];if(t===TILE.FOREST||t===TILE.MOUNTAIN)q.push({type:'terrain',tx,ty,depth:terrainDepth(tx,ty,t===TILE.FOREST?10:5)});}
   for(const o of objectLayer)q.push({type:'object',ref:o,depth:objectDepth(o)});
-  for(const it of sortByDepth(q)){if(it.type==='terrain')drawProductionOverlayChip(c,it.tx,it.ty);else drawProductionLandmark(c,it.ref);}
+  return sortByDepth(q);
+ };
+ const drawProductionQueueItem=(c,it)=>it.type==='terrain'?drawProductionOverlayChip(c,it.tx,it.ty):drawProductionLandmark(c,it.ref);
+ const drawProductionOverhangs=c=>{
+  if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return false;
+  for(const it of productionDepthQueue())drawProductionQueueItem(c,it);
   return true;
  };
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:82,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs};
+ const drawProductionForeground=(c,heroY)=>{if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return;const heroDepth=depthKey(heroY,50);for(const it of productionDepthQueue())if(it.depth>heroDepth)drawProductionQueueItem(c,it);};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:83,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
 })();
