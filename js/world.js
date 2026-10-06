@@ -565,6 +565,28 @@ window.YK_WORLD=(()=>{
    c.restore();
   }
   // Coastline is painted by the curved shoreline pass above; avoid a second square-edged shelf.
+  // Organic terrain transition belt. These are visual overlays only; the 32px collision map stays authoritative.
+  // Sparse shrubs/rocks bridge grass into forest and mountain so biome borders do not expose square cells.
+  if(!ready){
+   for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+    if(mapData[ty][tx]!==TILE.GRASS)continue;
+    const x=tx*tileSize,y=ty*tileSize,v=hash(tx+1409,ty+1423);
+    let nf=false,nm=false;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){
+     nf ||= mapData[ty+dy][tx+dx]===TILE.FOREST;
+     nm ||= mapData[ty+dy][tx+dx]===TILE.MOUNTAIN;
+    }
+    if(nf){
+     c.save();c.globalAlpha=.34;c.fillStyle='#476f43';
+     for(let n=0;n<2;n++){const ox=5+((v*31+n*13)%1)*23,oy=15+((v*47+n*17)%1)*14;c.beginPath();c.arc(x+ox,y+oy,2.2+n*.5,0,Math.PI*2);c.fill();}
+     c.restore();
+    }
+    if(nm&&v>.28){
+     c.save();c.globalAlpha=.30;c.fillStyle='#747765';
+     const ox=5+v*20,oy=20+(1-v)*8;c.beginPath();c.ellipse(x+ox,y+oy,3.5+v*2,1.8+v,-.2,0,Math.PI*2);c.fill();c.restore();
+    }
+   }
+  }
   // Starting-area composition: a readable village approach and northbound departure lane.
   // Visual-only; save/event coordinates and walkability are untouched.
   if(!ready){
@@ -583,6 +605,14 @@ window.YK_WORLD=(()=>{
    // two tiny roadside stones establish one-step scale without blocking movement
    c.globalAlpha=.5;c.fillStyle='#777361';
    for(const [ox,oy] of [[10,-47],[38,-74]]){c.beginPath();c.ellipse(vx+ox,vy+oy,2.4,1.5,-.2,0,Math.PI*2);c.fill();}
+   c.restore();
+  }
+  // Settlement cues: communal well and entrance gate make the three houses read as one village.
+  if(!ready){
+   const [vx,vy]=places.village.point;c.save();
+   c.fillStyle='#6f6a58';c.beginPath();c.ellipse(vx+8,vy+18,6,3,0,0,Math.PI*2);c.fill();
+   c.fillStyle='#8aa39a';c.beginPath();c.ellipse(vx+8,vy+17,3.6,1.5,0,0,Math.PI*2);c.fill();
+   c.strokeStyle='#74513b';c.lineWidth=2;c.beginPath();c.moveTo(vx+35,vy+9);c.lineTo(vx+35,vy-6);c.moveTo(vx+48,vy+8);c.lineTo(vx+48,vy-7);c.moveTo(vx+33,vy-6);c.lineTo(vx+50,vy-7);c.stroke();
    c.restore();
   }
   // Village outskirts: intentional small farm plots replace scattered fence-like marks.
@@ -649,5 +679,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:68,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:69,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
 })();
