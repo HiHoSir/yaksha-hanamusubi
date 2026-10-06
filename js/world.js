@@ -398,12 +398,12 @@ window.YK_WORLD=(()=>{
    const edge=![[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.FOREST);
    const seed=hash(tx+733,ty+691),x=tx*tileSize,y=ty*tileSize;
    const trees=[
-    [7+(seed*7|0),27,.76],[20,25+(seed*4|0),.70],[13,17,.62],
-    [28,16+(seed*5|0),.58],[3,18+(seed*8|0),.54]
+    [5+(seed*8|0),29,.88],[18+(seed*5|0),27,.82],[11,19+(seed*4|0),.76],
+    [27,18+(seed*7|0),.70],[1+(seed*4|0),20+(seed*6|0),.68],[21,12+(seed*5|0),.62]
    ];
    c.save();
    // Forest floor is broad and translucent, so adjacent cells merge rather than read as squares.
-   c.globalAlpha=edge?.12:.22;c.fillStyle='#315d39';c.beginPath();
+   c.globalAlpha=edge?.07:.16;c.fillStyle='#315d39';c.beginPath();
    c.ellipse(x+14+(seed-.5)*9,y+23+(seed-.5)*4,edge?13+seed*5:18+seed*4,edge?5+seed*3:7+seed*3,(seed-.5)*.38,0,Math.PI*2);c.fill();
    c.restore();
    for(const [ox,baseOff,sc] of trees){
@@ -593,12 +593,12 @@ window.YK_WORLD=(()=>{
    const [vx,vy]=places.village.point;
    c.save();
    // village common: broad irregular earth patch, deliberately not aligned to 32px cells
-   c.globalAlpha=.24;c.fillStyle='#aa965d';c.beginPath();
+   c.globalAlpha=.16;c.fillStyle='#aa965d';c.beginPath();
    c.moveTo(vx-53,vy+22);c.quadraticCurveTo(vx-42,vy-24,vx-5,vy-30);
    c.quadraticCurveTo(vx+35,vy-25,vx+48,vy+9);c.quadraticCurveTo(vx+30,vy+32,vx-12,vy+35);
    c.quadraticCurveTo(vx-38,vy+34,vx-53,vy+22);c.fill();
    // northbound worn lane: narrows as it leaves the settlement
-   c.globalAlpha=.42;c.strokeStyle='#a38c57';c.lineCap='round';c.lineWidth=8;c.beginPath();
+   c.globalAlpha=.34;c.strokeStyle='#a38c57';c.lineCap='round';c.lineWidth=5.5;c.beginPath();
    c.moveTo(vx+19,vy-2);c.quadraticCurveTo(vx+22,vy-30,vx+27,vy-58);c.quadraticCurveTo(vx+30,vy-83,vx+42,vy-106);c.stroke();
    c.globalAlpha=.20;c.strokeStyle='#756743';c.lineWidth=1.2;c.beginPath();
    c.moveTo(vx+16,vy-4);c.quadraticCurveTo(vx+20,vy-48,vx+39,vy-104);c.stroke();
@@ -620,7 +620,7 @@ window.YK_WORLD=(()=>{
    const [vx,vy]=places.village.point;
    c.save();
    for(const [ox,oy,w,h] of [[-57,20,23,13],[30,19,26,12],[-50,-25,20,10]]){
-    c.globalAlpha=.18;c.fillStyle='#8b7548';c.beginPath();c.roundRect(vx+ox,vy+oy,w,h,2);c.fill();
+    c.globalAlpha=.11;c.fillStyle='#8b7548';c.beginPath();c.roundRect(vx+ox,vy+oy,w,h,2);c.fill();
     c.globalAlpha=.24;c.strokeStyle='#6f633f';c.lineWidth=.8;
     for(let yy=vy+oy+3;yy<vy+oy+h;yy+=4){c.beginPath();c.moveTo(vx+ox+2,yy);c.lineTo(vx+ox+w-2,yy);c.stroke();}
    }
@@ -647,7 +647,7 @@ window.YK_WORLD=(()=>{
    c.save();c.lineCap='round';c.lineJoin='round';
    // village threshold: earth lane widens gently into the common instead of ending at a hard point
    const [vx,vy]=places.village.point;
-   c.globalAlpha=.28;c.strokeStyle='#9b8453';c.lineWidth=11;c.beginPath();c.moveTo(vx+17,vy+8);c.quadraticCurveTo(vx+21,vy-3,vx+21,vy-22);c.stroke();
+   c.globalAlpha=.22;c.strokeStyle='#9b8453';c.lineWidth=7;c.beginPath();c.moveTo(vx+17,vy+8);c.quadraticCurveTo(vx+21,vy-3,vx+21,vy-22);c.stroke();
    // bridge banks: small gravel aprons visually tie road -> bridge -> road
    for(const [bx,by,rot] of [[384,544,-.15],[389,570,.12]]){
     c.save();c.translate(bx,by);c.rotate(rot);c.globalAlpha=.32;c.fillStyle='#b5a16a';c.beginPath();c.ellipse(0,0,13,6,0,0,Math.PI*2);c.fill();c.restore();
@@ -710,5 +710,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:71,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:72,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
 })();
