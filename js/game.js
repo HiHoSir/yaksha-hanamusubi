@@ -931,10 +931,24 @@ titleHero();hud();requestAnimationFrame(loop);
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  const W=YK_WORLD;if(!W){c.fillStyle="#102635";c.fillRect(0,0,768,768);return;}
- c.save();c.scale(.88,.88);c.translate(48,36);W.draw(c,null);c.restore();
- c.save();c.fillStyle="rgba(7,20,29,.88)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);
- c.fillStyle="#fff3c4";c.font="bold 22px sans-serif";c.fillText("DEBUG FIELD — 地形・道・海岸・森・山・ランドマーク一覧",30,48);c.restore();
- worldHint("デバッグ展示場：スクリーンショット確認用／セーブには影響しません");
+ const cell=32,ox=48,oy=92;
+ c.fillStyle="#17313a";c.fillRect(0,0,768,768);
+ // Dedicated orthogonal showcase: every 32px cell is intentionally visible for screenshot review.
+ for(let y=0;y<18;y++)for(let x=0;x<21;x++){c.fillStyle=(x+y)%2?"#8fb55a":"#96bd60";c.fillRect(ox+x*cell,oy+y*cell,cell,cell);}
+ const box=(x,y,w,h,label)=>{c.strokeStyle="rgba(255,244,198,.35)";c.lineWidth=1;c.strokeRect(ox+x*cell+.5,oy+y*cell+.5,w*cell-1,h*cell-1);c.fillStyle="#fff3c4";c.font="13px sans-serif";c.fillText(label,ox+x*cell+5,oy+y*cell+17)};
+ // Water/shore test basin and bridge axes.
+ c.fillStyle="#397b87";c.fillRect(ox+cell,oy+cell,6*cell,5*cell);c.fillStyle="#62a4a0";c.fillRect(ox+2*cell,oy+2*cell,4*cell,3*cell);box(0,0,8,7,"水・海岸・橋");
+ c.fillStyle="#c7a86b";c.fillRect(ox+3*cell,oy+cell,cell,5*cell);c.fillRect(ox+cell,oy+3*cell,6*cell,cell);
+ // Orthogonal road grammar: straight, corner, T and cross in one connected sample.
+ c.fillStyle="#b59a68";c.fillRect(ox+9*cell,oy+cell,cell,6*cell);c.fillRect(ox+8*cell,oy+3*cell,6*cell,cell);c.fillRect(ox+13*cell,oy+3*cell,cell,3*cell);box(8,0,7,7,"道：直線・角・T・十字");
+ // Terrain footprints show the intended 1-cell movement grid even when art overhangs it.
+ box(0,8,7,5,"森 1マス足元／上方向に張出し");box(8,8,7,5,"山 1マス足元／上方向に張出し");
+ for(let i=0;i<6;i++){const x=ox+(i%3)*2*cell+cell,y=oy+(9+Math.floor(i/3)*2)*cell;c.fillStyle="#315f3e";c.beginPath();c.arc(x+16,y+8,27,0,Math.PI*2);c.fill();c.fillStyle="#60452d";c.fillRect(x+12,y+20,8,20)}
+ for(let i=0;i<6;i++){const x=ox+(8+(i%3)*2)*cell,y=oy+(9+Math.floor(i/3)*2)*cell;c.fillStyle="#66665e";c.beginPath();c.moveTo(x,y+32);c.lineTo(x+32,y-22);c.lineTo(x+64,y+32);c.closePath();c.fill()}
+ // Landmark footprint boxes only; production art is inserted here after asset approval.
+ box(16,0,5,4,"建物 2×2 / 3×2");box(16,5,5,4,"祠・洞窟");box(16,10,5,4,"滝・温泉");
+ c.save();c.fillStyle="rgba(7,20,29,.92)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 21px sans-serif";c.fillText("DEBUG MAP — 32px・上下左右移動用マップチップ検査場",30,48);c.restore();
+ worldHint("デバッグ専用：本編セーブ非干渉／素材承認後ここへ実チップを配置");
 }
 window.YKDebugField=(enabled=true)=>{
  if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";busy=false;$("title")?.classList.remove("show");map();return true;}
