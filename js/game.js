@@ -540,7 +540,8 @@ function drawRoundedField(c,source){
  }
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
- if(S.area==="debugField"){drawDebugField(g);return;}\n if(S.area==="field"){
+ if(S.area==="debugField"){drawDebugField(g);return;}
+ if(S.area==="field"){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
   fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
   fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
