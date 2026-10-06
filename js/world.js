@@ -301,7 +301,8 @@ window.YK_WORLD=(()=>{
     if(target!==TILE.MOUNTAIN&&target!==TILE.FOREST)continue;
     const mask=(same(tx,ty-1,target)?1:0)|(same(tx+1,ty,target)?2:0)|(same(tx,ty+1,target)?4:0)|(same(tx-1,ty,target)?8:0);
     const row=target===TILE.MOUNTAIN?2:4;
-    const visualSize=target===TILE.MOUNTAIN?52:46, inset=(visualSize-tileSize)/2;\n    c.drawImage(im,(mask&15)*32,row*32,32,32,tx*tileSize-inset,ty*tileSize-inset,visualSize,visualSize);
+    const visualSize=target===TILE.MOUNTAIN?52:46, inset=(visualSize-tileSize)/2; 
+    c.drawImage(im,(mask&15)*32,row*32,32,32,tx*tileSize-inset,ty*tileSize-inset,visualSize,visualSize);
    }
   }
   // A few signposts mark major forks while the surrounding plain stays explorable.
