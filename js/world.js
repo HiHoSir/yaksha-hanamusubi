@@ -383,7 +383,8 @@ window.YK_WORLD=(()=>{
   // Collision and visuals now share the same tile source of truth.
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const target=mapData[ty][tx],x=tx*tileSize,y=ty*tileSize;
-   if(target===TILE.FOREST){
+   if(target===TILE.FOREST && !artReady(fieldTiles)){
+    // Fallback only: unified field chips are authoritative when loaded.
     // One forest cell = one compact field symbol. Offset canopy/base creates a quarter-view footprint.
     const v=hash(tx+83,ty+47),cx=x+16,base=y+27;
     c.save();
@@ -393,7 +394,8 @@ window.YK_WORLD=(()=>{
     c.fillStyle="#4d7b47";c.beginPath();c.arc(cx-3,base-17,3.8,0,Math.PI*2);c.arc(cx+4,base-19,4.2,0,Math.PI*2);c.fill();
     c.fillStyle="rgba(159,184,92,.65)";c.fillRect(cx-7,base-1,14,1.4);
     c.restore();
-   }else if(target===TILE.MOUNTAIN){
+   }else if(target===TILE.MOUNTAIN && !artReady(fieldTiles)){
+    // Fallback only: do not stack procedural peaks over the 32px mountain chips.
     // Peaks overlap neighboring cells visually; logical collision remains exactly one 32px cell.
     // The staggered base makes connected cells read as a mountain range instead of stacked triangles.
     const v=hash(tx+19,ty+61),base=y+31,shift=(ty&1)?5:-3;
@@ -413,5 +415,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:33,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:34,tileAt,tileSize,size,viewSize,camera,draw};
 })();
