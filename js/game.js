@@ -941,6 +941,9 @@ window.YKDebugField=(enabled=true)=>{
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;map();return false;
 };
 
+const debugMapBtn=document.getElementById("debugMap");
+if(debugMapBtn){debugMapBtn.addEventListener("click",(e)=>{e.preventDefault();e.stopPropagation();window.YKDebugField(true);});}
+
 const villageTestWarpBtn=document.getElementById("villageTestWarp");
 if(villageTestWarpBtn){
   villageTestWarpBtn.addEventListener("pointerup",(e)=>{
