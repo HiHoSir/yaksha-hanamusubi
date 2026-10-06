@@ -978,19 +978,24 @@ function drawDebugField(c){
  // Landmark cells from the same packed atlas.
  box(16,0,6,13,"LANDMARKS 96px");
  for(let i=0;i<7;i++){const fx=ox+(17+(i%2)*3)*cell+cell/2,fy=oy+(3+Math.floor(i/2)*3)*cell;debugSprite(c,"landmarks",4,i,96,96,fx,fy,48,86);}
- // Small composed strip for player/world scale and occlusion review.
- box(0,13,16,6,"COMPOSED SCALE / PLAYER");
+ // Small composed strip for player/world scale and foot-Y occlusion review.
+ box(0,13,16,6,"COMPOSED SCALE / PLAYER / Y-SORT");
  for(let x=1;x<15;x++)debug32(c,"road",4,0,ox+x*cell,oy+16*cell);
- debugSprite(c,"landmarks",4,0,96,96,ox+4*cell+16,oy+17*cell,48,86);
- debugSprite(c,"forest",3,1,64,64,ox+2*cell+16,oy+17*cell,32,56);
- debugSprite(c,"mountain",3,1,96,96,ox+13*cell+16,oy+17*cell,48,86);
+ const sampleItems=[
+  {key:"forest",cols:3,slot:1,w:64,h:64,x:ox+2*cell+16,y:oy+17*cell,ax:32,ay:56},
+  {key:"landmarks",cols:4,slot:0,w:96,h:96,x:ox+4*cell+16,y:oy+17*cell,ax:48,ay:86},
+  {key:"mountain",cols:3,slot:1,w:96,h:96,x:ox+13*cell+16,y:oy+17*cell,ax:48,ay:86}
+ ];
+ const drawSample=it=>debugSprite(c,it.key,it.cols,it.slot,it.w,it.h,it.x,it.y,it.ax,it.ay);
+ for(const it of sampleItems)if(it.y<=S.y)drawSample(it);
  hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.16);
+ for(const it of sampleItems)if(it.y>S.y)drawSample(it);
  // 32px grid is deliberately drawn last so screenshots expose any bad crop/anchor.
  c.save();c.strokeStyle="rgba(255,255,255,.09)";c.lineWidth=1;
  for(let x=0;x<=cols;x++){c.beginPath();c.moveTo(ox+x*cell+.5,oy);c.lineTo(ox+x*cell+.5,oy+rows*cell);c.stroke()}
  for(let y=0;y<=rows;y++){c.beginPath();c.moveTo(ox,oy+y*cell+.5);c.lineTo(ox+cols*cell,oy+y*cell+.5);c.stroke()}
  c.restore();
- worldHint("DEBUG：上下左右で移動 · Bでタイトルへ戻る · 保存/イベント/エンカウントなし");
+ worldHint("DEBUG：上下左右で移動 · 下段で前後関係確認 · Bでタイトルへ戻る · 保存/イベントなし");
 }
 window.YKDebugField=(enabled=true)=>{
  if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";S.x=264;S.y=636;S.dir="d";S.frame=1;busy=false;$("title")?.classList.remove("show");map();return true;}
