@@ -74,10 +74,10 @@ window.YK_WORLD=(()=>{
   "111130000000300000022333",
   "111100000000500000322333",
   "111110000000300022222333",
-  "111110002200000333333333",
-  "111110022220003333333333",
-  "111111000000333333333333",
-  "111111000033333333333333",
+  "111110002220000333333333",
+  "111110022222003333333333",
+  "111111022222333333333333",
+  "111111002223333333333333",
   "111111300333333333333333"
  ];
  const mapData=FIELD_TILE_ROWS.map((row,ty)=>{
@@ -288,6 +288,17 @@ window.YK_WORLD=(()=>{
     }else if(z.kind==="autumn"){
      c.fillStyle="#65412d";c.fillRect(x-1,y-2,2,7);dot(x,y-5,5,i%2?"#b74e39":"#d0783e");
     }
+   }
+  }
+  // Starting-basin terrain rim: visual clusters make the nearby forest boundary readable in perspective.
+  // Collision remains mapData-only, so this cannot block the established village/start route.
+  {
+   const im=TERRAIN_ART.fieldTiles,ready=artReady(im);
+   const clusters=[[335,610],[370,615],[405,612],[440,600],[475,585],[510,566],[540,545],[315,646],[350,655],[390,654],[430,646]];
+   for(let i=0;i<clusters.length;i++){
+    const [x,y]=clusters[i],size=42+(i%3)*4;
+    if(ready)c.drawImage(im,15*32,4*32,32,32,x-size/2,y-size/2,size,size);
+    else{c.fillStyle="#315f42";c.fillRect(x-2,y,size*.08,size*.35);c.fillStyle="#4f8751";for(const [ox,oy,r] of [[-.18,0,.24],[0,-.12,.28],[.2,.02,.23]]){c.beginPath();c.arc(x+size*ox,y-size*.18+size*oy,size*r,0,Math.PI*2);c.fill();}}
    }
   }
   // Final terrain-symbol pass: keep major impassable terrain readable after regional dressing.
