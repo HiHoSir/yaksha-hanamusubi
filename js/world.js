@@ -462,77 +462,10 @@ window.YK_WORLD=(()=>{
     const ox=6+Math.floor(v*13),oy=9+Math.floor((1-v)*12);
     c.beginPath();c.moveTo(x+ox,y+oy+4);c.lineTo(x+ox+1,y+oy);c.moveTo(x+ox+1,y+oy+4);c.lineTo(x+ox+4,y+oy+1);c.stroke();
    }
-   // Darker vegetation at forest/mountain feet visually blends hard tile seams.
-   const solid=(dx,dy)=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&
-    (mapData[ty+dy][tx+dx]===TILE.FOREST||mapData[ty+dy][tx+dx]===TILE.MOUNTAIN);
-   if(solid(0,-1)||solid(1,0)||solid(0,1)||solid(-1,0)){
-    c.globalAlpha=.16;c.fillStyle="#557047";
-    if(solid(0,-1))c.fillRect(x,y,32,4);
-    if(solid(0,1))c.fillRect(x,y+28,32,4);
-    if(solid(-1,0))c.fillRect(x,y,4,32);
-    if(solid(1,0))c.fillRect(x+28,y,4,32);
-   }
+   // Collision seams stay invisible; vegetation/foothills cross them in separate passes.
    c.restore();
   }
-  // Coast dressing follows the island silhouette without changing collision.
-  // Sand/grass shelves and sparse shore rocks soften the square water boundary.
-  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-   if(mapData[ty][tx]!==TILE.GRASS)continue;
-   const sea=(dx,dy)=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.WATER;
-   const coastal=sea(0,-1)||sea(1,0)||sea(0,1)||sea(-1,0);
-   if(!coastal)continue;
-   const x=tx*tileSize,y=ty*tileSize,v=hash(tx+151,ty+97);
-   c.save();c.globalAlpha=.42;c.fillStyle="#c9b978";
-   if(sea(0,-1))c.fillRect(x,y,32,5);
-   if(sea(0,1))c.fillRect(x,y+27,32,5);
-   if(sea(-1,0))c.fillRect(x,y,5,32);
-   if(sea(1,0))c.fillRect(x+27,y,5,32);
-   c.globalAlpha=.65;c.fillStyle="#e0d49a";
-   if(v>.48){c.beginPath();c.ellipse(x+8+v*14,y+8+(1-v)*14,2.4,1.2,-.2,0,Math.PI*2);c.fill();}
-   c.restore();
-  }
-  // Regional scenery: visual breadcrumbs rather than collision corridors.
-  const dot=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();};
-  for(const z of scenicZones){
-   const count=z.kind==="farmland"?9:z.kind==="autumn"?14:10;
-   for(let i=0;i<count;i++){
-    const a=hash(i*37+Math.floor(z.x),Math.floor(z.y))*Math.PI*2;
-    const rr=Math.sqrt(hash(i*71+13,Math.floor(z.x)))*.82;
-    const x=z.x+Math.cos(a)*z.rx*rr,y=z.y+Math.sin(a)*z.ry*rr;
-    if(tileAt(x,y)!=="grass")continue;
-    if(z.kind==="farmland"){
-     c.save();c.translate(x,y);c.rotate((i%3-1)*.12);c.fillStyle=i%2?"#d6c86b":"#b9b957";
-     c.fillRect(-6,-2.5,12,5);c.strokeStyle="#8e8649";c.lineWidth=.7;
-     for(let q=-4;q<=4;q+=4){c.beginPath();c.moveTo(q,-3);c.lineTo(q,3);c.stroke();}c.restore();
-     if(i%5===0){c.fillStyle="#e8a4b7";dot(x+5,y-6,2.5,"#e8a4b7");}
-    }else if(z.kind==="foothill"){
-     // Sparse rocks and low shrubs tighten the view before the shrine without making a corridor.
-     dot(x-2,y+1,2.7,i%2?"#74805b":"#68755a");dot(x+3,y-2,2.2,"#6c8450");
-    }else if(z.kind==="shrine"){
-     c.fillStyle="#314f35";c.fillRect(x-1.2,y-7,2.4,8);dot(x,y-8,4.5,"#426b42");
-     if(i%4===0){c.fillStyle="#aaa18a";c.fillRect(x+5,y-3,2,5);c.fillRect(x+3.5,y-4.5,5,1.5);}
-    }else if(z.kind==="coast"){
-     c.fillStyle="#c9b77c";c.fillRect(x-4,y-1,8,2);c.fillStyle="#80775d";dot(x+3,y-2,2.2,"#80775d");
-    }else if(z.kind==="seaVista"){
-     // Keep this leg visually open: tiny grasses only, so the coastline becomes the landmark.
-     if(i%3===0){c.fillStyle="#7fa94b";c.fillRect(x,y,1,3);c.fillRect(x-2,y+2,4,.7);}
-    }else if(z.kind==="forestEdge"){
-     // The forest approaches gradually before becoming dense.
-     c.fillStyle="#4c7540";dot(x,y-3,4.2,"#4c7540");c.fillStyle="#60472e";c.fillRect(x-.8,y,1.6,4);
-    }else if(z.kind==="deepForest"){
-     c.fillStyle=i%2?"#294c35":"#365d3a";dot(x,y-5,6,"#294c35");c.fillStyle="#503b29";c.fillRect(x-1,y-3,2,6);
-    }else if(z.kind==="falls"){
-     c.fillStyle="#66756b";dot(x,y,3.5,"#66756b");if(i%3===0){c.strokeStyle="#d8edf0";c.lineWidth=1;c.beginPath();c.moveTo(x-5,y+5);c.lineTo(x+5,y+5);c.stroke();}
-    }else if(z.kind==="highland"){
-     // Cool, sparse alpine grass separates the waterfall basin from the autumn shrine region.
-     c.fillStyle=i%2?"#76945b":"#879d68";c.fillRect(x-3,y,6,1);if(i%4===0)dot(x+2,y-2,1.5,"#d8dfbd");
-    }else if(z.kind==="autumn"){
-     c.fillStyle="#65412d";c.fillRect(x-1,y-2,2,7);dot(x,y-5,5,i%2?"#b74e39":"#d0783e");
-    }
-   }
-  }
-  // Forest and mountain visuals are already painted by the quarter-view passes above.
-  // Do not stamp a second symbol per collision cell; that would destroy the one-step/one-cell scale.
+  // Coastline is painted by the curved shoreline pass above; avoid a second square-edged shelf.
   // Starting-area composition: a readable village approach and northbound departure lane.
   // Visual-only; save/event coordinates and walkability are untouched.
   if(!ready){
@@ -558,8 +491,8 @@ window.YK_WORLD=(()=>{
    const [vx,vy]=places.village.point;
    c.save();
    for(const [ox,oy,w,h] of [[-57,20,23,13],[30,19,26,12],[-50,-25,20,10]]){
-    c.globalAlpha=.30;c.fillStyle='#8b7548';c.beginPath();c.roundRect(vx+ox,vy+oy,w,h,2);c.fill();
-    c.globalAlpha=.38;c.strokeStyle='#6f633f';c.lineWidth=.8;
+    c.globalAlpha=.18;c.fillStyle='#8b7548';c.beginPath();c.roundRect(vx+ox,vy+oy,w,h,2);c.fill();
+    c.globalAlpha=.24;c.strokeStyle='#6f633f';c.lineWidth=.8;
     for(let yy=vy+oy+3;yy<vy+oy+h;yy+=4){c.beginPath();c.moveTo(vx+ox+2,yy);c.lineTo(vx+ox+w-2,yy);c.stroke();}
    }
    c.restore();
@@ -604,5 +537,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:59,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:60,tileAt,tileSize,size,viewSize,camera,draw};
 })();
