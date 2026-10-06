@@ -205,9 +205,3 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
     bottom:max(6.5%,calc(env(safe-area-inset-bottom) + 18px));
   }
 }
-
-/* beta15.54.2 deterministic asset loading gate */
-#bootLoader{position:fixed;inset:0;z-index:99999;background:linear-gradient(#0a1425,#10263a);display:flex;align-items:center;justify-content:center;color:#f3e5b9;transition:opacity .35s ease;}
-#bootLoader.bootDone{opacity:0;pointer-events:none;}
-.bootCard{width:min(82vw,420px);padding:24px 22px;text-align:center;border:1px solid #b99a5a;border-radius:14px;background:rgba(5,15,28,.94);box-shadow:0 12px 40px #0008;}
-.bootTitle{font-size:20px;font-weight:700;margin-bottom:7px}.bootSub{font-size:13px;opacity:.8;margin-bottom:18px}.bootTrack{height:10px;border:1px solid #8e794c;border-radius:8px;overflow:hidden;background:#07101c}.bootTrack #bootBar{height:100%;width:0;background:linear-gradient(90deg,#7ea45b,#e3c56f);transition:width .18s}.bootCard #bootPct{font-size:18px;margin:10px 0 4px}.bootCard #bootDetail{font-size:11px;opacity:.75;min-height:2em;overflow-wrap:anywhere}.bootError .bootCard{border-color:#d17b6c}.bootError .bootCard #bootDetail{color:#ffb0a4;opacity:1}

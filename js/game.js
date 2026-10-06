@@ -894,24 +894,8 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-let gameStartPending=false;
-function showStartLoader(){
- const box=$("bootLoader"),bar=$("bootBar"),pct=$("bootPct"),detail=$("bootDetail");
- if(!box)return;
- box.classList.remove("bootDormant","bootDone","bootError");bar.style.width="100%";pct.textContent="100%";detail.textContent="準備完了";
- setTimeout(()=>{box.classList.add("bootDone");setTimeout(()=>box.classList.add("bootDormant"),380)},180);
-}
-function startFromTitle(saved){
- if(gameStartPending)return;gameStartPending=true;
- try{
-  if(saved)restoreState(saved);else state(YK_SAVE.fresh());
-  $("title").classList.remove("show");busy=false;hud();map();showStartLoader();
-  if(!saved)setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),650);
- }catch(e){console.error(e);busy=true;$("title").classList.add("show");}
- finally{gameStartPending=false;}
-}
-YK_INPUT.tap($("newGame"),()=>startFromTitle(null));
-YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v){message("自動保存データがありません");return;}startFromTitle(v);});
+YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
+YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
