@@ -298,23 +298,25 @@ window.YK_WORLD=(()=>{
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const target=mapData[ty][tx],x=tx*tileSize,y=ty*tileSize;
    if(target===TILE.FOREST){
-    // 1 logical step = 1 field cell. A forest cell is one character-scale authored tree chip.
-    // Neighboring cells build the forest mass; no oversized backing rectangle is painted.
-    const v=hash(tx+83,ty+47),cx=x+16,ground=y+29;
+    // One forest cell = one compact field symbol. Offset canopy/base creates a quarter-view footprint.
+    const v=hash(tx+83,ty+47),cx=x+16,base=y+27;
     c.save();
-    c.globalAlpha=.22;c.fillStyle="#355538";c.beginPath();c.ellipse(cx,ground,11,3,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
-    c.fillStyle="#68452b";c.fillRect(cx-2,ground-11,4,11);
-    c.fillStyle="#315a37";c.beginPath();c.arc(cx-7,ground-14,7.2,0,Math.PI*2);c.arc(cx+7,ground-14,7,0,Math.PI*2);c.arc(cx,ground-21,9.2,0,Math.PI*2);c.fill();
-    c.fillStyle="#477846";c.beginPath();c.arc(cx-5,ground-20,5.3,0,Math.PI*2);c.arc(cx+4,ground-24,5.8,0,Math.PI*2);c.fill();
-    c.fillStyle="#6f964e";c.beginPath();c.arc(cx-6+(v-.5)*2,ground-25,2.7,0,Math.PI*2);c.arc(cx+5,ground-19,2.2,0,Math.PI*2);c.fill();
-    c.fillStyle="rgba(157,184,91,.75)";c.fillRect(cx-9,ground-2,18,2);
+    c.globalAlpha=.18;c.fillStyle="#355538";c.beginPath();c.ellipse(cx+2,base+1,9,2.4,-.12,0,Math.PI*2);c.fill();c.globalAlpha=1;
+    c.fillStyle="#67452d";c.fillRect(cx-1.5,base-8,3,8);
+    c.fillStyle="#315a37";c.beginPath();c.arc(cx-5,base-11,5.8,0,Math.PI*2);c.arc(cx+5,base-12,5.6,0,Math.PI*2);c.arc(cx+1,base-17,7.2,0,Math.PI*2);c.fill();
+    c.fillStyle="#4d7b47";c.beginPath();c.arc(cx-3,base-17,3.8,0,Math.PI*2);c.arc(cx+4,base-19,4.2,0,Math.PI*2);c.fill();
+    c.fillStyle="rgba(159,184,92,.65)";c.fillRect(cx-7,base-1,14,1.4);
     c.restore();
    }else if(target===TILE.MOUNTAIN){
-    // No square backing: overlapping peaks reveal the grass between silhouettes and hide tile boundaries.
-    const v=hash(tx+19,ty+61),base=y+31;
-    c.fillStyle="#5d6758";c.beginPath();c.moveTo(x-3,base);c.lineTo(x+8,base-15-v*3);c.lineTo(x+14,base-8);c.lineTo(x+23,base-24+v*4);c.lineTo(x+35,base);c.closePath();c.fill();
-    c.fillStyle="#aeb49b";c.beginPath();c.moveTo(x+23,base-24+v*4);c.lineTo(x+19,base-16);c.lineTo(x+23,base-18);c.lineTo(x+27,base-13);c.fill();
-    c.fillStyle="rgba(67,91,57,.75)";c.fillRect(x-2,base-3,36,4);
+    // Peaks overlap neighboring cells visually; logical collision remains exactly one 32px cell.
+    // The staggered base makes connected cells read as a mountain range instead of stacked triangles.
+    const v=hash(tx+19,ty+61),base=y+31,shift=(ty&1)?5:-3;
+    c.save();
+    c.fillStyle="rgba(55,76,53,.18)";c.beginPath();c.ellipse(x+17+shift,base,20,4,0,0,Math.PI*2);c.fill();
+    c.fillStyle="#59645a";c.beginPath();c.moveTo(x-8+shift,base);c.lineTo(x+5+shift,base-13);c.lineTo(x+12+shift,base-9);c.lineTo(x+23+shift,base-25+v*3);c.lineTo(x+40+shift,base);c.closePath();c.fill();
+    c.fillStyle="#aeb49b";c.beginPath();c.moveTo(x+23+shift,base-25+v*3);c.lineTo(x+18+shift,base-16);c.lineTo(x+23+shift,base-19);c.lineTo(x+28+shift,base-13);c.closePath();c.fill();
+    c.fillStyle="#496241";c.fillRect(x-6+shift,base-3,44,3);
+    c.restore();
    }
   }
   // A few signposts mark major forks while the surrounding plain stays explorable.
@@ -325,5 +327,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:22,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:23,tileAt,tileSize,size,viewSize,camera,draw};
 })();
