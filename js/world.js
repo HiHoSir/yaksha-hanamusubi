@@ -379,6 +379,26 @@ window.YK_WORLD=(()=>{
    c.fillStyle="#75905a";c.fillRect(cx-5,base,10,1);
    c.restore();
   }
+  // Roads are painted in world space at roughly one-third of a walking cell.
+  // Their bends follow the progression route while keeping open grass explorable.
+  c.save();c.lineCap='round';c.lineJoin='round';
+  for(let ri=0;ri<roads.length;ri++){
+   const r=roads[ri]; if(r.length<2)continue;
+   c.globalAlpha=.22;c.strokeStyle='#776a43';c.lineWidth=11;
+   c.beginPath();c.moveTo(r[0][0],r[0][1]);
+   for(let i=1;i<r.length;i++){const p=r[i-1],q=r[i],mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;c.quadraticCurveTo(p[0],p[1],mx,my)}
+   const last=r[r.length-1];c.lineTo(last[0],last[1]);c.stroke();
+   c.globalAlpha=.72;c.strokeStyle=ri===5?'#a48b58':'#b5a064';c.lineWidth=6.5;
+   c.beginPath();c.moveTo(r[0][0],r[0][1]);
+   for(let i=1;i<r.length;i++){const p=r[i-1],q=r[i],mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;c.quadraticCurveTo(p[0],p[1],mx,my)}
+   c.lineTo(last[0],last[1]);c.stroke();
+  }
+  c.restore();
+  // Sparse roadside stones reinforce scale without becoming collision objects.
+  for(const [rx,ry] of [[270,451],[341,470],[401,571],[551,548],[620,465],[648,347],[556,181],[352,143]]){
+   if(tileAt(rx,ry)!=='grass')continue;
+   c.save();c.globalAlpha=.45;c.fillStyle='#80765d';c.beginPath();c.ellipse(rx,ry,2.4,1.4,-.2,0,Math.PI*2);c.fill();c.restore();
+  }
   // Plain texture and biome seams: break up empty grass without adding collision.
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    if(mapData[ty][tx]!==TILE.GRASS)continue;
@@ -490,5 +510,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:52,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:53,tileAt,tileSize,size,viewSize,camera,draw};
 })();
