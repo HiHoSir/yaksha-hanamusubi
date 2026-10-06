@@ -38,3 +38,4 @@ jobs:
           test -s assets/terrain/world-forest-qv.png
           test -s assets/terrain/world-mountain-qv.png
           test -s assets/terrain/world-landmarks-qv.png
+          test -s assets/terrain/debug-ortho-atlas-v1.png

@@ -733,7 +733,7 @@ function villageBlocked(x,y){
  return !VILLAGE_LAYOUT.walkZones.some(rect=>inRect(x,y,rect))||
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
-function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
+function collision(x,y){if(S.area==="debugField")return x<24||x>744||y<92||y>720;if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
   if(typeof YK_WORLD==="undefined"||!YK_WORLD)return true;
   if(!YK_WORLD.walkable(x,y))return true;
 }if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
@@ -751,7 +751,7 @@ function move(dx,dy,dir){
  if(busy)return;
  S.dir=dir;
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
- const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(S.area==="field"?8:22);
+ const norm=Math.hypot(dx,dy)||1,debugField=S.area==="debugField",sp=(Number($("speedSelect").value)||1)*((S.area==="field"||debugField)?8:22);
  const vx=dx/norm*sp,vy=dy/norm*sp,steps=Math.ceil(sp/2),startX=S.x,startY=S.y;
  for(let i=0;i<steps;i++){
   const nx=clamp(S.x+vx/steps,27,741),ny=clamp(S.y+vy/steps,34,736);
@@ -766,6 +766,7 @@ function move(dx,dy,dir){
  }
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
+ if(debugField){map();return;}
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  if(ex&&ex!==S.area){
@@ -904,8 +905,8 @@ function drawWorld(){
 }
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
 YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);});
-YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
-YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),menu);YK_INPUT.tap($("worldBtn"),worldMap);YK_INPUT.tap($("saveBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
+YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
+YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは手帳を開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは地図を開きません",1200):worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPでは設定を変更しません",1200);if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{selectCmd(i);cmd(b.dataset.cmd)}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
@@ -928,31 +929,62 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
 
+const DEBUG_ORTHO_ATLAS=new Image();
+DEBUG_ORTHO_ATLAS.onload=()=>{if(S.area==="debugField")map()};
+DEBUG_ORTHO_ATLAS.onerror=()=>{window.__YK_DEBUG_ATLAS_ERROR=true;if(S.area==="debugField")map()};
+DEBUG_ORTHO_ATLAS.src="assets/terrain/debug-ortho-atlas-v1.png";
+const debugAtlasReady=()=>DEBUG_ORTHO_ATLAS.complete&&DEBUG_ORTHO_ATLAS.naturalWidth>0;
+const debugBlit=(c,sx,sy,sw,sh,dx,dy,dw=sw,dh=sh)=>c.drawImage(DEBUG_ORTHO_ATLAS,sx,sy,sw,sh,dx,dy,dw,dh);
+const debug32=(c,baseX,baseY,cols,slot,x,y)=>debugBlit(c,baseX+(slot%cols)*32,baseY+Math.floor(slot/cols)*32,32,32,x,y,32,32);
+const debugSprite=(c,baseX,baseY,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>debugBlit(c,baseX+(slot%cols)*w,baseY+Math.floor(slot/cols)*h,w,h,footX-anchorX,footY-anchorY,w,h);
+
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
- const W=YK_WORLD;if(!W){c.fillStyle="#102635";c.fillRect(0,0,768,768);return;}
- const cell=32,ox=48,oy=92;
- c.fillStyle="#17313a";c.fillRect(0,0,768,768);
- // Dedicated orthogonal showcase: every 32px cell is intentionally visible for screenshot review.
- for(let y=0;y<18;y++)for(let x=0;x<21;x++){c.fillStyle=(x+y)%2?"#8fb55a":"#96bd60";c.fillRect(ox+x*cell,oy+y*cell,cell,cell);}
- const box=(x,y,w,h,label)=>{c.strokeStyle="rgba(255,244,198,.35)";c.lineWidth=1;c.strokeRect(ox+x*cell+.5,oy+y*cell+.5,w*cell-1,h*cell-1);c.fillStyle="#fff3c4";c.font="13px sans-serif";c.fillText(label,ox+x*cell+5,oy+y*cell+17)};
- // Water/shore test basin and bridge axes.
- c.fillStyle="#397b87";c.fillRect(ox+cell,oy+cell,6*cell,5*cell);c.fillStyle="#62a4a0";c.fillRect(ox+2*cell,oy+2*cell,4*cell,3*cell);box(0,0,8,7,"水・海岸・橋");
- c.fillStyle="#c7a86b";c.fillRect(ox+3*cell,oy+cell,cell,5*cell);c.fillRect(ox+cell,oy+3*cell,6*cell,cell);
- // Orthogonal road grammar: straight, corner, T and cross in one connected sample.
- c.fillStyle="#b59a68";c.fillRect(ox+9*cell,oy+cell,cell,6*cell);c.fillRect(ox+8*cell,oy+3*cell,6*cell,cell);c.fillRect(ox+13*cell,oy+3*cell,cell,3*cell);box(8,0,7,7,"道：直線・角・T・十字");
- // Terrain footprints show the intended 1-cell movement grid even when art overhangs it.
- box(0,8,7,5,"森 1マス足元／上方向に張出し");box(8,8,7,5,"山 1マス足元／上方向に張出し");
- for(let i=0;i<6;i++){const x=ox+(i%3)*2*cell+cell,y=oy+(9+Math.floor(i/3)*2)*cell;c.fillStyle="#315f3e";c.beginPath();c.arc(x+16,y+8,27,0,Math.PI*2);c.fill();c.fillStyle="#60452d";c.fillRect(x+12,y+20,8,20)}
- for(let i=0;i<6;i++){const x=ox+(8+(i%3)*2)*cell,y=oy+(9+Math.floor(i/3)*2)*cell;c.fillStyle="#66665e";c.beginPath();c.moveTo(x,y+32);c.lineTo(x+32,y-22);c.lineTo(x+64,y+32);c.closePath();c.fill()}
- // Landmark footprint boxes only; production art is inserted here after asset approval.
- box(16,0,5,4,"建物 2×2 / 3×2");box(16,5,5,4,"祠・洞窟");box(16,10,5,4,"滝・温泉");
- c.save();c.fillStyle="rgba(7,20,29,.92)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 21px sans-serif";c.fillText("DEBUG MAP — 32px・上下左右移動用マップチップ検査場",30,48);c.restore();
- worldHint("デバッグ専用：本編セーブ非干渉／素材承認後ここへ実チップを配置");
+ c.fillStyle="#102631";c.fillRect(0,0,768,768);
+ c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — ORTHOGONAL TILESET v1 / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る",31,66);c.restore();
+ if(!debugAtlasReady()){
+  c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(window.__YK_DEBUG_ATLAS_ERROR?"DEBUG atlas load error":"DEBUG atlas loading…",240,380);return;
+ }
+ const cell=32,ox=24,oy=92,cols=22,rows=19;
+ // Ground plane uses the real atlas, not canvas placeholder geometry.
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)debug32(c,0,0,8,(x+y)%4,ox+x*cell,oy+y*cell);
+ const box=(x,y,w,h,label)=>{c.save();c.strokeStyle="rgba(255,244,198,.55)";c.lineWidth=1;c.strokeRect(ox+x*cell+.5,oy+y*cell+.5,w*cell-1,h*cell-1);c.fillStyle="rgba(7,20,29,.78)";c.fillRect(ox+x*cell+2,oy+y*cell+2,Math.min(w*cell-4,210),20);c.fillStyle="#fff3c4";c.font="12px sans-serif";c.fillText(label,ox+x*cell+6,oy+y*cell+16);c.restore();};
+ // Ground / water / bridge source tiles.
+ box(0,0,5,6,"GROUND / WATER / BRIDGE");
+ const groundSlots=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,17];
+ for(let i=0;i<groundSlots.length;i++)debug32(c,0,0,8,groundSlots[i],ox+(i%4)*cell,oy+(1+Math.floor(i/4))*cell);
+ // Every road grammar slot is visible at once.
+ box(5,0,5,6,"ROAD 16 SLOTS");
+ for(let i=0;i<16;i++)debug32(c,256,0,4,i,ox+(5+i%4)*cell,oy+(1+Math.floor(i/4))*cell);
+ // Every shoreline slot on a grass base.
+ box(10,0,5,6,"SHORE 16 SLOTS");
+ for(let i=0;i<16;i++){const x=ox+(10+i%4)*cell,y=oy+(1+Math.floor(i/4))*cell;debug32(c,0,0,8,0,x,y);debug32(c,384,0,4,i,x,y);}
+ // Forest: 64px sprite, 32px logical foot marker.
+ box(0,6,7,6,"FOREST 64px / FOOT 32px");
+ for(let i=0;i<6;i++){const fx=ox+(1+(i%3)*2)*cell+cell/2,fy=oy+(8+Math.floor(i/3)*2)*cell;debugSprite(c,0,128,3,i,64,64,fx,fy,32,56);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
+ // Mountain: 96px sprite, same 32px logical foot.
+ box(7,6,9,7,"MOUNTAIN 96px / FOOT 32px");
+ for(let i=0;i<6;i++){const fx=ox+(8+(i%3)*3)*cell+cell/2,fy=oy+(9+Math.floor(i/3)*3)*cell;debugSprite(c,192,128,3,i,96,96,fx,fy,48,86);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
+ // Landmark cells from the same packed atlas.
+ box(16,0,6,13,"LANDMARKS 96px");
+ for(let i=0;i<7;i++){const fx=ox+(17+(i%2)*3)*cell+cell/2,fy=oy+(3+Math.floor(i/2)*3)*cell;debugSprite(c,0,320,4,i,96,96,fx,fy,48,86);}
+ // Small composed strip for player/world scale and occlusion review.
+ box(0,13,16,6,"COMPOSED SCALE / PLAYER");
+ for(let x=1;x<15;x++)debug32(c,256,0,4,0,ox+x*cell,oy+16*cell);
+ debugSprite(c,0,320,4,0,96,96,ox+4*cell+16,oy+17*cell,48,86);
+ debugSprite(c,0,128,3,1,64,64,ox+2*cell+16,oy+17*cell,32,56);
+ debugSprite(c,192,128,3,1,96,96,ox+13*cell+16,oy+17*cell,48,86);
+ hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.16);
+ // 32px grid is deliberately drawn last so screenshots expose any bad crop/anchor.
+ c.save();c.strokeStyle="rgba(255,255,255,.09)";c.lineWidth=1;
+ for(let x=0;x<=cols;x++){c.beginPath();c.moveTo(ox+x*cell+.5,oy);c.lineTo(ox+x*cell+.5,oy+rows*cell);c.stroke()}
+ for(let y=0;y<=rows;y++){c.beginPath();c.moveTo(ox,oy+y*cell+.5);c.lineTo(ox+cols*cell,oy+y*cell+.5);c.stroke()}
+ c.restore();
+ worldHint("DEBUG：上下左右で移動 · Bでタイトルへ戻る · 保存/イベント/エンカウントなし");
 }
 window.YKDebugField=(enabled=true)=>{
- if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";busy=false;$("title")?.classList.remove("show");map();return true;}
- const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;map();return false;
+ if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";S.x=264;S.y=636;S.dir="d";S.frame=1;busy=false;$("title")?.classList.remove("show");map();return true;}
+ const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;S.frame=1;$("title")?.classList.add("show");busy=true;map();return false;
 };
 
 const debugMapBtn=document.getElementById("debugMap");
