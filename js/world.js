@@ -280,7 +280,15 @@ window.YK_WORLD=(()=>{
   [CHIP.SHORE_IN_SW]:['shore',MAP_CHIP_ATLAS.shore,10],[CHIP.SHORE_IN_NW]:['shore',MAP_CHIP_ATLAS.shore,11]
  };
  const drawProductionBaseChip=(c,tx,ty)=>{
-  const id=visualChipAt(tx,ty),def=CHIP_TO_ATLAS[id];if(!def)return false;
+  const id=visualChipAt(tx,ty);
+  // Shore art is an overlay: lay grass first, then the directional shore sprite when available.
+  if(id>=CHIP.SHORE_N&&id<=CHIP.SHORE_IN_NW){
+   const grass=CHIP_TO_ATLAS[CHIP.GRASS_BASE],shore=CHIP_TO_ATLAS[id];
+   const ok=drawMapChip(c,grass[0],grass[1],grass[2],tx*tileSize,ty*tileSize);
+   if(ok&&shore)drawMapChip(c,shore[0],shore[1],shore[2],tx*tileSize,ty*tileSize);
+   return ok;
+  }
+  const def=CHIP_TO_ATLAS[id];if(!def)return false;
   return drawMapChip(c,def[0],def[1],def[2],tx*tileSize,ty*tileSize);
  };
  const ROAD_TO_SLOT={
@@ -839,5 +847,5 @@ window.YK_WORLD=(()=>{
  // Final production pass. It is inert until the exact PNG atlases exist.
  // Overhanging forest/mountain/landmark art is drawn only after base terrain and fallback decoration.
  drawProductionOverhangs(c);
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:80,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:81,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs};
 })();
