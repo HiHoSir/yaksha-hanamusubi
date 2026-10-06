@@ -626,6 +626,22 @@ window.YK_WORLD=(()=>{
    }
    c.restore();
   }
+  // Route integration around the opening village, river crossing and cove.
+  // These overlays are intentionally narrower than one walking cell and can later become road/bridge detail chips.
+  if(!ready){
+   c.save();c.lineCap='round';c.lineJoin='round';
+   // village threshold: earth lane widens gently into the common instead of ending at a hard point
+   const [vx,vy]=places.village.point;
+   c.globalAlpha=.28;c.strokeStyle='#9b8453';c.lineWidth=11;c.beginPath();c.moveTo(vx+17,vy+8);c.quadraticCurveTo(vx+21,vy-3,vx+21,vy-22);c.stroke();
+   // bridge banks: small gravel aprons visually tie road -> bridge -> road
+   for(const [bx,by,rot] of [[384,544,-.15],[389,570,.12]]){
+    c.save();c.translate(bx,by);c.rotate(rot);c.globalAlpha=.32;c.fillStyle='#b5a16a';c.beginPath();c.ellipse(0,0,13,6,0,0,Math.PI*2);c.fill();c.restore();
+   }
+   // cove approach: road dissolves into beach rather than meeting the landmark as a straight line
+   const [cx,cy]=places.cove.point;c.globalAlpha=.26;c.strokeStyle='#b7a064';c.lineWidth=8;c.beginPath();
+   c.moveTo(cx-24,cy-9);c.quadraticCurveTo(cx-12,cy-3,cx+1,cy+2);c.stroke();
+   c.restore();
+  }
   // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
@@ -679,5 +695,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:69,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:70,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
 })();
