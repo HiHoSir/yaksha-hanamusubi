@@ -929,51 +929,61 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
 
-const DEBUG_ORTHO_ATLAS=new Image();
-DEBUG_ORTHO_ATLAS.onload=()=>{if(S.area==="debugField")map()};
-DEBUG_ORTHO_ATLAS.onerror=()=>{window.__YK_DEBUG_ATLAS_ERROR=true;if(S.area==="debugField")map()};
-DEBUG_ORTHO_ATLAS.src="assets/terrain/debug-ortho-atlas-v1.png";
-const debugAtlasReady=()=>DEBUG_ORTHO_ATLAS.complete&&DEBUG_ORTHO_ATLAS.naturalWidth>0;
-const debugBlit=(c,sx,sy,sw,sh,dx,dy,dw=sw,dh=sh)=>c.drawImage(DEBUG_ORTHO_ATLAS,sx,sy,sw,sh,dx,dy,dw,dh);
-const debug32=(c,baseX,baseY,cols,slot,x,y)=>debugBlit(c,baseX+(slot%cols)*32,baseY+Math.floor(slot/cols)*32,32,32,x,y,32,32);
-const debugSprite=(c,baseX,baseY,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>debugBlit(c,baseX+(slot%cols)*w,baseY+Math.floor(slot/cols)*h,w,h,footX-anchorX,footY-anchorY,w,h);
+const DEBUG_ORTHO_PATHS={
+ ground:"assets/terrain/world-ortho-ground-v1.png",
+ road:"assets/terrain/world-ortho-road-v1.png",
+ shore:"assets/terrain/world-ortho-shore-v1.png",
+ forest:"assets/terrain/world-ortho-forest-v1.png",
+ mountain:"assets/terrain/world-ortho-mountain-v1.png",
+ landmarks:"assets/terrain/world-ortho-landmarks-v1.png"
+};
+const DEBUG_ORTHO_ART={};
+for(const [key,src] of Object.entries(DEBUG_ORTHO_PATHS)){
+ const im=new Image();
+ im.onload=()=>{if(S.area==="debugField")map()};
+ im.onerror=()=>{window.__YK_DEBUG_ATLAS_ERROR=key;if(S.area==="debugField")map()};
+ im.src=src;DEBUG_ORTHO_ART[key]=im;
+}
+const debugAtlasReady=()=>Object.values(DEBUG_ORTHO_ART).every(im=>im.complete&&im.naturalWidth>0);
+const debug32=(c,key,cols,slot,x,y)=>{const im=DEBUG_ORTHO_ART[key];c.drawImage(im,(slot%cols)*32,Math.floor(slot/cols)*32,32,32,x,y,32,32)};
+const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{const im=DEBUG_ORTHO_ART[key];c.drawImage(im,(slot%cols)*w,Math.floor(slot/cols)*h,w,h,footX-anchorX,footY-anchorY,w,h)};
 
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
  c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — ORTHOGONAL TILESET v1 / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る",31,66);c.restore();
  if(!debugAtlasReady()){
-  c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(window.__YK_DEBUG_ATLAS_ERROR?"DEBUG atlas load error":"DEBUG atlas loading…",240,380);return;
+  c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(window.__YK_DEBUG_ATLAS_ERROR?("DEBUG sheet load error: "+window.__YK_DEBUG_ATLAS_ERROR):"DEBUG sheets loading…",240,380);return;
  }
  const cell=32,ox=24,oy=92,cols=22,rows=19;
  // Ground plane uses the real atlas, not canvas placeholder geometry.
- for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)debug32(c,0,0,8,(x+y)%4,ox+x*cell,oy+y*cell);
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)debug32(c,"ground",8,(x+y)%4,ox+x*cell,oy+y*cell);
  const box=(x,y,w,h,label)=>{c.save();c.strokeStyle="rgba(255,244,198,.55)";c.lineWidth=1;c.strokeRect(ox+x*cell+.5,oy+y*cell+.5,w*cell-1,h*cell-1);c.fillStyle="rgba(7,20,29,.78)";c.fillRect(ox+x*cell+2,oy+y*cell+2,Math.min(w*cell-4,210),20);c.fillStyle="#fff3c4";c.font="12px sans-serif";c.fillText(label,ox+x*cell+6,oy+y*cell+16);c.restore();};
  // Ground / water / bridge source tiles.
  box(0,0,5,6,"GROUND / WATER / BRIDGE");
  const groundSlots=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,17];
- for(let i=0;i<groundSlots.length;i++)debug32(c,0,0,8,groundSlots[i],ox+(i%4)*cell,oy+(1+Math.floor(i/4))*cell);
+ for(let i=0;i<groundSlots.length;i++)debug32(c,"ground",8,groundSlots[i],ox+(i%4)*cell,oy+(1+Math.floor(i/4))*cell);
  // Every road grammar slot is visible at once.
  box(5,0,5,6,"ROAD 16 SLOTS");
- for(let i=0;i<16;i++)debug32(c,256,0,4,i,ox+(5+i%4)*cell,oy+(1+Math.floor(i/4))*cell);
+ for(let i=0;i<16;i++)debug32(c,"road",4,i,ox+(5+i%4)*cell,oy+(1+Math.floor(i/4))*cell);
  // Every shoreline slot on a grass base.
  box(10,0,5,6,"SHORE 16 SLOTS");
- for(let i=0;i<16;i++){const x=ox+(10+i%4)*cell,y=oy+(1+Math.floor(i/4))*cell;debug32(c,0,0,8,0,x,y);debug32(c,384,0,4,i,x,y);}
+ for(let i=0;i<16;i++){const x=ox+(10+i%4)*cell,y=oy+(1+Math.floor(i/4))*cell;debug32(c,"ground",8,0,x,y);debug32(c,"shore",4,i,x,y);}
  // Forest: 64px sprite, 32px logical foot marker.
  box(0,6,7,6,"FOREST 64px / FOOT 32px");
- for(let i=0;i<6;i++){const fx=ox+(1+(i%3)*2)*cell+cell/2,fy=oy+(8+Math.floor(i/3)*2)*cell;debugSprite(c,0,128,3,i,64,64,fx,fy,32,56);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
+ for(let i=0;i<6;i++){const fx=ox+(1+(i%3)*2)*cell+cell/2,fy=oy+(8+Math.floor(i/3)*2)*cell;debugSprite(c,"forest",3,i,64,64,fx,fy,32,56);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
  // Mountain: 96px sprite, same 32px logical foot.
  box(7,6,9,7,"MOUNTAIN 96px / FOOT 32px");
- for(let i=0;i<6;i++){const fx=ox+(8+(i%3)*3)*cell+cell/2,fy=oy+(9+Math.floor(i/3)*3)*cell;debugSprite(c,192,128,3,i,96,96,fx,fy,48,86);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
+ for(let i=0;i<6;i++){const fx=ox+(8+(i%3)*3)*cell+cell/2,fy=oy+(9+Math.floor(i/3)*3)*cell;debugSprite(c,"mountain",3,i,96,96,fx,fy,48,86);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
  // Landmark cells from the same packed atlas.
  box(16,0,6,13,"LANDMARKS 96px");
- for(let i=0;i<7;i++){const fx=ox+(17+(i%2)*3)*cell+cell/2,fy=oy+(3+Math.floor(i/2)*3)*cell;debugSprite(c,0,320,4,i,96,96,fx,fy,48,86);}
+ for(let i=0;i<7;i++){const fx=ox+(17+(i%2)*3)*cell+cell/2,fy=oy+(3+Math.floor(i/2)*3)*cell;debugSprite(c,"landmarks",4,i,96,96,fx,fy,48,86);}
  // Small composed strip for player/world scale and occlusion review.
  box(0,13,16,6,"COMPOSED SCALE / PLAYER");
- for(let x=1;x<15;x++)debug32(c,256,0,4,0,ox+x*cell,oy+16*cell);
- debugSprite(c,0,320,4,0,96,96,ox+4*cell+16,oy+17*cell,48,86);
- debugSprite(c,0,128,3,1,64,64,ox+2*cell+16,oy+17*cell,32,56);
- debugSprite(c,192,128,3,1,96,96,ox+13*cell+16,oy+17*cell,48,86);
+ for(let x=1;x<15;x++)debug32(c,"road",4,0,ox+x*cell,oy+16*cell);
+ debugSprite(c,"landmarks",4,0,96,96,ox+4*cell+16,oy+17*cell,48,86);
+ debugSprite(c,"forest",3,1,64,64,ox+2*cell+16,oy+17*cell,32,56);
+ debugSprite(c,"mountain",3,1,96,96,ox+13*cell+16,oy+17*cell,48,86);
  hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.16);
  // 32px grid is deliberately drawn last so screenshots expose any bad crop/anchor.
  c.save();c.strokeStyle="rgba(255,255,255,.09)";c.lineWidth=1;
