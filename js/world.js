@@ -433,7 +433,7 @@ window.YK_WORLD=(()=>{
   }
   // Procedural coastline skirt: curves are painted from land into neighboring water.
   // Collision remains square, but the visible coast is no longer a staircase.
-  if(!ready){
+  if(!mapChipReady('shore')){
    for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
     if(mapData[ty][tx]!==TILE.GRASS)continue;
     const x=tx*tileSize,y=ty*tileSize;
@@ -451,7 +451,7 @@ window.YK_WORLD=(()=>{
    }
   }
   // Organic shore caps bridge diagonal joins between 32px collision cells.
-  if(!ready){
+  if(!mapChipReady('shore')){
    for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
     if(mapData[ty][tx]!==TILE.GRASS)continue;
     const x=tx*tileSize,y=ty*tileSize,q=hash(tx+1201,ty+1229);
@@ -852,5 +852,5 @@ window.YK_WORLD=(()=>{
   return true;
  };
  const drawProductionForeground=(c,heroY)=>{if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return;const heroDepth=depthKey(heroY,50);for(const it of productionDepthQueue())if(it.depth>heroDepth)drawProductionQueueItem(c,it);};
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:85,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:86,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
 })();
