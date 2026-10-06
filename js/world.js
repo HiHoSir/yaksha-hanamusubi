@@ -290,37 +290,23 @@ window.YK_WORLD=(()=>{
     }
    }
   }
-  // Starting-basin terrain rim: visual clusters make the nearby forest boundary readable in perspective.
-  // Collision remains mapData-only, so this cannot block the established village/start route.
-  {
-   const im=TERRAIN_ART.fieldTiles,ready=artReady(im);
-   const clusters=[[335,610],[370,615],[405,612],[440,600],[475,585],[510,566],[540,545],[315,646],[350,655],[390,654],[430,646]];
-   for(let i=0;i<clusters.length;i++){
-    const [x,y]=clusters[i],size=42+(i%3)*4;
-    if(ready)c.drawImage(im,15*32,4*32,32,32,x-size/2,y-size/2,size,size);
-    else{c.fillStyle="#315f42";c.fillRect(x-2,y,size*.08,size*.35);c.fillStyle="#4f8751";for(const [ox,oy,r] of [[-.18,0,.24],[0,-.12,.28],[.2,.02,.23]]){c.beginPath();c.arc(x+size*ox,y-size*.18+size*oy,size*r,0,Math.PI*2);c.fill();}}
-   }
-  }
-  // Final terrain-symbol pass: keep major impassable terrain readable after regional dressing.
-  // These are the same authored 32px map chips, redrawn late in the pipeline so haze/grass dressing
-  // cannot visually erase mountains or forests. Collision still comes only from mapData.
-  {
-   const im=TERRAIN_ART.fieldTiles,ready=artReady(im);
-   const same=(tx,ty,target)=>tx>=0&&ty>=0&&tx<gridCols&&ty<gridRows&&mapData[ty][tx]===target;
-   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-    const target=mapData[ty][tx];
-    if(target!==TILE.MOUNTAIN&&target!==TILE.FOREST)continue;
-    const mask=(same(tx,ty-1,target)?1:0)|(same(tx+1,ty,target)?2:0)|(same(tx,ty+1,target)?4:0)|(same(tx-1,ty,target)?8:0);
-    const row=target===TILE.MOUNTAIN?2:4;
-    const visualSize=target===TILE.MOUNTAIN?52:46,inset=(visualSize-tileSize)/2,x=tx*tileSize-inset,y=ty*tileSize-inset;
-    if(ready)c.drawImage(im,(mask&15)*32,row*32,32,32,x,y,visualSize,visualSize);
-    else if(target===TILE.MOUNTAIN){
-     c.fillStyle="#6f755f";c.beginPath();c.moveTo(x,y+visualSize);c.lineTo(x+visualSize*.28,y+visualSize*.38);c.lineTo(x+visualSize*.48,y+visualSize*.62);c.lineTo(x+visualSize*.68,y+visualSize*.25);c.lineTo(x+visualSize,y+visualSize);c.fill();
-     c.fillStyle="#aeb69a";c.beginPath();c.moveTo(x+visualSize*.68,y+visualSize*.25);c.lineTo(x+visualSize*.57,y+visualSize*.48);c.lineTo(x+visualSize*.72,y+visualSize*.42);c.lineTo(x+visualSize*.79,y+visualSize*.52);c.fill();
-    }else{
-     c.fillStyle="#315f42";c.fillRect(x+visualSize*.46,y+visualSize*.56,visualSize*.1,visualSize*.42);
-     c.fillStyle="#4f8751";for(const [ox,oy,r] of [[.28,.52,.25],[.5,.36,.29],[.72,.52,.24]]){c.beginPath();c.arc(x+visualSize*ox,y+visualSize*oy,visualSize*r,0,Math.PI*2);c.fill();}
-    }
+  // Authoritative terrain pass: mapData itself paints the visible 32px terrain layer.
+  // This intentionally avoids the experimental forest/mountain rows in field-tileset-v3.
+  // Collision and visuals now share the same tile source of truth.
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   const target=mapData[ty][tx],x=tx*tileSize,y=ty*tileSize;
+   if(target===TILE.FOREST){
+    const edge=(tx===0||mapData[ty][tx-1]!==TILE.FOREST)||(tx===gridCols-1||mapData[ty][tx+1]!==TILE.FOREST)||(ty===0||mapData[ty-1][tx]!==TILE.FOREST)||(ty===gridRows-1||mapData[ty+1][tx]!==TILE.FOREST);
+    c.fillStyle=edge?"#527d45":"#3e693d";c.fillRect(x,y,tileSize,tileSize);
+    c.fillStyle="#2f5637";
+    for(const [ox,oy,r] of [[8,19,8],[17,12,9],[25,20,8]]){c.beginPath();c.arc(x+ox,y+oy,r,0,Math.PI*2);c.fill();}
+    c.fillStyle="#6e4b2f";c.fillRect(x+15,y+20,3,12);
+    c.fillStyle="rgba(139,176,83,.7)";c.fillRect(x+5,y+26,22,3);
+   }else if(target===TILE.MOUNTAIN){
+    c.fillStyle="#78806a";c.fillRect(x,y,tileSize,tileSize);
+    c.fillStyle="#596255";c.beginPath();c.moveTo(x,y+32);c.lineTo(x+9,y+14);c.lineTo(x+15,y+22);c.lineTo(x+22,y+7);c.lineTo(x+32,y+32);c.fill();
+    c.fillStyle="#b3b99d";c.beginPath();c.moveTo(x+22,y+7);c.lineTo(x+18,y+15);c.lineTo(x+23,y+13);c.lineTo(x+27,y+19);c.fill();
+    c.fillStyle="#49633f";c.fillRect(x,y+28,32,4);
    }
   }
   // A few signposts mark major forks while the surrounding plain stays explorable.
