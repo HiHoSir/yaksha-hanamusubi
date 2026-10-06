@@ -937,7 +937,7 @@ titleHero();hud();requestAnimationFrame(loop);
 // β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
 
 const DEBUG_ORTHO_PATHS={
- ground:{v2:"assets/terrain/world-ortho-ground-v2.webp",v1:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
+ ground:{v2:"assets/terrain/world-ortho-ground-v2.png",v1:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{v2:"assets/terrain/world-ortho-road-v1.png",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
  shore:{v2:"assets/terrain/world-ortho-shore-v1.png",v1:"assets/terrain/world-ortho-shore-v1.png",size:[128,128]},
  forest:{v2:"assets/terrain/world-ortho-forest-v1.png",v1:"assets/terrain/world-ortho-forest-v1.png",size:[192,128]},
