@@ -51,32 +51,39 @@ window.YK_WORLD=(()=>{
  const river=[[388,325],[433,338],[458,366],[417,391],[396,429],[429,466],[413,508],[401,558],[398,610],[454,660]];
  const westRiver=[[115,514],[164,548],[159,586],[179,623],[148,658],[183,704],[214,768]];
  const riverDistance=(x,y)=>Math.min(...[river,westRiver].flatMap(line=>line.slice(1).map((b,i)=>distance(x,y,line[i],b))));
- const mapData=Array.from({length:gridRows},()=>Array(gridCols).fill(TILE.GRASS));
- for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-  const x=tx*tileSize+tileSize/2,y=ty*tileSize+tileSize/2,d=roadDistance(x,y),r=riverDistance(x,y);
-  const lake=((x-109)/66)**2+((y-487)/42)**2<1;
-  let type=inside(x,y,coast)?TILE.GRASS:TILE.WATER;
-  if(type===TILE.GRASS){
-   if(inside(x,y,ridge)||inside(x,y,southRidge))type=TILE.MOUNTAIN;
-   else if(groves.some(([cx,cy,rx,ry])=>{
-    const samples=[[x,y],[x-12,y],[x+12,y],[x,y-12],[x,y+12]];
-    return samples.some(([sx,sy])=>((sx-cx)/rx)**2+((sy-cy)/ry)**2<1);
-   }))type=TILE.FOREST;
-   if(d<23)type=TILE.GRASS;
-   if(lake||r<7)type=TILE.WATER;
-   if(r<7&&d<10)type=TILE.BRIDGE;
-   if(r<7&&Math.abs(y-582)<8)type=TILE.BRIDGE;
-  }
-  if(Object.values(places).some(p=>Math.hypot(x-p.point[0],y-p.point[1])<18))type=TILE.GRASS;
-  mapData[ty][tx]=type;
- }
- // Guarantee recognizable forest masses around authored grove centers on the coarse 32px grid.
- for(const [cx,cy,rx,ry] of groves){
-  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-   const x=tx*tileSize+tileSize/2,y=ty*tileSize+tileSize/2;
-   if(((x-cx)/(rx*.82))**2+((y-cy)/(ry*.82))**2<1 && mapData[ty][tx]===TILE.GRASS)mapData[ty][tx]=TILE.FOREST;
-  }
- }
+ // Authored 24x24 field tile map. This is now the source of truth for terrain/collision.
+ // 0 grass, 1 mountain, 2 forest, 3 water, 4 shallow, 5 bridge, 6 sand, 7 special.
+ // Keeping world coordinates and tile IDs stable preserves saves, events and movement behavior.
+ const FIELD_TILE_ROWS=[
+  "111111111111111100333333",
+  "111111111111111100333333",
+  "111111111111110000033333",
+  "111110211110100002033333",
+  "111110000000000000000333",
+  "111111111111100200000033",
+  "111111111011102200000033",
+  "111111100001111022000003",
+  "111111000000111002000003",
+  "111110000000010000000033",
+  "111110000022030000200033",
+  "111110000022003000220203",
+  "111100000000000000200223",
+  "000000000000300220000233",
+  "003330002000030220000333",
+  "033330002000002000000333",
+  "000330000220002200003333",
+  "000000000020300000333333",
+  "110220000000300003333333",
+  "110023002200000333333333",
+  "111130002200003333333333",
+  "111113000000333333333333",
+  "111110000033333333333333",
+  "111110300333333333333333"
+ ];
+ const mapData=FIELD_TILE_ROWS.map((row,ty)=>{
+  if(row.length!==gridCols)throw new Error("Invalid field tile row "+ty);
+  return Array.from(row,ch=>Number(ch));
+ });
  const tileIdAt=(x,y)=>x<0||y<0||x>=size||y>=size?TILE.WATER:mapData[Math.floor(y/tileSize)][Math.floor(x/tileSize)];
  const tileAt=(x,y)=>TILE_NAME[tileIdAt(x,y)];
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&[TILE.GRASS,TILE.SHALLOW,TILE.BRIDGE,TILE.SAND,TILE.SPECIAL].includes(tileIdAt(x,y));
