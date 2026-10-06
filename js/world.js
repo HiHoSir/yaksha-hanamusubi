@@ -187,7 +187,7 @@ window.YK_WORLD=(()=>{
    }else if(bridge){
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
    }
-   else if(!artReady(terrainFieldTiles)){
+   else if(!artReady(fieldTiles)){
     c.fillStyle='#a3cc55';c.fillRect(x,y,tileSize,tileSize);
    }
    if(water){
@@ -455,5 +455,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:46,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:47,tileAt,tileSize,size,viewSize,camera,draw};
 })();
