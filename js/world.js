@@ -252,6 +252,20 @@ window.YK_WORLD=(()=>{
    c.fillStyle='#596b62';c.beginPath();c.moveTo(rx-6*s,ry+4*s);c.lineTo(rx-2*s,ry-7*s);c.lineTo(rx+2*s,ry-3*s);c.lineTo(rx+6*s,ry+4*s);c.closePath();c.fill();
    c.strokeStyle='rgba(232,241,211,.72)';c.lineWidth=1;c.beginPath();c.arc(rx,ry+4*s,8*s,Math.PI*.08,Math.PI*.92);c.stroke();
   }
+  // Inland transition belt: scattered low vegetation makes forest edges organic
+  // while keeping the one-step/one-cell movement grid completely unchanged.
+  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+   if(mapData[ty][tx]!==TILE.GRASS)continue;
+   let nearForest=false;
+   for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if(mapData[ty+yy][tx+xx]===TILE.FOREST)nearForest=true;
+   if(!nearForest)continue;
+   const v=hash(tx+307,ty+251); if(v<.38)continue;
+   const x=tx*tileSize,y=ty*tileSize,cx=x+7+v*18,base=y+24;
+   c.save();c.globalAlpha=.7;
+   c.fillStyle="#456b42";c.beginPath();c.arc(cx-3,base-4,3.2,0,Math.PI*2);c.arc(cx+2,base-5,3.8,0,Math.PI*2);c.fill();
+   c.fillStyle="#75905a";c.fillRect(cx-5,base,10,1);
+   c.restore();
+  }
   // Plain texture and biome seams: break up empty grass without adding collision.
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    if(mapData[ty][tx]!==TILE.GRASS)continue;
@@ -366,5 +380,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:26,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:27,tileAt,tileSize,size,viewSize,camera,draw};
 })();
