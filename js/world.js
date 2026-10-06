@@ -129,6 +129,21 @@ window.YK_WORLD=(()=>{
   }
   return CHIP.GRASS_BASE;
  };
+ // Production overhang pass: terrain and landmarks share the same ground-contact depth contract.
+ const drawProductionOverhangs=c=>{
+  if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return false;
+  const q=[];
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   const t=mapData[ty][tx];
+   if(t===TILE.FOREST||t===TILE.MOUNTAIN)q.push({type:'terrain',tx,ty,depth:terrainDepth(tx,ty,t===TILE.FOREST?10:5)});
+  }
+  for(const o of objectLayer)q.push({type:'object',ref:o,depth:objectDepth(o)});
+  for(const it of sortByDepth(q)){
+   if(it.type==='terrain')drawProductionOverlayChip(c,it.tx,it.ty);
+   else drawProductionLandmark(c,it.ref);
+  }
+  return true;
+ };
  // These polylines are journey/QA guides, not visible corridors or collision walls.
  const roadDistance=(x,y)=>Math.min(...roads.flatMap(r=>r.slice(1).map((b,i)=>distance(x,y,r[i],b))));
  // Coast authored on the same 32px rhythm as the field tiles.
@@ -330,6 +345,7 @@ window.YK_WORLD=(()=>{
    // Production map-chip handoff: once the exact atlas PNG exists, use it for the base cell.
    // Until then this returns false and the legacy safe renderer remains untouched.
    const productionBase=drawProductionBaseChip(c,tx,ty);
+   const productionRoad=drawProductionRoadChip(c,tx,ty);
    // Unified 32px field tileset migration: grass now comes from explicit image chips.
    // Water shoreline remains on the proven autotile sheet until its shore IDs are migrated.
    // iOS-safe mode: when the landmark atlas is intentionally omitted, also force the
@@ -819,5 +835,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:77,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:78,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs};
 })();
