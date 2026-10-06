@@ -87,7 +87,7 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v2.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
@@ -162,15 +162,6 @@ window.YK_WORLD=(()=>{
     if(v>.965){c.strokeStyle='rgba(93,130,61,.48)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
-  }
-  // Irregular shoreline caps cover the 8px stair-step silhouette with grass, sand and reeds.
-  for(let y=4;y<764;y+=8)for(let x=4;x<764;x+=8){
-   const t=tileAt(x,y);if(t==='water'||t==='bridge')continue;
-   const nearWater=[[8,0],[-8,0],[0,8],[0,-8]].some(([dx,dy])=>tileAt(x+dx,y+dy)==='water');
-   if(!nearWater)continue;
-   const v=hash(x+19,y+41);if(v<.58)continue;
-   c.fillStyle=v>.48?'#bcae72':'#829e55';c.beginPath();c.ellipse(x+(v-.5)*5,y+(v-.5)*3,3.2+v*2,1.5+v*.8,0,0,Math.PI*2);c.fill();
-   if(v>.58){c.strokeStyle='rgba(83,112,66,.72)';c.lineWidth=.7;for(let q=-2;q<=2;q+=2){c.beginPath();c.moveTo(x+q,y+2);c.lineTo(x+q+(v-.5)*2,y-3-v*2);c.stroke();}}
   }
   // Broad tonal patches make grassland read as terrain rather than a tiled green canvas.
   c.save();c.globalAlpha=.075;
