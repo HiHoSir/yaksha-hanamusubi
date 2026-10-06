@@ -186,7 +186,7 @@ function stabilizeLoadedState(){
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
    if(collision(S.x,S.y)){
-     const safe={field:YK_WORLD.hub,village:[373,690],shrine:[70,430],cove:[70,430],forest:[70,430],waterfall:[70,600],hotspring:[70,430],fox:[70,430]}[area]||[384,500];
+     const safe={field:((typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.hub)?YK_WORLD.hub:[230,534]),village:[373,690],shrine:[70,430],cove:[70,430],forest:[70,430],waterfall:[70,600],hotspring:[70,430],fox:[70,430]}[area]||[384,500];
      S.x=safe[0];S.y=safe[1];
    }
  }
