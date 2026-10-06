@@ -96,7 +96,7 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v1.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
@@ -129,6 +129,13 @@ window.YK_WORLD=(()=>{
   const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,row=Math.floor(index/4),sy=rows[row]*atlas.naturalHeight,sh=(rows[row+1]-rows[row])*atlas.naturalHeight;c.drawImage(atlas,(index%4)*sw,sy,sw,sh,x-w/2,y-h/2,w,h);};
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const x=tx*tileSize,y=ty*tileSize,t=TILE_NAME[mapData[ty][tx]],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
+   // Unified 32px field tileset migration: grass now comes from explicit image chips.
+   // Water shoreline remains on the proven autotile sheet until its shore IDs are migrated.
+   const fieldTiles=TERRAIN_ART.fieldTiles;
+   if(!water&&!bridge&&artReady(fieldTiles)){
+    const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
+    c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
+   }
    if(water){
     // 32px image autotile. Bitmask N/E/S/W marks adjacent land; collision remains mapData-only.
     const landAt=(gx,gy)=>gx<0||gy<0||gx>=gridCols||gy>=gridRows||![TILE.WATER,TILE.BRIDGE].includes(mapData[gy][gx]);
@@ -152,10 +159,8 @@ window.YK_WORLD=(()=>{
    }else if(bridge){
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
    }
-   else{
-    // Layered grass tones break the flat neon-green plane without changing tiles.
+   else if(!artReady(fieldTiles)){
     c.fillStyle='#a3cc55';c.fillRect(x,y,tileSize,tileSize);
-    // Avoid per-tile colour blocks: broad overlays below provide terrain variation.
    }
    if(water){
     // Transitional placeholder only; image-based shoreline assets replace legacy 8px decoration.
