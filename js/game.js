@@ -936,17 +936,13 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
 
+const DEBUG_SINGLE_KEY="road";
 const DEBUG_ORTHO_PATHS={
- ground:{v2:"assets/terrain/world-ortho-ground-v1.png",v1:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
- road:{v2:"assets/terrain/world-ortho-road-v2.png",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
- shore:{v2:"assets/terrain/world-ortho-shore-v1.png",v1:"assets/terrain/world-ortho-shore-v1.png",size:[128,128]},
- forest:{v2:"assets/terrain/world-ortho-forest-v1.png",v1:"assets/terrain/world-ortho-forest-v1.png",size:[192,128]},
- mountain:{v2:"assets/terrain/world-ortho-mountain-v1.png",v1:"assets/terrain/world-ortho-mountain-v1.png",size:[288,192]},
- landmarks:{v2:"assets/terrain/world-ortho-landmarks-v1.png",v1:"assets/terrain/world-ortho-landmarks-v1.png",size:[384,192]}
+ road:{v2:"assets/terrain/world-ortho-road-v2.png",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]}
 };
 const DEBUG_ORTHO_ART={},DEBUG_ORTHO_FALLBACK={};
-for(const [key,spec] of Object.entries(DEBUG_ORTHO_PATHS)){
- const im=new Image();
+{
+ const key=DEBUG_SINGLE_KEY,spec=DEBUG_ORTHO_PATHS[key],im=new Image();
  const useFallback=()=>{
   if(DEBUG_ORTHO_FALLBACK[key])return;
   DEBUG_ORTHO_FALLBACK[key]=true;
@@ -962,10 +958,7 @@ for(const [key,spec] of Object.entries(DEBUG_ORTHO_PATHS)){
  im.onerror=useFallback;
  im.src=spec.v2;DEBUG_ORTHO_ART[key]=im;
 }
-const debugAtlasReady=()=>Object.values(DEBUG_ORTHO_ART).every(im=>im.complete&&im.naturalWidth>0);
-const debug32=(c,key,cols,slot,x,y)=>{const im=DEBUG_ORTHO_ART[key];c.drawImage(im,(slot%cols)*32,Math.floor(slot/cols)*32,32,32,x,y,32,32)};
-const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{const im=DEBUG_ORTHO_ART[key];c.drawImage(im,(slot%cols)*w,Math.floor(slot/cols)*h,w,h,footX-anchorX,footY-anchorY,w,h)};
-
+const debugAtlasReady=()=>{const im=DEBUG_ORTHO_ART[DEBUG_SINGLE_KEY];return !!(im&&im.complete&&im.naturalWidth>0)};
 function drawDebugSheetPage(c,key){
  const spec=DEBUG_ORTHO_PATHS[key],im=DEBUG_ORTHO_ART[key];if(!im||!im.complete||!im.naturalWidth)return false;
  const pages={ground:[8,4,32,32],road:[4,4,32,32],shore:[4,4,32,32],forest:[3,2,64,64],mountain:[3,2,96,96],landmarks:[4,2,96,96]};
@@ -988,61 +981,21 @@ function drawDebugSheetPage(c,key){
 
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
- const pages=["overview","road"],page=pages[window.__YK_DEBUG_PAGE||0];
- if(page!=="overview"&&drawDebugSheetPage(c,page)){worldHint("DEBUG："+page+" · Aで次へ · Bでタイトルへ戻る");return;}
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
- c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — SINGLE ASSET TEST / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";const fb=Object.keys(DEBUG_ORTHO_FALLBACK);c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る"+(fb.length?" · fallback: "+fb.join(", "):""),31,66);c.restore();
  if(!debugAtlasReady()){
-  c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(window.__YK_DEBUG_ATLAS_ERROR?("DEBUG sheet load error: "+window.__YK_DEBUG_ATLAS_ERROR):"DEBUG sheets loading…",240,380);return;
+  c.fillStyle="#fff3c4";c.font="20px sans-serif";
+  c.fillText(window.__YK_DEBUG_ATLAS_ERROR?("DEBUG sheet load error: "+window.__YK_DEBUG_ATLAS_ERROR):"ROAD v2 loading…",220,380);
+  worldHint("DEBUG：ROAD v2 単体読込中 · Bでタイトルへ戻る");return;
  }
- const cell=32,ox=24,oy=92,cols=22,rows=19;
- // Ground plane uses the real atlas, not canvas placeholder geometry.
- for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)debug32(c,"ground",8,(x+y)%4,ox+x*cell,oy+y*cell);
- const box=(x,y,w,h,label)=>{c.save();c.strokeStyle="rgba(255,244,198,.55)";c.lineWidth=1;c.strokeRect(ox+x*cell+.5,oy+y*cell+.5,w*cell-1,h*cell-1);c.fillStyle="rgba(7,20,29,.78)";c.fillRect(ox+x*cell+2,oy+y*cell+2,Math.min(w*cell-4,210),20);c.fillStyle="#fff3c4";c.font="12px sans-serif";c.fillText(label,ox+x*cell+6,oy+y*cell+16);c.restore();};
- // Ground / water / bridge source tiles.
- box(0,0,5,6,"GROUND / WATER / BRIDGE");
- const groundSlots=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,17];
- for(let i=0;i<groundSlots.length;i++)debug32(c,"ground",8,groundSlots[i],ox+(i%4)*cell,oy+(1+Math.floor(i/4))*cell);
- // Every road grammar slot is visible at once.
- box(5,0,5,6,"ROAD 16 SLOTS");
- for(let i=0;i<16;i++)debug32(c,"road",4,i,ox+(5+i%4)*cell,oy+(1+Math.floor(i/4))*cell);
- // Every shoreline slot on a grass base.
- box(10,0,5,6,"SHORE 16 SLOTS");
- for(let i=0;i<16;i++){const x=ox+(10+i%4)*cell,y=oy+(1+Math.floor(i/4))*cell;debug32(c,"ground",8,0,x,y);debug32(c,"shore",4,i,x,y);}
- // Forest: 64px sprite, 32px logical foot marker.
- box(0,6,7,6,"FOREST 64px / FOOT 32px");
- for(let i=0;i<6;i++){const fx=ox+(1+(i%3)*2)*cell+cell/2,fy=oy+(8+Math.floor(i/3)*2)*cell;debugSprite(c,"forest",3,i,64,64,fx,fy,32,56);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
- // Mountain: 96px sprite, same 32px logical foot.
- box(7,6,9,7,"MOUNTAIN 96px / FOOT 32px");
- for(let i=0;i<6;i++){const fx=ox+(8+(i%3)*3)*cell+cell/2,fy=oy+(9+Math.floor(i/3)*3)*cell;debugSprite(c,"mountain",3,i,96,96,fx,fy,48,86);c.strokeStyle="rgba(255,245,190,.5)";c.strokeRect(fx-16,fy-32,32,32);}
- // Landmark cells from the same packed atlas.
- box(16,0,6,13,"LANDMARKS 96px");
- for(let i=0;i<7;i++){const fx=ox+(17+(i%2)*3)*cell+cell/2,fy=oy+(3+Math.floor(i/2)*3)*cell;debugSprite(c,"landmarks",4,i,96,96,fx,fy,48,86);}
- // Small composed strip for player/world scale and foot-Y occlusion review.
- box(0,13,16,6,"COMPOSED SCALE / PLAYER / Y-SORT");
- for(let x=1;x<15;x++)debug32(c,"road",4,0,ox+x*cell,oy+16*cell);
- const sampleItems=[
-  {key:"forest",cols:3,slot:1,w:64,h:64,x:ox+2*cell+16,y:oy+17*cell,ax:32,ay:56},
-  {key:"landmarks",cols:4,slot:0,w:96,h:96,x:ox+4*cell+16,y:oy+17*cell,ax:48,ay:86},
-  {key:"mountain",cols:3,slot:1,w:96,h:96,x:ox+13*cell+16,y:oy+17*cell,ax:48,ay:86}
- ];
- const drawSample=it=>debugSprite(c,it.key,it.cols,it.slot,it.w,it.h,it.x,it.y,it.ax,it.ay);
- for(const it of sampleItems)if(it.y<=S.y)drawSample(it);
- hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.56);
- for(const it of sampleItems)if(it.y>S.y)drawSample(it);
- // 32px grid is deliberately drawn last so screenshots expose any bad crop/anchor.
- c.save();c.strokeStyle="rgba(255,255,255,.09)";c.lineWidth=1;
- for(let x=0;x<=cols;x++){c.beginPath();c.moveTo(ox+x*cell+.5,oy);c.lineTo(ox+x*cell+.5,oy+rows*cell);c.stroke()}
- for(let y=0;y<=rows;y++){c.beginPath();c.moveTo(ox,oy+y*cell+.5);c.lineTo(ox+cols*cell,oy+y*cell+.5);c.stroke()}
- c.restore();
- worldHint("DEBUG：上下左右で移動 · 下段で前後関係確認 · Bでタイトルへ戻る · 保存/イベントなし");
+ drawDebugSheetPage(c,DEBUG_SINGLE_KEY);
+ worldHint("DEBUG：ROAD v2 単体検査 · Bでタイトルへ戻る · 本編セーブ非干渉");
 }
 window.YKDebugField=(enabled=true)=>{
  const hudEl=$("hud"),objectiveEl=$("objective");
  document.querySelectorAll(".dpad .diagonal").forEach(b=>{b.style.visibility=enabled?"hidden":"visible"});
  if(hudEl)hudEl.style.display=enabled?"none":"";
  if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
- if(enabled){window.__YK_DEBUG_PAGE=0;window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";S.x=264;S.y=636;S.dir="d";S.frame=1;busy=false;$("title")?.classList.remove("show");map();return true;}
+ if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";S.x=264;S.y=636;S.dir="d";S.frame=1;busy=false;$("title")?.classList.remove("show");map();return true;}
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;S.frame=1;$("title")?.classList.add("show");busy=true;map();return false;
 };
 
