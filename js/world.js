@@ -549,8 +549,8 @@ window.YK_WORLD=(()=>{
    c.fillStyle='#596b62';c.beginPath();c.moveTo(rx-6*s,ry+4*s);c.lineTo(rx-2*s,ry-7*s);c.lineTo(rx+2*s,ry-3*s);c.lineTo(rx+6*s,ry+4*s);c.closePath();c.fill();
    c.strokeStyle='rgba(232,241,211,.72)';c.lineWidth=1;c.beginPath();c.arc(rx,ry+4*s,8*s,Math.PI*.08,Math.PI*.92);c.stroke();
   }
-  // Sparse meadow clusters give broad plains a readable scale without becoming obstacles.
-  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+  // Sparse meadow fallback.
+  if(!mapChipReady('ground')) for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
    if(mapData[ty][tx]!==TILE.GRASS)continue;
    const v=hash(tx+503,ty+419); if(v<.73)continue;
    const x=tx*tileSize,y=ty*tileSize,ox=6+v*17,oy=18+(1-v)*7;
@@ -560,9 +560,8 @@ window.YK_WORLD=(()=>{
    c.beginPath();c.moveTo(x+ox-2,y+oy);c.lineTo(x+ox-1,y+oy-4);c.moveTo(x+ox+2,y+oy);c.lineTo(x+ox+4,y+oy-3);c.stroke();
    c.restore();
   }
-  // Mountain foothills: small rock/brush accents make ranges emerge from the plain
-  // instead of looking like isolated stamped symbols.
-  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+  // Mountain foothill fallback.
+  if(!mapChipReady('mountain')) for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
    if(mapData[ty][tx]!==TILE.GRASS)continue;
    let nearMountain=false;
    for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if(mapData[ty+yy][tx+xx]===TILE.MOUNTAIN)nearMountain=true;
@@ -575,9 +574,8 @@ window.YK_WORLD=(()=>{
    c.globalAlpha=.45;c.fillStyle="#58734a";c.fillRect(x+ox-6,base+1,12,1.5);
    c.restore();
   }
-  // Forest fringe crosses the logical seam with tiny, non-colliding crowns.
-  // This hides the checkerboard edge without changing any walkable cell.
-  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+  // Forest fringe fallback.
+  if(!mapChipReady('forest')) for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
    if(mapData[ty][tx]!==TILE.GRASS)continue;
    let touchesForest=false;
    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(mapData[ty+dy][tx+dx]===TILE.FOREST)touchesForest=true;
@@ -588,9 +586,8 @@ window.YK_WORLD=(()=>{
    c.beginPath();c.arc(x-3,y,2.6,0,Math.PI*2);c.arc(x+2,y-2,3.4,0,Math.PI*2);c.arc(x+5,y+1,2.3,0,Math.PI*2);c.fill();
    c.fillStyle='rgba(67,91,48,.34)';c.beginPath();c.ellipse(x,y+3,7,1.2,-.12,0,Math.PI*2);c.fill();c.restore();
   }
-  // Inland transition belt: scattered low vegetation makes forest edges organic
-  // while keeping the one-step/one-cell movement grid completely unchanged.
-  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+  // Inland transition fallback.
+  if(!mapChipReady('forest')) for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
    if(mapData[ty][tx]!==TILE.GRASS)continue;
    let nearForest=false;
    for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if(mapData[ty+yy][tx+xx]===TILE.FOREST)nearForest=true;
@@ -669,13 +666,13 @@ window.YK_WORLD=(()=>{
    c.lineTo(last[0],last[1]);c.stroke();
   }
   c.restore();}
-  // Sparse roadside stones reinforce scale without becoming collision objects.
-  for(const [rx,ry] of [[270,451],[341,470],[401,571],[551,548],[620,465],[648,347],[556,181],[352,143]]){
+  // Legacy micro-decoration is fallback-only once production ground is available.
+  if(!mapChipReady('ground')) for(const [rx,ry] of [[270,451],[341,470],[401,571],[551,548],[620,465],[648,347],[556,181],[352,143]]){
    if(tileAt(rx,ry)!=='grass')continue;
    c.save();c.globalAlpha=.45;c.fillStyle='#80765d';c.beginPath();c.ellipse(rx,ry,2.4,1.4,-.2,0,Math.PI*2);c.fill();c.restore();
   }
-  // Plain texture and biome seams: break up empty grass without adding collision.
-  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+  // Plain texture fallback.
+  if(!mapChipReady('ground')) for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    if(mapData[ty][tx]!==TILE.GRASS)continue;
    const x=tx*tileSize,y=ty*tileSize,v=hash(tx+211,ty+173);
    c.save();
