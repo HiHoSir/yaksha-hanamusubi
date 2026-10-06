@@ -160,6 +160,7 @@ window.YK_WORLD=(()=>{
     c.drawImage(fieldTiles,(mask&15)*32,row*32,32,32,x,y,32,32);
    }
    if(water){
+    if(!ready){c.fillStyle='#397b87';c.fillRect(x,y,tileSize+.75,tileSize+.75);}
     // 32px image autotile. Bitmask N/E/S/W marks adjacent land; collision remains mapData-only.
     const landAt=(gx,gy)=>gx<0||gy<0||gx>=gridCols||gy>=gridRows||![TILE.WATER,TILE.BRIDGE].includes(mapData[gy][gx]);
     const mask=(landAt(tx,ty-1)?1:0)|(landAt(tx+1,ty)?2:0)|(landAt(tx,ty+1)?4:0)|(landAt(tx-1,ty)?8:0);
@@ -298,13 +299,13 @@ window.YK_WORLD=(()=>{
    const edge=![[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.FOREST);
    const seed=hash(tx+733,ty+691),x=tx*tileSize,y=ty*tileSize;
    const trees=[
-    [7+(seed*7|0),26,1],[20,24+(seed*4|0),.92],[13,15,.82],
-    [28,14+(seed*5|0),.76],[3,16+(seed*8|0),.70]
+    [7+(seed*7|0),27,.76],[20,25+(seed*4|0),.70],[13,17,.62],
+    [28,16+(seed*5|0),.58],[3,18+(seed*8|0),.54]
    ];
    c.save();
    // Forest floor is broad and translucent, so adjacent cells merge rather than read as squares.
    c.globalAlpha=edge?.20:.30;c.fillStyle='#315d39';c.beginPath();
-   c.ellipse(x+16,y+23,edge?20:23,edge?9:12,(seed-.5)*.25,0,Math.PI*2);c.fill();
+   c.ellipse(x+16,y+24,edge?17:20,edge?7:9,(seed-.5)*.25,0,Math.PI*2);c.fill();
    c.restore();
    for(const [ox,baseOff,sc] of trees){
     if(edge&&hash(tx*19+ox,ty*23+baseOff)<.30)continue;
@@ -378,6 +379,13 @@ window.YK_WORLD=(()=>{
    c.fillStyle="#456b42";c.beginPath();c.arc(cx-3,base-4,3.2,0,Math.PI*2);c.arc(cx+2,base-5,3.8,0,Math.PI*2);c.fill();
    c.fillStyle="#75905a";c.fillRect(cx-5,base,10,1);
    c.restore();
+  }
+  // Broad meadow tones span several cells so the field reads as continuous ground.
+  if(!ready){
+   for(const [mx,my,rx,ry,a] of [[350,560,72,23,-.10],[455,475,58,20,.14],[275,335,64,18,-.18],[530,225,55,17,.10],[165,455,48,16,.08]]){
+    if(tileAt(mx,my)!=='grass')continue;
+    c.save();c.globalAlpha=.055;c.fillStyle='#486f43';c.beginPath();c.ellipse(mx,my,rx,ry,a,0,Math.PI*2);c.fill();c.restore();
+   }
   }
   // Landscape composition pass: frame the progression corridor with low non-colliding
   // foothills and grove shadows. This changes visual geography only; mapData remains authoritative.
@@ -565,5 +573,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:56,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:57,tileAt,tileSize,size,viewSize,camera,draw};
 })();
