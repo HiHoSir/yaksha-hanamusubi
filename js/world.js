@@ -257,6 +257,26 @@ window.YK_WORLD=(()=>{
     c.fillStyle="#5f8749";c.beginPath();c.ellipse(x,y,r*1.5,r*.7,-.15,0,Math.PI*2);c.fill();
    }c.restore();
   }
+  // Quarter-view mountain ranges. One logical mountain cell is still one blocked step,
+  // but visible peaks overlap neighboring cells so the range reads as a landform, not icons.
+  if(!ready){
+   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+    if(mapData[ty][tx]!==TILE.MOUNTAIN)continue;
+    const x=tx*tileSize,y=ty*tileSize,v=hash(tx+811,ty+773);
+    const north=ty>0&&mapData[ty-1][tx]===TILE.MOUNTAIN;
+    const south=ty+1<gridRows&&mapData[ty+1][tx]===TILE.MOUNTAIN;
+    const west=tx>0&&mapData[ty][tx-1]===TILE.MOUNTAIN;
+    const east=tx+1<gridCols&&mapData[ty][tx+1]===TILE.MOUNTAIN;
+    const cx=x+16+(v-.5)*5,base=y+31,h=22+(north?6:0)+v*5,w=17+(west||east?4:0);
+    c.save();
+    c.globalAlpha=.22;c.fillStyle='#435443';c.beginPath();c.ellipse(cx+4,base+2,w*.86,3.2,-.08,0,Math.PI*2);c.fill();
+    c.globalAlpha=.96;c.fillStyle='#737965';c.beginPath();c.moveTo(cx-w,base);c.lineTo(cx-5,base-h*.62);c.lineTo(cx,base-h);c.lineTo(cx+6,base-h*.58);c.lineTo(cx+w,base);c.closePath();c.fill();
+    c.fillStyle='#8f9479';c.beginPath();c.moveTo(cx,base-h);c.lineTo(cx+6,base-h*.58);c.lineTo(cx+2,base-5);c.lineTo(cx-3,base-9);c.closePath();c.fill();
+    c.fillStyle='#596454';c.beginPath();c.moveTo(cx-w,base);c.lineTo(cx-5,base-h*.62);c.lineTo(cx-3,base-9);c.lineTo(cx-9,base-3);c.closePath();c.fill();
+    if(!south){c.globalAlpha=.7;c.fillStyle='#4f6947';c.beginPath();c.ellipse(cx,base,Math.max(9,w-3),2.3,0,0,Math.PI*2);c.fill();}
+    c.restore();
+   }
+  }
   // Ground-contact dressing merges stamped terrain into the landscape.
   for(let gy=6;gy<768;gy+=13)for(let gx=6;gx<768;gx+=15){
    const t=tileAt(gx,gy),v=hash(gx+31,gy+17);
@@ -488,5 +508,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:50,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:51,tileAt,tileSize,size,viewSize,camera,draw};
 })();
