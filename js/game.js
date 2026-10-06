@@ -655,6 +655,11 @@ function beginEncounter(){
 }
 function encounter(){return beginEncounter()}
 function action(){
+ if(S.area==="debugField"){
+  const pages=["overview","ground","road","shore","forest","mountain","landmarks"];
+  window.__YK_DEBUG_PAGE=((window.__YK_DEBUG_PAGE||0)+1)%pages.length;
+  message("DEBUG："+pages[window.__YK_DEBUG_PAGE],700);map();return true;
+ }
  if($("dialog").classList.contains("show")){nextDialog();return true;}
  if(busy)return false;
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}message("目的地の入口付近で A を押してください。",1400);return false;}
@@ -961,8 +966,30 @@ const debugAtlasReady=()=>Object.values(DEBUG_ORTHO_ART).every(im=>im.complete&&
 const debug32=(c,key,cols,slot,x,y)=>{const im=DEBUG_ORTHO_ART[key];c.drawImage(im,(slot%cols)*32,Math.floor(slot/cols)*32,32,32,x,y,32,32)};
 const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{const im=DEBUG_ORTHO_ART[key];c.drawImage(im,(slot%cols)*w,Math.floor(slot/cols)*h,w,h,footX-anchorX,footY-anchorY,w,h)};
 
+function drawDebugSheetPage(c,key){
+ const spec=DEBUG_ORTHO_PATHS[key],im=DEBUG_ORTHO_ART[key];if(!im||!im.complete||!im.naturalWidth)return false;
+ const pages={ground:[8,4,32,32],road:[4,4,32,32],shore:[4,4,32,32],forest:[3,2,64,64],mountain:[3,2,96,96],landmarks:[4,2,96,96]};
+ const [cols,rows,sw,sh]=pages[key],slots=cols*rows;
+ c.fillStyle="#17313a";c.fillRect(0,0,768,768);
+ c.fillStyle="#fff3c4";c.font="bold 25px sans-serif";c.fillText("DEBUG "+key.toUpperCase()+" — "+(DEBUG_ORTHO_FALLBACK[key]?"v1 FALLBACK":"v2"),28,45);
+ c.font="13px sans-serif";c.fillStyle="#d9d2b0";c.fillText("A：次の素材　B：タイトルへ戻る　32px基準",30,68);
+ const maxW=700,maxH=570,scale=Math.max(1,Math.floor(Math.min(maxW/(cols*sw),maxH/(rows*sh))));
+ const dw=sw*scale,dh=sh*scale,totalW=cols*dw,totalH=rows*dh,ox=(768-totalW)/2,oy=105;
+ for(let i=0;i<slots;i++){
+  const sx=(i%cols)*sw,sy=Math.floor(i/cols)*sh,x=ox+(i%cols)*dw,y=oy+Math.floor(i/cols)*dh;
+  c.drawImage(im,sx,sy,sw,sh,x,y,dw,dh);c.strokeStyle="rgba(255,245,190,.55)";c.strokeRect(x+.5,y+.5,dw-1,dh-1);
+  c.fillStyle="rgba(5,15,22,.72)";c.fillRect(x+2,y+2,30,18);c.fillStyle="#fff3c4";c.font="12px sans-serif";c.fillText(String(i),x+8,y+15);
+ }
+ if(key==="forest"||key==="mountain"||key==="landmarks"){
+  c.save();c.fillStyle="rgba(7,20,29,.82)";c.fillRect(18,690,732,52);c.fillStyle="#fff3c4";c.font="14px sans-serif";c.fillText("右下：夜叉姫との実寸比較",30,715);hero(c,700,720,"d",1,S.outfit,.56);c.restore();
+ }
+ return true;
+}
+
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
+ const pages=["overview","ground","road","shore","forest","mountain","landmarks"],page=pages[window.__YK_DEBUG_PAGE||0];
+ if(page!=="overview"&&drawDebugSheetPage(c,page)){worldHint("DEBUG："+page+" · Aで次へ · Bでタイトルへ戻る");return;}
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
  c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — ORTHOGONAL TILESET v2 PREVIEW / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";const fb=Object.keys(DEBUG_ORTHO_FALLBACK);c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る"+(fb.length?" · fallback: "+fb.join(", "):""),31,66);c.restore();
  if(!debugAtlasReady()){
@@ -1015,7 +1042,7 @@ window.YKDebugField=(enabled=true)=>{
  document.querySelectorAll(".dpad .diagonal").forEach(b=>{b.style.visibility=enabled?"hidden":"visible"});
  if(hudEl)hudEl.style.display=enabled?"none":"";
  if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
- if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";S.x=264;S.y=636;S.dir="d";S.frame=1;busy=false;$("title")?.classList.remove("show");map();return true;}
+ if(enabled){window.__YK_DEBUG_PAGE=0;window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";S.x=264;S.y=636;S.dir="d";S.frame=1;busy=false;$("title")?.classList.remove("show");map();return true;}
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;S.frame=1;$("title")?.classList.add("show");busy=true;map();return false;
 };
 
