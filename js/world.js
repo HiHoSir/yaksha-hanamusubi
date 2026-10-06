@@ -235,6 +235,39 @@ window.YK_WORLD=(()=>{
   const [sx,sy,sw,sh]=chipRect(atlas,slot),a=atlas.anchor||[0,0];
   return {sx,sy,sw,sh,dx:footX-a[0],dy:footY-a[1],dw:sw,dh:sh};
  };
+ const MAP_CHIP_ART={};
+ const loadMapChipArt=()=>{
+  for(const [key,src] of Object.entries(MAP_CHIP_PATHS)){
+   const im=new Image();
+   im.onload=()=>{window.__YK_MAPCHIP_REV=(window.__YK_MAPCHIP_REV||0)+1;};
+   im.onerror=()=>{MAP_CHIP_ART[key]=null;};
+   im.src=src;MAP_CHIP_ART[key]=im;
+  }
+ };
+ loadMapChipArt();
+ const mapChipReady=key=>{const im=MAP_CHIP_ART[key];return !!(im&&im.complete&&im.naturalWidth);};
+ const drawMapChip=(c,key,atlas,slot,footX,footY)=>{
+  const im=MAP_CHIP_ART[key];if(!mapChipReady(key))return false;
+  const p=chipPlacement(atlas,slot,footX,footY);
+  c.drawImage(im,p.sx,p.sy,p.sw,p.sh,p.dx,p.dy,p.dw,p.dh);return true;
+ };
+ const CHIP_TO_ATLAS={
+  [CHIP.GRASS_BASE]:['ground',MAP_CHIP_ATLAS.ground,MAP_CHIP_ATLAS.ground.slots.grass],
+  [CHIP.GRASS_DETAIL]:['ground',MAP_CHIP_ATLAS.ground,MAP_CHIP_ATLAS.ground.slots.grassDetail],
+  [CHIP.WATER_BASE]:['ground',MAP_CHIP_ATLAS.ground,MAP_CHIP_ATLAS.ground.slots.water],
+  [CHIP.BRIDGE_H]:['ground',MAP_CHIP_ATLAS.ground,MAP_CHIP_ATLAS.ground.slots.bridgeH],
+  [CHIP.BRIDGE_V]:['ground',MAP_CHIP_ATLAS.ground,MAP_CHIP_ATLAS.ground.slots.bridgeV],
+  [CHIP.SHORE_N]:['shore',MAP_CHIP_ATLAS.shore,0],[CHIP.SHORE_E]:['shore',MAP_CHIP_ATLAS.shore,1],
+  [CHIP.SHORE_S]:['shore',MAP_CHIP_ATLAS.shore,2],[CHIP.SHORE_W]:['shore',MAP_CHIP_ATLAS.shore,3],
+  [CHIP.SHORE_NE]:['shore',MAP_CHIP_ATLAS.shore,4],[CHIP.SHORE_SE]:['shore',MAP_CHIP_ATLAS.shore,5],
+  [CHIP.SHORE_SW]:['shore',MAP_CHIP_ATLAS.shore,6],[CHIP.SHORE_NW]:['shore',MAP_CHIP_ATLAS.shore,7],
+  [CHIP.SHORE_IN_NE]:['shore',MAP_CHIP_ATLAS.shore,8],[CHIP.SHORE_IN_SE]:['shore',MAP_CHIP_ATLAS.shore,9],
+  [CHIP.SHORE_IN_SW]:['shore',MAP_CHIP_ATLAS.shore,10],[CHIP.SHORE_IN_NW]:['shore',MAP_CHIP_ATLAS.shore,11]
+ };
+ const drawProductionBaseChip=(c,tx,ty)=>{
+  const id=visualChipAt(tx,ty),def=CHIP_TO_ATLAS[id];if(!def)return false;
+  return drawMapChip(c,def[0],def[1],def[2],tx*tileSize,ty*tileSize);
+ };
  const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v3.png?v=3"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
@@ -757,5 +790,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:74,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:75,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip};
 })();
