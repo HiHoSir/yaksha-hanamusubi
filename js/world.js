@@ -341,6 +341,8 @@ window.YK_WORLD=(()=>{
   const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,row=Math.floor(index/4),sy=rows[row]*atlas.naturalHeight,sh=(rows[row+1]-rows[row])*atlas.naturalHeight;c.drawImage(atlas,(index%4)*sw,sy,sw,sh,x-w/2,y-h/2,w,h);};
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const x=tx*tileSize,y=ty*tileSize,t=TILE_NAME[mapData[ty][tx]],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
+   // Opaque biome underlay: production atlases may contain transparency, but the world must never show through as void.
+   c.fillStyle=water?'#397b87':(t==='sand'?'#c8b66e':t==='shallow'?'#62a4a0':'#91b85a');c.fillRect(x,y,tileSize+.5,tileSize+.5);
    // Production map-chip handoff: once the exact atlas PNG exists, use it for the base cell.
    // Until then this returns false and the legacy safe renderer remains untouched.
    const productionBase=drawProductionBaseChip(c,tx,ty);
@@ -852,5 +854,5 @@ window.YK_WORLD=(()=>{
   return true;
  };
  const drawProductionForeground=(c,heroY)=>{if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return;const heroDepth=depthKey(heroY,50);for(const it of productionDepthQueue())if(it.depth>heroDepth)drawProductionQueueItem(c,it);};
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:86,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:87,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
 })();
