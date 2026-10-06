@@ -19,9 +19,9 @@ window.YK_WORLD=(()=>{
   {kind:"farmland",x:216,y:558,rx:72,ry:52},
   {kind:"foothill",x:276,y:438,rx:96,ry:68},
   {kind:"shrine",x:205,y:360,rx:72,ry:66},
-  {kind:"coast",x:466,y:590,rx:94,ry:68},
-  {kind:"seaVista",x:557,y:527,rx:88,ry:62},
-  {kind:"forestEdge",x:610,y:455,rx:82,ry:66},
+  {kind:"coast",x:462,y:586,rx:106,ry:72},
+  {kind:"seaVista",x:548,y:526,rx:98,ry:66},
+  {kind:"forestEdge",x:603,y:462,rx:94,ry:72},
   {kind:"deepForest",x:650,y:408,rx:78,ry:88},
   {kind:"falls",x:632,y:206,rx:78,ry:70},
   {kind:"highland",x:540,y:160,rx:94,ry:48},
@@ -32,8 +32,9 @@ window.YK_WORLD=(()=>{
   // not by a straight corridor. Existing destination/event coordinates stay unchanged.
   [places.village.point,start,[229,516],[232,496],[241,477],[259,463],[278,448],shrineJunction],
   [shrineJunction,[246,405],[216,398],[197,382],places.shrine.point],
-  [shrineJunction,[330,423],[348,435],[348,473],[357,489],[378,503],[379,542],[385,565],[407,581],[429,590],[448,607],places.cove.point],
-  [places.cove.point,[485,587],[507,576],[524,560],[524,551],[549,539],[582,534],[591,515],[591,492],[608,478],[634,468],[660,451],[661,422],places.forest.point],
+  [shrineJunction,[322,424],[343,438],[351,459],[351,482],[365,500],[381,516],[383,541],[391,563],[411,579],[434,590],[452,603],places.cove.point],
+  // The coast leg follows the shoreline before turning inland through a visible forest fringe.
+  [places.cove.point,[487,590],[507,579],[526,565],[544,551],[565,540],[584,526],[592,505],[602,486],[620,472],[640,457],[655,438],[661,420],places.forest.point],
   [places.forest.point,[655,386],[638,368],[628,341],[629,326],[647,307],[662,291],[675,274],[678,253],[676,242],[659,225],[657,208],[657,190],places.waterfall.point],
   [places.waterfall.point,[600,192],[572,188],[555,170],[544,154],[514,142],springJunction,[412,139],[370,131],[318,138],[261,138],[225,138],[203,132],[183,124],places.fox.point],
   [springJunction,[457,179],[438,199],places.hotspring.point]
@@ -410,5 +411,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:30,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:31,tileAt,tileSize,size,viewSize,camera,draw};
 })();
