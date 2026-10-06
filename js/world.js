@@ -835,5 +835,8 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:78,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs};
+ // Final production pass. It is inert until the exact PNG atlases exist.
+ // Overhanging forest/mountain/landmark art is drawn only after base terrain and fallback decoration.
+ drawProductionOverhangs(c);
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:79,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs};
 })();
