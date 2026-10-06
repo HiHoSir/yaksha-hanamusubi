@@ -194,8 +194,8 @@ window.YK_WORLD=(()=>{
   version:1,cell:32,
   ground:{grass:[32,32],water:[32,32],shore:[32,32],road:[32,32],bridge:[32,32]},
   overlay:{
-   forest:{frame:[64,64],foot:[32,32],origin:[16,48]},
-   mountain:{frame:[96,96],foot:[32,32],origin:[32,80]},
+   forest:{frame:[64,64],foot:[32,32],origin:[32,48]},
+   mountain:{frame:[96,96],foot:[32,32],origin:[48,80]},
    village:{frame:[96,96],foot:[96,64],origin:[48,80]},
    shrine:{frame:[64,80],foot:[64,64],origin:[32,64]},
    waterfall:{frame:[64,96],foot:[64,64],origin:[32,80]},
