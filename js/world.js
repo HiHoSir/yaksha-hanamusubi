@@ -361,10 +361,10 @@ window.YK_WORLD=(()=>{
    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(mapData[ty+dy][tx+dx]===TILE.FOREST)touchesForest=true;
    if(!touchesForest)continue;
    const v=hash(tx+617,ty+557); if(v<.34)continue;
-   const x=tx*tileSize+(v>.67?7:24),y=ty*tileSize+20+(v-.5)*7;
-   c.save();c.globalAlpha=.55;c.fillStyle='#416d43';
-   c.beginPath();c.arc(x-3,y,3.2,0,Math.PI*2);c.arc(x+2,y-2,4,0,Math.PI*2);c.arc(x+5,y+1,2.8,0,Math.PI*2);c.fill();
-   c.fillStyle='rgba(67,91,48,.45)';c.fillRect(x-6,y+3,13,1.4);c.restore();
+   const x=tx*tileSize+(v>.67?5:27),y=ty*tileSize+15+v*14;
+   c.save();c.globalAlpha=.48;c.fillStyle='#416d43';
+   c.beginPath();c.arc(x-3,y,2.6,0,Math.PI*2);c.arc(x+2,y-2,3.4,0,Math.PI*2);c.arc(x+5,y+1,2.3,0,Math.PI*2);c.fill();
+   c.fillStyle='rgba(67,91,48,.34)';c.beginPath();c.ellipse(x,y+3,7,1.2,-.12,0,Math.PI*2);c.fill();c.restore();
   }
   // Inland transition belt: scattered low vegetation makes forest edges organic
   // while keeping the one-step/one-cell movement grid completely unchanged.
@@ -533,6 +533,17 @@ window.YK_WORLD=(()=>{
   }
   // Forest and mountain visuals are already painted by the quarter-view passes above.
   // Do not stamp a second symbol per collision cell; that would destroy the one-step/one-cell scale.
+  // Village outskirts: intentional small farm plots replace scattered fence-like marks.
+  if(!ready){
+   const [vx,vy]=places.village.point;
+   c.save();
+   for(const [ox,oy,w,h] of [[-57,20,23,13],[30,19,26,12],[-50,-25,20,10]]){
+    c.globalAlpha=.30;c.fillStyle='#8b7548';c.beginPath();c.roundRect(vx+ox,vy+oy,w,h,2);c.fill();
+    c.globalAlpha=.38;c.strokeStyle='#6f633f';c.lineWidth=.8;
+    for(let yy=vy+oy+3;yy<vy+oy+h;yy+=4){c.beginPath();c.moveTo(vx+ox+2,yy);c.lineTo(vx+ox+w-2,yy);c.stroke();}
+   }
+   c.restore();
+  }
   // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
@@ -573,5 +584,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:57,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:58,tileAt,tileSize,size,viewSize,camera,draw};
 })();
