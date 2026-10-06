@@ -531,7 +531,9 @@ function drawRoundedField(c,source){
   fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
   fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
   drawWorldTerrain(fieldFrameCtx);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
-  drawRoundedField(g,fieldFrame);
+  // Temporary recovery path: bypass the curved-strip compositor on iOS.
+  // It was blanking the entire field canvas even though the terrain cache was valid.
+  g.drawImage(fieldFrame,0,0,768,768);
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
  }
