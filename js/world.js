@@ -301,15 +301,18 @@ window.YK_WORLD=(()=>{
   const stamp=(index,x,y,w,h=w)=>{if(!ready)return;const sw=atlas.naturalWidth/4,row=Math.floor(index/4),sy=rows[row]*atlas.naturalHeight,sh=(rows[row+1]-rows[row])*atlas.naturalHeight;c.drawImage(atlas,(index%4)*sw,sy,sw,sh,x-w/2,y-h/2,w,h);};
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const x=tx*tileSize,y=ty*tileSize,t=TILE_NAME[mapData[ty][tx]],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
+   // Production map-chip handoff: once the exact atlas PNG exists, use it for the base cell.
+   // Until then this returns false and the legacy safe renderer remains untouched.
+   const productionBase=drawProductionBaseChip(c,tx,ty);
    // Unified 32px field tileset migration: grass now comes from explicit image chips.
    // Water shoreline remains on the proven autotile sheet until its shore IDs are migrated.
    // iOS-safe mode: when the landmark atlas is intentionally omitted, also force the
    // procedural terrain fallback. This avoids mixing asynchronous image tiles into direct rendering.
    const fieldTiles=ready?TERRAIN_ART.fieldTiles:null;
-   if(!water&&!bridge&&!artReady(fieldTiles)){
+   if(!productionBase&&!water&&!bridge&&!artReady(fieldTiles)){
     c.fillStyle="#91b85a";c.fillRect(x,y,32.5,32.5);
    }
-   if(!water&&!bridge&&artReady(fieldTiles)){
+   if(!productionBase&&!water&&!bridge&&artReady(fieldTiles)){
     const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
     c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
    }
@@ -322,7 +325,7 @@ window.YK_WORLD=(()=>{
     const row=t==='mountain'?2:4;
     c.drawImage(fieldTiles,(mask&15)*32,row*32,32,32,x,y,32,32);
    }
-   if(water){
+   if(water&&!productionBase){
     if(!ready){c.fillStyle='#397b87';c.fillRect(x,y,tileSize+.75,tileSize+.75);}
     // 32px image autotile. Bitmask N/E/S/W marks adjacent land; collision remains mapData-only.
     const landAt=(gx,gy)=>gx<0||gy<0||gx>=gridCols||gy>=gridRows||![TILE.WATER,TILE.BRIDGE].includes(mapData[gy][gx]);
@@ -348,7 +351,7 @@ window.YK_WORLD=(()=>{
      c.globalAlpha=.18;c.fillStyle='#74b4ae';
      c.beginPath();c.ellipse(x+16+(v-.5)*9,y+15,13,4,(v-.5)*.35,0,Math.PI*2);c.fill();c.globalAlpha=1;
     }
-   }else if(bridge){
+   }else if(bridge&&!productionBase){
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
    }
    else if(!artReady(fieldTiles)){
@@ -790,5 +793,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:75,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:76,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip};
 })();
