@@ -749,6 +749,8 @@ function exitArea(){
 }
 function move(dx,dy,dir){
  if(busy)return;
+ const debugOrthogonal=S.area==="debugField";
+ if(debugOrthogonal&&dx&&dy)return;
  S.dir=dir;
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const norm=Math.hypot(dx,dy)||1,debugField=S.area==="debugField",sp=(Number($("speedSelect").value)||1)*((S.area==="field"||debugField)?8:22);
@@ -988,7 +990,7 @@ function drawDebugField(c){
  ];
  const drawSample=it=>debugSprite(c,it.key,it.cols,it.slot,it.w,it.h,it.x,it.y,it.ax,it.ay);
  for(const it of sampleItems)if(it.y<=S.y)drawSample(it);
- hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.16);
+ hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.56);
  for(const it of sampleItems)if(it.y>S.y)drawSample(it);
  // 32px grid is deliberately drawn last so screenshots expose any bad crop/anchor.
  c.save();c.strokeStyle="rgba(255,255,255,.09)";c.lineWidth=1;
@@ -998,6 +1000,10 @@ function drawDebugField(c){
  worldHint("DEBUG：上下左右で移動 · 下段で前後関係確認 · Bでタイトルへ戻る · 保存/イベントなし");
 }
 window.YKDebugField=(enabled=true)=>{
+ const hudEl=$("hud"),objectiveEl=$("objective");
+ document.querySelectorAll(".dpad .diagonal").forEach(b=>{b.style.visibility=enabled?"hidden":"visible"});
+ if(hudEl)hudEl.style.display=enabled?"none":"";
+ if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
  if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";S.x=264;S.y=636;S.dir="d";S.frame=1;busy=false;$("title")?.classList.remove("show");map();return true;}
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;S.frame=1;$("title")?.classList.add("show");busy=true;map();return false;
 };
