@@ -192,7 +192,17 @@ function stabilizeLoadedState(){
  }
  S.frame=1;return S;
 }
-function restoreState(v){state(v);stabilizeLoadedState();YK_SAVE.auto(S);return S}
+function restoreState(v){
+ state(v);
+ // Old autosaves may point at a field position while the world module is still loading.
+ // Restore data first; defer world-dependent stabilization until it is actually available.
+ if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
+  S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
+  S.x=clamp(Number(S.x)||230,40,728);S.y=clamp(Number(S.y)||534,50,718);S.frame=1;
+  return S;
+ }
+ stabilizeLoadedState();YK_SAVE.auto(S);return S;
+}
 function rr(c,x,y,w,h,r,fill,stroke){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.stroke()}}
 function flower(c,x,y,col="#f4a0b8",z=1){c.save();c.translate(x,y);c.fillStyle=col;for(let i=0;i<5;i++){c.rotate(1.256);c.beginPath();c.ellipse(0,-5*z,3*z,6*z,0,0,7);c.fill()}c.fillStyle="#f4d579";c.beginPath();c.arc(0,0,2*z,0,7);c.fill();c.restore()}
 function sakura(c,x,y,z=1){c.save();c.translate(x,y);c.scale(z,z);c.fillStyle="#493225";c.fillRect(-7,2,14,48);c.fillStyle="#64432c";c.fillRect(-2,3,5,46);for(const q of [[-22,-6,27,"#d96f99"],[19,-7,29,"#ed8fb0"],[0,-31,32,"#f0a2bc"],[-3,-52,24,"#e783a7"]]){c.fillStyle=q[3];c.beginPath();c.arc(q[0],q[1],q[2],0,7);c.fill()}for(const p of [[-29,-18],[-6,-48],[22,-31],[31,2],[-10,-5]])flower(c,p[0],p[1],"#ffd1dd",.55);c.restore()}
