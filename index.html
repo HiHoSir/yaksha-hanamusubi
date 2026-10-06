@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1020">
-<title>夜叉姫の花結び奇譚 β15.54.3</title>
-<link rel="stylesheet" href="css/game.css?v=15.54.3">
+<title>夜叉姫の花結び奇譚 β15.54.4</title>
+<link rel="stylesheet" href="css/game.css?v=15.54.4">
+<style>#bootLoader.bootDormant{display:none!important}</style>
 </head>
 <body>
-<div id="bootLoader" role="status" aria-live="polite">
+<div id="bootLoader" class="bootDormant" role="status" aria-live="polite">
   <div class="bootCard"><div class="bootTitle">夜叉姫の花結び奇譚</div><div class="bootSub">旅支度をしています…</div>
   <div class="bootTrack"><div id="bootBar"></div></div><div id="bootPct">0%</div><div id="bootDetail">地形を確認中</div></div>
 </div>
 <canvas id="worldTerrain" width="1536" height="1536" hidden aria-hidden="true"></canvas>
 <div id="app">
   <header>
-    <div class="brand">夜叉姫の花結び奇譚 <small>β15.54.3</small></div>
+    <div class="brand">夜叉姫の花結び奇譚 <small>β15.54.4</small></div>
     <div class="topBtns">
       <button id="worldBtn">地図</button><button id="bookBtn">手帳</button><button id="saveBtn">保存</button><button id="settingsBtn">設定</button>
     </div>
@@ -97,12 +98,12 @@
 
 <div id="gameover" class="overlay"><div class="titlebox"><h2>力尽きた……</h2><p>最後の自動保存から再開できます。</p><button id="retryBtn" class="primary">再開する</button><button id="goTitleBtn">タイトルへ</button></div></div>
 
-<script src="js/data.js?v=15.54.3"></script>
-<script src="js/world.js?v=15.54.3"></script>
-<script src="js/save.js?v=15.54.3"></script>
-<script src="js/audio.js?v=15.54.3"></script>
-<script src="js/input.js?v=15.54.3"></script>
-<script src="js/game.js?v=15.54.3"></script>
+<script src="js/data.js?v=15.54.4"></script>
+<script src="js/world.js?v=15.54.4"></script>
+<script src="js/save.js?v=15.54.4"></script>
+<script src="js/audio.js?v=15.54.4"></script>
+<script src="js/input.js?v=15.54.4"></script>
+<script src="js/game.js?v=15.54.4"></script>
 
 
 
@@ -110,10 +111,13 @@
 (()=>{
  const box=document.getElementById('bootLoader'),bar=document.getElementById('bootBar'),pct=document.getElementById('bootPct'),detail=document.getElementById('bootDetail');
  const required=['assets/maps/world-atlas-v15.33.png','assets/terrain/field-tileset-32-v3.png?v=3'];
- let done=0,failed=[];
- const update=(name,ok)=>{done++;if(!ok)failed.push(name);const p=Math.round(done/required.length*100);bar.style.width=p+'%';pct.textContent=p+'%';detail.textContent=ok?'読込中：'+name.split('/').pop():'読込失敗：'+name.split('/').pop();if(done===required.length){if(failed.length){detail.textContent='読込失敗：'+failed.map(x=>x.split('/').pop()).join(', ');box.classList.add('bootError');}else{detail.textContent='準備完了';setTimeout(()=>{box.classList.add('bootDone');setTimeout(()=>{if(box&&box.parentNode)box.remove();},380);},180);}}};
- for(const src of required){const im=new Image();im.onload=()=>update(src,true);im.onerror=()=>update(src,false);im.src=src+(src.includes('?')?'&':'?')+'boot=15.54.3';}
- setTimeout(()=>{if(done<required.length){detail.textContent='読み込みに時間がかかっています… '+done+'/'+required.length;}},5000);
+ window.YK_BOOT_LOAD=()=>new Promise((resolve,reject)=>{
+  box.classList.remove('bootDormant','bootDone','bootError');bar.style.width='0%';pct.textContent='0%';detail.textContent='地形を確認中';
+  let done=0,failed=[];
+  const update=(name,ok)=>{done++;if(!ok)failed.push(name);const p=Math.round(done/required.length*100);bar.style.width=p+'%';pct.textContent=p+'%';detail.textContent=ok?'読込中：'+name.split('/').pop():'読込失敗：'+name.split('/').pop();if(done===required.length){if(failed.length){detail.textContent='読込失敗：'+failed.map(x=>x.split('/').pop()).join(', ');box.classList.add('bootError');reject(new Error(detail.textContent));}else{detail.textContent='準備完了';setTimeout(()=>{box.classList.add('bootDone');setTimeout(()=>{box.classList.add('bootDormant');resolve();},380);},180);}}};
+  for(const src of required){const im=new Image();im.onload=()=>update(src,true);im.onerror=()=>update(src,false);im.src=src+(src.includes('?')?'&':'?')+'boot=15.54.4';}
+  setTimeout(()=>{if(done<required.length)detail.textContent='読み込みに時間がかかっています… '+done+'/'+required.length;},5000);
+ });
 })();
 </script>
 
