@@ -544,7 +544,7 @@ function drawRoundedField(c,source){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
   fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
   fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
-  YK_WORLD.draw(fieldFrameCtx,null);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
+  YK_WORLD.draw(fieldFrameCtx,null);drawActorsOn(fieldFrameCtx);YK_WORLD.drawProductionForeground?.(fieldFrameCtx,S.y);fieldFrameCtx.restore();
   g.drawImage(fieldFrame,0,0,768,768);
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"フィールドを進んで入口へ · 地図で目的地を確認");return;
