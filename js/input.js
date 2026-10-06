@@ -12,7 +12,15 @@ function hold(el,fn){
  t.delay=setTimeout(()=>{if(timers.get(el)===t)t.repeat=setInterval(fn,105)},260)});
  ["pointerup","pointercancel","pointerleave","lostpointercapture"].forEach(n=>el.addEventListener(n,stop));
 }
-function tap(el,fn){if(!el)return;el.addEventListener("pointerdown",e=>{e.preventDefault();fn(e)})}
+function tap(el,fn){
+ if(!el)return;
+ // iOS-safe activation: click is the primary path; pointerdown is only a fallback
+ // for environments where click is not emitted. De-dupe synthetic click.
+ let pointerFiredAt=0;
+ const run=e=>{try{e?.preventDefault?.()}catch(_){} fn(e)};
+ el.addEventListener("click",e=>{if(Date.now()-pointerFiredAt<700){e.preventDefault();return;}run(e)});
+ el.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")return;pointerFiredAt=Date.now();run(e)});
+}
 function stopAll(){for(const stop of directionStops)stop();for(const [el,t] of timers){clearTimeout(t.delay);clearInterval(t.repeat)}timers.clear()}
 window.addEventListener("blur",stopAll);window.addEventListener("pagehide",stopAll);document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll()});
 function directions(bindings,fn){
