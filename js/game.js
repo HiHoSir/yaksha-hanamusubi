@@ -656,7 +656,7 @@ function beginEncounter(){
 function encounter(){return beginEncounter()}
 function action(){
  if(S.area==="debugField"){
-  const pages=["overview","ground"];
+  const pages=["overview","road"];
   window.__YK_DEBUG_PAGE=((window.__YK_DEBUG_PAGE||0)+1)%pages.length;
   message("DEBUG："+pages[window.__YK_DEBUG_PAGE],700);map();return true;
  }
@@ -937,8 +937,8 @@ titleHero();hud();requestAnimationFrame(loop);
 // β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
 
 const DEBUG_ORTHO_PATHS={
- ground:{v2:"assets/terrain/world-ortho-ground-v2.png",v1:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
- road:{v2:"assets/terrain/world-ortho-road-v1.png",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
+ ground:{v2:"assets/terrain/world-ortho-ground-v1.png",v1:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
+ road:{v2:"assets/terrain/world-ortho-road-v2.png",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
  shore:{v2:"assets/terrain/world-ortho-shore-v1.png",v1:"assets/terrain/world-ortho-shore-v1.png",size:[128,128]},
  forest:{v2:"assets/terrain/world-ortho-forest-v1.png",v1:"assets/terrain/world-ortho-forest-v1.png",size:[192,128]},
  mountain:{v2:"assets/terrain/world-ortho-mountain-v1.png",v1:"assets/terrain/world-ortho-mountain-v1.png",size:[288,192]},
@@ -988,7 +988,7 @@ function drawDebugSheetPage(c,key){
 
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
- const pages=["overview","ground"],page=pages[window.__YK_DEBUG_PAGE||0];
+ const pages=["overview","road"],page=pages[window.__YK_DEBUG_PAGE||0];
  if(page!=="overview"&&drawDebugSheetPage(c,page)){worldHint("DEBUG："+page+" · Aで次へ · Bでタイトルへ戻る");return;}
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
  c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — SINGLE ASSET TEST / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";const fb=Object.keys(DEBUG_ORTHO_FALLBACK);c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る"+(fb.length?" · fallback: "+fb.join(", "):""),31,66);c.restore();
