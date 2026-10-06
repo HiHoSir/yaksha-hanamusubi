@@ -290,6 +290,20 @@ window.YK_WORLD=(()=>{
     }
    }
   }
+  // Final terrain-symbol pass: keep major impassable terrain readable after regional dressing.
+  // These are the same authored 32px map chips, redrawn late in the pipeline so haze/grass dressing
+  // cannot visually erase mountains or forests. Collision still comes only from mapData.
+  if(artReady(TERRAIN_ART.fieldTiles)){
+   const im=TERRAIN_ART.fieldTiles;
+   const same=(tx,ty,target)=>tx>=0&&ty>=0&&tx<gridCols&&ty<gridRows&&mapData[ty][tx]===target;
+   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+    const target=mapData[ty][tx];
+    if(target!==TILE.MOUNTAIN&&target!==TILE.FOREST)continue;
+    const mask=(same(tx,ty-1,target)?1:0)|(same(tx+1,ty,target)?2:0)|(same(tx,ty+1,target)?4:0)|(same(tx-1,ty,target)?8:0);
+    const row=target===TILE.MOUNTAIN?2:4;
+    c.drawImage(im,(mask&15)*32,row*32,32,32,tx*tileSize,ty*tileSize,tileSize,tileSize);
+   }
+  }
   // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
