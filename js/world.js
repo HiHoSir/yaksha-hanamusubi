@@ -289,12 +289,13 @@ window.YK_WORLD=(()=>{
   return drawMapChip(c,'road',MAP_CHIP_ATLAS.road,slot,tx*tileSize,ty*tileSize);
  };
  const overlayVariantSlot=(id,base)=>Math.max(0,Math.min(11,id-base));
+ const terrainVariant=(tx,ty,count)=>Math.abs((tx*5+ty*7+(hash(tx+37,ty+61)*count|0)))%count;
  const drawProductionOverlayChip=(c,tx,ty)=>{
   const id=visualChipAt(tx,ty),footX=tx*tileSize+tileSize/2,footY=(ty+1)*tileSize;
   if(id>=CHIP.FOREST_CORE&&id<=CHIP.FOREST_SINGLE&&mapChipReady('forest'))
-   return drawMapChip(c,'forest',MAP_CHIP_ATLAS.forest,overlayVariantSlot(id,CHIP.FOREST_CORE),footX,footY);
+   return drawMapChip(c,'forest',MAP_CHIP_ATLAS.forest,(overlayVariantSlot(id,CHIP.FOREST_CORE)+terrainVariant(tx,ty,3)*4)%12,footX,footY);
   if(id>=CHIP.MOUNTAIN_CORE&&id<=CHIP.MOUNTAIN_SINGLE&&mapChipReady('mountain'))
-   return drawMapChip(c,'mountain',MAP_CHIP_ATLAS.mountain,overlayVariantSlot(id,CHIP.MOUNTAIN_CORE),footX,footY);
+   return drawMapChip(c,'mountain',MAP_CHIP_ATLAS.mountain,(overlayVariantSlot(id,CHIP.MOUNTAIN_CORE)+terrainVariant(tx,ty,3)*4)%12,footX,footY);
   return false;
  };
  const LANDMARK_SLOT={village:0,shrine:1,cove:2,forest:3,waterfall:4,hotspring:5,fox:6};
