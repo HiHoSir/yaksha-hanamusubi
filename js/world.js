@@ -265,7 +265,9 @@ window.YK_WORLD=(()=>{
   [CHIP.SHORE_IN_SW]:['shore',MAP_CHIP_ATLAS.shore,10],[CHIP.SHORE_IN_NW]:['shore',MAP_CHIP_ATLAS.shore,11]
  };
  const drawProductionBaseChip=(c,tx,ty)=>{
-  const id=visualChipAt(tx,ty);
+  const id=visualChipAt(tx,ty),terrain=mapData[ty]?.[tx];
+  // Forest/mountain sprites are overhang overlays; their 32px footprint still needs grass below.
+  if(terrain===TILE.FOREST||terrain===TILE.MOUNTAIN){const grass=CHIP_TO_ATLAS[CHIP.GRASS_BASE];return drawMapChip(c,grass[0],grass[1],grass[2],tx*tileSize,ty*tileSize);}
   // Shore art is an overlay: lay grass first, then the directional shore sprite when available.
   if(id>=CHIP.SHORE_N&&id<=CHIP.SHORE_IN_NW){
    const grass=CHIP_TO_ATLAS[CHIP.GRASS_BASE],shore=CHIP_TO_ATLAS[id];
