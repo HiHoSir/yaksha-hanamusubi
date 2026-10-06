@@ -533,6 +533,26 @@ window.YK_WORLD=(()=>{
   }
   // Forest and mountain visuals are already painted by the quarter-view passes above.
   // Do not stamp a second symbol per collision cell; that would destroy the one-step/one-cell scale.
+  // Starting-area composition: a readable village approach and northbound departure lane.
+  // Visual-only; save/event coordinates and walkability are untouched.
+  if(!ready){
+   const [vx,vy]=places.village.point;
+   c.save();
+   // village common: broad irregular earth patch, deliberately not aligned to 32px cells
+   c.globalAlpha=.24;c.fillStyle='#aa965d';c.beginPath();
+   c.moveTo(vx-53,vy+22);c.quadraticCurveTo(vx-42,vy-24,vx-5,vy-30);
+   c.quadraticCurveTo(vx+35,vy-25,vx+48,vy+9);c.quadraticCurveTo(vx+30,vy+32,vx-12,vy+35);
+   c.quadraticCurveTo(vx-38,vy+34,vx-53,vy+22);c.fill();
+   // northbound worn lane: narrows as it leaves the settlement
+   c.globalAlpha=.42;c.strokeStyle='#a38c57';c.lineCap='round';c.lineWidth=8;c.beginPath();
+   c.moveTo(vx+19,vy-2);c.quadraticCurveTo(vx+22,vy-30,vx+27,vy-58);c.quadraticCurveTo(vx+30,vy-83,vx+42,vy-106);c.stroke();
+   c.globalAlpha=.20;c.strokeStyle='#756743';c.lineWidth=1.2;c.beginPath();
+   c.moveTo(vx+16,vy-4);c.quadraticCurveTo(vx+20,vy-48,vx+39,vy-104);c.stroke();
+   // two tiny roadside stones establish one-step scale without blocking movement
+   c.globalAlpha=.5;c.fillStyle='#777361';
+   for(const [ox,oy] of [[10,-47],[38,-74]]){c.beginPath();c.ellipse(vx+ox,vy+oy,2.4,1.5,-.2,0,Math.PI*2);c.fill();}
+   c.restore();
+  }
   // Village outskirts: intentional small farm plots replace scattered fence-like marks.
   if(!ready){
    const [vx,vy]=places.village.point;
@@ -584,5 +604,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:58,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:59,tileAt,tileSize,size,viewSize,camera,draw};
 })();
