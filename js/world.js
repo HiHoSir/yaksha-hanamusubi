@@ -252,6 +252,23 @@ window.YK_WORLD=(()=>{
    c.fillStyle='#596b62';c.beginPath();c.moveTo(rx-6*s,ry+4*s);c.lineTo(rx-2*s,ry-7*s);c.lineTo(rx+2*s,ry-3*s);c.lineTo(rx+6*s,ry+4*s);c.closePath();c.fill();
    c.strokeStyle='rgba(232,241,211,.72)';c.lineWidth=1;c.beginPath();c.arc(rx,ry+4*s,8*s,Math.PI*.08,Math.PI*.92);c.stroke();
   }
+  // Coast dressing follows the island silhouette without changing collision.
+  // Sand/grass shelves and sparse shore rocks soften the square water boundary.
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   if(mapData[ty][tx]!==TILE.GRASS)continue;
+   const sea=(dx,dy)=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.WATER;
+   const coastal=sea(0,-1)||sea(1,0)||sea(0,1)||sea(-1,0);
+   if(!coastal)continue;
+   const x=tx*tileSize,y=ty*tileSize,v=hash(tx+151,ty+97);
+   c.save();c.globalAlpha=.42;c.fillStyle="#c9b978";
+   if(sea(0,-1))c.fillRect(x,y,32,5);
+   if(sea(0,1))c.fillRect(x,y+27,32,5);
+   if(sea(-1,0))c.fillRect(x,y,5,32);
+   if(sea(1,0))c.fillRect(x+27,y,5,32);
+   c.globalAlpha=.65;c.fillStyle="#e0d49a";
+   if(v>.48){c.beginPath();c.ellipse(x+8+v*14,y+8+(1-v)*14,2.4,1.2,-.2,0,Math.PI*2);c.fill();}
+   c.restore();
+  }
   // Regional scenery: visual breadcrumbs rather than collision corridors.
   const dot=(x,y,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();};
   for(const z of scenicZones){
@@ -327,5 +344,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:24,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:25,tileAt,tileSize,size,viewSize,camera,draw};
 })();
