@@ -268,6 +268,32 @@ window.YK_WORLD=(()=>{
   const id=visualChipAt(tx,ty),def=CHIP_TO_ATLAS[id];if(!def)return false;
   return drawMapChip(c,def[0],def[1],def[2],tx*tileSize,ty*tileSize);
  };
+ const ROAD_TO_SLOT={
+  [CHIP.ROAD_H]:0,[CHIP.ROAD_V]:1,[CHIP.ROAD_NE]:2,[CHIP.ROAD_SE]:3,[CHIP.ROAD_SW]:4,[CHIP.ROAD_NW]:5,
+  [CHIP.ROAD_T_N]:6,[CHIP.ROAD_T_E]:7,[CHIP.ROAD_T_S]:8,[CHIP.ROAD_T_W]:9,[CHIP.ROAD_X]:10,
+  [CHIP.ROAD_END_N]:11,[CHIP.ROAD_END_E]:12,[CHIP.ROAD_END_S]:13,[CHIP.ROAD_END_W]:14
+ };
+ const drawProductionRoadChip=(c,tx,ty)=>{
+  if(!mapChipReady('road'))return false;
+  const id=roadChipAt(tx,ty),slot=ROAD_TO_SLOT[id];if(slot==null)return false;
+  return drawMapChip(c,'road',MAP_CHIP_ATLAS.road,slot,tx*tileSize,ty*tileSize);
+ };
+ const overlayVariantSlot=(id,base)=>Math.max(0,Math.min(11,id-base));
+ const drawProductionOverlayChip=(c,tx,ty)=>{
+  const id=visualChipAt(tx,ty),footX=tx*tileSize+tileSize/2,footY=(ty+1)*tileSize;
+  if(id>=CHIP.FOREST_CORE&&id<=CHIP.FOREST_SINGLE&&mapChipReady('forest'))
+   return drawMapChip(c,'forest',MAP_CHIP_ATLAS.forest,overlayVariantSlot(id,CHIP.FOREST_CORE),footX,footY);
+  if(id>=CHIP.MOUNTAIN_CORE&&id<=CHIP.MOUNTAIN_SINGLE&&mapChipReady('mountain'))
+   return drawMapChip(c,'mountain',MAP_CHIP_ATLAS.mountain,overlayVariantSlot(id,CHIP.MOUNTAIN_CORE),footX,footY);
+  return false;
+ };
+ const LANDMARK_SLOT={village:0,shrine:1,cove:2,forest:3,waterfall:4,hotspring:5,fox:6};
+ const drawProductionLandmark=(c,o)=>{
+  if(!mapChipReady('landmarks'))return false;
+  const slot=LANDMARK_SLOT[o.kind];if(slot==null)return false;
+  const b=objectBounds(o),footX=b.x+b.w/2,footY=b.y+b.h;
+  return drawMapChip(c,'landmarks',MAP_CHIP_ATLAS.landmarks,slot,footX,footY);
+ };
  const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v3.png?v=3"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
@@ -793,5 +819,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:76,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:77,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark};
 })();
