@@ -28,6 +28,9 @@ jobs:
           const game=fs.readFileSync('js/game.js','utf8');
           if(!game.includes('YK_INPUT.tap($("newGame")'))throw new Error('new game handler missing');
           if(!game.includes('YK_INPUT.tap($("continueGame")'))throw new Error('continue handler missing');
+          if(!html.includes('id="debugMap"'))throw new Error('debug map title entry missing');
+          if(!game.includes('DEBUG_ORTHO_ART'))throw new Error('debug sheet loader missing');
+          if(!game.includes('if(debugField){map();return;}'))throw new Error('debug movement isolation missing');
           console.log('boot contract OK');
           NODE
       - name: Required production assets
@@ -38,13 +41,28 @@ jobs:
           test -s assets/terrain/world-forest-qv.png
           test -s assets/terrain/world-mountain-qv.png
           test -s assets/terrain/world-landmarks-qv.png
-          test -s assets/terrain/debug-ortho-atlas-v1.png
+          test -s assets/terrain/world-ortho-ground-v1.png
+          test -s assets/terrain/world-ortho-road-v1.png
+          test -s assets/terrain/world-ortho-shore-v1.png
+          test -s assets/terrain/world-ortho-forest-v1.png
+          test -s assets/terrain/world-ortho-mountain-v1.png
+          test -s assets/terrain/world-ortho-landmarks-v1.png
           node - <<'NODE'
           const fs=require('fs');
-          const p='assets/terrain/debug-ortho-atlas-v1.png',b=fs.readFileSync(p);
-          if(b.length<10000)throw new Error('debug atlas suspiciously small: '+b.length+' bytes');
-          if(b.toString('ascii',1,4)!=='PNG')throw new Error('debug atlas is not PNG');
-          const w=b.readUInt32BE(16),h=b.readUInt32BE(20);
-          if(w!==512||h!==512)throw new Error('debug atlas dimensions must be 512x512, got '+w+'x'+h);
-          console.log('debug atlas OK',b.length+' bytes',w+'x'+h);
+          const specs={
+            'world-ortho-ground-v1.png':[256,128,3000],
+            'world-ortho-road-v1.png':[128,128,800],
+            'world-ortho-shore-v1.png':[128,128,500],
+            'world-ortho-forest-v1.png':[192,128,3000],
+            'world-ortho-mountain-v1.png':[288,192,3000],
+            'world-ortho-landmarks-v1.png':[384,192,3000]
+          };
+          for(const [name,[ew,eh,min]] of Object.entries(specs)){
+            const p='assets/terrain/'+name,b=fs.readFileSync(p);
+            if(b.length<min)throw new Error(name+' suspiciously small: '+b.length+' bytes');
+            if(b.toString('ascii',1,4)!=='PNG')throw new Error(name+' is not PNG');
+            const w=b.readUInt32BE(16),h=b.readUInt32BE(20);
+            if(w!==ew||h!==eh)throw new Error(name+' dimensions '+w+'x'+h+', expected '+ew+'x'+eh);
+          }
+          console.log('orthogonal debug sheets OK');
           NODE
