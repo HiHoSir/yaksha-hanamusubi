@@ -96,7 +96,7 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v2.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v3.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
@@ -135,6 +135,15 @@ window.YK_WORLD=(()=>{
    if(!water&&!bridge&&artReady(fieldTiles)){
     const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
     c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
+   }
+   // Mountain and forest are now selected from the same 32px field sheet by N/E/S/W adjacency.
+   // Logical tile IDs and collision remain unchanged.
+   if((t==='mountain'||t==='forest')&&artReady(fieldTiles)){
+    const target=t==='mountain'?TILE.MOUNTAIN:TILE.FOREST;
+    const same=(gx,gy)=>gx>=0&&gy>=0&&gx<gridCols&&gy<gridRows&&mapData[gy][gx]===target;
+    const mask=(same(tx,ty-1)?1:0)|(same(tx+1,ty)?2:0)|(same(tx,ty+1)?4:0)|(same(tx-1,ty)?8:0);
+    const row=t==='mountain'?2:4;
+    c.drawImage(fieldTiles,(mask&15)*32,row*32,32,32,x,y,32,32);
    }
    if(water){
     // 32px image autotile. Bitmask N/E/S/W marks adjacent land; collision remains mapData-only.
@@ -205,7 +214,7 @@ window.YK_WORLD=(()=>{
   }c.restore();
   // Mountain art is independent from the logical 32px MOUNTAIN collision grid.
   // Broad overlapping ranges remove thin vertical fragments and repetitive stair-steps.
-  if(artReady(TERRAIN_ART.mountainRange)){
+  if(false&&artReady(TERRAIN_ART.mountainRange)){
    c.save();c.fillStyle="#789a50";
    c.beginPath();c.moveTo(0,0);c.lineTo(520,0);c.lineTo(500,72);c.lineTo(438,105);c.lineTo(410,150);c.lineTo(451,205);c.lineTo(470,268);c.lineTo(438,310);c.lineTo(382,286);c.lineTo(337,228);c.lineTo(306,203);c.lineTo(242,239);c.lineTo(190,285);c.lineTo(178,350);c.lineTo(126,412);c.lineTo(72,438);c.lineTo(28,410);c.lineTo(0,425);c.closePath();c.fill();
    c.beginPath();c.moveTo(0,558);c.lineTo(62,575);c.lineTo(96,626);c.lineTo(143,644);c.lineTo(176,700);c.lineTo(178,768);c.lineTo(0,768);c.closePath();c.fill();c.restore();
@@ -234,7 +243,7 @@ window.YK_WORLD=(()=>{
   }
   // Image-based forest objects: visual scale is independent from the 32px collision grid.
   // Until PNGs are uploaded, forest tiles intentionally remain visually quiet rather than falling back to procedural trees.
-  for(const [key,x,y,w,h] of forestTreeObjects)drawTerrainArt(c,key,x,y,w,h);
+  // Forest visuals now come from FIELD_TILE_ROWS + unified 32px chips.
   // Offshore rock clusters give the sea depth without changing collision.
   for(const [rx,ry,s] of [[46,456,1],[84,445,.8],[525,678,.9],[565,645,.65],[702,505,.75],[735,544,.55]]){
    if(tileAt(rx,ry)!=='water')continue;
