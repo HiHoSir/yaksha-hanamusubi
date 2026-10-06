@@ -39,3 +39,12 @@ jobs:
           test -s assets/terrain/world-mountain-qv.png
           test -s assets/terrain/world-landmarks-qv.png
           test -s assets/terrain/debug-ortho-atlas-v1.png
+          node - <<'NODE'
+          const fs=require('fs');
+          const p='assets/terrain/debug-ortho-atlas-v1.png',b=fs.readFileSync(p);
+          if(b.length<10000)throw new Error('debug atlas suspiciously small: '+b.length+' bytes');
+          if(b.toString('ascii',1,4)!=='PNG')throw new Error('debug atlas is not PNG');
+          const w=b.readUInt32BE(16),h=b.readUInt32BE(20);
+          if(w!==512||h!==512)throw new Error('debug atlas dimensions must be 512x512, got '+w+'x'+h);
+          console.log('debug atlas OK',b.length+' bytes',w+'x'+h);
+          NODE
