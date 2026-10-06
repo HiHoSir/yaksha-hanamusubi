@@ -338,7 +338,7 @@ window.YK_WORLD=(()=>{
    // Production map-chip handoff: once the exact atlas PNG exists, use it for the base cell.
    // Until then this returns false and the legacy safe renderer remains untouched.
    const productionBase=drawProductionBaseChip(c,tx,ty);
-   const productionRoad=drawProductionRoadChip(c,tx,ty);
+   // Road is rendered in a dedicated pass after the base terrain so grass cannot paint over it.
    // The road atlas is a transparent overlay and is intentionally independent of the base atlas.
    // Unified 32px field tileset migration: grass now comes from explicit image chips.
    // Water shoreline remains on the proven autotile sheet until its shore IDs are migrated.
@@ -420,6 +420,10 @@ window.YK_WORLD=(()=>{
     if(v>.965){c.strokeStyle='rgba(93,130,61,.48)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
+  }
+  // Production road overlay: one logical walking cell remains 32px.
+  if(mapChipReady('road')){
+   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++)drawProductionRoadChip(c,tx,ty);
   }
   // Procedural coastline skirt: curves are painted from land into neighboring water.
   // Collision remains square, but the visible coast is no longer a staircase.
@@ -652,7 +656,7 @@ window.YK_WORLD=(()=>{
   }
   // Roads are painted in world space at roughly one-third of a walking cell.
   // Their bends follow the progression route while keeping open grass explorable.
-  c.save();c.lineCap='round';c.lineJoin='round';
+  if(!mapChipReady('road')){c.save();c.lineCap='round';c.lineJoin='round';
   for(let ri=0;ri<roads.length;ri++){
    const r=roads[ri]; if(r.length<2)continue;
    c.globalAlpha=.22;c.strokeStyle='#776a43';c.lineWidth=11;
@@ -664,7 +668,7 @@ window.YK_WORLD=(()=>{
    for(let i=1;i<r.length;i++){const p=r[i-1],q=r[i],mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;c.quadraticCurveTo(p[0],p[1],mx,my)}
    c.lineTo(last[0],last[1]);c.stroke();
   }
-  c.restore();
+  c.restore();}
   // Sparse roadside stones reinforce scale without becoming collision objects.
   for(const [rx,ry] of [[270,451],[341,470],[401,571],[551,548],[620,465],[648,347],[556,181],[352,143]]){
    if(tileAt(rx,ry)!=='grass')continue;
@@ -828,6 +832,9 @@ window.YK_WORLD=(()=>{
     stamp(icons[k],x,y-8,38,33);
    }
   }
+  // Production overhangs belong inside draw(), after all base/fallback passes.
+  // Never invoke this at module scope: doing so previously prevented YK_WORLD from initializing.
+  drawProductionOverhangs(c);
  }
  const drawProductionOverhangs=c=>{
   if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return false;
