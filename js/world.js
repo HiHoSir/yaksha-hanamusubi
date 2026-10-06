@@ -609,16 +609,20 @@ window.YK_WORLD=(()=>{
     c.save();c.globalAlpha=.20;c.fillStyle=k==='fox'?'#8b6848':'#65714b';c.beginPath();c.ellipse(x,y+8,w*.62,11,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
     stamp(icons[k],x,y-15,w,w*.86);c.restore();
    }else if(k==='waterfall'){
+    if(!ready){c.save();c.fillStyle='#65705e';c.beginPath();c.moveTo(x-24,y+13);c.lineTo(x-18,y-22);c.lineTo(x-7,y-32);c.lineTo(x+2,y-19);c.lineTo(x+14,y-29);c.lineTo(x+24,y+13);c.closePath();c.fill();c.fillStyle='#d8ece2';c.beginPath();c.moveTo(x-5,y-25);c.quadraticCurveTo(x+1,y-8,x-2,y+10);c.lineTo(x+8,y+10);c.quadraticCurveTo(x+10,y-8,x+4,y-22);c.closePath();c.fill();c.fillStyle='#4d8c8b';c.beginPath();c.ellipse(x+3,y+13,19,5,0,0,Math.PI*2);c.fill();c.restore();}
     stamp(icons[k],x,y-13,50,46);
    }else if(k==='hotspring'){
+    if(!ready){c.save();c.fillStyle='#72816b';c.beginPath();c.ellipse(x,y+7,24,10,0,0,Math.PI*2);c.fill();c.fillStyle='#8bc1b4';c.beginPath();c.ellipse(x,y+5,18,7,0,0,Math.PI*2);c.fill();c.strokeStyle='rgba(239,238,211,.72)';c.lineWidth=2;for(const ox of [-8,1,9]){c.beginPath();c.moveTo(x+ox,y-3);c.quadraticCurveTo(x+ox-4,y-10,x+ox+1,y-16);c.stroke();}c.restore();}
     stamp(icons[k],x,y-10,44,38);
    }else if(k==='forest'){
-    // Destination marker stays modest because the surrounding forest itself is the landmark.
+    if(!ready){c.save();c.strokeStyle='#76543a';c.lineWidth=2.5;c.beginPath();c.moveTo(x-10,y+8);c.lineTo(x-10,y-9);c.moveTo(x+10,y+8);c.lineTo(x+10,y-9);c.moveTo(x-14,y-8);c.quadraticCurveTo(x,y-15,x+14,y-8);c.stroke();c.fillStyle='#4a7044';for(const ox of [-13,0,13]){c.beginPath();c.arc(x+ox,y-15-(ox===0?4:0),7,0,Math.PI*2);c.fill();}c.restore();}
     stamp(icons[k],x,y-8,34,31);
    }else{
+    // Cove: small beach/rock marker remains within a 2x1 object footprint.
+    if(!ready){c.save();c.globalAlpha=.9;c.fillStyle='#c8b66e';c.beginPath();c.ellipse(x,y+5,27,9,-.12,0,Math.PI*2);c.fill();c.fillStyle='#667066';for(const [ox,oy,r] of [[-18,2,4],[17,5,5],[8,-1,3]]){c.beginPath();c.ellipse(x+ox,y+oy,r,r*.65,-.2,0,Math.PI*2);c.fill();}c.strokeStyle='rgba(225,240,222,.7)';c.lineWidth=1.4;c.beginPath();c.arc(x+1,y+8,17,.15,2.75);c.stroke();c.restore();}
     stamp(icons[k],x,y-8,38,33);
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:66,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:67,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
 })();
