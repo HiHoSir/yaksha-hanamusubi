@@ -527,15 +527,13 @@ function drawRoundedField(c,source){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
-  // Emergency direct renderer: no terrain cache, atlas, offscreen canvas or curved compositor.
-  // Used to isolate the runtime exception reported by iOS.
-  g.fillStyle="#9fbd62";g.fillRect(0,0,768,768);
-  g.save();g.globalAlpha=.20;g.fillStyle="#6d914f";
-  for(let y=28;y<768;y+=54)for(let x=24;x<768;x+=62){g.beginPath();g.ellipse(x,y,28,10,-.15,0,Math.PI*2);g.fill()}
-  g.restore();
-  drawActors();
+  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
+  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
+  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
+  drawWorldTerrain(fieldFrameCtx);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
+  g.drawImage(fieldFrame,0,0,768,768);
   const k=YK_WORLD.near(S.x,S.y);
-  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"復旧確認中 · フィールド表示テスト");return;
+  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
  }
  if(S.area==="village"){drawVillageMap(g);drawVillageCollisionDebug(g)}
  else if(S.area==="teahouse") drawInterior(g,"tea");
