@@ -938,7 +938,7 @@ titleHero();hud();requestAnimationFrame(loop);
 
 const DEBUG_SINGLE_KEY="road";
 const DEBUG_ORTHO_PATHS={
- road:{v2:"assets/terrain/world-ortho-road-v2.png",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]}
+ road:{v2:"assets/terrain/world-ortho-road-v2.png?v=2",v1:"assets/terrain/world-ortho-road-v1.png",size:[128,128]}
 };
 const DEBUG_ORTHO_ART={},DEBUG_ORTHO_FALLBACK={};
 {
