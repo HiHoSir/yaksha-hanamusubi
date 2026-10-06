@@ -458,55 +458,37 @@ window.YK_WORLD=(()=>{
     }
    }
   }
-  // Authoritative terrain pass: mapData itself paints the visible 32px terrain layer.
-  // Re-resolve the optional tileset in this scope. The first-pass fieldTiles is block-scoped
-  // and Safari correctly raised ReferenceError here.
-  const terrainFieldTiles=ready?TERRAIN_ART.fieldTiles:null;
-  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-   const target=mapData[ty][tx],x=tx*tileSize,y=ty*tileSize;
-   if(target===TILE.FOREST && !artReady(terrainFieldTiles)){
-    // Fallback only: unified field chips are authoritative when loaded.
-    // One forest cell = one compact field symbol. Offset canopy/base creates a quarter-view footprint.
-    const v=hash(tx+83,ty+47),cx=x+16,base=y+27;
-    c.save();
-    c.globalAlpha=.18;c.fillStyle="#355538";c.beginPath();c.ellipse(cx+2,base+1,9,2.4,-.12,0,Math.PI*2);c.fill();c.globalAlpha=1;
-    c.fillStyle="#67452d";c.fillRect(cx-1.5,base-8,3,8);
-    c.fillStyle="#315a37";c.beginPath();c.arc(cx-5,base-11,5.8,0,Math.PI*2);c.arc(cx+5,base-12,5.6,0,Math.PI*2);c.arc(cx+1,base-17,7.2,0,Math.PI*2);c.fill();
-    c.fillStyle="#4d7b47";c.beginPath();c.arc(cx-3,base-17,3.8,0,Math.PI*2);c.arc(cx+4,base-19,4.2,0,Math.PI*2);c.fill();
-    c.fillStyle="rgba(159,184,92,.65)";c.fillRect(cx-7,base-1,14,1.4);
-    c.restore();
-   }else if(target===TILE.MOUNTAIN && !artReady(terrainFieldTiles)){
-    // Fallback only: do not stack procedural peaks over the 32px mountain chips.
-    // Peaks overlap neighboring cells visually; logical collision remains exactly one 32px cell.
-    // The staggered base makes connected cells read as a mountain range instead of stacked triangles.
-    const v=hash(tx+19,ty+61),base=y+31,shift=(ty&1)?5:-3;
-    c.save();
-    c.fillStyle="rgba(55,76,53,.18)";c.beginPath();c.ellipse(x+17+shift,base,20,4,0,0,Math.PI*2);c.fill();
-    c.fillStyle="#59645a";c.beginPath();c.moveTo(x-8+shift,base);c.lineTo(x+5+shift,base-13);c.lineTo(x+12+shift,base-9);c.lineTo(x+23+shift,base-25+v*3);c.lineTo(x+40+shift,base);c.closePath();c.fill();
-    c.fillStyle="#aeb49b";c.beginPath();c.moveTo(x+23+shift,base-25+v*3);c.lineTo(x+18+shift,base-16);c.lineTo(x+23+shift,base-19);c.lineTo(x+28+shift,base-13);c.closePath();c.fill();
-    c.fillStyle="#496241";c.fillRect(x-6+shift,base-3,44,3);
-    c.restore();
-   }
-  }
+  // Forest and mountain visuals are already painted by the quarter-view passes above.
+  // Do not stamp a second symbol per collision cell; that would destroy the one-step/one-cell scale.
   // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
   for(const [k,p] of Object.entries(places)){
    const [x,y]=p.point;
-   // Landmark scale is intentionally independent from the 32px walking grid.
-   // Settlements must read as places the hero can enter, while minor destinations stay compact.
+   // Landmark footprints are measured against the 32px walking cell:
+   // village ~= 3x2 cells, major shrine ~= 2x2, minor destinations ~= 1-2 cells.
    if(k==='village'){
     c.save();
-    c.globalAlpha=.18;c.fillStyle='#45663f';c.beginPath();c.ellipse(x,y+8,46,12,-.08,0,Math.PI*2);c.fill();c.globalAlpha=1;
-    stamp(icons[k],x-22,y-15,42,36);
-    stamp(icons[k],x+20,y-18,40,34);
-    stamp(icons[k],x-2,y+7,46,39);
+    c.globalAlpha=.24;c.fillStyle='#b49c61';c.beginPath();c.ellipse(x-5,y+11,50,20,-.08,0,Math.PI*2);c.fill();
+    c.globalAlpha=.30;c.strokeStyle='#8b784d';c.lineWidth=5;c.lineCap='round';
+    c.beginPath();c.moveTo(x+18,y-6);c.quadraticCurveTo(x+35,y+18,x+39,y+43);c.stroke();c.globalAlpha=1;
+    stamp(icons[k],x-32,y-18,52,44);stamp(icons[k],x+22,y-21,48,41);stamp(icons[k],x-7,y+12,58,49);
     c.restore();
+   }else if(k==='shrine'||k==='fox'){
+    const w=k==='fox'?58:56;
+    c.save();c.globalAlpha=.20;c.fillStyle=k==='fox'?'#8b6848':'#65714b';c.beginPath();c.ellipse(x,y+8,w*.62,11,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
+    stamp(icons[k],x,y-15,w,w*.86);c.restore();
+   }else if(k==='waterfall'){
+    stamp(icons[k],x,y-13,50,46);
+   }else if(k==='hotspring'){
+    stamp(icons[k],x,y-10,44,38);
+   }else if(k==='forest'){
+    // Destination marker stays modest because the surrounding forest itself is the landmark.
+    stamp(icons[k],x,y-8,34,31);
    }else{
-    const w=k==='shrine'?42:k==='fox'?44:k==='hotspring'?38:k==='waterfall'?40:k==='forest'?36:k==='cove'?34:32;
-    stamp(icons[k],x,y-w*.28,w,w*.84);
+    stamp(icons[k],x,y-8,38,33);
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:51,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:52,tileAt,tileSize,size,viewSize,camera,draw};
 })();
