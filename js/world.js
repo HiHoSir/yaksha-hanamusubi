@@ -140,7 +140,9 @@ window.YK_WORLD=(()=>{
    const x=tx*tileSize,y=ty*tileSize,t=TILE_NAME[mapData[ty][tx]],v=hash(tx,ty),water=t==='water',bridge=t==='bridge';
    // Unified 32px field tileset migration: grass now comes from explicit image chips.
    // Water shoreline remains on the proven autotile sheet until its shore IDs are migrated.
-   const fieldTiles=TERRAIN_ART.fieldTiles;
+   // iOS-safe mode: when the landmark atlas is intentionally omitted, also force the
+   // procedural terrain fallback. This avoids mixing asynchronous image tiles into direct rendering.
+   const fieldTiles=ready?TERRAIN_ART.fieldTiles:null;
    if(!water&&!bridge&&artReady(fieldTiles)){
     const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
     c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
@@ -452,5 +454,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:44,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:45,tileAt,tileSize,size,viewSize,camera,draw};
 })();
