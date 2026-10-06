@@ -252,6 +252,17 @@ window.YK_WORLD=(()=>{
    c.fillStyle='#596b62';c.beginPath();c.moveTo(rx-6*s,ry+4*s);c.lineTo(rx-2*s,ry-7*s);c.lineTo(rx+2*s,ry-3*s);c.lineTo(rx+6*s,ry+4*s);c.closePath();c.fill();
    c.strokeStyle='rgba(232,241,211,.72)';c.lineWidth=1;c.beginPath();c.arc(rx,ry+4*s,8*s,Math.PI*.08,Math.PI*.92);c.stroke();
   }
+  // Sparse meadow clusters give broad plains a readable scale without becoming obstacles.
+  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+   if(mapData[ty][tx]!==TILE.GRASS)continue;
+   const v=hash(tx+503,ty+419); if(v<.73)continue;
+   const x=tx*tileSize,y=ty*tileSize,ox=6+v*17,oy=18+(1-v)*7;
+   c.save();c.globalAlpha=.28;c.fillStyle="#6f8c4f";
+   c.beginPath();c.ellipse(x+ox,y+oy,5.5,1.8,-.15,0,Math.PI*2);c.fill();
+   c.globalAlpha=.34;c.strokeStyle="#567642";c.lineWidth=.8;
+   c.beginPath();c.moveTo(x+ox-2,y+oy);c.lineTo(x+ox-1,y+oy-4);c.moveTo(x+ox+2,y+oy);c.lineTo(x+ox+4,y+oy-3);c.stroke();
+   c.restore();
+  }
   // Mountain foothills: small rock/brush accents make ranges emerge from the plain
   // instead of looking like isolated stamped symbols.
   for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
@@ -395,5 +406,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:28,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:29,tileAt,tileSize,size,viewSize,camera,draw};
 })();
