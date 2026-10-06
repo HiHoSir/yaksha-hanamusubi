@@ -54,8 +54,27 @@ window.YK_WORLD=(()=>{
   WATER_BASE:32,BRIDGE_H:40,BRIDGE_V:41,
   FOREST_CORE:48,FOREST_N:49,FOREST_E:50,FOREST_S:51,FOREST_W:52,FOREST_NE:53,FOREST_SE:54,FOREST_SW:55,FOREST_NW:56,FOREST_SINGLE:57,
   MOUNTAIN_CORE:64,MOUNTAIN_N:65,MOUNTAIN_E:66,MOUNTAIN_S:67,MOUNTAIN_W:68,MOUNTAIN_NE:69,MOUNTAIN_SE:70,MOUNTAIN_SW:71,MOUNTAIN_NW:72,MOUNTAIN_SINGLE:73,
-  ROAD:80,VILLAGE:96,SHRINE:97,COVE:98,
+  ROAD_H:80,ROAD_V:81,ROAD_NE:82,ROAD_SE:83,ROAD_SW:84,ROAD_NW:85,ROAD_T_N:86,ROAD_T_E:87,ROAD_T_S:88,ROAD_T_W:89,ROAD_X:90,ROAD_END_N:91,ROAD_END_E:92,ROAD_END_S:93,ROAD_END_W:94,
+  VILLAGE:96,SHRINE:97,COVE:98,
   WATERFALL:99,HOTSPRING:100,FOX:101};
+ // Rasterize the existing curved route onto the 32px logic grid for future road chips.
+ const roadCells=new Set();
+ const markRoad=(x,y)=>{const tx=Math.floor(x/tileSize),ty=Math.floor(y/tileSize);if(tx>=0&&ty>=0&&tx<gridCols&&ty<gridRows)roadCells.add(tx+','+ty);};
+ for(const route of roads)for(let i=1;i<route.length;i++){
+  const a=route[i-1],b=route[i],len=Math.max(1,Math.hypot(b[0]-a[0],b[1]-a[1])),steps=Math.ceil(len/8);
+  for(let j=0;j<=steps;j++){const q=j/steps;markRoad(a[0]+(b[0]-a[0])*q,a[1]+(b[1]-a[1])*q);}
+ }
+ const roadChipAt=(tx,ty)=>{
+  if(!roadCells.has(tx+','+ty))return null;
+  const has=(dx,dy)=>roadCells.has((tx+dx)+','+(ty+dy));
+  const n=has(0,-1),e=has(1,0),so=has(0,1),w=has(-1,0),count=+n+ +e+ +so+ +w;
+  if(count>=4)return CHIP.ROAD_X;
+  if(count===3){if(!n)return CHIP.ROAD_T_N;if(!e)return CHIP.ROAD_T_E;if(!so)return CHIP.ROAD_T_S;return CHIP.ROAD_T_W;}
+  if(n&&e)return CHIP.ROAD_NE;if(e&&so)return CHIP.ROAD_SE;if(so&&w)return CHIP.ROAD_SW;if(w&&n)return CHIP.ROAD_NW;
+  if(e&&w)return CHIP.ROAD_H;if(n&&so)return CHIP.ROAD_V;
+  if(n)return CHIP.ROAD_END_N;if(e)return CHIP.ROAD_END_E;if(so)return CHIP.ROAD_END_S;if(w)return CHIP.ROAD_END_W;
+  return CHIP.ROAD_H;
+ };
  const visualChipAt=(tx,ty)=>{
   if(tx<0||ty<0||tx>=gridCols||ty>=gridRows)return CHIP.WATER_BASE;
   const t=mapData[ty][tx];
@@ -574,5 +593,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:63,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:64,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt};
 })();
