@@ -527,24 +527,10 @@ function drawRoundedField(c,source){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
-  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
-  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
-  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
-  // iOS isolation: draw the world directly. This bypasses worldAtlas/worldTerrain cache,
-  // the remaining suspect path after the emergency renderer proved Canvas/hero are healthy.
-  // Stage 2 isolation: keep the proven camera/hero path and paint the actual logical world
-  // without calling YK_WORLD.draw(). If this is stable, the exception is inside world.draw itself.
-  fieldFrameCtx.fillStyle="#9fbd62";fieldFrameCtx.fillRect(camera.x,camera.y,camera.size,camera.size);
-  for(let ty=0;ty<24;ty++)for(let tx=0;tx<24;tx++){
-   const wx=tx*32+16,wy=ty*32+16,t=YK_WORLD.tileAt(wx,wy);
-   if(t==="water"){fieldFrameCtx.fillStyle="#397f91";fieldFrameCtx.fillRect(tx*32,ty*32,32,32)}
-   else if(t==="forest"){fieldFrameCtx.fillStyle="#3f7045";fieldFrameCtx.fillRect(tx*32,ty*32,32,32)}
-   else if(t==="mountain"){fieldFrameCtx.fillStyle="#697064";fieldFrameCtx.fillRect(tx*32,ty*32,32,32)}
-  }
-  drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
-  g.drawImage(fieldFrame,0,0,768,768);
-  const k=YK_WORLD.near(S.x,S.y);
-  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
+  // Stage 3 isolation: absolutely no YK_WORLD access in the render path.
+  g.fillStyle="#9fbd62";g.fillRect(0,0,768,768);
+  drawActors();
+  worldHint("診断3 · world.js 非参照");return;
  }
  if(S.area==="village"){drawVillageMap(g);drawVillageCollisionDebug(g)}
  else if(S.area==="teahouse") drawInterior(g,"tea");
@@ -730,7 +716,7 @@ function villageBlocked(x,y){
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
 function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
-  if(!YK_WORLD.walkable(x,y))return true;
+  // Diagnostic: world collision disabled to isolate the Script error.
 }if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome")return null;
@@ -916,7 +902,7 @@ document.addEventListener("keydown",e=>{
  if(fn){e.preventDefault();fn()}
 });
 $("app")?.addEventListener("contextmenu",e=>e.preventDefault());
-window.addEventListener("error",e=>{console.error(e.error||e.message);busy=false;message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,80),5000)});
+window.addEventListener("error",e=>{console.error(e.error||e.message);busy=false;const loc=e.filename?(" @"+e.filename.split("/").pop()+":"+e.lineno):"";message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000)});
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
 function loop(t){if(!busy){S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
