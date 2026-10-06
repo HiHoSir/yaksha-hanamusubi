@@ -67,7 +67,7 @@ window.YK_WORLD=(()=>{
   "333333333333333333333333",
   "333333333333333333333333",
   "333333333000000333333333",
-  "333333300001100003333333",
+  "333330000001100003333333",
   "333330000011110000033333",
   "333300000110011000003333",
   "333000001100000220000333",
@@ -415,5 +415,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:34,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:35,tileAt,tileSize,size,viewSize,camera,draw};
 })();
