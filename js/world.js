@@ -71,6 +71,20 @@ window.YK_WORLD=(()=>{
   {kind:OBJECT_KIND.FOX,anchor:places.fox.point,footprint:[2,2],chip:CHIP.FOX,z:20}
  ];
  const objectBounds=o=>{const [w,h]=o.footprint,[x,y]=o.anchor;return {x:x-w*tileSize/2,y:y-h*tileSize/2,w:w*tileSize,h:h*tileSize};};
+ // Shared depth contract for the future chip/object renderer.
+ // screenY is the ground-contact point: sprites with a larger value are drawn in front.
+ const depthKey=(screenY,z=0)=>screenY*100+z;
+ const terrainDepth=(tx,ty,z=0)=>depthKey((ty+1)*tileSize,z);
+ const objectDepth=o=>{const b=objectBounds(o);return depthKey(b.y+b.h,o.z||0);};
+ const sortByDepth=items=>items.slice().sort((a,b)=>(a.depth||0)-(b.depth||0));
+ const makeDepthQueue=hero=>{
+  const q=[];
+  // Multi-cell landmarks use their bottom edge as the ground-contact baseline.
+  for(const o of objectLayer)q.push({type:'object',ref:o,depth:objectDepth(o)});
+  // Hero uses feet/ground position; future tree and mountain overlay chips use the same rule.
+  if(hero)q.push({type:'hero',ref:hero,depth:depthKey(hero.y,50)});
+  return sortByDepth(q);
+ };
  const roadCells=new Set();
  const markRoad=(x,y)=>{const tx=Math.floor(x/tileSize),ty=Math.floor(y/tileSize);if(tx>=0&&ty>=0&&tx<gridCols&&ty<gridRows)roadCells.add(tx+','+ty);};
  for(const route of roads)for(let i=1;i<route.length;i++){
@@ -606,5 +620,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:65,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:66,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
 })();
