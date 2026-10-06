@@ -188,7 +188,7 @@ window.YK_WORLD=(()=>{
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
    }
    else if(!artReady(fieldTiles)){
-    c.fillStyle='#a3cc55';c.fillRect(x,y,tileSize,tileSize);
+    // base grass was already painted with a half-pixel overlap above; do not repaint exact 32px cells.
    }
    if(water){
     // Transitional placeholder only; image-based shoreline assets replace legacy 8px decoration.
@@ -534,6 +534,13 @@ window.YK_WORLD=(()=>{
    // village ~= 3x2 cells, major shrine ~= 2x2, minor destinations ~= 1-2 cells.
    if(k==='village'){
     c.save();
+    if(!ready){
+     // Three-house settlement, biased west/south so the start position remains readable.
+     const house=(hx,hy,sc=1)=>{c.fillStyle='#d5c08a';c.fillRect(hx-9*sc,hy-6*sc,18*sc,12*sc);c.fillStyle='#7b4b37';c.beginPath();c.moveTo(hx-11*sc,hy-6*sc);c.lineTo(hx,hy-15*sc);c.lineTo(hx+11*sc,hy-6*sc);c.closePath();c.fill();c.fillStyle='#5d3d2d';c.fillRect(hx-2*sc,hy+1*sc,4*sc,5*sc);};
+     house(x-29,y-12,.9);house(x+3,y-17,1);house(x-15,y+9,1.05);
+     c.fillStyle='#806747';c.fillRect(x+18,y-8,2,19);c.fillRect(x+31,y-8,2,19);for(let yy=y-7;yy<y+12;yy+=5)c.fillRect(x+18,yy,15,1);
+    }
+
     c.globalAlpha=.24;c.fillStyle='#b49c61';c.beginPath();c.ellipse(x-5,y+11,50,20,-.08,0,Math.PI*2);c.fill();
     c.globalAlpha=.30;c.strokeStyle='#8b784d';c.lineWidth=5;c.lineCap='round';
     c.beginPath();c.moveTo(x+18,y-6);c.quadraticCurveTo(x+35,y+18,x+39,y+43);c.stroke();c.globalAlpha=1;
@@ -541,6 +548,9 @@ window.YK_WORLD=(()=>{
     c.restore();
    }else if(k==='shrine'||k==='fox'){
     const w=k==='fox'?58:56;
+    if(!ready){
+     c.save();c.strokeStyle=k==='fox'?'#9b493d':'#8a5138';c.lineWidth=4;c.beginPath();c.moveTo(x-15,y-2);c.lineTo(x-15,y-25);c.moveTo(x+15,y-2);c.lineTo(x+15,y-25);c.moveTo(x-19,y-23);c.lineTo(x+19,y-23);c.stroke();c.lineWidth=2;c.beginPath();c.moveTo(x-17,y-18);c.lineTo(x+17,y-18);c.stroke();c.restore();
+    }
     c.save();c.globalAlpha=.20;c.fillStyle=k==='fox'?'#8b6848':'#65714b';c.beginPath();c.ellipse(x,y+8,w*.62,11,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
     stamp(icons[k],x,y-15,w,w*.86);c.restore();
    }else if(k==='waterfall'){
@@ -555,5 +565,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:55,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:56,tileAt,tileSize,size,viewSize,camera,draw};
 })();
