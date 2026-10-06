@@ -296,17 +296,23 @@ window.YK_WORLD=(()=>{
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const target=mapData[ty][tx],x=tx*tileSize,y=ty*tileSize;
    if(target===TILE.FOREST){
-    const edge=(tx===0||mapData[ty][tx-1]!==TILE.FOREST)||(tx===gridCols-1||mapData[ty][tx+1]!==TILE.FOREST)||(ty===0||mapData[ty-1][tx]!==TILE.FOREST)||(ty===gridRows-1||mapData[ty+1][tx]!==TILE.FOREST);
-    c.fillStyle=edge?"#527d45":"#3e693d";c.fillRect(x,y,tileSize,tileSize);
-    c.fillStyle="#2f5637";
-    for(const [ox,oy,r] of [[8,19,8],[17,12,9],[25,20,8]]){c.beginPath();c.arc(x+ox,y+oy,r,0,Math.PI*2);c.fill();}
-    c.fillStyle="#6e4b2f";c.fillRect(x+15,y+20,3,12);
-    c.fillStyle="rgba(139,176,83,.7)";c.fillRect(x+5,y+26,22,3);
+    // Character-scale trees: the 32px logical forest tile stays intact, but its art no longer fills the cell.
+    const tree=(cx,cy,s,shade)=>{
+     c.fillStyle="#65472f";c.fillRect(cx-s*.09,cy-s*.05,s*.18,s*.45);
+     c.fillStyle=shade;c.beginPath();c.arc(cx,cy-s*.24,s*.28,0,Math.PI*2);c.fill();
+     c.fillStyle="#4f7c43";c.beginPath();c.arc(cx-s*.17,cy-s*.17,s*.19,0,Math.PI*2);c.arc(cx+s*.18,cy-s*.15,s*.18,0,Math.PI*2);c.fill();
+     c.fillStyle="rgba(132,168,78,.55)";c.fillRect(cx-s*.24,cy+s*.34,s*.48,s*.08);
+    };
+    const v=hash(tx+83,ty+47),edge=(tx===0||mapData[ty][tx-1]!==TILE.FOREST)||(tx===gridCols-1||mapData[ty][tx+1]!==TILE.FOREST)||(ty===0||mapData[ty-1][tx]!==TILE.FOREST)||(ty===gridRows-1||mapData[ty+1][tx]!==TILE.FOREST);
+    if(!edge&&v>.45)tree(x+9,y+21,13,"#315d39");
+    tree(x+18+(v-.5)*4,y+20,15,edge?"#3f7040":"#315d39");
+    if(v>.28)tree(x+27,y+22,12,"#416f3e");
    }else if(target===TILE.MOUNTAIN){
-    c.fillStyle="#78806a";c.fillRect(x,y,tileSize,tileSize);
-    c.fillStyle="#596255";c.beginPath();c.moveTo(x,y+32);c.lineTo(x+9,y+14);c.lineTo(x+15,y+22);c.lineTo(x+22,y+7);c.lineTo(x+32,y+32);c.fill();
-    c.fillStyle="#b3b99d";c.beginPath();c.moveTo(x+22,y+7);c.lineTo(x+18,y+15);c.lineTo(x+23,y+13);c.lineTo(x+27,y+19);c.fill();
-    c.fillStyle="#49633f";c.fillRect(x,y+28,32,4);
+    // No square backing: overlapping peaks reveal the grass between silhouettes and hide tile boundaries.
+    const v=hash(tx+19,ty+61),base=y+31;
+    c.fillStyle="#5d6758";c.beginPath();c.moveTo(x-3,base);c.lineTo(x+8,base-15-v*3);c.lineTo(x+14,base-8);c.lineTo(x+23,base-24+v*4);c.lineTo(x+35,base);c.closePath();c.fill();
+    c.fillStyle="#aeb49b";c.beginPath();c.moveTo(x+23,base-24+v*4);c.lineTo(x+19,base-16);c.lineTo(x+23,base-18);c.lineTo(x+27,base-13);c.fill();
+    c.fillStyle="rgba(67,91,57,.75)";c.fillRect(x-2,base-3,36,4);
    }
   }
   // A few signposts mark major forks while the surrounding plain stays explorable.
