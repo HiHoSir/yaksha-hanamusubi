@@ -51,16 +51,26 @@ window.YK_WORLD=(()=>{
  const CHIP={GRASS_BASE:0,GRASS_DETAIL:1,
   SHORE_N:16,SHORE_E:17,SHORE_S:18,SHORE_W:19,SHORE_NE:20,SHORE_SE:21,SHORE_SW:22,SHORE_NW:23,
   SHORE_IN_NE:24,SHORE_IN_SE:25,SHORE_IN_SW:26,SHORE_IN_NW:27,
-  WATER_BASE:32,BRIDGE_H:40,BRIDGE_V:41,FOREST_CORE:48,FOREST_EDGE:49,
-  MOUNTAIN_CORE:64,MOUNTAIN_EDGE:65,ROAD:80,VILLAGE:96,SHRINE:97,COVE:98,
+  WATER_BASE:32,BRIDGE_H:40,BRIDGE_V:41,
+  FOREST_CORE:48,FOREST_N:49,FOREST_E:50,FOREST_S:51,FOREST_W:52,FOREST_NE:53,FOREST_SE:54,FOREST_SW:55,FOREST_NW:56,FOREST_SINGLE:57,
+  MOUNTAIN_CORE:64,MOUNTAIN_N:65,MOUNTAIN_E:66,MOUNTAIN_S:67,MOUNTAIN_W:68,MOUNTAIN_NE:69,MOUNTAIN_SE:70,MOUNTAIN_SW:71,MOUNTAIN_NW:72,MOUNTAIN_SINGLE:73,
+  ROAD:80,VILLAGE:96,SHRINE:97,COVE:98,
   WATERFALL:99,HOTSPRING:100,FOX:101};
  const visualChipAt=(tx,ty)=>{
   if(tx<0||ty<0||tx>=gridCols||ty>=gridRows)return CHIP.WATER_BASE;
   const t=mapData[ty][tx];
   if(t===TILE.WATER)return CHIP.WATER_BASE;
   if(t===TILE.BRIDGE){const vw=(ty>0&&mapData[ty-1][tx]===TILE.WATER)||(ty+1<gridRows&&mapData[ty+1][tx]===TILE.WATER);return vw?CHIP.BRIDGE_H:CHIP.BRIDGE_V;}
-  if(t===TILE.FOREST)return CHIP.FOREST_CORE;
-  if(t===TILE.MOUNTAIN)return CHIP.MOUNTAIN_CORE;
+  const connectedChip=(target,base)=>{
+   const same=(dx,dy)=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===target;
+   const n=same(0,-1),e=same(1,0),so=same(0,1),we=same(-1,0),count=+n+ +e+ +so+ +we;
+   if(count===0)return base.SINGLE;
+   if(!n&&!e)return base.NE;if(!e&&!so)return base.SE;if(!so&&!we)return base.SW;if(!we&&!n)return base.NW;
+   if(!n)return base.N;if(!e)return base.E;if(!so)return base.S;if(!we)return base.W;
+   return base.CORE;
+  };
+  if(t===TILE.FOREST)return connectedChip(TILE.FOREST,{CORE:CHIP.FOREST_CORE,N:CHIP.FOREST_N,E:CHIP.FOREST_E,S:CHIP.FOREST_S,W:CHIP.FOREST_W,NE:CHIP.FOREST_NE,SE:CHIP.FOREST_SE,SW:CHIP.FOREST_SW,NW:CHIP.FOREST_NW,SINGLE:CHIP.FOREST_SINGLE});
+  if(t===TILE.MOUNTAIN)return connectedChip(TILE.MOUNTAIN,{CORE:CHIP.MOUNTAIN_CORE,N:CHIP.MOUNTAIN_N,E:CHIP.MOUNTAIN_E,S:CHIP.MOUNTAIN_S,W:CHIP.MOUNTAIN_W,NE:CHIP.MOUNTAIN_NE,SE:CHIP.MOUNTAIN_SE,SW:CHIP.MOUNTAIN_SW,NW:CHIP.MOUNTAIN_NW,SINGLE:CHIP.MOUNTAIN_SINGLE});
   if(t===TILE.GRASS){
    const w=(dx,dy)=>tx+dx<0||ty+dy<0||tx+dx>=gridCols||ty+dy>=gridRows||mapData[ty+dy][tx+dx]===TILE.WATER;
    const n=w(0,-1),e=w(1,0),so=w(0,1),we=w(-1,0);
@@ -564,5 +574,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:62,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:63,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt};
 })();
