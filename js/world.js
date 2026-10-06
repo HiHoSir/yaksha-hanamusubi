@@ -187,7 +187,7 @@ window.YK_WORLD=(()=>{
    }else if(bridge){
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
    }
-   else if(!artReady(fieldTiles)){
+   else if(!artReady(terrainFieldTiles)){
     c.fillStyle='#a3cc55';c.fillRect(x,y,tileSize,tileSize);
    }
    if(water){
@@ -406,11 +406,12 @@ window.YK_WORLD=(()=>{
    }
   }
   // Authoritative terrain pass: mapData itself paints the visible 32px terrain layer.
-  // This intentionally avoids the experimental forest/mountain rows in field-tileset-v3.
-  // Collision and visuals now share the same tile source of truth.
+  // Re-resolve the optional tileset in this scope. The first-pass fieldTiles is block-scoped
+  // and Safari correctly raised ReferenceError here.
+  const terrainFieldTiles=ready?TERRAIN_ART.fieldTiles:null;
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const target=mapData[ty][tx],x=tx*tileSize,y=ty*tileSize;
-   if(target===TILE.FOREST && !artReady(fieldTiles)){
+   if(target===TILE.FOREST && !artReady(terrainFieldTiles)){
     // Fallback only: unified field chips are authoritative when loaded.
     // One forest cell = one compact field symbol. Offset canopy/base creates a quarter-view footprint.
     const v=hash(tx+83,ty+47),cx=x+16,base=y+27;
@@ -421,7 +422,7 @@ window.YK_WORLD=(()=>{
     c.fillStyle="#4d7b47";c.beginPath();c.arc(cx-3,base-17,3.8,0,Math.PI*2);c.arc(cx+4,base-19,4.2,0,Math.PI*2);c.fill();
     c.fillStyle="rgba(159,184,92,.65)";c.fillRect(cx-7,base-1,14,1.4);
     c.restore();
-   }else if(target===TILE.MOUNTAIN && !artReady(fieldTiles)){
+   }else if(target===TILE.MOUNTAIN && !artReady(terrainFieldTiles)){
     // Fallback only: do not stack procedural peaks over the 32px mountain chips.
     // Peaks overlap neighboring cells visually; logical collision remains exactly one 32px cell.
     // The staggered base makes connected cells read as a mountain range instead of stacked triangles.
@@ -454,5 +455,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:45,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:46,tileAt,tileSize,size,viewSize,camera,draw};
 })();
