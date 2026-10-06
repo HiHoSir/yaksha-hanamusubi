@@ -296,17 +296,17 @@ window.YK_WORLD=(()=>{
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    const target=mapData[ty][tx],x=tx*tileSize,y=ty*tileSize;
    if(target===TILE.FOREST){
-    // Character-scale trees: the 32px logical forest tile stays intact, but its art no longer fills the cell.
-    const tree=(cx,cy,s,shade)=>{
-     c.fillStyle="#65472f";c.fillRect(cx-s*.09,cy-s*.05,s*.18,s*.45);
-     c.fillStyle=shade;c.beginPath();c.arc(cx,cy-s*.24,s*.28,0,Math.PI*2);c.fill();
-     c.fillStyle="#4f7c43";c.beginPath();c.arc(cx-s*.17,cy-s*.17,s*.19,0,Math.PI*2);c.arc(cx+s*.18,cy-s*.15,s*.18,0,Math.PI*2);c.fill();
-     c.fillStyle="rgba(132,168,78,.55)";c.fillRect(cx-s*.24,cy+s*.34,s*.48,s*.08);
-    };
-    const v=hash(tx+83,ty+47),edge=(tx===0||mapData[ty][tx-1]!==TILE.FOREST)||(tx===gridCols-1||mapData[ty][tx+1]!==TILE.FOREST)||(ty===0||mapData[ty-1][tx]!==TILE.FOREST)||(ty===gridRows-1||mapData[ty+1][tx]!==TILE.FOREST);
-    if(!edge&&v>.45)tree(x+9,y+21,13,"#315d39");
-    tree(x+18+(v-.5)*4,y+20,15,edge?"#3f7040":"#315d39");
-    if(v>.28)tree(x+27,y+22,12,"#416f3e");
+    // 1 logical step = 1 field cell. A forest cell is one character-scale authored tree chip.
+    // Neighboring cells build the forest mass; no oversized backing rectangle is painted.
+    const v=hash(tx+83,ty+47),cx=x+16,ground=y+29;
+    c.save();
+    c.globalAlpha=.22;c.fillStyle="#355538";c.beginPath();c.ellipse(cx,ground,11,3,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
+    c.fillStyle="#68452b";c.fillRect(cx-2,ground-11,4,11);
+    c.fillStyle="#315a37";c.beginPath();c.arc(cx-7,ground-14,7.2,0,Math.PI*2);c.arc(cx+7,ground-14,7,0,Math.PI*2);c.arc(cx,ground-21,9.2,0,Math.PI*2);c.fill();
+    c.fillStyle="#477846";c.beginPath();c.arc(cx-5,ground-20,5.3,0,Math.PI*2);c.arc(cx+4,ground-24,5.8,0,Math.PI*2);c.fill();
+    c.fillStyle="#6f964e";c.beginPath();c.arc(cx-6+(v-.5)*2,ground-25,2.7,0,Math.PI*2);c.arc(cx+5,ground-19,2.2,0,Math.PI*2);c.fill();
+    c.fillStyle="rgba(157,184,91,.75)";c.fillRect(cx-9,ground-2,18,2);
+    c.restore();
    }else if(target===TILE.MOUNTAIN){
     // No square backing: overlapping peaks reveal the grass between silhouettes and hide tile boundaries.
     const v=hash(tx+19,ty+61),base=y+31;
@@ -323,5 +323,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:18,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:19,tileAt,tileSize,size,viewSize,camera,draw};
 })();
