@@ -934,10 +934,10 @@ titleHero();hud();requestAnimationFrame(loop);
 const DEBUG_ORTHO_PATHS={
  ground:"assets/terrain/world-ortho-ground-v2.webp",
  road:"assets/terrain/world-ortho-road-v2.webp",
- shore:"assets/terrain/world-ortho-shore-v1.png",
- forest:"assets/terrain/world-ortho-forest-v1.png",
- mountain:"assets/terrain/world-ortho-mountain-v1.png",
- landmarks:"assets/terrain/world-ortho-landmarks-v1.png"
+ shore:"assets/terrain/world-ortho-shore-v2.webp",
+ forest:"assets/terrain/world-ortho-forest-v2.webp",
+ mountain:"assets/terrain/world-ortho-mountain-v2.webp",
+ landmarks:"assets/terrain/world-ortho-landmarks-v2.webp"
 };
 const DEBUG_ORTHO_ART={};
 for(const [key,src] of Object.entries(DEBUG_ORTHO_PATHS)){
@@ -953,7 +953,7 @@ const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{co
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
- c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — ORTHOGONAL TILESET v2 MIX / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る",31,66);c.restore();
+ c.save();c.fillStyle="rgba(7,20,29,.96)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — ORTHOGONAL TILESET v2 / 32px",30,47);c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("本編セーブ非干渉 · Bでタイトルへ戻る",31,66);c.restore();
  if(!debugAtlasReady()){
   c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(window.__YK_DEBUG_ATLAS_ERROR?("DEBUG sheet load error: "+window.__YK_DEBUG_ATLAS_ERROR):"DEBUG sheets loading…",240,380);return;
  }
