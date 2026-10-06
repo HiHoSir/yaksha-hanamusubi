@@ -46,6 +46,27 @@ window.YK_WORLD=(()=>{
  const tileSize=32,size=768,viewSize=220,gridCols=Math.ceil(size/tileSize),gridRows=Math.ceil(size/tileSize);
  const TILE={GRASS:0,MOUNTAIN:1,FOREST:2,WATER:3,SHALLOW:4,BRIDGE:5,SAND:6,SPECIAL:7};
  const TILE_NAME=['grass','mountain','forest','water','shallow','bridge','sand','special'];
+ // Stable visual-chip IDs. Procedural drawing is temporary; these IDs are the handoff
+ // contract for a future 32px map-chip sheet without changing collision or event data.
+ const CHIP={GRASS_BASE:0,GRASS_DETAIL:1,SHORE_N:16,SHORE_E:17,SHORE_S:18,SHORE_W:19,
+  WATER_BASE:32,BRIDGE_H:40,BRIDGE_V:41,FOREST_CORE:48,FOREST_EDGE:49,
+  MOUNTAIN_CORE:64,MOUNTAIN_EDGE:65,ROAD:80,VILLAGE:96,SHRINE:97,COVE:98,
+  WATERFALL:99,HOTSPRING:100,FOX:101};
+ const visualChipAt=(tx,ty)=>{
+  if(tx<0||ty<0||tx>=gridCols||ty>=gridRows)return CHIP.WATER_BASE;
+  const t=mapData[ty][tx];
+  if(t===TILE.WATER)return CHIP.WATER_BASE;
+  if(t===TILE.BRIDGE){const vw=(ty>0&&mapData[ty-1][tx]===TILE.WATER)||(ty+1<gridRows&&mapData[ty+1][tx]===TILE.WATER);return vw?CHIP.BRIDGE_H:CHIP.BRIDGE_V;}
+  if(t===TILE.FOREST)return CHIP.FOREST_CORE;
+  if(t===TILE.MOUNTAIN)return CHIP.MOUNTAIN_CORE;
+  if(t===TILE.GRASS){
+   if(ty>0&&mapData[ty-1][tx]===TILE.WATER)return CHIP.SHORE_N;
+   if(tx+1<gridCols&&mapData[ty][tx+1]===TILE.WATER)return CHIP.SHORE_E;
+   if(ty+1<gridRows&&mapData[ty+1][tx]===TILE.WATER)return CHIP.SHORE_S;
+   if(tx>0&&mapData[ty][tx-1]===TILE.WATER)return CHIP.SHORE_W;
+  }
+  return CHIP.GRASS_BASE;
+ };
  // These polylines are journey/QA guides, not visible corridors or collision walls.
  const roadDistance=(x,y)=>Math.min(...roads.flatMap(r=>r.slice(1).map((b,i)=>distance(x,y,r[i],b))));
  // Coast authored on the same 32px rhythm as the field tiles.
@@ -537,5 +558,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:60,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:61,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt};
 })();
