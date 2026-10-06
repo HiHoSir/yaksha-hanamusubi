@@ -121,11 +121,11 @@ window.YK_WORLD=(()=>{
   const edge=![[-1,0],[1,0],[0,-1],[0,1]].every(([dx,dy])=>isForestCell(tx+dx,ty+dy));
   const stagger=(ty&1)?7:-3, jx=(hash(tx*13+7,ty*19)-.5)*7, jy=(hash(tx*23,ty*11+5)-.5)*5;
   const pts=[
-   [-8+stagger,-7,19],[7+stagger,-8,19],[-14+stagger,5,18],[1+stagger,5,20],[15+stagger,6,18],
-   [-6+stagger,15,19],[10+stagger,15,19]
+   [-7+stagger,-5,15],[7+stagger,-6,15],[-11+stagger,5,14],[1+stagger,5,16],[12+stagger,6,14],
+   [-5+stagger,14,15],[9+stagger,14,14]
   ];
   for(let i=0;i<pts.length;i++){
-   if(edge&&i>4&&hash(tx*31+i,ty*37)<.42)continue;
+   if(edge&&i>3&&hash(tx*31+i,ty*37)<.58)continue;
    const [ox,oy,s]=pts[i];
    forestTreeObjects.push([forestTreeKeys[(seed+i)%3],cx+ox+jx,cy+oy+jy,s,s]);
   }
@@ -413,5 +413,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:32,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:33,tileAt,tileSize,size,viewSize,camera,draw};
 })();
