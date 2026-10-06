@@ -145,8 +145,8 @@ window.YK_WORLD=(()=>{
  // 0 grass, 1 mountain, 2 forest, 3 water, 4 shallow, 5 bridge, 6 sand, 7 special.
  // Keeping world coordinates and tile IDs stable preserves saves, events and movement behavior.
  const FIELD_TILE_ROWS=[
-  // Japanese-island-inspired main island: bays, peninsulas and inland mountain chains.
-  // Every map edge is ocean, so future N/S/E/W wrapping joins ocean-to-ocean cleanly.
+  // Journey-shaped island: mountain chains frame the route, but passes remain open.
+  // Rivers descend through the central lowland to the southern bay; coasts stay ocean-closed.
   "333333333333333333333333",
   "333333333333333333333333",
   "333333333000000333333333",
@@ -848,5 +848,5 @@ window.YK_WORLD=(()=>{
   return true;
  };
  const drawProductionForeground=(c,heroY)=>{if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return;const heroDepth=depthKey(heroY,50);for(const it of productionDepthQueue())if(it.depth>heroDepth)drawProductionQueueItem(c,it);};
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:83,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:84,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
 })();
