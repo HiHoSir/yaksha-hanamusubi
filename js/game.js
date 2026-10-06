@@ -524,6 +524,10 @@ function drawRoundedField(c,source){
  veil.addColorStop(0,"rgba(231,237,207,.28)");veil.addColorStop(.45,"rgba(220,231,199,.13)");veil.addColorStop(1,"rgba(214,227,193,0)");
  c.fillStyle=veil;c.fillRect(0,180,768,185);
 }function map(){
+ if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
+  g.clearRect(0,0,768,768);g.fillStyle="#102635";g.fillRect(0,0,768,768);
+  worldHint("フィールド読込待機中");return;
+ }
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
@@ -719,6 +723,7 @@ function villageBlocked(x,y){
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
 function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
+  if(typeof YK_WORLD==="undefined"||!YK_WORLD)return true;
   if(!YK_WORLD.walkable(x,y))return true;
 }if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
@@ -894,7 +899,7 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
+YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"夜叉姫",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
 YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
