@@ -484,22 +484,31 @@ const fieldFrame=document.createElement("canvas");
 fieldFrame.width=768;fieldFrame.height=768;
 const fieldFrameCtx=fieldFrame.getContext("2d");
 function drawRoundedField(c,source){
- // Tile-preserving field presentation: do not warp the 32px terrain image.
- // Perspective is limited to sky/horizon overlays, keeping autotile edges and pixels intact.
+ // Hybrid presentation: old spherical/distant perspective above, exact 32px tiles in the playable near field.
+ const cx=384,farStart=150,blendEnd=330,nearStart=360,strip=2;
  const sky=c.createLinearGradient(0,0,0,300);
  sky.addColorStop(0,"#87b5cb");sky.addColorStop(.52,"#bfd4cb");sky.addColorStop(.86,"#dce1c0");sky.addColorStop(1,"#dfe2b9");
  c.fillStyle=sky;c.fillRect(0,0,768,768);
  c.save();c.globalAlpha=.20;c.fillStyle="#f7f1d7";
  for(const [x,y,rx,ry] of [[70,72,140,32],[335,53,180,38],[650,80,155,34]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()}c.restore();
- c.save();c.globalAlpha=.20;c.fillStyle="#76947e";c.beginPath();c.moveTo(-20,220);
+ c.save();c.globalAlpha=.22;c.fillStyle="#76947e";c.beginPath();c.moveTo(-20,220);
  c.bezierCurveTo(55,181,90,178,145,201);c.bezierCurveTo(205,158,250,148,314,198);c.bezierCurveTo(365,172,415,160,468,199);c.bezierCurveTo(525,154,580,153,638,196);c.bezierCurveTo(690,172,735,181,790,216);
  c.lineTo(790,250);c.lineTo(-20,250);c.closePath();c.fill();c.restore();
- // Preserve the source pixels 1:1. No scanline scaling, bending or curved resampling.
- c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
- // Only a light horizon veil remains; it does not alter terrain geometry.
- const veil=c.createLinearGradient(0,185,0,310);
- veil.addColorStop(0,"rgba(231,237,207,.20)");veil.addColorStop(.5,"rgba(220,231,199,.08)");veil.addColorStop(1,"rgba(214,227,193,0)");
- c.fillStyle=veil;c.fillRect(0,180,768,130);
+ c.imageSmoothingEnabled=false;
+ // Far field only: restore the previous horizon compression/roundness.
+ for(let sy=farStart;sy<nearStart;sy+=strip){
+  const t=Math.max(0,Math.min(1,(nearStart-sy)/(nearStart-farStart))),bend=Math.pow(t,1.55);
+  const scale=1.075-.14*bend,dy=nearStart-(nearStart-sy)*(1-.34*bend),dh=strip*(1-.28*bend)+1;
+  const alpha=sy<215?Math.max(0,(sy-188)/27):1,dw=768*scale,dx=cx-dw/2;
+  if(alpha>0){c.globalAlpha=alpha;c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);}
+ }
+ c.globalAlpha=1;
+ // Near field: exact pixels, clipped so water/shore autotiles are never warped around the player.
+ c.save();c.beginPath();c.rect(0,blendEnd,768,768-blendEnd);c.clip();c.drawImage(source,0,0,768,768);c.restore();
+ // Short fade hides the hand-off without bending near-field tile geometry.
+ const veil=c.createLinearGradient(0,205,0,350);
+ veil.addColorStop(0,"rgba(231,237,207,.25)");veil.addColorStop(.55,"rgba(220,231,199,.10)");veil.addColorStop(1,"rgba(214,227,193,0)");
+ c.fillStyle=veil;c.fillRect(0,195,768,160);
 }function map(){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
