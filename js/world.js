@@ -209,6 +209,26 @@ window.YK_WORLD=(()=>{
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
+  // Natural terrain seams. These are visual skirts drawn from the walkable side of
+  // blocked cells, so coastline/forest/mountain borders no longer expose 32px L-shaped steps.
+  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+   if(mapData[ty][tx]!==TILE.GRASS)continue;
+   const x=tx*tileSize,y=ty*tileSize;
+   const neighbor=(dx,dy)=>mapData[ty+dy][tx+dx];
+   const seams=[[0,-1,'n'],[1,0,'e'],[0,1,'s'],[-1,0,'w']];
+   for(const [dx,dy,side] of seams){
+    const t=neighbor(dx,dy); if(![TILE.WATER,TILE.FOREST,TILE.MOUNTAIN].includes(t))continue;
+    const v=hash(tx*17+dx+43,ty*19+dy+59),depth=5+v*5;
+    c.save();c.globalAlpha=t===TILE.WATER?.52:.38;
+    c.fillStyle=t===TILE.WATER?'#c9b978':t===TILE.FOREST?'#557c49':'#6d7655';
+    c.beginPath();
+    if(side==='n'){c.moveTo(x-3,y+2);c.quadraticCurveTo(x+8,y+depth,x+16,y+2);c.quadraticCurveTo(x+25,y-depth*.2,x+35,y+3);c.lineTo(x+35,y-3);c.lineTo(x-3,y-3);}
+    if(side==='s'){c.moveTo(x-3,y+30);c.quadraticCurveTo(x+8,y+32-depth,x+16,y+30);c.quadraticCurveTo(x+25,y+34+depth*.2,x+35,y+29);c.lineTo(x+35,y+35);c.lineTo(x-3,y+35);}
+    if(side==='w'){c.moveTo(x+2,y-3);c.quadraticCurveTo(x+depth,y+8,x+2,y+16);c.quadraticCurveTo(x-depth*.2,y+25,x+3,y+35);c.lineTo(x-3,y+35);c.lineTo(x-3,y-3);}
+    if(side==='e'){c.moveTo(x+30,y-3);c.quadraticCurveTo(x+32-depth,y+8,x+30,y+16);c.quadraticCurveTo(x+34+depth*.2,y+25,x+29,y+35);c.lineTo(x+35,y+35);c.lineTo(x+35,y-3);}
+    c.closePath();c.fill();c.restore();
+   }
+  }
   // Organic ground wash: many overlapping translucent shapes cross cell boundaries.
   // This creates broad meadow/dry-grass regions without revealing the movement grid.
   c.save();
@@ -476,5 +496,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:40,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:41,tileAt,tileSize,size,viewSize,camera,draw};
 })();
