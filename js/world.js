@@ -379,6 +379,38 @@ window.YK_WORLD=(()=>{
    c.fillStyle="#75905a";c.fillRect(cx-5,base,10,1);
    c.restore();
   }
+  // River/bridge dressing: make crossings read as part of the route instead of isolated cells.
+  // Logical WATER/BRIDGE collision is unchanged.
+  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+   if(mapData[ty][tx]!==TILE.BRIDGE)continue;
+   const x=tx*tileSize,y=ty*tileSize;
+   const verticalWater=mapData[ty-1][tx]===TILE.WATER||mapData[ty+1][tx]===TILE.WATER;
+   c.save();
+   // shallow banks beneath the bridge soften the square water contact
+   c.globalAlpha=.38;c.fillStyle='#c4b170';c.beginPath();c.ellipse(x+16,y+16,verticalWater?20:9,verticalWater?8:20,0,0,Math.PI*2);c.fill();
+   c.globalAlpha=1;c.fillStyle='#7b5938';
+   if(verticalWater){
+    c.fillRect(x-3,y+8,38,16);c.fillStyle='#c29b61';
+    for(let xx=x-1;xx<x+35;xx+=6)c.fillRect(xx,y+9,4,14);
+    c.strokeStyle='#65462f';c.lineWidth=1.5;c.beginPath();c.moveTo(x-3,y+8);c.lineTo(x+35,y+8);c.moveTo(x-3,y+24);c.lineTo(x+35,y+24);c.stroke();
+   }else{
+    c.fillRect(x+8,y-3,16,38);c.fillStyle='#c29b61';
+    for(let yy=y-1;yy<y+35;yy+=6)c.fillRect(x+9,yy,14,4);
+    c.strokeStyle='#65462f';c.lineWidth=1.5;c.beginPath();c.moveTo(x+8,y-3);c.lineTo(x+8,y+35);c.moveTo(x+24,y-3);c.lineTo(x+24,y+35);c.stroke();
+   }
+   c.restore();
+  }
+  // Add a broken foam line where grass meets sea; this visually connects curved shore segments.
+  if(!ready){
+   c.save();c.strokeStyle='rgba(226,236,205,.55)';c.lineWidth=1.2;c.lineCap='round';
+   for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+    if(mapData[ty][tx]!==TILE.GRASS)continue;
+    const x=tx*tileSize,y=ty*tileSize,v=hash(tx+977,ty+929);
+    if(mapData[ty][tx+1]===TILE.WATER){c.beginPath();c.moveTo(x+31,y+5+v*7);c.quadraticCurveTo(x+34,y+16,x+31,y+27-v*5);c.stroke();}
+    if(mapData[ty+1][tx]===TILE.WATER){c.beginPath();c.moveTo(x+5+v*7,y+31);c.quadraticCurveTo(x+16,y+34,x+27-v*5,y+31);c.stroke();}
+   }
+   c.restore();
+  }
   // Roads are painted in world space at roughly one-third of a walking cell.
   // Their bends follow the progression route while keeping open grass explorable.
   c.save();c.lineCap='round';c.lineJoin='round';
@@ -510,5 +542,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:53,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:54,tileAt,tileSize,size,viewSize,camera,draw};
 })();
