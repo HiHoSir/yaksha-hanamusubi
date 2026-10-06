@@ -30,8 +30,8 @@ jobs:
           if(!game.includes('YK_INPUT.tap($("continueGame")'))throw new Error('continue handler missing');
           if(!html.includes('id="debugMap"'))throw new Error('debug map title entry missing');
           if(!game.includes('DEBUG_ORTHO_ART'))throw new Error('debug sheet loader missing');
-          if(!game.includes('world-ortho-ground-v2.png'))throw new Error('ground v2 candidate missing');
-          if(game.includes('world-ortho-road-v2.webp')||game.includes('world-ortho-shore-v2.webp')||game.includes('world-ortho-forest-v2.webp')||game.includes('world-ortho-mountain-v2.webp')||game.includes('world-ortho-landmarks-v2.webp'))throw new Error('debug test must isolate one v2 asset at a time');
+          if(!game.includes('world-ortho-road-v2.png'))throw new Error('road v2 candidate missing');
+          if(game.includes('world-ortho-ground-v2.png')||game.includes('world-ortho-shore-v2.webp')||game.includes('world-ortho-forest-v2.webp')||game.includes('world-ortho-mountain-v2.webp')||game.includes('world-ortho-landmarks-v2.webp'))throw new Error('debug test must isolate one v2 asset at a time');
           if(!game.includes('DEBUG_ORTHO_FALLBACK')||!game.includes('naturalWidth!==spec.size[0]'))throw new Error('debug sheet validation/fallback missing');
           if(!game.includes('drawDebugSheetPage')||!game.includes('__YK_DEBUG_PAGE'))throw new Error('one-by-one debug inspection pages missing');
           if(!game.includes('if(debugField){map();return;}'))throw new Error('debug movement isolation missing');
@@ -47,7 +47,7 @@ jobs:
           test -s assets/terrain/world-landmarks-qv.png
           test -s assets/terrain/world-ortho-ground-v1.png
           test -s assets/terrain/world-ortho-road-v1.png
-          test -s assets/terrain/world-ortho-ground-v2.png
+          test -s assets/terrain/world-ortho-road-v2.png
           test -s assets/terrain/world-ortho-road-v2.webp
           test -s assets/terrain/world-ortho-shore-v2.webp
           test -s assets/terrain/world-ortho-forest-v2.webp
