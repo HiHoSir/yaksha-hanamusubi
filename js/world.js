@@ -293,16 +293,23 @@ window.YK_WORLD=(()=>{
   // Final terrain-symbol pass: keep major impassable terrain readable after regional dressing.
   // These are the same authored 32px map chips, redrawn late in the pipeline so haze/grass dressing
   // cannot visually erase mountains or forests. Collision still comes only from mapData.
-  if(artReady(TERRAIN_ART.fieldTiles)){
-   const im=TERRAIN_ART.fieldTiles;
+  {
+   const im=TERRAIN_ART.fieldTiles,ready=artReady(im);
    const same=(tx,ty,target)=>tx>=0&&ty>=0&&tx<gridCols&&ty<gridRows&&mapData[ty][tx]===target;
    for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
     const target=mapData[ty][tx];
     if(target!==TILE.MOUNTAIN&&target!==TILE.FOREST)continue;
     const mask=(same(tx,ty-1,target)?1:0)|(same(tx+1,ty,target)?2:0)|(same(tx,ty+1,target)?4:0)|(same(tx-1,ty,target)?8:0);
     const row=target===TILE.MOUNTAIN?2:4;
-    const visualSize=target===TILE.MOUNTAIN?52:46, inset=(visualSize-tileSize)/2; 
-    c.drawImage(im,(mask&15)*32,row*32,32,32,tx*tileSize-inset,ty*tileSize-inset,visualSize,visualSize);
+    const visualSize=target===TILE.MOUNTAIN?52:46,inset=(visualSize-tileSize)/2,x=tx*tileSize-inset,y=ty*tileSize-inset;
+    if(ready)c.drawImage(im,(mask&15)*32,row*32,32,32,x,y,visualSize,visualSize);
+    else if(target===TILE.MOUNTAIN){
+     c.fillStyle="#6f755f";c.beginPath();c.moveTo(x,y+visualSize);c.lineTo(x+visualSize*.28,y+visualSize*.38);c.lineTo(x+visualSize*.48,y+visualSize*.62);c.lineTo(x+visualSize*.68,y+visualSize*.25);c.lineTo(x+visualSize,y+visualSize);c.fill();
+     c.fillStyle="#aeb69a";c.beginPath();c.moveTo(x+visualSize*.68,y+visualSize*.25);c.lineTo(x+visualSize*.57,y+visualSize*.48);c.lineTo(x+visualSize*.72,y+visualSize*.42);c.lineTo(x+visualSize*.79,y+visualSize*.52);c.fill();
+    }else{
+     c.fillStyle="#315f42";c.fillRect(x+visualSize*.46,y+visualSize*.56,visualSize*.1,visualSize*.42);
+     c.fillStyle="#4f8751";for(const [ox,oy,r] of [[.28,.52,.25],[.5,.36,.29],[.72,.52,.24]]){c.beginPath();c.arc(x+visualSize*ox,y+visualSize*oy,visualSize*r,0,Math.PI*2);c.fill();}
+    }
    }
   }
   // A few signposts mark major forks while the surrounding plain stays explorable.
