@@ -411,9 +411,21 @@ window.YK_WORLD=(()=>{
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
   for(const [k,p] of Object.entries(places)){
-   const [x,y]=p.point,w=k==='village'?31:k==='waterfall'?28:25;
-   stamp(icons[k],x,y-w*.31,w,w*.85);
+   const [x,y]=p.point;
+   // Landmark scale is intentionally independent from the 32px walking grid.
+   // Settlements must read as places the hero can enter, while minor destinations stay compact.
+   if(k==='village'){
+    c.save();
+    c.globalAlpha=.18;c.fillStyle='#45663f';c.beginPath();c.ellipse(x,y+8,46,12,-.08,0,Math.PI*2);c.fill();c.globalAlpha=1;
+    stamp(icons[k],x-22,y-15,42,36);
+    stamp(icons[k],x+20,y-18,40,34);
+    stamp(icons[k],x-2,y+7,46,39);
+    c.restore();
+   }else{
+    const w=k==='shrine'?42:k==='fox'?44:k==='hotspring'?38:k==='waterfall'?40:k==='forest'?36:k==='cove'?34:32;
+    stamp(icons[k],x,y-w*.28,w,w*.84);
+   }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:35,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:36,tileAt,tileSize,size,viewSize,camera,draw};
 })();
