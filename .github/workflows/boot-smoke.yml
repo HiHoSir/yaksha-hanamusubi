@@ -32,6 +32,7 @@ jobs:
           if(!game.includes('DEBUG_ORTHO_ART'))throw new Error('debug sheet loader missing');
           if(!['ground','road','shore','forest','mountain','landmarks'].every(k=>game.includes('world-ortho-'+k+'-v2.webp')))throw new Error('complete v2 debug sheet set missing');
           if(!game.includes('DEBUG_ORTHO_FALLBACK')||!game.includes('naturalWidth!==spec.size[0]'))throw new Error('debug sheet validation/fallback missing');
+          if(!game.includes('drawDebugSheetPage')||!game.includes('__YK_DEBUG_PAGE'))throw new Error('one-by-one debug inspection pages missing');
           if(!game.includes('if(debugField){map();return;}'))throw new Error('debug movement isolation missing');
           console.log('boot contract OK');
           NODE
