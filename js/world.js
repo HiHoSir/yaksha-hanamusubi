@@ -252,6 +252,21 @@ window.YK_WORLD=(()=>{
    c.fillStyle='#596b62';c.beginPath();c.moveTo(rx-6*s,ry+4*s);c.lineTo(rx-2*s,ry-7*s);c.lineTo(rx+2*s,ry-3*s);c.lineTo(rx+6*s,ry+4*s);c.closePath();c.fill();
    c.strokeStyle='rgba(232,241,211,.72)';c.lineWidth=1;c.beginPath();c.arc(rx,ry+4*s,8*s,Math.PI*.08,Math.PI*.92);c.stroke();
   }
+  // Mountain foothills: small rock/brush accents make ranges emerge from the plain
+  // instead of looking like isolated stamped symbols.
+  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+   if(mapData[ty][tx]!==TILE.GRASS)continue;
+   let nearMountain=false;
+   for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if(mapData[ty+yy][tx+xx]===TILE.MOUNTAIN)nearMountain=true;
+   if(!nearMountain)continue;
+   const v=hash(tx+401,ty+359); if(v<.42)continue;
+   const x=tx*tileSize,y=ty*tileSize,ox=7+v*16,base=y+25;
+   c.save();
+   c.globalAlpha=.52;c.fillStyle="#777966";c.beginPath();
+   c.moveTo(x+ox-4,base);c.lineTo(x+ox,base-5);c.lineTo(x+ox+5,base);c.closePath();c.fill();
+   c.globalAlpha=.45;c.fillStyle="#58734a";c.fillRect(x+ox-6,base+1,12,1.5);
+   c.restore();
+  }
   // Inland transition belt: scattered low vegetation makes forest edges organic
   // while keeping the one-step/one-cell movement grid completely unchanged.
   for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
@@ -380,5 +395,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:27,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:28,tileAt,tileSize,size,viewSize,camera,draw};
 })();
