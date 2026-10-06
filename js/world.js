@@ -299,11 +299,14 @@ window.YK_WORLD=(()=>{
   return false;
  };
  const LANDMARK_SLOT={village:0,shrine:1,cove:2,forest:3,waterfall:4,hotspring:5,fox:6};
+ const LANDMARK_SCALE={village:1.18,shrine:1.06,cove:.92,forest:.92,waterfall:1.12,hotspring:.94,fox:1.05};
  const drawProductionLandmark=(c,o)=>{
   if(!mapChipReady('landmarks'))return false;
   const slot=LANDMARK_SLOT[o.kind];if(slot==null)return false;
-  const b=objectBounds(o),footX=b.x+b.w/2,footY=b.y+b.h;
-  return drawMapChip(c,'landmarks',MAP_CHIP_ATLAS.landmarks,slot,footX,footY);
+  const b=objectBounds(o),footX=b.x+b.w/2,footY=b.y+b.h,scale=LANDMARK_SCALE[o.kind]||1;
+  const im=MAP_CHIP_ART.landmarks,p=chipPlacement(MAP_CHIP_ATLAS.landmarks,slot,footX,footY);
+  const dw=p.dw*scale,dh=p.dh*scale,dx=footX-(MAP_CHIP_ATLAS.landmarks.anchor[0]*scale),dy=footY-(MAP_CHIP_ATLAS.landmarks.anchor[1]*scale);
+  c.drawImage(im,p.sx,p.sy,p.sw,p.sh,dx,dy,dw,dh);return true;
  };
  const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v3.png?v=3"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
@@ -849,5 +852,5 @@ window.YK_WORLD=(()=>{
   return true;
  };
  const drawProductionForeground=(c,heroY)=>{if(!(mapChipReady('forest')||mapChipReady('mountain')||mapChipReady('landmarks')))return;const heroDepth=depthKey(heroY,50);for(const it of productionDepthQueue())if(it.depth>heroDepth)drawProductionQueueItem(c,it);};
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:84,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:85,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS,MAP_CHIP_ATLAS,chipRect,chipPlacement,MAP_CHIP_ART,mapChipReady,drawMapChip,drawProductionBaseChip,drawProductionRoadChip,drawProductionOverlayChip,drawProductionLandmark,drawProductionOverhangs,drawProductionForeground};
 })();
