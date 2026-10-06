@@ -321,6 +321,22 @@ window.YK_WORLD=(()=>{
     }
    }
   }
+  // Organic shore caps bridge diagonal joins between 32px collision cells.
+  if(!ready){
+   for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+    if(mapData[ty][tx]!==TILE.GRASS)continue;
+    const x=tx*tileSize,y=ty*tileSize,q=hash(tx+1201,ty+1229);
+    const corner=(dx,dy,cx,cy)=>{
+     if(mapData[ty+dy][tx+dx]!==TILE.WATER)return;
+     c.save();c.globalAlpha=.66;c.fillStyle='#c7b66f';c.beginPath();
+     c.ellipse(x+cx+(q-.5)*3,y+cy+(q-.5)*2,7+q*3,5+q*2,(q-.5)*.4,0,Math.PI*2);c.fill();c.restore();
+    };
+    if(mapData[ty-1][tx]===TILE.WATER&&mapData[ty][tx-1]===TILE.WATER)corner(-1,-1,1,1);
+    if(mapData[ty-1][tx]===TILE.WATER&&mapData[ty][tx+1]===TILE.WATER)corner(1,-1,31,1);
+    if(mapData[ty+1][tx]===TILE.WATER&&mapData[ty][tx-1]===TILE.WATER)corner(-1,1,1,31);
+    if(mapData[ty+1][tx]===TILE.WATER&&mapData[ty][tx+1]===TILE.WATER)corner(1,1,31,31);
+   }
+  }
   // Keep the plain free of large geometric overlays. Material variation comes from
   // small irregular details so the 32px logic grid never becomes a visible shape.
   // Mountain art is independent from the logical 32px MOUNTAIN collision grid.
@@ -387,8 +403,8 @@ window.YK_WORLD=(()=>{
    ];
    c.save();
    // Forest floor is broad and translucent, so adjacent cells merge rather than read as squares.
-   c.globalAlpha=edge?.20:.30;c.fillStyle='#315d39';c.beginPath();
-   c.ellipse(x+16,y+24,edge?17:20,edge?7:9,(seed-.5)*.25,0,Math.PI*2);c.fill();
+   c.globalAlpha=edge?.12:.22;c.fillStyle='#315d39';c.beginPath();
+   c.ellipse(x+14+(seed-.5)*9,y+23+(seed-.5)*4,edge?13+seed*5:18+seed*4,edge?5+seed*3:7+seed*3,(seed-.5)*.38,0,Math.PI*2);c.fill();
    c.restore();
    for(const [ox,baseOff,sc] of trees){
     if(edge&&hash(tx*19+ox,ty*23+baseOff)<.30)continue;
@@ -590,8 +606,17 @@ window.YK_WORLD=(()=>{
    if(k==='village'){
     c.save();
     if(!ready){
-     // Three-house settlement, biased west/south so the start position remains readable.
-     const house=(hx,hy,sc=1)=>{c.fillStyle='#d5c08a';c.fillRect(hx-9*sc,hy-6*sc,18*sc,12*sc);c.fillStyle='#7b4b37';c.beginPath();c.moveTo(hx-11*sc,hy-6*sc);c.lineTo(hx,hy-15*sc);c.lineTo(hx+11*sc,hy-6*sc);c.closePath();c.fill();c.fillStyle='#5d3d2d';c.fillRect(hx-2*sc,hy+1*sc,4*sc,5*sc);};
+     // Three quarter-view houses with broad eaves; footprints stay compatible with a later 3x2 PNG object.
+     const house=(hx,hy,sc=1)=>{
+      c.save();
+      c.fillStyle='rgba(54,54,42,.18)';c.beginPath();c.ellipse(hx+3*sc,hy+7*sc,13*sc,3.5*sc,-.08,0,Math.PI*2);c.fill();
+      c.fillStyle='#d8c796';c.beginPath();c.moveTo(hx-8*sc,hy-5*sc);c.lineTo(hx+7*sc,hy-3*sc);c.lineTo(hx+7*sc,hy+7*sc);c.lineTo(hx-8*sc,hy+5*sc);c.closePath();c.fill();
+      c.fillStyle='#b8a36f';c.beginPath();c.moveTo(hx+7*sc,hy-3*sc);c.lineTo(hx+11*sc,hy-6*sc);c.lineTo(hx+11*sc,hy+3*sc);c.lineTo(hx+7*sc,hy+7*sc);c.closePath();c.fill();
+      c.fillStyle='#694738';c.beginPath();c.moveTo(hx-12*sc,hy-6*sc);c.lineTo(hx-2*sc,hy-15*sc);c.lineTo(hx+12*sc,hy-9*sc);c.lineTo(hx+7*sc,hy-3*sc);c.lineTo(hx-8*sc,hy-5*sc);c.closePath();c.fill();
+      c.strokeStyle='#4f382f';c.lineWidth=1.1*sc;c.beginPath();c.moveTo(hx-12*sc,hy-6*sc);c.lineTo(hx+7*sc,hy-3*sc);c.moveTo(hx-2*sc,hy-15*sc);c.lineTo(hx+12*sc,hy-9*sc);c.stroke();
+      c.fillStyle='#5b4032';c.fillRect(hx-2*sc,hy+.5*sc,3.5*sc,5.5*sc);
+      c.restore();
+     };
      house(x-29,y-12,.9);house(x+3,y-17,1);house(x-15,y+9,1.05);
      c.fillStyle='#806747';c.fillRect(x+18,y-8,2,19);c.fillRect(x+31,y-8,2,19);for(let yy=y-7;yy<y+12;yy+=5)c.fillRect(x+18,yy,15,1);
     }
@@ -624,5 +649,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:67,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:68,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
 })();
