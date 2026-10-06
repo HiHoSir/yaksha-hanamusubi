@@ -379,6 +379,19 @@ window.YK_WORLD=(()=>{
    c.fillStyle="#75905a";c.fillRect(cx-5,base,10,1);
    c.restore();
   }
+  // Landscape composition pass: frame the progression corridor with low non-colliding
+  // foothills and grove shadows. This changes visual geography only; mapData remains authoritative.
+  const scenicRidges=[[118,307,34,10,-.18],[279,238,42,11,.12],[382,319,38,10,.08],[505,285,32,9,-.12],[566,371,28,8,.16],[246,661,35,9,.10]];
+  for(const [x,y,rx,ry,rot] of scenicRidges){
+   if(tileAt(x,y)!=='grass')continue;
+   c.save();c.globalAlpha=.18;c.fillStyle='#596b4c';c.beginPath();c.ellipse(x,y,rx,ry,rot,0,Math.PI*2);c.fill();
+   c.globalAlpha=.25;c.fillStyle='#74805d';c.beginPath();c.moveTo(x-rx*.55,y+2);c.lineTo(x-rx*.12,y-ry*.9);c.lineTo(x+rx*.12,y-ry*.35);c.lineTo(x+rx*.55,y+2);c.closePath();c.fill();c.restore();
+  }
+  const groveShadows=[[548,431,22,8],[604,398,26,9],[681,361,20,8],[309,188,24,8],[224,171,20,7]];
+  for(const [x,y,rx,ry] of groveShadows){
+   if(tileAt(x,y)!=='grass')continue;
+   c.save();c.globalAlpha=.16;c.fillStyle='#315d39';c.beginPath();c.ellipse(x,y,rx,ry,-.12,0,Math.PI*2);c.fill();c.restore();
+  }
   // River/bridge dressing: make crossings read as part of the route instead of isolated cells.
   // Logical WATER/BRIDGE collision is unchanged.
   for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
@@ -542,5 +555,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:54,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:55,tileAt,tileSize,size,viewSize,camera,draw};
 })();
