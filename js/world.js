@@ -252,6 +252,28 @@ window.YK_WORLD=(()=>{
    c.fillStyle='#596b62';c.beginPath();c.moveTo(rx-6*s,ry+4*s);c.lineTo(rx-2*s,ry-7*s);c.lineTo(rx+2*s,ry-3*s);c.lineTo(rx+6*s,ry+4*s);c.closePath();c.fill();
    c.strokeStyle='rgba(232,241,211,.72)';c.lineWidth=1;c.beginPath();c.arc(rx,ry+4*s,8*s,Math.PI*.08,Math.PI*.92);c.stroke();
   }
+  // Plain texture and biome seams: break up empty grass without adding collision.
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   if(mapData[ty][tx]!==TILE.GRASS)continue;
+   const x=tx*tileSize,y=ty*tileSize,v=hash(tx+211,ty+173);
+   c.save();
+   if(v>.22){
+    c.globalAlpha=.13;c.strokeStyle=v>.62?"#547547":"#80945c";c.lineWidth=1;
+    const ox=6+Math.floor(v*13),oy=9+Math.floor((1-v)*12);
+    c.beginPath();c.moveTo(x+ox,y+oy+4);c.lineTo(x+ox+1,y+oy);c.moveTo(x+ox+1,y+oy+4);c.lineTo(x+ox+4,y+oy+1);c.stroke();
+   }
+   // Darker vegetation at forest/mountain feet visually blends hard tile seams.
+   const solid=(dx,dy)=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&
+    (mapData[ty+dy][tx+dx]===TILE.FOREST||mapData[ty+dy][tx+dx]===TILE.MOUNTAIN);
+   if(solid(0,-1)||solid(1,0)||solid(0,1)||solid(-1,0)){
+    c.globalAlpha=.16;c.fillStyle="#557047";
+    if(solid(0,-1))c.fillRect(x,y,32,4);
+    if(solid(0,1))c.fillRect(x,y+28,32,4);
+    if(solid(-1,0))c.fillRect(x,y,4,32);
+    if(solid(1,0))c.fillRect(x+28,y,4,32);
+   }
+   c.restore();
+  }
   // Coast dressing follows the island silhouette without changing collision.
   // Sand/grass shelves and sparse shore rocks soften the square water boundary.
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
@@ -344,5 +366,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:25,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:26,tileAt,tileSize,size,viewSize,camera,draw};
 })();
