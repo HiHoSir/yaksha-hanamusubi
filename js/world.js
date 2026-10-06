@@ -145,15 +145,8 @@ window.YK_WORLD=(()=>{
     const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
     c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
    }
-   // Mountain and forest are now selected from the same 32px field sheet by N/E/S/W adjacency.
-   // Logical tile IDs and collision remain unchanged.
-   if((t==='mountain'||t==='forest')&&artReady(fieldTiles)){
-    const target=t==='mountain'?TILE.MOUNTAIN:TILE.FOREST;
-    const same=(gx,gy)=>gx>=0&&gy>=0&&gx<gridCols&&gy<gridRows&&mapData[gy][gx]===target;
-    const mask=(same(tx,ty-1)?1:0)|(same(tx+1,ty)?2:0)|(same(tx,ty+1)?4:0)|(same(tx-1,ty)?8:0);
-    const row=t==='mountain'?2:4;
-    c.drawImage(fieldTiles,(mask&15)*32,row*32,32,32,x,y,32,32);
-   }
+   // Forest/mountain collision still uses the 32px grid, but their visible forms are
+   // rendered later as overlapping quarter-view symbols. Never expose the square source cells.
    if(water){
     // 32px image autotile. Bitmask N/E/S/W marks adjacent land; collision remains mapData-only.
     const landAt=(gx,gy)=>gx<0||gy<0||gx>=gridCols||gy>=gridRows||![TILE.WATER,TILE.BRIDGE].includes(mapData[gy][gx]);
@@ -250,19 +243,32 @@ window.YK_WORLD=(()=>{
   // Image-based forest objects: visual scale is independent from the 32px collision grid.
   // Until PNGs are uploaded, forest tiles intentionally remain visually quiet rather than falling back to procedural trees.
   // Forest visuals now come from FIELD_TILE_ROWS + unified 32px chips.
+  // Quarter-view mountain pass. One logical mountain cell becomes a low overlapping ridge,
+  // with neighboring cells visually merging into a range rather than a wall of square chips.
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   if(mapData[ty][tx]!==TILE.MOUNTAIN)continue;
+   const v=hash(tx+811,ty+773),cx=tx*tileSize+16+(v-.5)*8,base=ty*tileSize+30;
+   const peak=20+v*5,wide=23+v*4;
+   c.save();
+   c.fillStyle='rgba(55,69,48,.20)';c.beginPath();c.ellipse(cx+3,base+1,wide,4,-.08,0,Math.PI*2);c.fill();
+   c.fillStyle='#5e6758';c.beginPath();c.moveTo(cx-wide,base);c.lineTo(cx-9,base-10);c.lineTo(cx,base-peak);c.lineTo(cx+9,base-12);c.lineTo(cx+wide,base);c.closePath();c.fill();
+   c.fillStyle='#929985';c.beginPath();c.moveTo(cx,base-peak);c.lineTo(cx-5,base-14);c.lineTo(cx,base-17);c.lineTo(cx+6,base-11);c.closePath();c.fill();
+   c.fillStyle='#496343';c.fillRect(cx-wide+3,base-3,wide*2-6,3);
+   c.restore();
+  }
   // Quarter-view forest canopy pass: irregular crowns overlap tile seams in screen-depth order.
   // Collision remains the original 32px FOREST cells; this pass is visual only.
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    if(mapData[ty][tx]!==TILE.FOREST)continue;
-   const v=hash(tx+733,ty+691),cx=tx*tileSize+16+(v-.5)*9,base=ty*tileSize+27;
+   const v=hash(tx+733,ty+691),cx=tx*tileSize+16+(v-.5)*15,base=ty*tileSize+25+(hash(tx+29,ty+31)-.5)*7;
    const edge=![[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.FOREST);
    c.save();
    c.globalAlpha=edge?.72:.84;
-   c.fillStyle='rgba(48,73,43,.22)';c.beginPath();c.ellipse(cx+3,base+1,12,3,-.12,0,Math.PI*2);c.fill();
+   c.fillStyle='rgba(48,73,43,.22)';c.beginPath();c.ellipse(cx+2,base+1,9,2.5,-.12,0,Math.PI*2);c.fill();
    c.fillStyle='#315d39';
-   c.beginPath();c.arc(cx-5,base-10,6.3,0,Math.PI*2);c.arc(cx+4,base-12,7,0,Math.PI*2);c.arc(cx,base-17,7.4,0,Math.PI*2);c.fill();
-   if(v>.38){c.fillStyle='#4b7a47';c.beginPath();c.arc(cx-2,base-18,3.6,0,Math.PI*2);c.arc(cx+5,base-16,3.2,0,Math.PI*2);c.fill();}
-   c.fillStyle='#68472f';c.fillRect(cx-1.2,base-8,2.4,8);
+   c.beginPath();c.arc(cx-4,base-8,4.6,0,Math.PI*2);c.arc(cx+3,base-9,5.2,0,Math.PI*2);c.arc(cx,base-13,5.5,0,Math.PI*2);c.fill();
+   if(v>.38){c.fillStyle='#4b7a47';c.beginPath();c.arc(cx-2,base-14,2.7,0,Math.PI*2);c.arc(cx+4,base-12,2.4,0,Math.PI*2);c.fill();}
+   c.fillStyle='#68472f';c.fillRect(cx-1,base-6,2,6);
    c.restore();
   }
   // Offshore rock clusters give the sea depth without changing collision.
@@ -452,5 +458,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:38,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:39,tileAt,tileSize,size,viewSize,camera,draw};
 })();
