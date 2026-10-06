@@ -216,11 +216,8 @@ window.YK_WORLD=(()=>{
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
-  // Broad tonal patches make grassland read as terrain rather than a tiled green canvas.
-  c.save();c.globalAlpha=.075;
-  for(const [x,y,rx,ry,col] of [[305,520,170,92,'#c6bd68'],[545,535,205,110,'#77a84c'],[410,330,210,96,'#91b45a'],[610,275,145,90,'#719b52'],[250,205,165,86,'#a8b46a']]){
-   c.fillStyle=col;c.beginPath();c.ellipse(x,y,rx,ry,-.08,0,Math.PI*2);c.fill();
-  }c.restore();
+  // Keep the plain free of large geometric overlays. Material variation comes from
+  // small irregular details so the 32px logic grid never becomes a visible shape.
   // Mountain art is independent from the logical 32px MOUNTAIN collision grid.
   // Broad overlapping ranges remove thin vertical fragments and repetitive stair-steps.
   if(false&&artReady(TERRAIN_ART.mountainRange)){
@@ -284,6 +281,19 @@ window.YK_WORLD=(()=>{
    c.moveTo(x+ox-4,base);c.lineTo(x+ox,base-5);c.lineTo(x+ox+5,base);c.closePath();c.fill();
    c.globalAlpha=.45;c.fillStyle="#58734a";c.fillRect(x+ox-6,base+1,12,1.5);
    c.restore();
+  }
+  // Forest fringe crosses the logical seam with tiny, non-colliding crowns.
+  // This hides the checkerboard edge without changing any walkable cell.
+  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+   if(mapData[ty][tx]!==TILE.GRASS)continue;
+   let touchesForest=false;
+   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])if(mapData[ty+dy][tx+dx]===TILE.FOREST)touchesForest=true;
+   if(!touchesForest)continue;
+   const v=hash(tx+617,ty+557); if(v<.34)continue;
+   const x=tx*tileSize+(v>.67?7:24),y=ty*tileSize+20+(v-.5)*7;
+   c.save();c.globalAlpha=.55;c.fillStyle='#416d43';
+   c.beginPath();c.arc(x-3,y,3.2,0,Math.PI*2);c.arc(x+2,y-2,4,0,Math.PI*2);c.arc(x+5,y+1,2.8,0,Math.PI*2);c.fill();
+   c.fillStyle='rgba(67,91,48,.45)';c.fillRect(x-6,y+3,13,1.4);c.restore();
   }
   // Inland transition belt: scattered low vegetation makes forest edges organic
   // while keeping the one-step/one-cell movement grid completely unchanged.
@@ -427,5 +437,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:36,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:37,tileAt,tileSize,size,viewSize,camera,draw};
 })();
