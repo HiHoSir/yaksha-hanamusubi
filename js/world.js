@@ -55,21 +55,21 @@ window.YK_WORLD=(()=>{
  // 0 grass, 1 mountain, 2 forest, 3 water, 4 shallow, 5 bridge, 6 sand, 7 special.
  // Keeping world coordinates and tile IDs stable preserves saves, events and movement behavior.
  const FIELD_TILE_ROWS=[
-  // Island-country layout. Opposite edges deliberately share compatible sea/land bands
-  // so a future toroidal world wrap can connect without invisible continental walls.
+  // Japanese-island-inspired main island: bays, peninsulas and inland mountain chains.
+  // Every map edge is ocean, so future N/S/E/W wrapping joins ocean-to-ocean cleanly.
   "333333333333333333333333",
-  "333333333330000333333333",
-  "333333330000000003333333",
-  "333333300011000000333333",
-  "333330000111100000033333",
-  "333300001100000000003333",
-  "333000011000000220000333",
-  "330000110000000222000033",
-  "330001100000000022000033",
-  "330000000000000000000033",
+  "333333333333333333333333",
+  "333333333000000333333333",
+  "333333300001100003333333",
+  "333330000011110000033333",
+  "333300000110011000003333",
+  "333000001100000220000333",
+  "330000011000000222000033",
+  "330000110000000022000033",
+  "330000100000000000000033",
   "330000000022030000200033",
   "330000000022003000220033",
-  "330000000000000000200033",
+  "330000000000000000220033",
   "330000000000300222220033",
   "330000000000030022220033",
   "330030000000030022220033",
@@ -325,5 +325,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:21,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:22,tileAt,tileSize,size,viewSize,camera,draw};
 })();
