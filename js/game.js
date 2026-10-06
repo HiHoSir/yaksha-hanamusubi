@@ -530,7 +530,9 @@ function drawRoundedField(c,source){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
   fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
   fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
-  drawWorldTerrain(fieldFrameCtx);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
+  // iOS isolation: draw the world directly. This bypasses worldAtlas/worldTerrain cache,
+  // the remaining suspect path after the emergency renderer proved Canvas/hero are healthy.
+  YK_WORLD.draw(fieldFrameCtx,null);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
   g.drawImage(fieldFrame,0,0,768,768);
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"草原を渡って次の旅先へ · 地図で全体を確認");return;
