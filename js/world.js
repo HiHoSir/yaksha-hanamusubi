@@ -58,6 +58,19 @@ window.YK_WORLD=(()=>{
   VILLAGE:96,SHRINE:97,COVE:98,
   WATERFALL:99,HOTSPRING:100,FOX:101};
  // Rasterize the existing curved route onto the 32px logic grid for future road chips.
+ // Multi-cell object layer. Footprints are expressed in walking cells, while anchors keep
+ // existing event coordinates intact. PNG object sheets can replace procedural landmarks later.
+ const OBJECT_KIND={VILLAGE:'village',SHRINE:'shrine',COVE:'cove',FOREST_GATE:'forest',WATERFALL:'waterfall',HOTSPRING:'hotspring',FOX:'fox'};
+ const objectLayer=[
+  {kind:OBJECT_KIND.VILLAGE,anchor:places.village.point,footprint:[3,2],chip:CHIP.VILLAGE,z:20},
+  {kind:OBJECT_KIND.SHRINE,anchor:places.shrine.point,footprint:[2,2],chip:CHIP.SHRINE,z:20},
+  {kind:OBJECT_KIND.COVE,anchor:places.cove.point,footprint:[2,1],chip:CHIP.COVE,z:18},
+  {kind:OBJECT_KIND.FOREST_GATE,anchor:places.forest.point,footprint:[1,1],chip:CHIP.FOREST_CORE,z:18},
+  {kind:OBJECT_KIND.WATERFALL,anchor:places.waterfall.point,footprint:[2,2],chip:CHIP.WATERFALL,z:22},
+  {kind:OBJECT_KIND.HOTSPRING,anchor:places.hotspring.point,footprint:[2,1],chip:CHIP.HOTSPRING,z:20},
+  {kind:OBJECT_KIND.FOX,anchor:places.fox.point,footprint:[2,2],chip:CHIP.FOX,z:20}
+ ];
+ const objectBounds=o=>{const [w,h]=o.footprint,[x,y]=o.anchor;return {x:x-w*tileSize/2,y:y-h*tileSize/2,w:w*tileSize,h:h*tileSize};};
  const roadCells=new Set();
  const markRoad=(x,y)=>{const tx=Math.floor(x/tileSize),ty=Math.floor(y/tileSize);if(tx>=0&&ty>=0&&tx<gridCols&&ty<gridRows)roadCells.add(tx+','+ty);};
  for(const route of roads)for(let i=1;i<route.length;i++){
@@ -593,5 +606,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:64,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:65,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds};
 })();
