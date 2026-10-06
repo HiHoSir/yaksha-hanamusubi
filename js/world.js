@@ -87,7 +87,7 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v3.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v4.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
@@ -132,9 +132,11 @@ window.YK_WORLD=(()=>{
       (landAt(tx-1,ty+1)&&!(mask&4)&&!(mask&8)?8:0);
     const im=TERRAIN_ART.waterAutotile;
     if(artReady(im)){
-     // v3 keeps the 16 cardinal tiles first and diagonal variants in rows 3-4.
-     const corner=diag?Math.floor(Math.log2(diag&-diag)): -1;
-     const index=corner>=0?16+((mask&15)%16):mask;
+     // v4 uses an explicit 8x8 sheet. Cardinal shoreline remains exact;
+     // one valid diagonal corner selects a dedicated inner-corner bank tile.
+     let diagClass=0;
+     if(diag&1)diagClass=1;else if(diag&2)diagClass=2;else if(diag&4)diagClass=3;
+     const index=diagClass*16+(mask&15);
      const sx=(index%8)*32,sy=Math.floor(index/8)*32;c.drawImage(im,sx,sy,32,32,x,y,32,32);
     }
     else{c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);}
