@@ -626,6 +626,21 @@ window.YK_WORLD=(()=>{
    }
    c.restore();
   }
+  // Final composition pass for the procedural preview: broad, low-contrast masses keep
+  // the eye on the route and landmarks without exposing the 32px logic grid.
+  if(!ready){
+   c.save();
+   for(const [px,py,rx,ry,a] of [[248,485,54,17,.045],[332,420,62,18,.038],[548,474,68,20,.042],[594,336,58,18,.040]]){
+    if(tileAt(px,py)!=='grass')continue;
+    c.globalAlpha=a;c.fillStyle='#365f3f';c.beginPath();c.ellipse(px,py,rx,ry,-.12,0,Math.PI*2);c.fill();
+   }
+   // Small warm clearings around destinations improve readability at phone scale.
+   for(const key of ['village','shrine','hotspring','fox']){
+    const [px,py]=places[key].point;if(tileAt(px,py)==='water')continue;
+    c.globalAlpha=.055;c.fillStyle='#d0bd7c';c.beginPath();c.ellipse(px,py+5,key==='village'?44:27,key==='village'?15:10,0,0,Math.PI*2);c.fill();
+   }
+   c.restore();
+  }
   // Route integration around the opening village, river crossing and cove.
   // These overlays are intentionally narrower than one walking cell and can later become road/bridge detail chips.
   if(!ready){
@@ -695,5 +710,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:70,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:71,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
 })();
