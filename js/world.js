@@ -179,13 +179,10 @@ window.YK_WORLD=(()=>{
       c.drawImage(fieldTiles,waterIndex*32,0,32,32,x,y,32,32);
      }
     }else{
-     const im=TERRAIN_ART.waterAutotile;
-     if(artReady(im)){
-      let diagClass=0;
-      if(diag&1)diagClass=1;else if(diag&2)diagClass=2;else if(diag&4)diagClass=3;
-      const index=diagClass*16+(mask&15);
-      c.drawImage(im,(index%8)*32,Math.floor(index/8)*32,32,32,x,y,32,32);
-     }else{c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);}
+     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize+.5,tileSize+.5);
+     // broken shallow-water highlights hide the logical cell cadence
+     c.globalAlpha=.18;c.fillStyle='#74b4ae';
+     c.beginPath();c.ellipse(x+16+(v-.5)*9,y+15,13,4,(v-.5)*.35,0,Math.PI*2);c.fill();c.globalAlpha=1;
     }
    }else if(bridge){
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
@@ -219,6 +216,25 @@ window.YK_WORLD=(()=>{
     if(v>.90){c.fillStyle='#7fa846';c.fillRect(x+1+v*4,y+3,1,.7);}
     if(v>.965){c.strokeStyle='rgba(93,130,61,.48)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
+   }
+  }
+  // Procedural coastline skirt: curves are painted from land into neighboring water.
+  // Collision remains square, but the visible coast is no longer a staircase.
+  if(!ready){
+   for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
+    if(mapData[ty][tx]!==TILE.GRASS)continue;
+    const x=tx*tileSize,y=ty*tileSize;
+    const dirs=[[0,-1,0],[1,0,1],[0,1,2],[-1,0,3]];
+    for(const [dx,dy,side] of dirs){
+     if(mapData[ty+dy][tx+dx]!==TILE.WATER)continue;
+     const q=hash(tx*37+dx+91,ty*41+dy+53),d=5+q*5;
+     c.save();c.globalAlpha=.82;c.fillStyle='#c7b66f';c.beginPath();
+     if(side===0){c.moveTo(x-2,y+2);c.quadraticCurveTo(x+8,y+d,x+16,y+2);c.quadraticCurveTo(x+25,y-d*.3,x+34,y+3);c.lineTo(x+34,y-3);c.lineTo(x-2,y-3);}
+     if(side===2){c.moveTo(x-2,y+30);c.quadraticCurveTo(x+8,y+32-d,x+16,y+30);c.quadraticCurveTo(x+25,y+34+d*.3,x+34,y+29);c.lineTo(x+34,y+35);c.lineTo(x-2,y+35);}
+     if(side===3){c.moveTo(x+2,y-2);c.quadraticCurveTo(x+d,y+8,x+2,y+16);c.quadraticCurveTo(x-d*.3,y+25,x+3,y+34);c.lineTo(x-3,y+34);c.lineTo(x-3,y-2);}
+     if(side===1){c.moveTo(x+30,y-2);c.quadraticCurveTo(x+32-d,y+8,x+30,y+16);c.quadraticCurveTo(x+34+d*.3,y+25,x+29,y+34);c.lineTo(x+35,y+34);c.lineTo(x+35,y-2);}
+     c.closePath();c.fill();c.restore();
+    }
    }
   }
   // Keep the plain free of large geometric overlays. Material variation comes from
@@ -458,5 +474,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:48,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:49,tileAt,tileSize,size,viewSize,camera,draw};
 })();
