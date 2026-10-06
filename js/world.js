@@ -476,6 +476,27 @@ window.YK_WORLD=(()=>{
     c.restore();
    }
   }
+  // Hozuki village apron: make the settlement part of the landscape rather than a floating icon.
+  // All marks are visual only; the existing village event coordinate and collision remain untouched.
+  {
+   const [vx,vy]=places.village.point;
+   c.save();
+   // soft packed-earth entrance and two branching footpaths
+   c.globalAlpha=.34;c.strokeStyle='#b6a66b';c.lineCap='round';c.lineJoin='round';
+   c.lineWidth=10;c.beginPath();c.moveTo(vx+3,vy+30);c.quadraticCurveTo(vx+8,vy+50,vx+20,vy+72);c.stroke();
+   c.lineWidth=6;c.beginPath();c.moveTo(vx-5,vy+18);c.quadraticCurveTo(vx-30,vy+27,vx-48,vy+42);c.stroke();
+   // tiny rice/vegetable plots, deliberately irregular and off-grid
+   for(const [ox,oy,w,h,r] of [[-53,-2,28,14,-.08],[38,3,31,13,.06],[-44,22,24,11,.04],[43,25,26,10,-.05]]){
+    c.save();c.translate(vx+ox,vy+oy);c.rotate(r);c.globalAlpha=.42;c.fillStyle='#a8a15d';c.fillRect(-w/2,-h/2,w,h);
+    c.strokeStyle='rgba(103,116,57,.55)';c.lineWidth=1;
+    for(let yy=-h/2+3;yy<h/2;yy+=4){c.beginPath();c.moveTo(-w/2+2,yy);c.lineTo(w/2-2,yy);c.stroke();}
+    c.restore();
+   }
+   // low hedges visually gather the three building stamps into one settlement footprint
+   c.globalAlpha=.48;c.fillStyle='#557845';
+   for(const [ox,oy,w] of [[-27,12,20],[22,13,22],[-4,27,30]]){c.beginPath();c.ellipse(vx+ox,vy+oy,w/2,3,-.08,0,Math.PI*2);c.fill();}
+   c.restore();
+  }
   // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
@@ -496,5 +517,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:41,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:42,tileAt,tileSize,size,viewSize,camera,draw};
 })();
