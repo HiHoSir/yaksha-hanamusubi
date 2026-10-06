@@ -87,7 +87,7 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v2.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v3.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
@@ -124,8 +124,19 @@ window.YK_WORLD=(()=>{
     // 32px image autotile. Bitmask N/E/S/W marks adjacent land; collision remains mapData-only.
     const landAt=(gx,gy)=>gx<0||gy<0||gx>=gridCols||gy>=gridRows||![TILE.WATER,TILE.BRIDGE].includes(mapData[gy][gx]);
     const mask=(landAt(tx,ty-1)?1:0)|(landAt(tx+1,ty)?2:0)|(landAt(tx,ty+1)?4:0)|(landAt(tx-1,ty)?8:0);
+    // Diagonal land is used only when both touching cardinal sides are water.
+    // This preserves the collision grid while choosing an image tile with a filled inner corner.
+    const diag=(landAt(tx-1,ty-1)&&!(mask&1)&&!(mask&8)?1:0)|
+      (landAt(tx+1,ty-1)&&!(mask&1)&&!(mask&2)?2:0)|
+      (landAt(tx+1,ty+1)&&!(mask&4)&&!(mask&2)?4:0)|
+      (landAt(tx-1,ty+1)&&!(mask&4)&&!(mask&8)?8:0);
     const im=TERRAIN_ART.waterAutotile;
-    if(artReady(im)){const sx=(mask%4)*32,sy=Math.floor(mask/4)*32;c.drawImage(im,sx,sy,32,32,x,y,32,32);}
+    if(artReady(im)){
+     // v3 keeps the 16 cardinal tiles first and diagonal variants in rows 3-4.
+     const corner=diag?Math.floor(Math.log2(diag&-diag)): -1;
+     const index=corner>=0?16+((mask&15)%16):mask;
+     const sx=(index%8)*32,sy=Math.floor(index/8)*32;c.drawImage(im,sx,sy,32,32,x,y,32,32);
+    }
     else{c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);}
    }else if(bridge){
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
