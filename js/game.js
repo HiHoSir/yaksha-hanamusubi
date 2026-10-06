@@ -540,7 +540,7 @@ function drawRoundedField(c,source){
  }
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
- if(S.area==="field"){
+ if(S.area==="debugField"){drawDebugField(g);return;}\n if(S.area==="field"){
   const camera=YK_WORLD.camera(S.x,S.y,S.dir);
   fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
   fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
@@ -926,6 +926,20 @@ function loop(t){if(!busy){S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==
 titleHero();hud();requestAnimationFrame(loop);
 
 // β15.26 field-test shortcut — inside the game scope so S/busy/hud are accessible.
+
+function drawDebugField(c){
+ c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
+ const W=YK_WORLD;if(!W){c.fillStyle="#102635";c.fillRect(0,0,768,768);return;}
+ c.save();c.scale(.88,.88);c.translate(48,36);W.draw(c,null);c.restore();
+ c.save();c.fillStyle="rgba(7,20,29,.88)";c.fillRect(14,14,740,58);c.strokeStyle="#d5b36b";c.strokeRect(14,14,740,58);
+ c.fillStyle="#fff3c4";c.font="bold 22px sans-serif";c.fillText("DEBUG FIELD — 地形・道・海岸・森・山・ランドマーク一覧",30,48);c.restore();
+ worldHint("デバッグ展示場：スクリーンショット確認用／セーブには影響しません");
+}
+window.YKDebugField=(enabled=true)=>{
+ if(enabled){window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};S.area="debugField";busy=false;$("title")?.classList.remove("show");map();return true;}
+ const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;map();return false;
+};
+
 const villageTestWarpBtn=document.getElementById("villageTestWarp");
 if(villageTestWarpBtn){
   villageTestWarpBtn.addEventListener("pointerup",(e)=>{
