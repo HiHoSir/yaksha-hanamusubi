@@ -143,6 +143,9 @@ window.YK_WORLD=(()=>{
    // iOS-safe mode: when the landmark atlas is intentionally omitted, also force the
    // procedural terrain fallback. This avoids mixing asynchronous image tiles into direct rendering.
    const fieldTiles=ready?TERRAIN_ART.fieldTiles:null;
+   if(!water&&!bridge&&!artReady(fieldTiles)){
+    c.fillStyle="#91b85a";c.fillRect(x,y,32.5,32.5);
+   }
    if(!water&&!bridge&&artReady(fieldTiles)){
     const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
     c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
@@ -455,5 +458,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:47,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:48,tileAt,tileSize,size,viewSize,camera,draw};
 })();
