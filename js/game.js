@@ -553,7 +553,7 @@ function drawRoundedField(c,source){
  drawDoorHint();
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"フィールドを進んで入口へ · 地図で目的地を確認");}
  else if(S.area==="village")worldHint("南の橋・北の道からフィールドへ戻れます");
- else if(YK_WORLD.places[S.area])worldHint("西の端からフィールドへ戻れます");
+ else if(typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.places&&YK_WORLD.places[S.area])worldHint("西の端からフィールドへ戻れます");
 }const NPCS={
  village:[
   {x:282,y:284,type:"child",name:"里の子",dir:"r",frame:1,talk:["夜叉姫さま、おかえりなさい！","川べりに花びらが流れてきたよ。"]},
@@ -733,7 +733,7 @@ function exitArea(){
    if(S.x>x0&&S.x<x1&&S.y>y0&&S.y<y1)return VILLAGE_LAYOUT.exit.to;
    if(inRect(S.x,S.y,VILLAGE_LAYOUT.northExit.rect))return VILLAGE_LAYOUT.northExit.to;
  }
- if(YK_WORLD.places[S.area]&&S.area!=="village"&&S.x<42)return "field";
+ if(typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.places&&YK_WORLD.places[S.area]&&S.area!=="village"&&S.x<42)return "field";
  return null;
 }
 function move(dx,dy,dir){
