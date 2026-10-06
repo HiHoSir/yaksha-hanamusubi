@@ -96,7 +96,7 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
- const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v1.png"};
+ const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v2.png"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
  const drawTerrainArt=(c,key,x,y,w,h)=>{const im=TERRAIN_ART[key];if(!artReady(im))return false;c.drawImage(im,x-w/2,y-h,w,h);return true;};
@@ -146,16 +146,24 @@ window.YK_WORLD=(()=>{
       (landAt(tx+1,ty-1)&&!(mask&1)&&!(mask&2)?2:0)|
       (landAt(tx+1,ty+1)&&!(mask&4)&&!(mask&2)?4:0)|
       (landAt(tx-1,ty+1)&&!(mask&4)&&!(mask&8)?8:0);
-    const im=TERRAIN_ART.waterAutotile;
-    if(artReady(im)){
-     // v4 uses an explicit 8x8 sheet. Cardinal shoreline remains exact;
-     // one valid diagonal corner selects a dedicated inner-corner bank tile.
-     let diagClass=0;
-     if(diag&1)diagClass=1;else if(diag&2)diagClass=2;else if(diag&4)diagClass=3;
-     const index=diagClass*16+(mask&15);
-     const sx=(index%8)*32,sy=Math.floor(index/8)*32;c.drawImage(im,sx,sy,32,32,x,y,32,32);
+    // Unified field tileset v2: row 0 = grass/water variants, row 1 = 16 shoreline masks.
+    // mapData remains the sole collision source; this is visual selection only.
+    if(artReady(fieldTiles)){
+     if(mask){
+      c.drawImage(fieldTiles,(mask&15)*32,32,32,32,x,y,32,32);
+     }else{
+      const waterIndex=8+((tx*3+ty*5+(hash(tx+19,ty+41)*8|0))&7);
+      c.drawImage(fieldTiles,waterIndex*32,0,32,32,x,y,32,32);
+     }
+    }else{
+     const im=TERRAIN_ART.waterAutotile;
+     if(artReady(im)){
+      let diagClass=0;
+      if(diag&1)diagClass=1;else if(diag&2)diagClass=2;else if(diag&4)diagClass=3;
+      const index=diagClass*16+(mask&15);
+      c.drawImage(im,(index%8)*32,Math.floor(index/8)*32,32,32,x,y,32,32);
+     }else{c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);}
     }
-    else{c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);}
    }else if(bridge){
     c.fillStyle='#2f7180';c.fillRect(x,y,tileSize,tileSize);
    }
