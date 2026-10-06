@@ -527,10 +527,13 @@ function drawRoundedField(c,source){
  g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="field"){
-  // Stage 3 isolation: absolutely no YK_WORLD access in the render path.
-  g.fillStyle="#9fbd62";g.fillRect(0,0,768,768);
-  drawActors();
-  worldHint("診断3 · world.js 非参照");return;
+  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
+  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
+  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
+  YK_WORLD.draw(fieldFrameCtx,null);drawActorsOn(fieldFrameCtx);fieldFrameCtx.restore();
+  g.drawImage(fieldFrame,0,0,768,768);
+  const k=YK_WORLD.near(S.x,S.y);
+  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"フィールドを進んで入口へ · 地図で目的地を確認");return;
  }
  if(S.area==="village"){drawVillageMap(g);drawVillageCollisionDebug(g)}
  else if(S.area==="teahouse") drawInterior(g,"tea");
@@ -716,7 +719,7 @@ function villageBlocked(x,y){
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
 function collision(x,y){if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
-  // Diagnostic: world collision disabled to isolate the Script error.
+  if(!YK_WORLD.walkable(x,y))return true;
 }if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome")return null;
