@@ -188,6 +188,29 @@ window.YK_WORLD=(()=>{
  };
  // Optional large terrain art. Missing files are harmless while assets are staged.
  const TERRAIN_ART={};
+ // Production quarter-view map-chip specification.
+ // Ground chips are 32x32. Overlay chips share a 32px ground footprint but may overhang upward.
+ const MAP_CHIP_SPEC={
+  version:1,cell:32,
+  ground:{grass:[32,32],water:[32,32],shore:[32,32],road:[32,32],bridge:[32,32]},
+  overlay:{
+   forest:{frame:[64,64],foot:[32,32],origin:[16,48]},
+   mountain:{frame:[96,96],foot:[32,32],origin:[32,80]},
+   village:{frame:[96,96],foot:[96,64],origin:[48,80]},
+   shrine:{frame:[64,80],foot:[64,64],origin:[32,64]},
+   waterfall:{frame:[64,96],foot:[64,64],origin:[32,80]},
+   hotspring:{frame:[64,48],foot:[64,32],origin:[32,32]},
+   fox:{frame:[64,80],foot:[64,64],origin:[32,64]}
+  }
+ };
+ const MAP_CHIP_PATHS={
+  ground:"assets/terrain/world-ground-qv-32.png",
+  shore:"assets/terrain/world-shore-qv-32.png",
+  road:"assets/terrain/world-road-qv-32.png",
+  forest:"assets/terrain/world-forest-qv.png",
+  mountain:"assets/terrain/world-mountain-qv.png",
+  landmarks:"assets/terrain/world-landmarks-qv.png"
+ };
  const TERRAIN_PATHS={forestTreeA:"assets/terrain/forest-tree-a.png",forestTreeB:"assets/terrain/forest-tree-b.png",forestTreeC:"assets/terrain/forest-tree-c.png",mountainRange:"assets/terrain/mountain-a.png",waterAutotile:"assets/terrain/water-autotile-32-v5.png",fieldTiles:"assets/terrain/field-tileset-32-v3.png?v=3"};
  for(const [k,src] of Object.entries(TERRAIN_PATHS)){const im=new Image();im.onload=()=>{window.__YK_TERRAIN_REV=(window.__YK_TERRAIN_REV||0)+1;};im.src=src;TERRAIN_ART[k]=im;}
  const artReady=im=>!!(im&&im.complete&&im.naturalWidth);
@@ -710,5 +733,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:72,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:73,tileAt,tileSize,size,viewSize,camera,draw,CHIP,visualChipAt,roadChipAt,OBJECT_KIND,objectLayer,objectBounds,depthKey,terrainDepth,objectDepth,sortByDepth,makeDepthQueue,MAP_CHIP_SPEC,MAP_CHIP_PATHS};
 })();
