@@ -142,11 +142,18 @@ window.YK_WORLD=(()=>{
    // Water shoreline remains on the proven autotile sheet until its shore IDs are migrated.
    const fieldTiles=TERRAIN_ART.fieldTiles;
    if(!water&&!bridge&&artReady(fieldTiles)){
-    // A single quiet base prevents the grassland from reading as a 32px patchwork.
-    c.drawImage(fieldTiles,0,0,32,32,x,y,32,32);
+    const grassIndex=(tx*5+ty*3+(hash(tx+71,ty+29)*8|0))&7;
+    c.drawImage(fieldTiles,grassIndex*32,0,32,32,x,y,32,32);
    }
-   // Forest/mountain collision still uses the 32px grid, but their visible forms are
-   // rendered later as overlapping quarter-view symbols. Never expose the square source cells.
+   // Mountain and forest are now selected from the same 32px field sheet by N/E/S/W adjacency.
+   // Logical tile IDs and collision remain unchanged.
+   if((t==='mountain'||t==='forest')&&artReady(fieldTiles)){
+    const target=t==='mountain'?TILE.MOUNTAIN:TILE.FOREST;
+    const same=(gx,gy)=>gx>=0&&gy>=0&&gx<gridCols&&gy<gridRows&&mapData[gy][gx]===target;
+    const mask=(same(tx,ty-1)?1:0)|(same(tx+1,ty)?2:0)|(same(tx,ty+1)?4:0)|(same(tx-1,ty)?8:0);
+    const row=t==='mountain'?2:4;
+    c.drawImage(fieldTiles,(mask&15)*32,row*32,32,32,x,y,32,32);
+   }
    if(water){
     // 32px image autotile. Bitmask N/E/S/W marks adjacent land; collision remains mapData-only.
     const landAt=(gx,gy)=>gx<0||gy<0||gx>=gridCols||gy>=gridRows||![TILE.WATER,TILE.BRIDGE].includes(mapData[gy][gx]);
@@ -209,46 +216,8 @@ window.YK_WORLD=(()=>{
     if(t==='grass'&&v>.992){c.fillStyle='#f0dfbd';c.beginPath();c.arc(x+3,y+3.5,.7,0,Math.PI*2);c.fill();}
    }
   }
-  // Natural terrain seams. These are visual skirts drawn from the walkable side of
-  // blocked cells, so coastline/forest/mountain borders no longer expose 32px L-shaped steps.
-  for(let ty=1;ty<gridRows-1;ty++)for(let tx=1;tx<gridCols-1;tx++){
-   if(mapData[ty][tx]!==TILE.GRASS)continue;
-   const x=tx*tileSize,y=ty*tileSize;
-   const neighbor=(dx,dy)=>mapData[ty+dy][tx+dx];
-   const seams=[[0,-1,'n'],[1,0,'e'],[0,1,'s'],[-1,0,'w']];
-   for(const [dx,dy,side] of seams){
-    const t=neighbor(dx,dy); if(![TILE.WATER,TILE.FOREST,TILE.MOUNTAIN].includes(t))continue;
-    const v=hash(tx*17+dx+43,ty*19+dy+59),depth=5+v*5;
-    c.save();c.globalAlpha=t===TILE.WATER?.52:.38;
-    c.fillStyle=t===TILE.WATER?'#c9b978':t===TILE.FOREST?'#557c49':'#6d7655';
-    c.beginPath();
-    if(side==='n'){c.moveTo(x-3,y+2);c.quadraticCurveTo(x+8,y+depth,x+16,y+2);c.quadraticCurveTo(x+25,y-depth*.2,x+35,y+3);c.lineTo(x+35,y-3);c.lineTo(x-3,y-3);}
-    if(side==='s'){c.moveTo(x-3,y+30);c.quadraticCurveTo(x+8,y+32-depth,x+16,y+30);c.quadraticCurveTo(x+25,y+34+depth*.2,x+35,y+29);c.lineTo(x+35,y+35);c.lineTo(x-3,y+35);}
-    if(side==='w'){c.moveTo(x+2,y-3);c.quadraticCurveTo(x+depth,y+8,x+2,y+16);c.quadraticCurveTo(x-depth*.2,y+25,x+3,y+35);c.lineTo(x-3,y+35);c.lineTo(x-3,y-3);}
-    if(side==='e'){c.moveTo(x+30,y-3);c.quadraticCurveTo(x+32-depth,y+8,x+30,y+16);c.quadraticCurveTo(x+34+depth*.2,y+25,x+29,y+35);c.lineTo(x+35,y+35);c.lineTo(x+35,y-3);}
-    c.closePath();c.fill();c.restore();
-   }
-  }
-  // Organic ground wash: many overlapping translucent shapes cross cell boundaries.
-  // This creates broad meadow/dry-grass regions without revealing the movement grid.
-  c.save();
-  for(let gy=24;gy<size;gy+=58)for(let gx=20;gx<size;gx+=67){
-   if(tileAt(gx,gy)!=='grass')continue;
-   const v=hash(gx+97,gy+131),w=34+v*42,h=12+hash(gx+17,gy+43)*18;
-   c.globalAlpha=.035+v*.025;
-   c.fillStyle=v>.56?'#779650':'#c1b66d';
-   c.beginPath();c.ellipse(gx+(v-.5)*22,gy,w,h,(v-.5)*.55,0,Math.PI*2);c.fill();
-  }
-  c.restore();
-  // Fine grass is distributed in world space rather than once per tile, breaking the checkerboard rhythm.
-  c.save();c.strokeStyle='rgba(82,112,60,.25)';c.lineWidth=.7;
-  for(let gy=17;gy<size;gy+=23)for(let gx=13;gx<size;gx+=29){
-   if(tileAt(gx,gy)!=='grass')continue;
-   const v=hash(gx+211,gy+173); if(v<.42)continue;
-   const x=gx+(v-.5)*13,y=gy+(hash(gx,gy)-.5)*11;
-   c.beginPath();c.moveTo(x-2,y+2);c.lineTo(x-1,y-2-v*2);c.moveTo(x+1,y+2);c.lineTo(x+3,y-1-v);c.stroke();
-  }
-  c.restore();
+  // Keep the plain free of large geometric overlays. Material variation comes from
+  // small irregular details so the 32px logic grid never becomes a visible shape.
   // Mountain art is independent from the logical 32px MOUNTAIN collision grid.
   // Broad overlapping ranges remove thin vertical fragments and repetitive stair-steps.
   if(false&&artReady(TERRAIN_ART.mountainRange)){
@@ -281,36 +250,19 @@ window.YK_WORLD=(()=>{
   // Image-based forest objects: visual scale is independent from the 32px collision grid.
   // Until PNGs are uploaded, forest tiles intentionally remain visually quiet rather than falling back to procedural trees.
   // Forest visuals now come from FIELD_TILE_ROWS + unified 32px chips.
-  // Quarter-view mountain pass. One logical mountain cell becomes a low overlapping ridge,
-  // with neighboring cells visually merging into a range rather than a wall of square chips.
-  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
-   if(mapData[ty][tx]!==TILE.MOUNTAIN)continue;
-   const v=hash(tx+811,ty+773),cx=tx*tileSize+16+(v-.5)*8,base=ty*tileSize+30;
-   const peak=20+v*5,wide=23+v*4;
-   c.save();
-   c.fillStyle='rgba(55,69,48,.20)';c.beginPath();c.ellipse(cx+3,base+1,wide,4,-.08,0,Math.PI*2);c.fill();
-   c.fillStyle='#5e6758';c.beginPath();c.moveTo(cx-wide,base);c.lineTo(cx-9,base-10);c.lineTo(cx,base-peak);c.lineTo(cx+9,base-12);c.lineTo(cx+wide,base);c.closePath();c.fill();
-   c.fillStyle='#929985';c.beginPath();c.moveTo(cx,base-peak);c.lineTo(cx-5,base-14);c.lineTo(cx,base-17);c.lineTo(cx+6,base-11);c.closePath();c.fill();
-   c.fillStyle='#496343';c.fillRect(cx-wide+3,base-3,wide*2-6,3);
-   // darker front skirt anchors the ridge to the ground plane
-   c.globalAlpha=.34;c.fillStyle='#344b38';c.beginPath();c.ellipse(cx+3,base+2,wide*.78,3.2,-.06,0,Math.PI*2);c.fill();
-   c.restore();
-  }
   // Quarter-view forest canopy pass: irregular crowns overlap tile seams in screen-depth order.
   // Collision remains the original 32px FOREST cells; this pass is visual only.
   for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
    if(mapData[ty][tx]!==TILE.FOREST)continue;
-   const v=hash(tx+733,ty+691),cx=tx*tileSize+16+(v-.5)*15,base=ty*tileSize+25+(hash(tx+29,ty+31)-.5)*7;
+   const v=hash(tx+733,ty+691),cx=tx*tileSize+16+(v-.5)*9,base=ty*tileSize+27;
    const edge=![[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.FOREST);
    c.save();
    c.globalAlpha=edge?.72:.84;
-   c.fillStyle='rgba(48,73,43,.22)';c.beginPath();c.ellipse(cx+2,base+1,9,2.5,-.12,0,Math.PI*2);c.fill();
+   c.fillStyle='rgba(48,73,43,.22)';c.beginPath();c.ellipse(cx+3,base+1,12,3,-.12,0,Math.PI*2);c.fill();
    c.fillStyle='#315d39';
-   c.beginPath();c.arc(cx-4,base-8,4.6,0,Math.PI*2);c.arc(cx+3,base-9,5.2,0,Math.PI*2);c.arc(cx,base-13,5.5,0,Math.PI*2);c.fill();
-   if(v>.38){c.fillStyle='#4b7a47';c.beginPath();c.arc(cx-2,base-14,2.7,0,Math.PI*2);c.arc(cx+4,base-12,2.4,0,Math.PI*2);c.fill();}
-   c.fillStyle='#68472f';c.fillRect(cx-1,base-6,2,6);
-   // front-facing undergrowth makes lower rows overlap upper rows visually
-   c.globalAlpha=edge?.42:.55;c.fillStyle='#36583a';c.beginPath();c.ellipse(cx+1,base+1,8.5,2.5,-.1,0,Math.PI*2);c.fill();
+   c.beginPath();c.arc(cx-5,base-10,6.3,0,Math.PI*2);c.arc(cx+4,base-12,7,0,Math.PI*2);c.arc(cx,base-17,7.4,0,Math.PI*2);c.fill();
+   if(v>.38){c.fillStyle='#4b7a47';c.beginPath();c.arc(cx-2,base-18,3.6,0,Math.PI*2);c.arc(cx+5,base-16,3.2,0,Math.PI*2);c.fill();}
+   c.fillStyle='#68472f';c.fillRect(cx-1.2,base-8,2.4,8);
    c.restore();
   }
   // Offshore rock clusters give the sea depth without changing collision.
@@ -480,27 +432,6 @@ window.YK_WORLD=(()=>{
     c.restore();
    }
   }
-  // Hozuki village apron: make the settlement part of the landscape rather than a floating icon.
-  // All marks are visual only; the existing village event coordinate and collision remain untouched.
-  {
-   const [vx,vy]=places.village.point;
-   c.save();
-   // soft packed-earth entrance and two branching footpaths
-   c.globalAlpha=.34;c.strokeStyle='#b6a66b';c.lineCap='round';c.lineJoin='round';
-   c.lineWidth=10;c.beginPath();c.moveTo(vx+3,vy+30);c.quadraticCurveTo(vx+8,vy+50,vx+20,vy+72);c.stroke();
-   c.lineWidth=6;c.beginPath();c.moveTo(vx-5,vy+18);c.quadraticCurveTo(vx-30,vy+27,vx-48,vy+42);c.stroke();
-   // tiny rice/vegetable plots, deliberately irregular and off-grid
-   for(const [ox,oy,w,h,r] of [[-53,-2,28,14,-.08],[38,3,31,13,.06],[-44,22,24,11,.04],[43,25,26,10,-.05]]){
-    c.save();c.translate(vx+ox,vy+oy);c.rotate(r);c.globalAlpha=.42;c.fillStyle='#a8a15d';c.fillRect(-w/2,-h/2,w,h);
-    c.strokeStyle='rgba(103,116,57,.55)';c.lineWidth=1;
-    for(let yy=-h/2+3;yy<h/2;yy+=4){c.beginPath();c.moveTo(-w/2+2,yy);c.lineTo(w/2-2,yy);c.stroke();}
-    c.restore();
-   }
-   // low hedges visually gather the three building stamps into one settlement footprint
-   c.globalAlpha=.48;c.fillStyle='#557845';
-   for(const [ox,oy,w] of [[-27,12,20],[22,13,22],[-4,27,30]]){c.beginPath();c.ellipse(vx+ox,vy+oy,w/2,3,-.08,0,Math.PI*2);c.fill();}
-   c.restore();
-  }
   // A few signposts mark major forks while the surrounding plain stays explorable.
   for(const [x,y] of [[307,421],[589,496],[482,145]])stamp(15,x,y,10,12);
   const icons={village:8,shrine:9,cove:10,forest:11,waterfall:12,hotspring:13,fox:14};
@@ -511,10 +442,9 @@ window.YK_WORLD=(()=>{
    if(k==='village'){
     c.save();
     c.globalAlpha=.18;c.fillStyle='#45663f';c.beginPath();c.ellipse(x,y+8,46,12,-.08,0,Math.PI*2);c.fill();c.globalAlpha=1;
-    // back row first, foreground building last: stable painter's order for quarter-view depth
-    stamp(icons[k],x+20,y-20,39,33);
-    stamp(icons[k],x-22,y-16,41,35);
-    stamp(icons[k],x-2,y+9,48,41);
+    stamp(icons[k],x-22,y-15,42,36);
+    stamp(icons[k],x+20,y-18,40,34);
+    stamp(icons[k],x-2,y+7,46,39);
     c.restore();
    }else{
     const w=k==='shrine'?42:k==='fox'?44:k==='hotspring'?38:k==='waterfall'?40:k==='forest'?36:k==='cove'?34:32;
@@ -522,5 +452,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:43,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:44,tileAt,tileSize,size,viewSize,camera,draw};
 })();
