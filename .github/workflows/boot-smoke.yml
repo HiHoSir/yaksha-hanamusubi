@@ -30,7 +30,7 @@ jobs:
           if(!game.includes('YK_INPUT.tap($("continueGame")'))throw new Error('continue handler missing');
           if(!html.includes('id="debugMap"'))throw new Error('debug map title entry missing');
           if(!game.includes('DEBUG_ORTHO_ART'))throw new Error('debug sheet loader missing');
-          if(!game.includes('world-ortho-ground-v2.webp')||!game.includes('world-ortho-road-v2.webp'))throw new Error('v2 ground/road preview missing');
+          if(!['ground','road','shore','forest','mountain','landmarks'].every(k=>game.includes('world-ortho-'+k+'-v2.webp')))throw new Error('complete v2 debug sheet set missing');
           if(!game.includes('if(debugField){map();return;}'))throw new Error('debug movement isolation missing');
           console.log('boot contract OK');
           NODE
@@ -46,6 +46,10 @@ jobs:
           test -s assets/terrain/world-ortho-road-v1.png
           test -s assets/terrain/world-ortho-ground-v2.webp
           test -s assets/terrain/world-ortho-road-v2.webp
+          test -s assets/terrain/world-ortho-shore-v2.webp
+          test -s assets/terrain/world-ortho-forest-v2.webp
+          test -s assets/terrain/world-ortho-mountain-v2.webp
+          test -s assets/terrain/world-ortho-landmarks-v2.webp
           test -s assets/terrain/world-ortho-shore-v1.png
           test -s assets/terrain/world-ortho-forest-v1.png
           test -s assets/terrain/world-ortho-mountain-v1.png
