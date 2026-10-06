@@ -356,7 +356,7 @@ window.YK_WORLD=(()=>{
    }
    // Mountain and forest are now selected from the same 32px field sheet by N/E/S/W adjacency.
    // Logical tile IDs and collision remain unchanged.
-   if((t==='mountain'||t==='forest')&&artReady(fieldTiles)){
+   if((t==='mountain'||t==='forest')&&artReady(fieldTiles)&&!mapChipReady(t)){
     const target=t==='mountain'?TILE.MOUNTAIN:TILE.FOREST;
     const same=(gx,gy)=>gx>=0&&gy>=0&&gx<gridCols&&gy<gridRows&&mapData[gy][gx]===target;
     const mask=(same(tx,ty-1)?1:0)|(same(tx+1,ty)?2:0)|(same(tx,ty+1)?4:0)|(same(tx-1,ty)?8:0);
@@ -395,7 +395,7 @@ window.YK_WORLD=(()=>{
    else if(!artReady(fieldTiles)){
     // base grass was already painted with a half-pixel overlap above; do not repaint exact 32px cells.
    }
-   if(water){
+   if(water&&!productionBase){
     // Transitional placeholder only; image-based shoreline assets replace legacy 8px decoration.
     /* legacy shoreline disabled
     // Low-contrast ripples; stone bank and thin foam at the actual collision edge.
@@ -413,10 +413,10 @@ window.YK_WORLD=(()=>{
      c.fillStyle='#e3e8ba';const o=(tx+ty)%3;if(e===0)c.fillRect(x+o,y+1.5,3,.5);if(e===1)c.fillRect(x+6,y+o,.5,3);if(e===2)c.fillRect(x+o,y+6,3,.5);if(e===3)c.fillRect(x+1.5,y+o,.5,3);
     }
    */
-   }else if(bridge){
+   }else if(bridge&&!productionBase){
     c.fillStyle='#674a30';c.fillRect(x,y,8,8);c.fillStyle='#c2a16a';for(let n=0;n<8;n+=2)c.fillRect(x,y+n,8,1.5);
     c.fillStyle='#765739';if(tileAt(x+4,y-4)!=='bridge')c.fillRect(x,y,8,.75);if(tileAt(x+4,y+12)!=='bridge')c.fillRect(x,y+7.25,8,.75);
-   }else{
+   }else if(!productionBase){
     // Irregular tufts, dry grass and tiny flowers give the plain material variation.
     if(v>.90){c.fillStyle='#7fa846';c.fillRect(x+1+v*4,y+3,1,.7);}
     if(v>.965){c.strokeStyle='rgba(93,130,61,.48)';c.lineWidth=.55;c.beginPath();c.moveTo(x+2,y+6);c.lineTo(x+3,y+3);c.moveTo(x+4,y+6);c.lineTo(x+5,y+2.5);c.stroke();}
