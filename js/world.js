@@ -14,8 +14,10 @@ window.YK_WORLD=(()=>{
  // Scenic landmarks make each leg of the journey visually distinct without turning
  // the field back into a narrow road corridor.
  const scenicZones=[
-  {kind:"farmland",x:225,y:555,rx:58,ry:46},
-  {kind:"foothill",x:286,y:438,rx:88,ry:62},
+  // The opening vista deliberately frames three readable cues: village behind,
+  // foothills to the north, and the eastern lowland leading toward the coast.
+  {kind:"farmland",x:216,y:558,rx:72,ry:52},
+  {kind:"foothill",x:276,y:438,rx:96,ry:68},
   {kind:"shrine",x:205,y:360,rx:72,ry:66},
   {kind:"coast",x:466,y:590,rx:94,ry:68},
   {kind:"seaVista",x:557,y:527,rx:88,ry:62},
@@ -26,7 +28,9 @@ window.YK_WORLD=(()=>{
   {kind:"autumn",x:210,y:132,rx:108,ry:58}
  ];
  const roads=[
-  [places.village.point,start,[231,489],[241,471],[265,460],[284,445],shrineJunction],
+  // Opening leg bends gradually north-east so the next objective is suggested by terrain,
+  // not by a straight corridor. Existing destination/event coordinates stay unchanged.
+  [places.village.point,start,[229,516],[232,496],[241,477],[259,463],[278,448],shrineJunction],
   [shrineJunction,[246,405],[216,398],[197,382],places.shrine.point],
   [shrineJunction,[330,423],[348,435],[348,473],[357,489],[378,503],[379,542],[385,565],[407,581],[429,590],[448,607],places.cove.point],
   [places.cove.point,[485,587],[507,576],[524,560],[524,551],[549,539],[582,534],[591,515],[591,492],[608,478],[634,468],[660,451],[661,422],places.forest.point],
@@ -406,5 +410,5 @@ window.YK_WORLD=(()=>{
    stamp(icons[k],x,y-w*.31,w,w*.85);
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:29,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:30,tileAt,tileSize,size,viewSize,camera,draw};
 })();
