@@ -250,6 +250,21 @@ window.YK_WORLD=(()=>{
   // Image-based forest objects: visual scale is independent from the 32px collision grid.
   // Until PNGs are uploaded, forest tiles intentionally remain visually quiet rather than falling back to procedural trees.
   // Forest visuals now come from FIELD_TILE_ROWS + unified 32px chips.
+  // Quarter-view forest canopy pass: irregular crowns overlap tile seams in screen-depth order.
+  // Collision remains the original 32px FOREST cells; this pass is visual only.
+  for(let ty=0;ty<gridRows;ty++)for(let tx=0;tx<gridCols;tx++){
+   if(mapData[ty][tx]!==TILE.FOREST)continue;
+   const v=hash(tx+733,ty+691),cx=tx*tileSize+16+(v-.5)*9,base=ty*tileSize+27;
+   const edge=![[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>tx+dx>=0&&ty+dy>=0&&tx+dx<gridCols&&ty+dy<gridRows&&mapData[ty+dy][tx+dx]===TILE.FOREST);
+   c.save();
+   c.globalAlpha=edge?.72:.84;
+   c.fillStyle='rgba(48,73,43,.22)';c.beginPath();c.ellipse(cx+3,base+1,12,3,-.12,0,Math.PI*2);c.fill();
+   c.fillStyle='#315d39';
+   c.beginPath();c.arc(cx-5,base-10,6.3,0,Math.PI*2);c.arc(cx+4,base-12,7,0,Math.PI*2);c.arc(cx,base-17,7.4,0,Math.PI*2);c.fill();
+   if(v>.38){c.fillStyle='#4b7a47';c.beginPath();c.arc(cx-2,base-18,3.6,0,Math.PI*2);c.arc(cx+5,base-16,3.2,0,Math.PI*2);c.fill();}
+   c.fillStyle='#68472f';c.fillRect(cx-1.2,base-8,2.4,8);
+   c.restore();
+  }
   // Offshore rock clusters give the sea depth without changing collision.
   for(const [rx,ry,s] of [[46,456,1],[84,445,.8],[525,678,.9],[565,645,.65],[702,505,.75],[735,544,.55]]){
    if(tileAt(rx,ry)!=='water')continue;
@@ -437,5 +452,5 @@ window.YK_WORLD=(()=>{
    }
   }
  }
- return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:37,tileAt,tileSize,size,viewSize,camera,draw};
+ return {start,hub,places,roads,worldObjects,mapData,TILE,walkable,near,revision:38,tileAt,tileSize,size,viewSize,camera,draw};
 })();
