@@ -998,28 +998,31 @@ function drawDebugOverview(c){
 
  const isWater=(x,y)=>x>=16||(x>=14&&y>=4&&y<=12)||(x>=13&&y>=7&&y<=10);
 
- // Analyzed chips are partly transparent overlays. Reproduce the production renderer's
- // opaque biome underlay first so grass/water never fall through to the debug background.
+ // Analyzed ground chips are transparent overlays. Build an opaque biome base first.
+ // The current SHORE atlas is intentionally NOT used here: it is a thin inspection overlay,
+ // not a convincing finished coast. Overview therefore tests a 1-cell sand beach band.
+ const inBounds=(x,y)=>x>=0&&y>=0&&x<cols&&y<rows;
+ const waterAt=(x,y)=>inBounds(x,y)&&isWater(x,y);
+ const isBeach=(x,y)=>{
+  if(!inBounds(x,y)||isWater(x,y))return false;
+  return waterAt(x+1,y)||waterAt(x-1,y)||waterAt(x,y+1)||waterAt(x,y-1);
+ };
+
  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
   const dx=ox+x*cell,dy=oy+y*cell;
-  c.fillStyle=isWater(x,y)?"#397b87":"#91b85a";
+  if(isWater(x,y))c.fillStyle="#397b87";
+  else if(isBeach(x,y))c.fillStyle="#d6bd72";
+  else c.fillStyle="#91b85a";
   c.fillRect(dx,dy,cell+.5,cell+.5);
  }
 
- // Ground overlay variants.
+ // Ground overlays remain on grass and water; beach is deliberately plain in this debug view
+ // because no production-quality beach chip has been validated yet.
  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
   const dx=ox+x*cell,dy=oy+y*cell;
+  if(isBeach(x,y))continue;
   const slot=isWater(x,y)?8+((x*3+y*5)&7):(x+y*3)%8;
   debug32(c,"ground",8,slot,dx,dy);
- }
-
- // Place the analyzed shore overlay on the LAND cell selected by actual water adjacency.
- // This mirrors world.js semantics instead of hand-placing beige lines.
- const waterAt=(x,y)=>x>=0&&y>=0&&x<cols&&y<rows&&isWater(x,y);
- for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
-  if(isWater(x,y))continue;
-  const slot=debugShoreSlot(x,y,waterAt);
-  if(slot!=null)debug32(c,"shore",4,slot,ox+x*cell,oy+y*cell);
  }
 
  // Road network: enough grammar to inspect straight, cross and bend continuity.
