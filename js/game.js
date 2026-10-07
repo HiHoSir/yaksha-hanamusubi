@@ -763,7 +763,7 @@ function move(dx,dy,dir){
 }
 // Enemy artwork stays a single still; brief overlays carry each impact.
 function startBattleFx(kind,target,amount=null){
- const fx=battleFx={kind,target,amount,source:target==="hero"?"enemy":"hero",start:performance.now(),duration:320,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
+ const fx=battleFx={kind,target,amount,source:amount<0?"hero":target==="hero"?"enemy":"hero",start:performance.now(),duration:320,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
  const tick=()=>{if(battleFx!==fx)return;if(performance.now()-fx.start>=fx.duration){battleFx=null;renderBattle();return;}renderBattle();battleLater(tick,16);};
  battleLater(tick,16);
 }

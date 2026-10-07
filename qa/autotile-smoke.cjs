@@ -346,7 +346,7 @@ function check(name,fn){fn();results.push(name)}
  });
  check('healing costs tech and full-health item use does not consume an item',()=>{
   battleSetup();sandbox.__qaEval('cmd("item");cmd("herb")');assert.equal(sandbox.gameState.potions,2);assert(!sandbox.__qaEval('battleLocked'));
-  sandbox.__qaEval('battleBack();S.hp=40;cmd("skill");cmd("heal")');assert.equal(sandbox.gameState.hp,72);assert.equal(sandbox.gameState.mp,15);advance(1200);assert.equal(sandbox.gameState.hp,66);
+  sandbox.__qaEval('battleBack();S.hp=40;cmd("skill");cmd("heal")');assert.equal(sandbox.gameState.hp,72);assert.equal(sandbox.__qaEval('battleFx.source'),'hero');assert.equal(sandbox.gameState.mp,15);advance(1200);assert.equal(sandbox.gameState.hp,66);
  });
  check('victory rewards once, restores tech on level-up and waits for acknowledgement',()=>{
   battleSetup();sandbox.__qaEval('battle.hp=1;battle.xp=40;S.mp=0;cmd("attack")');advance(500);assert.equal(sandbox.gameState.lv,2);assert.equal(sandbox.gameState.mp,sandbox.gameState.maxmp);const gold=sandbox.gameState.gold;
