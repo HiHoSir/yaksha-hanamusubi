@@ -141,7 +141,10 @@ NPC_ROLES.forEach(n=>{
   });
 });
 const B9EN={};["redoni","crowtengu","umibozu","ninefox","yokai_flower"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/${n}.png`;B9EN[n]=im});
-const ENEMY_ART={};["field-oni","field-tanuki"].forEach(n=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/standard/${n}.png`;ENEMY_ART[n]=im});
+const ENEMY_ART={};
+[...new Set(Object.values(YK_DATA.enemyProfiles||{}).map(p=>p.art).filter(Boolean))].forEach(n=>{
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/standard/${n}.png`;ENEMY_ART[n]=im;
+});
 const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
