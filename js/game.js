@@ -951,7 +951,7 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
 // Uses the analyzed orthogonal map-chip sheets directly.
-const DEBUG_PAGES=["autotile","autotile2x","connections","overview","shore","water","ground","road"];
+const DEBUG_PAGES=["autotile","autotile2x","connections","assets32","overview","shore","water","ground","road"];
 const DEBUG_ASSETS={
  ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
@@ -1121,12 +1121,19 @@ function drawDebugAutotile(c,page){
  }
  const zoom=page==="autotile2x"?2:1;
  c.save();c.beginPath();c.rect(48,100,640,544);c.clip();
- if(page==="connections"){
+ if(page==="assets32"){
+  a.keys.forEach((key,i)=>{
+   const x=55+(i%5)*126,y=110+Math.floor(i/5)*240;
+   for(let yy=0;yy<180;yy+=8)for(let xx=0;xx<112;xx+=8){c.fillStyle=((xx+yy)/8)%2?"#38505a":"#536773";c.fillRect(x+xx,y+yy,8,8);}
+   a.drawAsset(c,key,x+40,y+4,32);a.drawAsset(c,key,x+8,y+58,96);
+   c.fillStyle="#fff3c4";c.font="13px monospace";c.fillText(key.replace('forest_','').replace('grass_base','grass'),x,y+207);
+  });
+ }else if(page==="connections"){
   c.fillStyle="#80b348";c.fillRect(48,100,640,544);
   for(let mask=0;mask<16;mask++){
    const x=68+(mask%4)*154,y=118+Math.floor(mask/4)*128;
    const n={n:!!(mask&1),e:!!(mask&2),s:!!(mask&4),w:!!(mask&8)};
-   c.save();c.translate(x,y);c.scale(2,2);a.drawCell(c,"forest",n,0,0);a.drawCell(c,"mountain",n,36,0);c.restore();
+   c.save();c.translate(x,y);c.scale(2,2);a.drawCell(c,"forest",n,0,0);c.restore();
    c.fillStyle="#112b20";c.font="14px monospace";c.fillText("NESW "+[n.n,n.e,n.s,n.w].map(Number).join(""),x,y+87);
   }
  }else{
@@ -1136,17 +1143,17 @@ function drawDebugAutotile(c,page){
   hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56);
  }
  c.restore();
- c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="connections"?"森・山：16接続パターン":("オリジナル地形 / "+zoom+"倍"),48,45);
- c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("32px = 16px×4 / 草原1・森9・山12",48,75);
- c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 接続一覧 → 旧素材比較　B：戻る",48,690);
- c.fillStyle="#aec2c8";c.font="14px sans-serif";c.fillText("検証用：地形は通り抜け可 / 海岸・雪地形は次工程",48,720);
- worldHint(page==="connections"?"森と山を左右に並べた16パターン":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");
+ c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="assets32"?"32×32 PNG / 実寸と3倍・透明確認":page==="connections"?"森：16接続パターン":("オリジナル地形 / "+zoom+"倍"),48,45);
+ c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("32px = 16px×4 / 草原base 1・森9 / 透過PNG",48,75);
+ c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 接続 → PNG一覧 → 旧素材　B：戻る",48,690);
+ c.fillStyle="#aec2c8";c.font="14px sans-serif";c.fillText("検証用：地形は通り抜け可 / 山・海岸は次工程",48,720);
+ worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
 
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
- if(["autotile","autotile2x","connections"].includes(page)){drawDebugAutotile(c,page);return;}
+ if(["autotile","autotile2x","connections","assets32"].includes(page)){drawDebugAutotile(c,page);return;}
  const key=page==="road"?"road":"ground";
  if(!debugReady(key)||(page==="overview"&&!debugAllReady())){
   c.fillStyle="#102631";c.fillRect(0,0,768,768);c.fillStyle="#fff3c4";c.font="20px sans-serif";

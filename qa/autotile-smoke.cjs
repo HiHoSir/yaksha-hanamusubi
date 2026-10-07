@@ -45,12 +45,23 @@ function check(name,fn){fn();results.push(name)}
  const a=sandbox.YK_AUTOTILE;
  a.load();await Promise.all(loaded.map(im=>im.decode()));advance(1);
  check('all original atlases loaded with exact dimensions',()=>assert(a.ready(),JSON.stringify(a.errors)));
- check('32 cardinal cases stay in atlas bounds',()=>{
-  for(const kind of ['forest','mountain'])for(let mask=0;mask<16;mask++){
+ const qaImages={};for(const key of a.keys){const im=new NativeImage();im.src=fs.readFileSync(path.join(root,'assets/terrain/original-32-v1',key+'.png'));await im.decode();qaImages[key]=im;}
+ check('ten 32px PNGs have binary alpha and real transparent pixels',()=>{
+  assert.equal(a.keys.length,10);
+  for(const key of a.keys){const im=qaImages[key];assert.equal(im.width,32);assert.equal(im.height,32);const c=createCanvas(32,32),q=c.getContext('2d');q.drawImage(im,0,0);const pixels=q.getImageData(0,0,32,32).data;let clear=0,solid=0;const colors=new Set();for(let i=0;i<pixels.length;i+=4){assert(pixels[i+3]===0||pixels[i+3]===255);if(!pixels[i+3])clear++;else{solid++;colors.add([pixels[i],pixels[i+1],pixels[i+2]].join(','));}}assert(clear>0&&solid>0,key);assert(colors.size<=9,key+' palette');}
+ });
+ check('forest repeat joins and edge/corner joins match pixel for pixel',()=>{
+  const pixels={};for(const key of a.keys.filter(k=>k.startsWith('forest_'))){const im=qaImages[key];const q=createCanvas(32,32).getContext('2d');q.drawImage(im,0,0);pixels[key.replace('forest_','')]=q.getImageData(0,0,32,32).data;}
+  const px=(name,x,y)=>Array.from(pixels[name].slice((y*32+x)*4,(y*32+x)*4+4));
+  for(const [l,r] of [['core','core'],['corner_tl','edge_top'],['edge_top','corner_tr'],['edge_left','core'],['core','edge_right'],['corner_bl','edge_bottom'],['edge_bottom','corner_br']])for(let y=0;y<32;y++)assert.deepEqual(px(l,31,y),px(r,0,y),l+' → '+r+' y'+y);
+  for(const [t,b] of [['core','core'],['corner_tl','edge_left'],['edge_left','corner_bl'],['edge_top','core'],['core','edge_bottom'],['corner_tr','edge_right'],['edge_right','corner_br']])for(let x=0;x<32;x++)assert.deepEqual(px(t,x,31),px(b,x,0),t+' ↓ '+b+' x'+x);
+ });
+ check('16 forest cardinal cases stay in atlas bounds',()=>{
+  for(const kind of ['forest'])for(let mask=0;mask<16;mask++){
    const n={n:!!(mask&1),e:!!(mask&2),s:!!(mask&4),w:!!(mask&8)};
    const roles=a.roles(kind,n);assert.equal(roles.length,4);
    for(const [x,y] of roles){assert(x>=0&&x<(kind==='forest'?3:4));assert(y>=0&&y<3);}
-   if(kind==='mountain'){assert.equal(roles[0][1],n.n?1:0);assert.equal(roles[2][1],n.s?1:2);}
+
   }
  });
  check('adjacent forest cells use interior-facing edges',()=>{
@@ -65,11 +76,12 @@ function check(name,fn){fn();results.push(name)}
  check('movement uses real touch direction handlers',()=>{const x=sandbox.gameState.x;tap('right');assert(sandbox.gameState.x>x);assert.equal(sandbox.gameState.walk,before.walk);});
  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,1);shot('02-original-2x');
  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,2);shot('03-connections');
- check('all eight debug pages render and cycle',()=>{for(let i=0;i<6;i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
+ el('ok').fire('click');shot('04-assets32');
+ check('all nine debug pages render and cycle',()=>{for(let i=0;i<6;i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-16-v2'))));
+ check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v1'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});

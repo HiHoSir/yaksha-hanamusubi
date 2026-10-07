@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "size": 32,
+  "subtileSize": 16,
+  "baseColor": "#83b54d",
+  "alpha": "binary 0/255",
+  "grass": "grass_base.png",
+  "forest": [
+    "forest_core.png",
+    "forest_edge_top.png",
+    "forest_edge_right.png",
+    "forest_edge_bottom.png",
+    "forest_edge_left.png",
+    "forest_corner_tl.png",
+    "forest_corner_tr.png",
+    "forest_corner_bl.png",
+    "forest_corner_br.png"
+  ],
+  "source": "Original artwork; analysis informs connections only"
+}
