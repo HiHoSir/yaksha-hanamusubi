@@ -176,6 +176,22 @@ function check(name,fn){fn();results.push(name)}
   }
   assert(!land.walkable(land.fixture(),600,400),'sea');
  });
+ check('shrine base blocks approaches from front and sides without blocking the entrance approach',()=>{
+  const m=land.fixture(),o=m.decorations.find(o=>o.kind==='shrine');
+  // Regression: beta40 left the final 8px of the pedestal walkable.
+  for(const x of [240,256,276,288])for(const y of [184,188,192])assert(!land.walkable(m,x,y),'pedestal leak '+x+','+y);
+  assert(land.walkable(m,256,202),'entrance approach');
+  assert(land.walkable(m,304,176),'beside shrine');
+  for(const o of land.placesFixture().decorations)for(const f of land.footprints(o))
+   assert(!land.walkable(land.placesFixture(),f.x+f.width/2,f.y+f.height-1),o.kind+' base');
+  const places=land.placesFixture();assert(land.walkable(places,452,192),'torii center');
+ });
+ check('object shadows are cached with uniform subtle alpha and leave empty ground clear',()=>{
+  const m=land.fixture(),layer=land.shadowLayer(m),p=layer.getContext('2d').getImageData(0,0,640,544).data;
+  let shaded=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===42,'overlapping shadow darkens');if(p[i])shaded++;}
+  assert(shaded>1000&&shaded<640*544/3,'shadow coverage');
+  assert.strictEqual(land.shadowLayer(m),layer);assert.equal(p[(500*640+300)*4+3],0,'empty path');
+ });
  check('all six new field objects appear in the dedicated settlement map',()=>{
   const m=land.placesFixture();for(const k of land.placeKeys)assert(m.decorations.some(o=>o.kind===k));
   for(const o of m.decorations){assert(o.x>=0&&o.y>=0&&o.x+o.width<=640&&o.y+o.height<=544);}
@@ -198,6 +214,14 @@ function check(name,fn){fn();results.push(name)}
   el('debugMap').fire('click');sandbox.gameState.x=112;sandbox.gameState.y=164;
   el('ok').fire('click');assert(land.walkable(sandbox.__qaEval('DEBUG_LANDSCAPE'),sandbox.gameState.x-48,sandbox.gameState.y-100));
   el('cancel').fire('click');el('debugMap').fire('click');
+ });
+ check('touch movement stops at the shrine pedestal from right and front',()=>{
+  sandbox.gameState.x=358;sandbox.gameState.y=276;tap('left');advance(160);
+  assert.equal(sandbox.gameState.x-48,294,'right side stop');
+  sandbox.__YK_DEBUG_PAGE=1;sandbox.__qaEval('map()');shot('07-shrine-side');
+  sandbox.gameState.x=304;sandbox.gameState.y=324;tap('up');advance(160);
+  assert.equal(sandbox.gameState.y-100,200,'front stop');shot('08-shrine-front');
+  sandbox.__YK_DEBUG_PAGE=0;sandbox.__qaEval('map()');
  });
  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,1);shot('02-landscape-2x');
  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,2);shot('03-terrain-assets');

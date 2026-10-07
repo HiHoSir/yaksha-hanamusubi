@@ -1141,7 +1141,7 @@ function drawDebugAutotile(c,page){
   const pos=debugDrawPosition();
   const cameraX=zoom===2?clamp(pos.x-48-160,0,320):0,cameraY=zoom===2?clamp(pos.y-100-136,0,272):0;
   c.translate(48,100);c.scale(zoom,zoom);c.translate(-cameraX,-cameraY);
-  a.drawScene(c,DEBUG_TERRAIN,{foot:pos.y-100,draw:()=>hero(c,pos.x-48,pos.y-100,S.dir,S.frame,S.outfit,.56)});
+  a.drawScene(c,DEBUG_TERRAIN,{foot:pos.y-100,draw:()=>hero(c,pos.x-48,pos.y-100-9*.56,S.dir,S.frame,S.outfit,.56)});
  }
  c.restore();
  c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="assets32"?"32×32 PNG / 実寸と3倍・透明確認":page==="connections"?"森：16接続パターン":("森のサイズ比較 / "+zoom+"倍"),48,45);
@@ -1196,7 +1196,7 @@ function drawDebugLandscape(c,page){
   const pos=debugDrawPosition();
   const cx=zoom===2?clamp(pos.x-48-160,0,320):0,cy=zoom===2?clamp(pos.y-100-136,0,272):0;
   c.translate(48,100);c.scale(zoom,zoom);c.translate(-cx,-cy);
-  land.draw(c,places?DEBUG_PLACES:DEBUG_LANDSCAPE,{foot:pos.y-100,draw:()=>hero(c,pos.x-48,pos.y-100,S.dir,S.frame,S.outfit,.56)});
+  land.draw(c,places?DEBUG_PLACES:DEBUG_LANDSCAPE,{foot:pos.y-100,draw:()=>hero(c,pos.x-48,pos.y-100-9*.56,S.dir,S.frame,S.outfit,.56)});
  }
  c.restore();c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="terrainAssets"||page==="placeAssets"?"素材一覧 / 透過確認":(places?"集落と拠点 / ":"地形と道 / ")+zoom+"倍",48,45);
  c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(places?"村・町・仙人の庵・地蔵・洞窟・鳥居":"地形のつながり / 土の道・砂浜・橋・祠",48,75);

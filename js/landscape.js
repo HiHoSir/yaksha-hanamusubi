@@ -26,7 +26,7 @@ window.YK_LANDSCAPE=(()=>{
    for(let x=Math.max(0,coast-2);x<coast;x++)if(m[y][x]==='grass')m[y][x]='sand';
   }
   m.paths=[
-   [[304,520],[304,448],[256,448],[256,192]],
+   [[304,520],[304,448],[256,448],[256,202]],
    [[256,252],[480,252],[480,192]],
    [[256,416],[392,416],[392,464]],
    [[256,416],[208,416],[208,496],[176,496]],
@@ -66,12 +66,12 @@ window.YK_LANDSCAPE=(()=>{
    {kind:'flowers',x:542,y:372,width:40,height:24,foot:396,ground:true}
   ];
   m.paths=[
-   [[272,524],[272,360],[120,360],[120,324]],
-   [[272,360],[482,360],[482,332]],
-   [[272,360],[272,208],[262,208],[262,164]],
-   [[272,208],[124,208],[124,152]],
-   [[400,360],[400,204],[452,204],[452,198]],
-   [[400,360],[400,408]]
+   [[272,524],[272,360],[120,360],[120,334]],
+   [[272,360],[482,360],[482,342]],
+   [[272,360],[272,208],[262,208],[262,174]],
+   [[272,208],[124,208],[124,162]],
+   [[400,360],[400,214],[452,214],[452,198]],
+   [[400,360],[400,404]]
   ];
   return m;
  }
@@ -152,8 +152,16 @@ window.YK_LANDSCAPE=(()=>{
   for(let i=0;i<covered.length;i++)if(!covered[i])pixels.data[i*4+3]=0;
   c.putImageData(pixels,0,0);roads.set(map,canvas);return canvas;
  }
+ // Explicit normalized ground footprints. Roofs remain outside collision.
+ const footprintSpecs={
+  shrine:[[.16,.48,.86,1]],hermit:[[.14,.52,.88,1]],
+  village:[[.10,.50,.92,1]],town:[[.08,.48,.94,1]],
+  cave:[[.10,.56,.90,1]],lantern:[[.25,.72,.75,1]],
+  jizo:[[.22,.64,.78,1]],torii:[[.18,.78,.31,1],[.72,.78,.85,1]]
+ };
+ function footprints(o){return (footprintSpecs[o.kind]||[]).map(([l,t,r,b])=>({x:o.x+l*o.width,y:o.y+t*o.height,width:(r-l)*o.width,height:(b-t)*o.height}));}
  // Collision uses feet and ground footprints, not roofs or tree overhangs.
- function walkable(map,x,y,r=5){
+ function walkable(map,x,y,r=8){
   if(x-r<0||y-r<0||x+r>=map[0].length*32||y+r>=map.length*32)return false;
   const bridge=(px,py)=>(map.decorations||[]).some(o=>o.kind==='bridge'&&px>=o.x&&px<o.x+o.width&&py>=o.y+o.height*.30&&py<=o.y+o.height*.82);
   for(const [dx,dy] of [[0,0],[-r,0],[r,0],[0,-r],[0,r],[-r*.7,-r*.7],[r*.7,-r*.7],[-r*.7,r*.7],[r*.7,r*.7]]){
@@ -162,10 +170,7 @@ window.YK_LANDSCAPE=(()=>{
   }
   const hit=(l,t,w,h)=>Math.hypot(x-Math.max(l,Math.min(x,l+w)),y-Math.max(t,Math.min(y,t+h)))<r;
   for(const o of map.decorations||[]){
-   if(o.ground)continue;
-   if(o.kind==='torii'){
-    if(hit(o.x+o.width*.18,o.foot-14,8,12)||hit(o.x+o.width*.72,o.foot-14,8,12))return false;
-   }else if(hit(o.x+o.width*.12,o.foot-o.height*.35,o.width*.76,o.height*.35-8))return false;
+   for(const f of footprints(o))if(hit(f.x,f.y,f.width,f.height))return false;
   }
   return true;
  }
@@ -184,8 +189,25 @@ window.YK_LANDSCAPE=(()=>{
   }
   return [...trees,...mountains,...(map.decorations||[]).filter(o=>!o.ground)].sort((a,b)=>a.foot-b.foot||a.x-b.x);
  }
+ // Project existing alpha silhouettes onto the ground towards lower right.
+ // A single cached alpha layer avoids dark seams between overlapping objects.
+ const shadows=new WeakMap();
+ function shadowLayer(map){
+  if(shadows.has(map))return shadows.get(map);
+  const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;
+  const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
+  for(const o of objects(map)){
+   c.save();c.transform(1,0,-.28,-.16,o.x+.28*o.height,o.foot+.16*o.height);
+   if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,0,0,o.width,o.height);
+   else c.drawImage(art[o.kind],0,0,o.width,o.height);
+   c.restore();
+  }
+  const p=c.getImageData(0,0,layer.width,layer.height);
+  for(let i=0;i<p.data.length;i+=4){const alpha=p.data[i+3]>=128?42:0;p.data[i]=24;p.data[i+1]=40;p.data[i+2]=30;p.data[i+3]=alpha;}
+  c.putImageData(p,0,0);shadows.set(map,layer);return layer;
+ }
  function draw(c,map,actor){
-  if(!ready()||!window.YK_AUTOTILE.ready())return false;c.imageSmoothingEnabled=false;c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);
+  if(!ready()||!window.YK_AUTOTILE.ready())return false;c.imageSmoothingEnabled=false;c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);
   for(const o of (map.decorations||[]).filter(o=>o.ground))c.drawImage(art[o.kind],o.x,o.y,o.width,o.height);
   let drawn=false;
   for(const o of objects(map)){
@@ -196,5 +218,5 @@ window.YK_LANDSCAPE=(()=>{
   if(actor&&!drawn)actor.draw();return true;
  }
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
- return {walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
+ return {footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
 })();
