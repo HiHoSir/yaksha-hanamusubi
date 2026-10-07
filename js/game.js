@@ -656,7 +656,7 @@ function beginEncounter(){
 function encounter(){return beginEncounter()}
 function action(){
  if(S.area==="debugField"){
-  const pages=["overview","road"];
+  const pages=(typeof DEBUG_PAGES!=="undefined"?DEBUG_PAGES:["overview","tiles","road"]);
   window.__YK_DEBUG_PAGE=((window.__YK_DEBUG_PAGE||0)+1)%pages.length;
   message("DEBUG："+pages[window.__YK_DEBUG_PAGE],700);map();return true;
  }
