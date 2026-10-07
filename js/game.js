@@ -929,7 +929,22 @@ document.addEventListener("keydown",e=>{
  if(fn){e.preventDefault();fn()}
 });
 $("app")?.addEventListener("contextmenu",e=>e.preventDefault());
-window.addEventListener("error",e=>{console.error(e.error||e.message);busy=false;const loc=e.filename?(" @"+e.filename.split("/").pop()+":"+e.lineno):"";message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000)});
+window.addEventListener("error",e=>{
+ // Safari/content-script/resource failures can surface as the opaque cross-origin
+ // "Script error." with no filename or Error object. Do not present those as a game crash.
+ const msg=String(e.message||"");
+ const ownFile=typeof e.filename==="string"&&(/\/js\/|\/index\.html(?:\?|$)/).test(e.filename);
+ const opaque=!e.error&&!e.filename&&(msg==="Script error."||msg==="Script error");
+ if(opaque){console.warn("Ignored opaque external script error");return;}
+ // Element/resource errors are handled by their individual loaders and are not runtime crashes.
+ if(e.target&&e.target!==window){console.warn("Resource error",e.target);return;}
+ console.error(e.error||e.message);
+ busy=false;
+ const loc=e.filename?(" @"+e.filename.split("/").pop()+":"+e.lineno):"";
+ // If Safari provides no useful source attribution, log it but do not cover gameplay.
+ if(!ownFile&&!e.error&&!loc){console.warn("Unattributed runtime error",msg);return;}
+ message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
+});
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
 function loop(t){if(!busy){S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
