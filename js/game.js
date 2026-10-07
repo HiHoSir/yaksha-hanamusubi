@@ -980,6 +980,14 @@ const debugReady=key=>{const im=DEBUG_ART[key];return !!(im&&im.complete&&im.nat
 const debugAllReady=()=>["ground","road","shore","forest","mountain","landmarks"].every(debugReady);
 const debug32=(c,key,cols,slot,x,y)=>{const im=DEBUG_ART[key];c.drawImage(im,(slot%cols)*32,Math.floor(slot/cols)*32,32,32,x,y,32,32)};
 const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{const im=DEBUG_ART[key];c.drawImage(im,(slot%cols)*w,Math.floor(slot/cols)*h,w,h,footX-anchorX,footY-anchorY,w,h)};
+const debugShoreSlot=(x,y,isWater)=>{
+ const w=(dx,dy)=>isWater(x+dx,y+dy);
+ const n=w(0,-1),e=w(1,0),so=w(0,1),we=w(-1,0);
+ if(n&&e)return 4;if(e&&so)return 5;if(so&&we)return 6;if(we&&n)return 7;
+ if(n)return 0;if(e)return 1;if(so)return 2;if(we)return 3;
+ if(w(1,-1))return 8;if(w(1,1))return 9;if(w(-1,1))return 10;if(w(-1,-1))return 11;
+ return null;
+};
 
 function drawDebugOverview(c){
  if(!debugAllReady())return false;
@@ -1004,9 +1012,15 @@ function drawDebugOverview(c){
   debug32(c,"ground",8,slot,dx,dy);
  }
 
- // Composed overview intentionally omits the weak shore-v1 overlay.
- // The raw shore atlas has its own inspection page; here we verify the real
- // grass/water ground chips without a misleading beige seam.
+ // Place the analyzed shore overlay on the LAND cell selected by actual water adjacency.
+ // This mirrors world.js semantics instead of hand-placing beige lines.
+ const waterAt=(x,y)=>x<0||y<0||x>=cols||y>=rows||isWater(x,y);
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  if(isWater(x,y))continue;
+  const slot=debugShoreSlot(x,y,waterAt);
+  if(slot!=null)debug32(c,"shore",4,slot,ox+x*cell,oy+y*cell);
+ }
+
  // Road network: enough grammar to inspect straight, cross and bend continuity.
  for(let x=2;x<=10;x++)debug32(c,"road",4,0,ox+x*cell,oy+10*cell);
  for(let y=7;y<=14;y++)debug32(c,"road",4,1,ox+7*cell,oy+y*cell);
@@ -1057,15 +1071,34 @@ function drawDebugOverview(c){
 }
 function drawDebugSheet(c,key,cols,rows,sw=32,sh=32){
  const im=DEBUG_ART[key];if(!debugReady(key))return false;
+ const semantic={
+  shore:["N","E","S","W","NE","SE","SW","NW","inNE","inSE","inSW","inNW","unused","unused","unused","unused"],
+  ground:["grass","grass detail","","","","","","","water","water detail","","","","","","","bridge H","bridge V"],
+  road:["H","V","NE","SE","SW","NW","T-N","T-E","T-S","T-W","X","end N","end E","end S","end W","unused"]
+ };
  c.fillStyle="#17313a";c.fillRect(0,0,768,768);
  c.textAlign="left";c.textBaseline="alphabetic";
- c.fillStyle="#fff3c4";c.font="bold 23px sans-serif";c.fillText("DEBUG "+key.toUpperCase()+" — "+(DEBUG_FALLBACK[key]?"fallback":"analyzed"),36,40);
+ c.fillStyle="#fff3c4";c.font="bold 23px sans-serif";c.fillText("DEBUG "+key.toUpperCase()+" — analyzed",36,40);
  const maxW=700,maxH=600,scale=Math.max(1,Math.floor(Math.min(maxW/(cols*sw),maxH/(rows*sh))));
  const dw=sw*scale,dh=sh*scale,totalW=cols*dw,totalH=rows*dh,ox=(768-totalW)/2,oy=86;
  for(let i=0;i<cols*rows;i++){
   const sx=(i%cols)*sw,sy=Math.floor(i/cols)*sh,x=ox+(i%cols)*dw,y=oy+Math.floor(i/cols)*dh;
-  c.drawImage(im,sx,sy,sw,sh,x,y,dw,dh);c.strokeStyle="rgba(255,245,190,.45)";c.strokeRect(x+.5,y+.5,dw-1,dh-1);
-  c.fillStyle="rgba(5,15,22,.68)";c.fillRect(x+2,y+2,28,18);c.fillStyle="#fff3c4";c.font="12px sans-serif";c.fillText(String(i),x+8,y+15);
+
+  // Transparent atlas pages need a visible substrate to reveal what each chip actually contains.
+  if(key==="ground"){
+   c.fillStyle=i>=8&&i<16?"#397b87":"#91b85a";c.fillRect(x,y,dw,dh);
+  }else if(key==="shore"){
+   c.fillStyle="#91b85a";c.fillRect(x,y,dw,dh);
+  }else{
+   c.fillStyle="#244435";c.fillRect(x,y,dw,dh);
+  }
+
+  c.drawImage(im,sx,sy,sw,sh,x,y,dw,dh);
+  c.strokeStyle="rgba(255,245,190,.45)";c.strokeRect(x+.5,y+.5,dw-1,dh-1);
+  c.fillStyle="rgba(5,15,22,.74)";c.fillRect(x+2,y+2,Math.min(dw-4,74),20);
+  c.fillStyle="#fff3c4";c.font="11px sans-serif";
+  const label=semantic[key]?.[i]||String(i);
+  c.fillText(i+" "+label,x+7,y+16);
  }
  worldHint("A：次の表示へ · B：タイトルへ戻る");
  return true;
