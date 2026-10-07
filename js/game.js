@@ -951,7 +951,7 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
 // Uses the analyzed orthogonal map-chip sheets directly.
-const DEBUG_PAGES=["overview","shore","water","ground","road"];
+const DEBUG_PAGES=["autotile","autotile2x","connections","overview","shore","water","ground","road"];
 const DEBUG_ASSETS={
  ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
@@ -1109,9 +1109,44 @@ function drawDebugSheet(c,key,cols,rows,sw=32,sh=32){
  worldHint("A：次の表示へ · B：タイトルへ戻る");
  return true;
 }
+const DEBUG_TERRAIN=window.YK_AUTOTILE?.fixture();
+function drawDebugAutotile(c,page){
+ const a=window.YK_AUTOTILE;
+ c.fillStyle="#102631";c.fillRect(0,0,768,768);c.textAlign="left";c.textBaseline="alphabetic";
+ if(!a){c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText("地形モジュールを再読込してください",48,360);return;}
+ a.load(()=>{if(S.area==="debugField")map();});
+ if(!a.ready()){
+  c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(Object.keys(a.errors).length?"地形画像エラー："+Object.keys(a.errors).join(","):"新しい地形を読込中…",48,360);
+  worldHint("B：タイトルへ戻る");return;
+ }
+ const zoom=page==="autotile2x"?2:1;
+ c.save();c.beginPath();c.rect(48,100,640,544);c.clip();
+ if(page==="connections"){
+  c.fillStyle="#80b348";c.fillRect(48,100,640,544);
+  for(let mask=0;mask<16;mask++){
+   const x=68+(mask%4)*154,y=118+Math.floor(mask/4)*128;
+   const n={n:!!(mask&1),e:!!(mask&2),s:!!(mask&4),w:!!(mask&8)};
+   c.save();c.translate(x,y);c.scale(2,2);a.drawCell(c,"forest",n,0,0);a.drawCell(c,"mountain",n,36,0);c.restore();
+   c.fillStyle="#112b20";c.font="14px monospace";c.fillText("NESW "+[n.n,n.e,n.s,n.w].map(Number).join(""),x,y+87);
+  }
+ }else{
+  const cameraX=zoom===2?clamp(S.x-48-160,0,320):0,cameraY=zoom===2?clamp(S.y-100-136,0,272):0;
+  c.translate(48,100);c.scale(zoom,zoom);c.translate(-cameraX,-cameraY);
+  a.drawMap(c,DEBUG_TERRAIN);
+  hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56);
+ }
+ c.restore();
+ c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="connections"?"森・山：16接続パターン":("オリジナル地形 / "+zoom+"倍"),48,45);
+ c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("32px = 16px×4 / 草原1・森9・山12",48,75);
+ c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 接続一覧 → 旧素材比較　B：戻る",48,690);
+ c.fillStyle="#aec2c8";c.font="14px sans-serif";c.fillText("検証用：地形は通り抜け可 / 海岸・雪地形は次工程",48,720);
+ worldHint(page==="connections"?"森と山を左右に並べた16パターン":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");
+}
+
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
+ if(["autotile","autotile2x","connections"].includes(page)){drawDebugAutotile(c,page);return;}
  const key=page==="road"?"road":"ground";
  if(!debugReady(key)||(page==="overview"&&!debugAllReady())){
   c.fillStyle="#102631";c.fillRect(0,0,768,768);c.fillStyle="#fff3c4";c.font="20px sans-serif";
@@ -1125,17 +1160,19 @@ function drawDebugField(c){
  else drawDebugSheet(c,"road",4,4,32,32);
 }
 window.YKDebugField=(enabled=true)=>{
+ if(enabled&&S.area==="debugField")return true;
+ YK_INPUT.stopAll();
  const hudEl=$("hud"),objectiveEl=$("objective");
  document.querySelectorAll(".dpad .diagonal").forEach(b=>{b.style.visibility=enabled?"hidden":"visible"});
  if(hudEl)hudEl.style.display=enabled?"none":"";
  if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
  if(enabled){
-  window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};
+  window.__YK_DEBUG_RETURN=JSON.parse(JSON.stringify(S));
   window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=350;S.y=612;S.dir="u";S.frame=1;busy=false;
   $("title")?.classList.remove("show");map();return true;
  }
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};
- S.area=r.area;S.x=r.x;S.y=r.y;S.dir=r.dir;S.frame=1;$("title")?.classList.add("show");busy=true;map();return false;
+ S=window.gameState=JSON.parse(JSON.stringify(r));$("title")?.classList.add("show");busy=true;map();return false;
 };
 const debugMapBtn=document.getElementById("debugMap");
 if(debugMapBtn){debugMapBtn.addEventListener("click",(e)=>{e.preventDefault();e.stopPropagation();window.YKDebugField(true);});}

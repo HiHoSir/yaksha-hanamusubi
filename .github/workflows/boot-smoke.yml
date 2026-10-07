@@ -19,7 +19,7 @@ jobs:
           node - <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('index.html','utf8');
-          const order=['js/data.js','js/world.js','js/save.js','js/audio.js','js/input.js','js/game.js'];
+          const order=['js/data.js','js/world.js','js/save.js','js/audio.js','js/input.js','js/autotile.js','js/game.js'];
           let last=-1;
           for(const p of order){const i=html.indexOf(p);if(i<0||i<=last)throw new Error('bad script order: '+p);last=i}
           const world=fs.readFileSync('js/world.js','utf8');
@@ -29,8 +29,8 @@ jobs:
           if(!game.includes('YK_INPUT.tap($("newGame")'))throw new Error('new game handler missing');
           if(!game.includes('YK_INPUT.tap($("continueGame")'))throw new Error('continue handler missing');
           if(!html.includes('id="debugMap"'))throw new Error('debug map title entry missing');
-          if(!game.includes('const DEBUG_PAGES=["overview","shore","water","ground","road"]'))throw new Error('debug page contract missing');
-          if(!game.includes('const DEBUG_ART={}')||!game.includes('const DEBUG_ASSETS='))throw new Error('debug asset loader missing');
+          if(!game.includes('const DEBUG_PAGES=["autotile","autotile2x","connections","overview","shore","water","ground","road"]'))throw new Error('debug page contract missing');
+          if(!game.includes('const DEBUG_ART={},DEBUG_FALLBACK={}')||!game.includes('const DEBUG_ASSETS='))throw new Error('debug asset loader missing');
           if(!game.includes('world-ortho-ground-v2.png')||!game.includes('world-ortho-road-v2.png'))throw new Error('debug assets missing');
           if(!game.includes('DEBUG_FALLBACK')||!game.includes('naturalWidth!==spec.size[0]'))throw new Error('debug asset validation/fallback missing');
           if(!game.includes('drawDebugOverview')||!game.includes('drawDebugSheet'))throw new Error('debug inspection pages missing');
@@ -76,3 +76,8 @@ jobs:
           }
           console.log('orthogonal debug sheets OK');
           NODE
+
+      - name: Original terrain and debug boot
+        run: |
+          npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100
+          node qa/autotile-smoke.cjs
