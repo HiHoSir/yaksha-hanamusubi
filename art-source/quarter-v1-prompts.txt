@@ -1,0 +1,15 @@
+Method: built-in image_gen, original artwork. Prepared with tools/prepare-landscape-asset.py.
+Output directory: assets/terrain/quarter-v1/
+
+bridgeNS
+Use case: stylized-concept. Original Japanese folklore RPG field object, late SNES pixel art, quarter view shows top and front, light upper left shadow lower right, crisp chunky pixels limited palette, no antialias, no text, no border, no characters, transparent background. A single centered isolated object with no surrounding terrain. Match muted greens warm ochre stone and wooden buildings. A wooden bridge running vertically from top to bottom of the image (north south), four planks wide, many short transverse wooden deck planks, two low rails running parallel vertically along left and right. Flat walkable deck straight, not an arch. Field sprite compact 48 pixels wide 96 tall.
+
+castle
+Use case: stylized-concept. Original Japanese folklore RPG field object, late SNES pixel art, quarter view shows top and front, light upper left shadow lower right, crisp chunky pixels limited palette, no antialias, no text, no border, no characters, transparent background. A single centered isolated object with no surrounding terrain. Match muted greens warm ochre stone and wooden buildings. A compact small Japanese feudal castle on a stone base: white plaster, dark charcoal tile roofs, a three-tier central keep and two low side wings, one visible entrance centered at bottom. Symbolic world-map landmark, 112x112 proportions, not huge detailed town.
+
+waterfall
+Use case: stylized-concept. Original Japanese folklore RPG field object, late SNES pixel art, quarter view shows top and front, light upper left shadow lower right, crisp chunky pixels limited palette, no antialias, no text, no border, no characters, transparent background. A single centered isolated object with no surrounding terrain. Match muted greens warm ochre stone and wooden buildings. A small stepped Japanese forest waterfall, white pale cyan falling water between mossy gray stone shoulders, viewed from above and front, top stream inlet centered and bottom blue pool centered, compact 80x96 landmark, no large mountain around it.
+
+horizon
+Use case: stylized-concept. Original background panorama for a Japanese folklore 16-bit RPG, late SNES chunky pixel art, 640x240 aspect. Pale blue quiet sky occupies upper two thirds, sparse soft edged pixel cloud wisps, distant very low rolling blue-green mountains across bottom third in three hazy layers, last foreground ridge very muted mint green. Warm daylight from upper left, calm atmospheric distance, limited restrained palette, no foreground objects, no water, no buildings, no people, no text or borders. Wide landscape backdrop to blend into a distant game field.
+

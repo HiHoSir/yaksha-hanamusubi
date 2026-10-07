@@ -1,13 +1,13 @@
 // Original terrain art. Display sizes are independent of the 32px movement grid.
 window.YK_LANDSCAPE=(()=>{
- const specs={grass:[256,256],greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={};
+ const specs={bridgeNS:[48,96],castle:[112,112],waterfall:[80,96],horizon:[640,240],grass:[256,256],greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={};
  const placeKeys=['village','town','hermit','jizo','cave','torii'];
  const oldKeys=['water','snow','barren','sand'];
  const keys=Object.keys(specs),water=t=>t==='sea'||t==='river';let started=false;
  function ready(){return keys.every(k=>art[k]?.complete&&art[k].naturalWidth===specs[k][0]&&art[k].naturalHeight===specs[k][1]&&!errors[k]);}
  function load(change=()=>{}){
   if(started)return;started=true;
-  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=k==='grass'?'assets/terrain/grass-v1/grass.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
+  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=['bridgeNS','castle','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
  }
  function fixture(){
   const m=Array.from({length:17},()=>Array(20).fill('grass'));
@@ -132,7 +132,7 @@ window.YK_LANDSCAPE=(()=>{
   const t=d?Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/d)):0;
   return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);
  }
- function onBridge(map,x,y){return (map.decorations||[]).some(o=>o.kind==='bridge'&&x>=o.x&&x<o.x+o.width&&y>=o.y&&y<o.y+o.height);}
+ function onBridge(map,x,y){return (map.decorations||[]).some(o=>(o.kind==='bridge'||o.kind==='bridgeNS')&&x>=o.x&&x<o.x+o.width&&y>=o.y&&y<o.y+o.height);}
  function roadAllowed(map,x,y){const t=map[Math.floor(y/32)]?.[Math.floor(x/32)];return ['grass','sand','snow','barren'].includes(t)||water(t)&&onBridge(map,x,y);}
  const roads=new WeakMap();
  function roadLayer(map){
@@ -153,7 +153,7 @@ window.YK_LANDSCAPE=(()=>{
   c.putImageData(pixels,0,0);roads.set(map,canvas);return canvas;
  }
  // Explicit normalized ground footprints. Roofs remain outside collision.
- const footprintSpecs={
+ const footprintSpecs={castle:[[.10,.62,.92,1]],waterfall:[[.10,.40,.90,1]],
   shrine:[[.16,.48,.86,1]],hermit:[[.14,.52,.88,1]],
   village:[[.10,.50,.92,1]],town:[[.08,.48,.94,1]],
   cave:[[.10,.56,.90,1]],lantern:[[.25,.72,.75,1]],
@@ -163,7 +163,7 @@ window.YK_LANDSCAPE=(()=>{
  // Collision uses feet and ground footprints, not roofs or tree overhangs.
  function walkable(map,x,y,r=8){
   if(x-r<0||y-r<0||x+r>=map[0].length*32||y+r>=map.length*32)return false;
-  const bridge=(px,py)=>(map.decorations||[]).some(o=>o.kind==='bridge'&&px>=o.x&&px<o.x+o.width&&py>=o.y+o.height*.30&&py<=o.y+o.height*.82);
+  const bridge=(px,py)=>(map.decorations||[]).some(o=>(o.kind==='bridge'&&px>=o.x&&px<o.x+o.width&&py>=o.y+o.height*.30&&py<=o.y+o.height*.82||o.kind==='bridgeNS'&&px>=o.x+o.width*.22&&px<=o.x+o.width*.78&&py>=o.y&&py<o.y+o.height));
   for(const [dx,dy] of [[0,0],[-r,0],[r,0],[0,-r],[0,r],[-r*.7,-r*.7],[r*.7,-r*.7],[-r*.7,r*.7],[r*.7,r*.7]]){
    const px=x+dx,py=y+dy,t=map[Math.floor(py/32)]?.[Math.floor(px/32)];
    if(water(t)?!bridge(px,py):!['grass','sand','snow','barren'].includes(t))return false;
@@ -180,30 +180,33 @@ window.YK_LANDSCAPE=(()=>{
   const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;
   drawFloor(layer.getContext('2d'),map);floors.set(map,layer);return layer;
  }
+ const sceneObjects=new WeakMap();
  function objects(map){
+  if(sceneObjects.has(map))return sceneObjects.get(map);
   const a=window.YK_AUTOTILE,trees=a.forestObjects(map).map(t=>({...t,kind:'forest'}));
   const mountains=[];
   for(const [terrain,kind] of [['mountain','greenMountain'],['rockMountain','rockMountain'],['snowMountain','snowMountain']]){
    const cells=map.map(row=>row.map(t=>t===terrain?'forest':'grass'));
    mountains.push(...a.forestObjects(cells).map(t=>({...t,kind,x:t.x-8,y:t.foot-88,width:96,height:88})));
   }
-  return [...trees,...mountains,...(map.decorations||[]).filter(o=>!o.ground)].sort((a,b)=>a.foot-b.foot||a.x-b.x);
+  const result=[...trees,...mountains,...(map.decorations||[]).filter(o=>!o.ground)].sort((a,b)=>a.foot-b.foot||a.x-b.x);sceneObjects.set(map,result);return result;
  }
- // Project existing alpha silhouettes onto the ground towards lower right.
+ // Short contact shadows attach objects to the ground without floating silhouettes.
  // A single cached alpha layer avoids dark seams between overlapping objects.
  const shadows=new WeakMap();
  function shadowLayer(map){
   if(shadows.has(map))return shadows.get(map);
   const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;
   const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
+  c.fillStyle='#18281e';
   for(const o of objects(map)){
-   c.save();c.transform(1,0,-.28,-.16,o.x+.28*o.height,o.foot+.16*o.height);
-   if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,0,0,o.width,o.height);
-   else c.drawImage(art[o.kind],0,0,o.width,o.height);
-   c.restore();
+   // A short contact shadow, anchored to the base; no projected roof silhouette.
+   const small=['lantern','jizo','torii'].includes(o.kind);
+   const width=o.width*(small?.48:.70),depth=small?2:3;
+   c.beginPath();c.ellipse(o.x+o.width/2+2,o.foot-1,width/2,depth,0,0,Math.PI*2);c.fill();
   }
   const p=c.getImageData(0,0,layer.width,layer.height);
-  for(let i=0;i<p.data.length;i+=4){const alpha=p.data[i+3]>=128?42:0;p.data[i]=24;p.data[i+1]=40;p.data[i+2]=30;p.data[i+3]=alpha;}
+  for(let i=0;i<p.data.length;i+=4){const alpha=p.data[i+3]>=128?30:0;p.data[i]=24;p.data[i+1]=40;p.data[i+2]=30;p.data[i+3]=alpha;}
   c.putImageData(p,0,0);shadows.set(map,layer);return layer;
  }
  function draw(c,map,actor){
@@ -217,6 +220,111 @@ window.YK_LANDSCAPE=(()=>{
   }
   if(actor&&!drawn)actor.draw();return true;
  }
+
+ function quarterFixture(){
+  const m=Array.from({length:48},()=>Array(40).fill('grass'));
+  for(let y=0;y<48;y++)for(let x=0;x<40;x++){
+   const coast=32-Math.floor(y/12);
+   if(x>=coast)m[y][x]='sea';else if(x>=coast-2)m[y][x]='sand';
+   if(y<11&&x>3&&x<20)m[y][x]='snow';
+   if(y>=3&&y<9&&x>=5&&x<17)m[y][x]='snowMountain';
+   if(y>=14&&y<21&&x>=2&&x<9)m[y][x]='mountain';
+   if(y>=28&&y<34&&x>=3&&x<10)m[y][x]='forest';
+   if(y>=13&&y<19&&x>=22&&x<28)m[y][x]='forest';
+   if(y>=38&&y<44&&x>=17&&x<24)m[y][x]='barren';
+   if(y>=40&&y<43&&x>=18&&x<22)m[y][x]='rockMountain';
+   if(y<2||y>=47||x<1)m[y][x]='sea';else if(y===2||y===46||x===1)m[y][x]='sand';
+  }
+  for(let y=16;y<=19;y++)for(let x=22;x<=25;x++)m[y][x]='grass';
+  for(let y=11;y<=25;y++)m[y][20]='river';
+  for(let x=12;x<32;x++)m[25][x]='river';
+  m.decorations=[
+   {kind:'bridgeNS',x:440,y:768,width:48,height:96,foot:864,ground:true},
+   {kind:'bridge',x:608,y:660,width:96,height:56,foot:716,ground:true},
+   {kind:'village',x:330,y:1016,width:112,height:80,foot:1096},
+   {kind:'town',x:750,y:902,width:144,height:104,foot:1006},
+   {kind:'castle',x:408,y:304,width:112,height:112,foot:416},
+   {kind:'cave',x:180,y:616,width:80,height:64,foot:680},
+   {kind:'hermit',x:292,y:552,width:72,height:72,foot:624},
+   {kind:'shrine',x:720,y:512,width:80,height:80,foot:592},
+   {kind:'waterfall',x:616,y:268,width:80,height:96,foot:364},
+   {kind:'jizo',x:420,y:1088,width:24,height:40,foot:1128},
+   {kind:'torii',x:728,y:602,width:64,height:64,foot:666},
+   {kind:'flowers',x:526,y:952,width:40,height:24,foot:976,ground:true},
+   {kind:'flowers',x:530,y:1216,width:40,height:24,foot:1240,ground:true}
+  ];
+  m.paths=[[[464,1392],[464,426]],[[464,688],[760,688],[760,602]],[[464,1144],[386,1144],[386,1106]],[[464,1032],[822,1032],[822,1016]],[[464,648],[328,648],[328,634]],[[464,728],[220,728],[220,690]]];
+  return m;
+ }
+ const grounds=new WeakMap();
+ function groundLayer(map){
+  if(grounds.has(map))return grounds.get(map);
+  const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
+  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);
+  for(const o of (map.decorations||[]).filter(o=>o.ground))c.drawImage(art[o.kind],o.x,o.y,o.width,o.height);
+  layer.__ykStatic=true;grounds.set(map,layer);return layer;
+ }
+ // Based on the 2026-10-07 Mode7/HDMA handoff. Browser approximation values,
+ // not a verbatim copy of ROM coefficient tables. Angles are camera yaw.
+ const cameraPresets=[{name:'標準',far:.34,near:1.30,gamma:1.85},{name:'強調',far:.28,near:1.35,gamma:2.1},{name:'穏やか',far:.48,near:1.18,gamma:1.45}];
+ function perspectiveScale(t,p=cameraPresets[0]){t=Math.max(0,Math.min(1,t));return p.far+(p.near-p.far)*Math.pow(t,p.gamma);}
+ function mode7LikeMatrix(angle,scale){const c=Math.cos(angle)*scale,s=Math.sin(angle)*scale;return {a:c,b:s,c:-s,d:c};}
+ const curves=new Map();
+ function cameraCurve(zoom=1.4,preset=0){
+  const key=zoom+':'+preset;if(curves.has(key))return curves.get(key);
+  const p=cameraPresets[preset]||cameraPresets[0],offset=new Float64Array(801),anchor=354;
+  for(let y=1;y<=800;y++)offset[y]=offset[y-1]+1/(.65*zoom*perspectiveScale((y-.5)/543,p));
+  const origin=offset[anchor];for(let y=0;y<=800;y++)offset[y]-=origin;
+  const curve={offset,p,zoom,anchor};curves.set(key,curve);return curve;
+ }
+ function lineAt(y,zoom=1.4,preset=0){
+  const c=cameraCurve(zoom,preset),i=Math.max(0,Math.min(799,Math.floor(y))),f=Math.max(0,Math.min(1,y-i));
+  const scale=zoom*perspectiveScale(y/543,c.p),xScale=scale*(.94+.06*Math.max(0,Math.min(1,y/543)));
+  return {offset:c.offset[i]*(1-f)+c.offset[i+1]*f,scale,xScale};
+ }
+ function project(x,y,camera,zoom=1.4){
+  const angle=camera.angle||0,cs=Math.cos(angle),sn=Math.sin(angle),dx=x-camera.x,dy=y-camera.y;
+  const vx=cs*dx+sn*dy,vy=-sn*dx+cs*dy,c=cameraCurve(zoom,camera.preset||0);
+  if(vy<c.offset[0]||vy>c.offset[800])return null;
+  let lo=0,hi=800;for(let i=0;i<24;i++){const mid=(lo+hi)/2;if(lineAt(mid,zoom,camera.preset||0).offset<vy)lo=mid;else hi=mid;}
+  const sy=(lo+hi)/2,l=lineAt(sy,zoom,camera.preset||0);return {x:320+vx*l.xScale,y:sy,scale:l.scale,xScale:l.xScale};
+ }
+ function unproject(x,y,camera,zoom=1.4){
+  if(y<0||y>800)return null;const l=lineAt(y,zoom,camera.preset||0),vx=(x-320)/l.xScale,vy=l.offset,a=camera.angle||0,cs=Math.cos(a),sn=Math.sin(a);
+  return {x:camera.x+cs*vx-sn*vy,y:camera.y+sn*vx+cs*vy,scale:l.scale};
+ }
+ function drawQuarter(c,map,actor,zoom=1.4,settings={}){
+  if(!ready())return false;
+  const camera={x:actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0},ground=groundLayer(map),strip=4,top=136;
+  c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;c.drawImage(art.horizon,0,0,640,top+8);
+  const corners=[];for(let y=top;y<=544;y+=strip)for(const x of [0,640])corners.push(unproject(x,y,camera,zoom));
+  const left=Math.max(0,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
+  const upper=Math.max(0,Math.floor(Math.min(...corners.map(p=>p.y)))-4),lower=Math.min(ground.height,Math.ceil(Math.max(...corners.map(p=>p.y)))+4);
+  for(let sy=top;sy<544;sy+=strip){
+   const a=lineAt(sy,zoom,camera.preset),b=lineAt(sy+strip,zoom,camera.preset);
+   c.fillStyle='#25869d';c.fillRect(0,sy,640,strip);
+   if(!camera.angle){
+    const sourceTop=Math.max(0,camera.y+a.offset),bottom=Math.min(ground.height,camera.y+b.offset);
+    if(bottom>sourceTop)c.drawImage(ground,left,sourceTop,right-left,bottom-sourceTop,320+(left-camera.x)*a.xScale,sy,(right-left)*a.xScale,strip+.5);
+   }else if(right>left&&lower>upper){
+    const cs=Math.cos(camera.angle),sn=Math.sin(camera.angle),ys=strip/(b.offset-a.offset);
+    c.save();c.beginPath();c.rect(0,sy,640,strip);c.clip();
+    c.transform(a.xScale*cs,-ys*sn,a.xScale*sn,ys*cs,320-a.xScale*(cs*camera.x+sn*camera.y),sy-ys*(-sn*camera.x+cs*camera.y+a.offset));
+    c.drawImage(ground,left,upper,right-left,lower-upper,left,upper,right-left,lower-upper);c.restore();
+   }
+  }
+  const projected=objects(map).map(o=>({o,p:project(o.x+o.width/2,o.foot,camera,zoom)})).filter(v=>v.p&&v.p.y>=top&&v.p.y<750).sort((a,b)=>a.p.y-b.p.y);
+  const player=project(actor.x,actor.foot,camera,zoom);let drawn=false;
+  for(const {o,p} of projected){
+   if(!drawn&&player.y<p.y){actor.draw(player.x,player.y,player.scale);drawn=true;}
+   const w=o.width*p.scale,h=o.height*p.scale,x=p.x-w/2,y=p.y-h;if(x+w<0||x>640)continue;
+   c.globalAlpha=Math.min(1,Math.max(0,(p.y-top)/70));
+   if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
+  }
+  if(!drawn)actor.draw(player.x,player.y,player.scale);
+  const haze=c.createLinearGradient(0,top,0,top+120);haze.addColorStop(0,'rgba(202,225,214,.75)');haze.addColorStop(1,'rgba(202,225,214,0)');c.fillStyle=haze;c.fillRect(0,top,640,120);
+  c.restore();return true;
+ }
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
- return {footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
+ return {cameraPresets,perspectiveScale,mode7LikeMatrix,groundLayer,drawQuarter,project,unproject,quarterFixture,footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
 })();

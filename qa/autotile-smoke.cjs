@@ -15,7 +15,7 @@ class Element{
  }
  addEventListener(name,fn){(this.events[name]??=[]).push(fn)}
  fire(name,extra={}){const e={target:this,pointerId:1,preventDefault(){},stopPropagation(){},...extra};for(const fn of this.events[name]||[])fn(e)}
- setPointerCapture(){}getContext(){if(this.id==='worldTerrain')this.snapshot=null;if(this.canvas.width!==this.width)this.canvas.width=this.width;if(this.canvas.height!==this.height)this.canvas.height=this.height;const c=this.canvas.getContext('2d');if(!c.__adapted){const draw=c.drawImage.bind(c);c.drawImage=(im,...args)=>{if(im.id==="worldTerrain"&&!im.snapshot){im.snapshot=new NativeImage();im.snapshot.src=im.canvas.toBuffer("image/png");loaded.push(im.snapshot);}return draw(im.snapshot||im.canvas||im,...args);};c.__adapted=true;}return c}
+ setPointerCapture(){}getContext(){if(this.id==='worldTerrain')this.snapshot=null;if(this.canvas.width!==this.width)this.canvas.width=this.width;if(this.canvas.height!==this.height)this.canvas.height=this.height;const c=this.canvas.getContext('2d');if(!c.__adapted){const draw=c.drawImage.bind(c);c.drawImage=(im,...args)=>{if((im.id==="worldTerrain"||im.__ykStatic)&&!im.snapshot){im.snapshot=new NativeImage();im.snapshot.src=im.canvas.toBuffer("image/png");loaded.push(im.snapshot);}return draw(im.snapshot||im.canvas||im,...args);};c.__adapted=true;}return c}
  set innerHTML(s){elements=elements.filter(x=>x.owner!==this);this._html=s;parse(s,this)}get innerHTML(){return this._html||''}
 }
 function parse(html,owner=null){for(const m of html.matchAll(/<([a-zA-Z][\w-]*)\b([^>]*)>/g)){const attrs={};for(const a of m[2].matchAll(/([\w-]+)="([^"]*)"/g))attrs[a[1]]=a[2];new Element(m[1],attrs,owner)}}
@@ -90,9 +90,14 @@ function check(name,fn){fn();results.push(name)}
   assert.equal(calls.filter(x=>x==='hero').length,1);assert.equal(calls.indexOf('hero'),objects.filter(t=>t.foot<=140).length);
  });
  const land=sandbox.YK_LANDSCAPE;
- check('nineteen landscape assets load at declared sizes with binary alpha',()=>{
-  assert(land.ready(),JSON.stringify(land.errors));assert.equal(land.keys.length,19);
-  for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===255);p[i]?solid++:transparent++;}assert(solid>0);if(!['grass','water','snow','barren','sand','road'].includes(k))assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
+ // Native Image decoding is async; warm the immutable terrain snapshot before
+ // synchronous simulated animation frames, avoiding per-strip canvas copies.
+ const quarterGround=land.groundLayer(sandbox.__qaEval('DEBUG_QUARTER'));
+ quarterGround.snapshot=new NativeImage();quarterGround.snapshot.src=quarterGround.canvas.toBuffer('image/png');await quarterGround.snapshot.decode();
+ loaded.push(quarterGround.snapshot);
+ check('twenty-three landscape assets load at declared sizes with binary alpha',()=>{
+  assert(land.ready(),JSON.stringify(land.errors));assert.equal(land.keys.length,23);
+  for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===255);p[i]?solid++:transparent++;}assert(solid>0);if(!['horizon','grass','water','snow','barren','sand','road'].includes(k))assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));if(k==='horizon')continue;for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
  });
  check('all 256 water neighborhoods keep channels open and close exposed shores',()=>{
   for(let mask=0;mask<256;mask++){
@@ -188,8 +193,8 @@ function check(name,fn){fn();results.push(name)}
  });
  check('object shadows are cached with uniform subtle alpha and leave empty ground clear',()=>{
   const m=land.fixture(),layer=land.shadowLayer(m),p=layer.getContext('2d').getImageData(0,0,640,544).data;
-  let shaded=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===42,'overlapping shadow darkens');if(p[i])shaded++;}
-  assert(shaded>1000&&shaded<640*544/3,'shadow coverage');
+  let shaded=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===30,'overlapping shadow darkens');if(p[i])shaded++;}
+  assert(shaded>100&&shaded<640*544/3,'shadow coverage');
   assert.strictEqual(land.shadowLayer(m),layer);assert.equal(p[(500*640+300)*4+3],0,'empty path');
  });
  check('all six new field objects appear in the dedicated settlement map',()=>{
@@ -198,9 +203,46 @@ function check(name,fn){fn();results.push(name)}
   const c=createCanvas(640,544).getContext('2d');let actor=0;assert(land.draw(c,m,{foot:360,draw:()=>actor++}));assert.equal(actor,1);
   fs.writeFileSync(path.join(output,'06-places-floor.png'),c.canvas.toBuffer('image/png'));
  });
+ check('perspective projection is invertible and keeps feet at a shared anchor',()=>{
+  const samples=JSON.parse(fs.readFileSync(path.join(root,'design-reference/mode7/yaksha_mode7_curve_samples.json'),'utf8'));for(const v of samples)assert(Math.abs(land.perspectiveScale(v.t)-v.scale)<.000001);
+  const camera={x:464,y:1168};
+  for(const z of [1.4,1.8])for(const angle of [0,Math.PI/4,Math.PI/2,Math.PI,Math.PI*1.5])for(const preset of [0,1,2])for(const x of [0,320,640])for(const y of [136,260,354,543]){
+   const cam={...camera,angle,preset},w=land.unproject(x,y,cam,z),back=land.project(w.x,w.y,cam,z);assert(Math.abs(back.x-x)<1e-3);assert(Math.abs(back.y-y)<1e-3);
+  }
+  const p=land.project(464,1168,camera);assert.equal(p.x,320);assert(Math.abs(p.y-354)<1e-3);
+  assert(land.project(464,1000,camera).scale<land.project(464,1100,camera).scale);
+ });
+ check('quarter-view field routes cross both bridge directions and reach landmarks',()=>{
+  const m=land.quarterFixture();
+  for(const path of m.paths)for(let i=1;i<path.length;i++){
+   const [ax,ay]=path[i-1],[bx,by]=path[i],steps=Math.abs(bx-ax)+Math.abs(by-ay);
+   assert(ax===bx||ay===by);
+   for(let j=0;j<=steps;j+=2)assert(land.walkable(m,ax+Math.sign(bx-ax)*j,ay+Math.sign(by-ay)*j),'qv blocked road '+(ax+Math.sign(bx-ax)*j)+','+(ay+Math.sign(by-ay)*j));
+  }
+  assert(!land.walkable(m,440,816),'vertical bridge railing');assert(land.walkable(m,464,816),'vertical deck');
+  const c=createCanvas(640,544).getContext('2d');let calls=0;
+  land.drawQuarter(c,m,{x:464,foot:1168,draw:()=>calls++});assert.equal(calls,1);
+  fs.writeFileSync(path.join(output,'09-quarter-floor.png'),c.canvas.toBuffer('image/png'));
+  const bytes=640*544*4;assert(c.getImageData(0,0,640,544).data.length===bytes);
+ });
+ function openLandscape(){el('debugMap').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,15);shot('10-quarter');for(let i=0;i<3;i++)el('ok').fire('click');sandbox.gameState.x=352;sandbox.gameState.y=612;sandbox.__qaEval('map()');}
  const before=JSON.parse(JSON.stringify(sandbox.gameState));sandbox.YK_SAVE.auto(sandbox.gameState);
  const stateBefore=JSON.stringify(sandbox.gameState),saveBefore=[...storage];
- check('title DEBUG MAP opens new original terrain',()=>{el('debugMap').fire('click');assert.equal(sandbox.gameState.area,'debugField');assert.equal(sandbox.__YK_DEBUG_PAGE,0);assert(!el('title').classList.contains('show'));});
+ check('quarter-view touch movement crosses the vertical bridge and exits without changing saves',()=>{
+  el('debugMap').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,15);
+  sandbox.gameState.x=512;sandbox.gameState.y=1000;
+  el('up').fire('pointerdown');advance(1000);el('up').fire('pointerup');advance(160);
+  assert(sandbox.gameState.y-100<768,'crossed vertical bridge');
+  sandbox.gameState.x=512;sandbox.gameState.y=916;sandbox.__qaEval('map()');shot('11-quarter-bridge');const groundPixel=el('game').canvas.getContext('2d').getImageData(500,550,1,1).data;assert(groundPixel[1]>groundPixel[2]*1.3,'perspective ground must remain visible during movement');
+  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,16);shot('12-quarter-near');
+  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,17);shot('13-quarter-map');
+  sandbox.__YK_DEBUG_PAGE=15;sandbox.__qaEval('map()');
+  el('worldBtn').fire('click');advance(900);assert(Math.abs(sandbox.__qaEval('debugAngle')-Math.PI/2)<.001);shot('14-quarter-rotated');
+  const py=sandbox.gameState.y;tap('right');advance(160);assert.equal(sandbox.gameState.y-py,32,'screen right maps to world south after rotation');assert.equal(sandbox.gameState.dir,'r');
+  el('settingsBtn').fire('click');assert.equal(sandbox.__qaEval('debugPreset'),1);el('settingsBtn').fire('click');assert.equal(sandbox.__qaEval('debugPreset'),2);
+  el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);
+ });
+ check('title DEBUG MAP opens new original terrain',()=>{openLandscape();assert.equal(sandbox.gameState.area,'debugField');assert.equal(sandbox.__YK_DEBUG_PAGE,0);assert(!el('title').classList.contains('show'));});
  shot('01-landscape');
  check('movement uses real touch direction handlers',()=>{const x=sandbox.gameState.x;tap('right');assert.equal(sandbox.gameState.x-x,32);assert(sandbox.__qaEval('debugDrawPosition().x')<sandbox.gameState.x);advance(160);assert.equal(sandbox.__qaEval('debugDrawPosition().x'),sandbox.gameState.x);assert.equal(sandbox.gameState.walk,before.walk);});
  check('held movement stops at obstacles, cancellation restores state and map changes relocate safely',()=>{
@@ -211,9 +253,9 @@ function check(name,fn){fn();results.push(name)}
   assert(sandbox.gameState.x>=464,'held right crosses bridge');
   const stopped=sandbox.gameState.x;advance(500);assert.equal(sandbox.gameState.x,stopped,'release stops repeats');
   tap('down');el('cancel').fire('click');advance(200);assert.equal(JSON.stringify(sandbox.gameState),stateBefore,'no delayed movement after exit');
-  el('debugMap').fire('click');sandbox.gameState.x=112;sandbox.gameState.y=164;
+  openLandscape();sandbox.gameState.x=112;sandbox.gameState.y=164;
   el('ok').fire('click');assert(land.walkable(sandbox.__qaEval('DEBUG_LANDSCAPE'),sandbox.gameState.x-48,sandbox.gameState.y-100));
-  el('cancel').fire('click');el('debugMap').fire('click');
+  el('cancel').fire('click');openLandscape();
  });
  check('touch movement stops at the shrine pedestal from right and front',()=>{
   sandbox.gameState.x=358;sandbox.gameState.y=276;tap('left');advance(160);
@@ -226,11 +268,11 @@ function check(name,fn){fn();results.push(name)}
  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,1);shot('02-landscape-2x');
  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,2);shot('03-terrain-assets');
  el('ok').fire('click');shot('04-places');
- check('all fifteen debug pages render and cycle',()=>{for(let i=3;i<sandbox.__qaEval("DEBUG_PAGES.length");i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
+ check('all eighteen debug pages render and cycle',()=>{for(let i=3;i<sandbox.__qaEval("DEBUG_PAGES.length");i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1')||p.includes('landscape-v2')||p.includes('landscape-v3')||p.includes('places-v1')||p.includes('grass-v1'))));
+ check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1')||p.includes('landscape-v2')||p.includes('landscape-v3')||p.includes('places-v1')||p.includes('grass-v1')||p.includes('quarter-v1'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});

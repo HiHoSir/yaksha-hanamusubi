@@ -3,7 +3,7 @@
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
 window.gameState=YK_SAVE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
-let debugMotion=null;
+let debugMotion=null,debugAngle=0,debugTargetAngle=0,debugPreset=0,debugCameraTime=0;
 let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
 function assetLoaded(){
  if(assetDrawQueued)return;assetDrawQueued=true;
@@ -914,7 +914,7 @@ function drawWorld(){
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
 YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:{delay:260,repeat:105});
 YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
-YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは手帳を開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは地図を開きません",1200):worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPでは設定を変更しません",1200);if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
+YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは手帳を開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{selectCmd(i);cmd(b.dataset.cmd)}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
@@ -947,12 +947,12 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){if(!busy){if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+function loop(t){if(!busy){if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
 // Uses the analyzed orthogonal map-chip sheets directly.
-const DEBUG_PAGES=["landscape","landscape2x","terrainAssets","landmarks","landmarks2x","placeAssets","autotile","autotile2x","connections","assets32","overview","shore","water","ground","road"];
+const DEBUG_PAGES=["landscape","landscape2x","terrainAssets","landmarks","landmarks2x","placeAssets","autotile","autotile2x","connections","assets32","overview","shore","water","ground","road","quarter","quarterNear","quarterMap"];
 const DEBUG_ASSETS={
  ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
@@ -1151,16 +1151,17 @@ function drawDebugAutotile(c,page){
  worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
 
+const DEBUG_QUARTER=window.YK_LANDSCAPE?.quarterFixture();
 const DEBUG_LANDSCAPE=window.YK_LANDSCAPE?.fixture(),DEBUG_PLACES=window.YK_LANDSCAPE?.placesFixture();
 function debugCollisionMap(){
  const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
- return ['landscape','landscape2x'].includes(page)?DEBUG_LANDSCAPE:['landmarks','landmarks2x'].includes(page)?DEBUG_PLACES:['autotile','autotile2x'].includes(page)?DEBUG_TERRAIN:null;
+ return ['quarter','quarterNear','quarterMap'].includes(page)?DEBUG_QUARTER:['landscape','landscape2x'].includes(page)?DEBUG_LANDSCAPE:['landmarks','landmarks2x'].includes(page)?DEBUG_PLACES:['autotile','autotile2x'].includes(page)?DEBUG_TERRAIN:null;
 }
 function debugSafePosition(){
  const m=debugCollisionMap();if(!m)return;
  if(YK_LANDSCAPE.walkable(m,S.x-48,S.y-100))return;
  let best=null,dist=Infinity;
- for(let y=16;y<544;y+=16)for(let x=16;x<640;x+=16){const d=Math.hypot(x-(S.x-48),y-(S.y-100));if(d<dist&&YK_LANDSCAPE.walkable(m,x,y)){best=[x,y];dist=d;}}
+ for(let y=16;y<m.length*32;y+=16)for(let x=16;x<m[0].length*32;x+=16){const d=Math.hypot(x-(S.x-48),y-(S.y-100));if(d<dist&&YK_LANDSCAPE.walkable(m,x,y)){best=[x,y];dist=d;}}
  if(best){S.x=best[0]+48;S.y=best[1]+100;}
 }
 function debugDrawPosition(){
@@ -1169,7 +1170,8 @@ function debugDrawPosition(){
  return {x:debugMotion.x+(S.x-debugMotion.x)*t,y:debugMotion.y+(S.y-debugMotion.y)*t};
 }
 function moveDebug(dx,dy,dir){
- if(dx&&dy||!debugCollisionMap()||debugMotion)return;
+ if(dx&&dy||!debugCollisionMap()||debugMotion||Math.abs(debugTargetAngle-debugAngle)>.001)return;
+ if([15,16].includes(window.__YK_DEBUG_PAGE)){const a=debugTargetAngle;[dx,dy]=[Math.round(Math.cos(a)*Math.sign(dx)-Math.sin(a)*Math.sign(dy)),Math.round(Math.sin(a)*Math.sign(dx)+Math.cos(a)*Math.sign(dy))];}
  S.dir=dir;const x=S.x,y=S.y;
  // Sweep a full 32px stride in 2px increments, stopping before a footprint.
  for(let i=0;i<16;i++){const nx=S.x+Math.sign(dx)*2,ny=S.y+Math.sign(dy)*2;if(collision(nx,ny))break;S.x=nx;S.y=ny;}
@@ -1186,7 +1188,7 @@ function drawDebugLandscape(c,page){
  const places=["landmarks","landmarks2x","placeAssets"].includes(page);
  c.save();c.beginPath();c.rect(48,100,640,544);c.clip();
  if(page==="terrainAssets"||page==="placeAssets"){
-  (places?land.placeKeys:land.keys.filter(k=>k!=="grass"&&!land.placeKeys.includes(k))).forEach((k,i)=>{
+  (places?land.placeKeys:land.keys.filter(k=>!["grass","bridgeNS","castle","waterfall","horizon"].includes(k)&&!land.placeKeys.includes(k))).forEach((k,i)=>{
    const x=65+i%3*205,y=104+Math.floor(i/3)*134;
    for(let yy=0;yy<100;yy+=8)for(let xx=0;xx<176;xx+=8){c.fillStyle=((xx+yy)/8)%2?"#38505a":"#536773";c.fillRect(x+xx,y+yy,8,8);}
    const [w,h]=land.specs[k];land.drawAsset(c,k,x+(176-w)/2,y+(96-h)/2,w,h);
@@ -1205,9 +1207,36 @@ function drawDebugLandscape(c,page){
  worldHint("十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
 
+function debugRotateView(){
+ if(![15,16].includes(window.__YK_DEBUG_PAGE))return message('立体表示で視点を回転できます',1000);
+ if(debugMotion||Math.abs(debugTargetAngle-debugAngle)>.001)return;YK_INPUT.stopAll();debugTargetAngle+=Math.PI/2;debugCameraTime=performance.now();map();
+}
+function debugChangePerspective(){
+ if(![15,16].includes(window.__YK_DEBUG_PAGE))return message('立体表示で遠近を切り替えられます',1000);
+ debugPreset=(debugPreset+1)%3;map();
+}
+function drawDebugQuarter(c,page){
+ const land=window.YK_LANDSCAPE,a=window.YK_AUTOTILE,pos=debugDrawPosition();
+ c.fillStyle='#102631';c.fillRect(0,0,768,768);
+ const redraw=()=>{if(S.area==='debugField')map();};land.load(redraw);a.load(redraw);
+ if(land.ready()&&a.ready()){
+  c.save();c.translate(48,100);c.beginPath();c.rect(0,0,640,544);c.clip();
+  if(page==='quarterMap'){
+   const scale=Math.min(640/(DEBUG_QUARTER[0].length*32),544/(DEBUG_QUARTER.length*32));c.translate((640-DEBUG_QUARTER[0].length*32*scale)/2,0);c.scale(scale,scale);
+   land.draw(c,DEBUG_QUARTER,{foot:pos.y-100,draw:()=>hero(c,pos.x-48,pos.y-100-9*.56,S.dir,S.frame,S.outfit,.56)});
+  }else land.drawQuarter(c,DEBUG_QUARTER,{x:pos.x-48,foot:pos.y-100,draw:(x,y,z)=>hero(c,x,y-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},page==='quarterNear'?1.8:1.4,{angle:debugAngle,preset:debugPreset});
+  c.restore();
+ }else {c.fillStyle='#fff3c4';c.font='20px sans-serif';c.fillText('立体フィールドを読込中…',48,360);}
+ c.textAlign='left';c.fillStyle='#fff3c4';c.font='bold 24px sans-serif';c.fillText(page==='quarterMap'?'立体フィールド / 全体図':'クォータービュー / '+(page==='quarterNear'?'近景':'標準'),48,45);
+ c.font='16px sans-serif';c.fillText('HDMA風 / '+land.cameraPresets[debugPreset].name+' / 縦橋・城・滝',48,75);
+ c.font='15px sans-serif';c.fillText('A：標準 → 近景 → 全体図 → 素材比較　B：戻る',48,690);
+ c.font='14px sans-serif';c.fillText('上下左右で移動 / 当たり判定あり / 本編の記録は変更しません',48,720);
+ worldHint('地図：視点を90°回転　設定：遠近の強さを切替');
+}
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
+ if(["quarter","quarterNear","quarterMap"].includes(page)){drawDebugQuarter(c,page);return;}
  if(["landscape","landscape2x","terrainAssets","landmarks","landmarks2x","placeAssets"].includes(page)){drawDebugLandscape(c,page);return;}
  if(["autotile","autotile2x","connections","assets32"].includes(page)){drawDebugAutotile(c,page);return;}
  const key=page==="road"?"road":"ground";
@@ -1231,7 +1260,8 @@ window.YKDebugField=(enabled=true)=>{
  if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
  if(enabled){
   window.__YK_DEBUG_RETURN=JSON.parse(JSON.stringify(S));
-  window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=352;S.y=612;S.dir="u";S.frame=1;busy=false;
+  debugAngle=debugTargetAngle=0;debugPreset=0;debugCameraTime=performance.now();
+  window.__YK_DEBUG_PAGE=15;S.area="debugField";S.x=512;S.y=1268;S.dir="u";S.frame=1;busy=false;
   $("title")?.classList.remove("show");map();return true;
  }
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};

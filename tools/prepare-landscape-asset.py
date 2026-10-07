@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 from PIL import Image
 
-SIZES = {'grass': (256,256), 'greenMountain': (96, 88), 'snowMountain': (96, 88),
+SIZES = {'bridgeNS':(48,96),'castle':(112,112),'waterfall':(80,96),'horizon':(640,240),'grass': (256,256), 'greenMountain': (96, 88), 'snowMountain': (96, 88),
          'shrine': (64, 64), 'lantern': (24, 40),
          'bridge': (96, 40), 'flowers': (40, 24),
          'village': (112,80), 'town': (144,104), 'hermit': (72,72),
@@ -31,7 +31,7 @@ def main():
         # Identical border texels keep the repeating ground continuous.
         for y in range(im.height): im.putpixel((im.width-1,y),im.getpixel((0,y)))
         for x in range(im.width): im.putpixel((x,im.height-1),im.getpixel((x,0)))
-    target = Path(__file__).resolve().parent.parent / 'assets/terrain' / ('grass-v1' if args.kind == 'grass' else 'places-v1' if args.kind in PLACES else 'landscape-v2')
+    target = Path(__file__).resolve().parent.parent / 'assets/terrain' / ('quarter-v1' if args.kind in {'bridgeNS','castle','waterfall','horizon'} else 'grass-v1' if args.kind == 'grass' else 'places-v1' if args.kind in PLACES else 'landscape-v2')
     target.mkdir(parents=True, exist_ok=True)
     im.save(target / (args.kind + '.png'))
 
