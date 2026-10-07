@@ -43,17 +43,17 @@ const enemyProfiles={
 };
 // Static artwork must exist for both states before a variant enters the encounter pool.
 const rareKinds={
- "野の小鬼":{id:"oni",name:"紅角の鬼女",art:"oni-woman"},
- "化け狸":{id:"tanuki",name:"葉隠れ狸女",art:"tanuki-woman",hpMultiplier:1.35,atkMultiplier:1.15,trait:"leafDodge",traitChance:.22},
- "灯火狐":{id:"lantern",name:"灯籠の狐女",art:"lantern-woman",hpMultiplier:1.35,atkMultiplier:1.2,trait:"foxfire",traitChance:.28},
- "磯妖":{id:"shell",name:"磯貝の妖女",art:"shell-woman",hpMultiplier:1.35,atkMultiplier:1.15,trait:"shellGuard",traitChance:.25},
- "泡くらげ":{id:"jelly",name:"泡衣の海月女"},
- "木霊":{id:"tree",name:"若葉の木霊女"},
- "迷い蜘蛛":{id:"spider",name:"糸織り蜘蛛女"},
- "水蛇":{id:"snake",name:"水鏡の蛇女"},
- "滝童":{id:"falls",name:"滝守りの妖女"},
+ "野の小鬼":{id:"oni",name:"紅角の鬼女",variantAtlas:0},
+ "化け狸":{id:"tanuki",name:"葉隠れ狸女",variantAtlas:1,hpMultiplier:1.35,atkMultiplier:1.15,trait:"leafDodge",traitChance:.22},
+ "灯火狐":{id:"lantern",name:"灯籠の狐女",variantAtlas:2,hpMultiplier:1.35,atkMultiplier:1.2,trait:"foxfire",traitChance:.28},
+ "磯妖":{id:"shell",name:"磯貝の妖女",variantAtlas:3,hpMultiplier:1.35,atkMultiplier:1.15,trait:"shellGuard",traitChance:.25},
+ "泡くらげ":{id:"jelly",name:"泡衣の海月女",variantAtlas:4},
+ "木霊":{id:"tree",name:"若葉の木霊女",variantAtlas:5},
+ "迷い蜘蛛":{id:"spider",name:"糸織り蜘蛛女",variantAtlas:6},
+ "水蛇":{id:"snake",name:"水鏡の蛇女",variantAtlas:7},
+ "滝童":{id:"falls",name:"滝守りの妖女",variantAtlas:8},
  "妖狐":{id:"fox",name:"宵火の狐女"},
- "影九尾":{id:"ninefox",name:"朧九尾の妖女"}
+ "影九尾":{id:"ninefox",name:"朧九尾の妖女",variantAtlas:9}
 };
 const relics={
  oni:{name:"鬼のパンツ♀",text:"虎柄の予備の旅装。攻撃力+2・守備力+2",atk:2,def:2},
