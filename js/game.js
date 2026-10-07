@@ -1055,7 +1055,8 @@ function drawDebugOverview(c){
 function drawDebugSheet(c,key,cols,rows,sw=32,sh=32){
  const im=DEBUG_ART[key];if(!debugReady(key))return false;
  c.fillStyle="#17313a";c.fillRect(0,0,768,768);
- c.fillStyle="#fff3c4";c.font="bold 23px sans-serif";c.fillText("DEBUG "+key.toUpperCase()+" — "+(DEBUG_FALLBACK[key]?"fallback":"analyzed"),24,40);
+ c.textAlign="left";c.textBaseline="alphabetic";
+ c.fillStyle="#fff3c4";c.font="bold 23px sans-serif";c.fillText("DEBUG "+key.toUpperCase()+" — "+(DEBUG_FALLBACK[key]?"fallback":"analyzed"),36,40);
  const maxW=700,maxH=600,scale=Math.max(1,Math.floor(Math.min(maxW/(cols*sw),maxH/(rows*sh))));
  const dw=sw*scale,dh=sh*scale,totalW=cols*dw,totalH=rows*dh,ox=(768-totalW)/2,oy=86;
  for(let i=0;i<cols*rows;i++){
