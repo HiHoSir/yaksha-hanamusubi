@@ -47,17 +47,17 @@ const rareKinds={
  "影九尾":{id:"ninefox",name:"朧九尾の妖女"}
 };
 const relics={
- oni:{name:"鬼のパンツ♀",text:"虎柄の予備の旅装。攻撃+2・防御+2",atk:2,def:2},
- tanuki:{name:"狸女の葉守り",text:"葉隠れ狸女の髪飾り。防御+1・薬草の回復+8",def:1,heal:8},
+ oni:{name:"鬼のパンツ♀",text:"虎柄の予備の旅装。攻撃力+2・守備力+2",atk:2,def:2},
+ tanuki:{name:"狸女の葉守り",text:"葉隠れ狸女の髪飾り。守備力+1・薬草の回復+8",def:1,heal:8},
  lantern:{name:"狐女の灯芯",text:"灯籠の狐女が残す妖火の灯芯。花結びの威力+4",skill:4},
- shell:{name:"磯姫の貝飾り",text:"磯貝の妖女の真珠飾り。防御+3",def:3},
+ shell:{name:"磯姫の貝飾り",text:"磯貝の妖女の真珠飾り。守備力+3",def:3},
  jelly:{name:"海月女の泡帯",text:"薬草の回復+12",heal:12},
  tree:{name:"木霊女の若葉櫛",text:"花結びの威力+2・薬草の回復+6",skill:2,heal:6},
- spider:{name:"蜘蛛女の糸巻き",text:"攻撃+1・花結びの威力+3",atk:1,skill:3},
- snake:{name:"蛇女の水鱗",text:"防御+2・花結びの威力+2",def:2,skill:2},
- falls:{name:"滝守りの水帯",text:"防御+2・薬草の回復+6",def:2,heal:6},
- fox:{name:"狐女の火扇",text:"攻撃+2・花結びの威力+2",atk:2,skill:2},
- ninefox:{name:"九尾女の影鈴",text:"攻撃+2・防御+1・花結びの威力+2",atk:2,def:1,skill:2}
+ spider:{name:"蜘蛛女の糸巻き",text:"攻撃力+1・花結びの威力+3",atk:1,skill:3},
+ snake:{name:"蛇女の水鱗",text:"守備力+2・花結びの威力+2",def:2,skill:2},
+ falls:{name:"滝守りの水帯",text:"守備力+2・薬草の回復+6",def:2,heal:6},
+ fox:{name:"狐女の火扇",text:"攻撃力+2・花結びの威力+2",atk:2,skill:2},
+ ninefox:{name:"九尾女の影鈴",text:"攻撃力+2・守備力+1・花結びの威力+2",atk:2,def:1,skill:2}
 };
 const rareRules={chance:.10,goldMultiplier:1.25,breakHpRatio:.5,repeatDropChance:.25};
 const story=[

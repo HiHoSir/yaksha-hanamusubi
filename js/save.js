@@ -1,12 +1,15 @@
 window.YK_SAVE=(()=>{
-const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=11;
-const fresh=()=>({saveVersion:VER,villageRevision:2,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの剣",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
+const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=12;
+const fresh=()=>({saveVersion:VER,villageRevision:2,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,mp:18,maxmp:18,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの剣",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
  if(!YK_DATA.outfits[s.outfit])s.outfit="normal";
  s.maxhp=Math.max(1,Number(s.maxhp)||100);
  s.hp=Math.max(1,Math.min(Number(s.hp)||100,s.maxhp));
+ s.lv=Math.max(1,Math.floor(Number(s.lv)||1));
+ s.maxmp=Math.max(1,Math.floor(Number(raw?.maxmp)||18+(s.lv-1)*2));
+ s.mp=raw?.mp!=null&&Number.isFinite(Number(raw.mp))?Math.max(0,Math.min(s.maxmp,Math.floor(Number(raw.mp)))):s.maxmp;
  s.x=Number.isFinite(Number(s.x))?Number(s.x):384;s.y=Number.isFinite(Number(s.y))?Number(s.y):500;
  if(s.lastInterior!=="teahouse"&&s.lastInterior!=="osumiHome")s.lastInterior=null;
  if((s.area==="teahouse"||s.area==="osumiHome")&&(!Number.isFinite(Number(s.x))||!Number.isFinite(Number(s.y)))){s.x=384;s.y=650;}

@@ -81,3 +81,9 @@ jobs:
         run: |
           npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100
           node qa/autotile-smoke.cjs
+
+      - name: Battle mobile layout and touch controls
+        run: |
+          npm install --no-save --package-lock=false playwright@1.51.1
+          npx playwright install --with-deps chromium
+          node qa/battle-layout.cjs

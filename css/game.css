@@ -205,3 +205,22 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
     bottom:max(6.5%,calc(env(safe-area-inset-bottom) + 18px));
   }
 }
+
+/* β15.55.44: battle leaves the actual touch controller available. */
+#battle{bottom:184px;padding-bottom:0;overflow:auto;overscroll-behavior:contain;background:#101929}
+#battle.show{display:flex;flex-direction:column;max-width:900px;margin:auto}
+#pad.battleActive{z-index:25}
+#battle .battleTop{height:auto;min-height:34px;flex:none;padding:8px 4%;font-size:13px;border-bottom:1px solid #a99467}
+#battleCanvas{width:100%;height:auto;aspect-ratio:768/430;min-height:110px;max-height:38dvh;object-fit:contain;flex:1 1 auto;background:#102035}
+.battleVitals{display:flex;justify-content:space-between;gap:8px;padding:8px 4% 3px;font-size:13px;color:#fff0cf}
+.battleMeters{display:flex;gap:12px;padding:0 4% 5px}.battleMeters>div{height:5px;flex:1;background:#293544}.battleMeters i{display:block;height:100%;background:#8bc88a}#battleMpBar{background:#8fbbe9}
+#battle .battleInfo{flex:none;min-height:54px;margin:4px 4%;padding:8px 12px;font-size:14px;line-height:1.5;border-radius:3px;border:2px solid #dfd1a3;background:#111a31}
+#battle .battleCommands{margin:5px 4%;gap:5px;flex:none}
+#battle .battleCommands button{min-height:40px;padding:7px 10px;border-radius:3px;text-align:left;font-size:15px;background:#16223b}
+#battle .battleCommands button.selected{outline:2px solid #f1d9a0;background:#51402d;transform:none;filter:none}
+#battle .battleCommands button.selected::before{content:'▶ ';color:#ffe9ad}
+#battle .battleCommands button:disabled{opacity:.5}
+.battleHelp{margin:4px 4% 8px;font-size:11px;line-height:1.5;color:#dbcfac}.menuHelp{font-size:12px;line-height:1.7;color:#ddcdac}
+@media(max-height:720px){#battle{bottom:160px}#battleCanvas{max-height:27dvh}.battleVitals{padding-top:4px}#battle .battleInfo{min-height:48px;font-size:12px}#battle .battleCommands button{min-height:36px;padding:5px 8px}}
+
+.round small{display:block;font-size:10px;line-height:1.4;font-weight:500}

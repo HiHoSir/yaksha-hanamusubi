@@ -326,6 +326,42 @@ function check(name,fn){fn();results.push(name)}
   [sandbox.gameState.x,sandbox.gameState.y]=world.places.forest.point;sandbox.YK_SAVE.auto(sandbox.gameState);
   sandbox.__qaEval('restoreState(YK_SAVE.loadAuto());');assert.deepEqual([sandbox.gameState.x,sandbox.gameState.y],Array.from(world.places.forest.point));
  });
+ const originalRandom=sandbox.Math.random;
+ const battleSetup=()=>{sandbox.Math.random=()=>0;sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.encounterGrace=0;S.encounterSteps=100;beginEncounter();battle.hp=battle.max=999;renderBattle();');};
+ battleSetup();await Promise.all(loaded.map(im=>im.decode()));sandbox.__qaEval('renderBattle()');
+ check('battle touch pad is raised and grid navigation matches command positions',()=>{
+  assert(el('pad').classList.contains('battleActive'));tap('down');assert.equal(sandbox.__qaEval('battleCursor'),2);tap('right');assert.equal(sandbox.__qaEval('battleCursor'),3);tap('up');assert.equal(sandbox.__qaEval('battleCursor'),1);
+  tap('ok');assert.equal(sandbox.__qaEval('battle.menu'),'skill');tap('cancel');assert.equal(sandbox.__qaEval('battle.menu'),'root');assert.equal(sandbox.__qaEval('battle.hp'),999);
+  shot('17-battle-idle','battleCanvas');
+ });
+ check('skill costs tech once and rejects repeated input during the turn',()=>{
+  sandbox.__qaEval('cmd("skill")');tap('ok');const tech=sandbox.gameState.mp;assert.equal(tech,14);tap('ok');assert.equal(sandbox.gameState.mp,tech);shot('18-battle-skill','battleCanvas');advance(1200);assert(!sandbox.__qaEval('battleLocked'));
+ });
+ check('missing tech and empty items spend neither a turn nor resources',()=>{
+  sandbox.gameState.mp=0;sandbox.__qaEval('cmd("skill");cmd("bloom")');const hp=sandbox.gameState.hp;advance(700);assert.equal(sandbox.gameState.hp,hp);assert(!sandbox.__qaEval('battleLocked'));
+  sandbox.__qaEval('battleBack();S.potions=0;cmd("item");cmd("herb")');advance(700);assert.equal(sandbox.gameState.hp,hp);assert.equal(sandbox.gameState.potions,0);
+ });
+ check('guard halves only one incoming hit',()=>{
+  battleSetup();sandbox.__qaEval('cmd("guard")');advance(1200);assert.equal(sandbox.gameState.hp,97);assert(!sandbox.__qaEval('battle.guarding'));sandbox.__qaEval('cmd("attack")');advance(1200);assert.equal(sandbox.gameState.hp,91);
+ });
+ check('healing costs tech and full-health item use does not consume an item',()=>{
+  battleSetup();sandbox.__qaEval('cmd("item");cmd("herb")');assert.equal(sandbox.gameState.potions,2);assert(!sandbox.__qaEval('battleLocked'));
+  sandbox.__qaEval('battleBack();S.hp=40;cmd("skill");cmd("heal")');assert.equal(sandbox.gameState.hp,72);assert.equal(sandbox.gameState.mp,15);advance(1200);assert.equal(sandbox.gameState.hp,66);
+ });
+ check('victory rewards once, restores tech on level-up and waits for acknowledgement',()=>{
+  battleSetup();sandbox.__qaEval('battle.hp=1;battle.xp=40;S.mp=0;cmd("attack")');advance(500);assert.equal(sandbox.gameState.lv,2);assert.equal(sandbox.gameState.mp,sandbox.gameState.maxmp);const gold=sandbox.gameState.gold;
+  assert.equal(sandbox.__qaEval('battle.phase'),'result');assert(el('battle').classList.contains('show'));advance(1500);assert(el('battle').classList.contains('show'));sandbox.__qaEval('win()');assert.equal(sandbox.gameState.gold,gold);
+  shot('19-battle-result','battleCanvas');tap('ok');assert(!el('battle').classList.contains('show'));assert(!el('pad').classList.contains('battleActive'));
+ });
+ check('escape result and stale battle callbacks cannot award or damage after exit',()=>{
+  battleSetup();const gold=sandbox.gameState.gold;sandbox.__qaEval('cmd("escape")');advance(450);tap('cancel');assert(!el('battle').classList.contains('show'));assert.equal(sandbox.gameState.gold,gold);
+  battleSetup();sandbox.__qaEval('cmd("attack");state(YK_SAVE.fresh());');advance(1200);assert.equal(sandbox.gameState.hp,100);assert.equal(sandbox.gameState.gold,30);
+ });
+ check('old saves gain tech while saved zero tech remains zero',()=>{
+  const old=sandbox.YK_SAVE.migrate({saveVersion:11,lv:4});assert.equal(old.maxmp,24);assert.equal(old.mp,24);
+  assert.equal(sandbox.YK_SAVE.migrate({...old,mp:0}).mp,0);
+ });
+ sandbox.Math.random=originalRandom;
  check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1')||p.includes('landscape-v2')||p.includes('landscape-v3')||p.includes('places-v1')||p.includes('grass-v1')||p.includes('quarter-v1'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));

@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1020">
-<title>夜叉姫の花結び奇譚 β15.55.43</title>
-<link rel="stylesheet" href="css/game.css?v=15.55.43">
+<title>夜叉姫の花結び奇譚 β15.55.44</title>
+<link rel="stylesheet" href="css/game.css?v=15.55.44">
 </head>
 <body>
 <canvas id="worldTerrain" width="1536" height="1536" hidden aria-hidden="true"></canvas>
 <div id="app">
   <header>
-    <div class="brand">夜叉姫の花結び奇譚 <small>β15.55.43</small></div>
+    <div class="brand">夜叉姫の花結び奇譚 <small>β15.55.44</small></div>
     <div class="topBtns">
-      <button id="worldBtn">地図</button><button id="bookBtn">手帳</button><button id="saveBtn">保存</button><button id="settingsBtn">設定</button>
+      <button id="worldBtn">地図</button><button id="bookBtn">つよさ</button><button id="saveBtn">記録</button><button id="settingsBtn">設定</button>
     </div>
   </header>
 
@@ -36,8 +36,8 @@
       <button id="right" class="dir">▶</button>
       <button id="down" class="dir">▼</button>
     </div>
-    <button id="cancel" class="round sub">B</button>
-    <button id="ok" class="round main">A</button>
+    <button id="cancel" class="round sub" aria-label="B 戻る">B<small>戻る</small></button>
+    <button id="ok" class="round main" aria-label="A 決定 話す 調べる">A<small>決定</small></button>
   </section>
 </div>
 
@@ -52,7 +52,7 @@
     <button id="newGame" class="primary" type="button" onclick="window.__YK_BOOT_START&&window.__YK_BOOT_START()">はじめから</button>
     <button id="continueGame">つづきから</button>
     <button id="debugMap" type="button" style="font-size:14px;opacity:.82">DEBUG MAP</button>
-    <div class="version">BETA 15.55.43</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
+    <div class="version">BETA 15.55.44</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
   </div>
   <script>
   // Boot-safe title control. This deliberately does not depend on game.js/YK_INPUT.
@@ -77,21 +77,25 @@
 <button data-close="worldMap">閉じる</button></div></div>
 <div id="dialog" class="overlay"><div class="dialogWindow"><canvas id="dialogPortrait" width="180" height="180" aria-label="夜叉姫" style="display:none"></canvas><div id="speaker"></div><div id="dialogText"></div><button id="dialogNext">次へ</button></div></div>
 
-<div id="battle" class="overlay">
-  <div class="battleTop"><span id="enemyName"></span><span>HP <b id="enemyHp"></b></span></div>
-  <canvas id="battleCanvas" width="768" height="430"></canvas>
-  <div class="battleInfo"><span>夜叉姫 HP <b id="battleHp"></b></span><span id="battleText">どうする？</span></div>
-  <div id="battleCommands" class="battleCommands">
-    <button data-cmd="attack">たたかう</button><button data-cmd="skill">花結び</button>
-    <button data-cmd="item">どうぐ</button><button data-cmd="escape">にげる</button>
+<div id="battle" class="overlay" aria-label="戦闘">
+  <div class="battleTop"><span id="enemyName"></span><span>体 <b id="enemyHp"></b></span></div>
+  <canvas id="battleCanvas" width="768" height="430" aria-label="夜叉姫と敵の戦闘"></canvas>
+  <div class="battleVitals"><strong>夜叉姫 <span id="battleLevel"></span>段</strong><span>体 <b id="battleHp"></b></span><span>技 <b id="battleMp"></b></span></div>
+  <div class="battleMeters"><div><i id="battleHpBar"></i></div><div><i id="battleMpBar"></i></div></div>
+  <div class="battleInfo"><span id="battleText" role="status" aria-live="polite">どうする？</span></div>
+  <div id="battleCommands" class="battleCommands" aria-label="戦闘コマンド">
+    <button data-cmd="attack">戦う</button><button data-cmd="skill">術</button>
+    <button data-cmd="item">道具</button><button data-cmd="guard">守る</button>
+    <button data-cmd="escape">逃げる</button><button data-cmd="back">戻る</button>
   </div>
+  <p id="battleHelp" class="battleHelp">十字キー：選択 ／ A：決定 ／ B：戻る</p>
 </div>
 
 <div id="menu" class="overlay"><div class="window">
-  <h2>旅の手帳</h2><div id="statusPanel"></div>
-  <h3>衣装</h3><div id="outfits" class="choices"></div>
-  <h3>持ち物</h3><div id="itemsPanel"></div>
-  <h3>旅の記録</h3><div id="recordPanel"></div>
+  <h2>つよさ</h2><div id="statusPanel"></div>
+  <p class="menuHelp">A：話す・調べる・決定　B：戻る<br>段＝成長の段階　体＝体力　技＝術の力　心の数＝成長に必要な経験</p><h3>衣装</h3><div id="outfits" class="choices"></div>
+  <h3>道具・装備</h3><div id="itemsPanel"></div>
+  <h3>旅の足あと</h3><div id="recordPanel"></div>
   <button data-close="menu">閉じる</button>
 </div></div>
 
@@ -109,14 +113,14 @@
 
 <div id="gameover" class="overlay"><div class="titlebox"><h2>力尽きた……</h2><p>最後の自動保存から再開できます。</p><button id="retryBtn" class="primary">再開する</button><button id="goTitleBtn">タイトルへ</button></div></div>
 
-<script src="js/data.js?v=15.55.43"></script>
-<script src="js/world.js?v=15.55.43"></script>
-<script src="js/save.js?v=15.55.43"></script>
-<script src="js/audio.js?v=15.55.43"></script>
-<script src="js/input.js?v=15.55.43"></script>
-<script src="js/autotile.js?v=15.55.43"></script>
-<script src="js/landscape.js?v=15.55.43"></script>
-<script src="js/game.js?v=15.55.43"></script>
+<script src="js/data.js?v=15.55.44"></script>
+<script src="js/world.js?v=15.55.44"></script>
+<script src="js/save.js?v=15.55.44"></script>
+<script src="js/audio.js?v=15.55.44"></script>
+<script src="js/input.js?v=15.55.44"></script>
+<script src="js/autotile.js?v=15.55.44"></script>
+<script src="js/landscape.js?v=15.55.44"></script>
+<script src="js/game.js?v=15.55.44"></script>
 
 
 
