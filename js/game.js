@@ -972,21 +972,24 @@ function drawDebugOverview(c){
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
  c.textAlign="left";c.textBaseline="alphabetic";
 
- // Continuous grass base from the analyzed ground sheet.
- for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
-  const slot=(x+y*3)%8;
-  debug32(c,"ground",8,slot,ox+x*cell,oy+y*cell);
- }
-
- // Coast: water occupies the east side, with a stepped inlet.
  const isWater=(x,y)=>x>=16||(x>=14&&y>=4&&y<=12)||(x>=13&&y>=7&&y<=10);
+
+ // Analyzed chips are partly transparent overlays. Reproduce the production renderer's
+ // opaque biome underlay first so grass/water never fall through to the debug background.
  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
-  if(!isWater(x,y))continue;
-  debug32(c,"ground",8,8+((x*3+y*5)&7),ox+x*cell,oy+y*cell);
+  const dx=ox+x*cell,dy=oy+y*cell;
+  c.fillStyle=isWater(x,y)?"#397b87":"#91b85a";
+  c.fillRect(dx,dy,cell+.5,cell+.5);
  }
 
- // Shore is intentionally authored rather than inferred here. This lets us inspect
- // straight sides, outer corners and an inlet with the real source slots.
+ // Ground overlay variants.
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  const dx=ox+x*cell,dy=oy+y*cell;
+  const slot=isWater(x,y)?8+((x*3+y*5)&7):(x+y*3)%8;
+  debug32(c,"ground",8,slot,dx,dy);
+ }
+
+ // Coast edge overlay. Slots are explicit so each orientation can be visually verified.
  const shore=[
   [15,1,1],[15,2,1],[15,3,1],
   [14,4,4],[15,4,0],
@@ -999,8 +1002,10 @@ function drawDebugOverview(c){
   [15,14,1],[15,15,1]
  ];
  for(const [x,y,slot] of shore){
-  debug32(c,"ground",8,0,ox+x*cell,oy+y*cell);
-  debug32(c,"shore",4,slot,ox+x*cell,oy+y*cell);
+  const dx=ox+x*cell,dy=oy+y*cell;
+  c.fillStyle="#91b85a";c.fillRect(dx,dy,cell+.5,cell+.5);
+  debug32(c,"ground",8,0,dx,dy);
+  debug32(c,"shore",4,slot,dx,dy);
  }
 
  // Road network: enough grammar to inspect straight, cross and bend continuity.
@@ -1041,7 +1046,6 @@ function drawDebugOverview(c){
  for(let y=0;y<=rows;y++){c.beginPath();c.moveTo(ox,oy+y*cell+.5);c.lineTo(ox+cols*cell,oy+y*cell+.5);c.stroke()}
  c.restore();
 
- // iPhone-safe title. Explicit left alignment avoids inherited textAlign=center clipping.
  c.save();c.textAlign="left";c.textBaseline="alphabetic";
  c.fillStyle="rgba(7,20,29,.92)";c.fillRect(48,22,470,54);
  c.strokeStyle="#d5b36b";c.strokeRect(48.5,22.5,469,53);
