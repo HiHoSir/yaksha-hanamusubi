@@ -951,14 +951,15 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
 // Uses the analyzed orthogonal map-chip sheets directly.
-const DEBUG_PAGES=["overview","shore","ground","road"];
+const DEBUG_PAGES=["overview","shore","water","ground","road"];
 const DEBUG_ASSETS={
  ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
  shore:{src:"assets/terrain/world-ortho-shore-v1.png",size:[128,128]},
  forest:{src:"assets/terrain/world-ortho-forest-v1.png",size:[192,128]},
  mountain:{src:"assets/terrain/world-ortho-mountain-v1.png",size:[288,192]},
- landmarks:{src:"assets/terrain/world-ortho-landmarks-v1.png",size:[384,192]}
+ landmarks:{src:"assets/terrain/world-ortho-landmarks-v1.png",size:[384,192]},
+ water:{src:"assets/terrain/water-autotile-32-v5.png?v=5",size:[256,256]}
 };
 const DEBUG_ART={},DEBUG_FALLBACK={};
 for(const [key,spec] of Object.entries(DEBUG_ASSETS)){
@@ -1014,7 +1015,7 @@ function drawDebugOverview(c){
 
  // Place the analyzed shore overlay on the LAND cell selected by actual water adjacency.
  // This mirrors world.js semantics instead of hand-placing beige lines.
- const waterAt=(x,y)=>x<0||y<0||x>=cols||y>=rows||isWater(x,y);
+ const waterAt=(x,y)=>x>=0&&y>=0&&x<cols&&y<rows&&isWater(x,y);
  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
   if(isWater(x,y))continue;
   const slot=debugShoreSlot(x,y,waterAt);
@@ -1089,6 +1090,8 @@ function drawDebugSheet(c,key,cols,rows,sw=32,sh=32){
    c.fillStyle=i>=8&&i<16?"#397b87":"#91b85a";c.fillRect(x,y,dw,dh);
   }else if(key==="shore"){
    c.fillStyle="#91b85a";c.fillRect(x,y,dw,dh);
+  }else if(key==="water"){
+   c.fillStyle="#397b87";c.fillRect(x,y,dw,dh);
   }else{
    c.fillStyle="#244435";c.fillRect(x,y,dw,dh);
   }
@@ -1114,6 +1117,7 @@ function drawDebugField(c){
  }
  if(page==="overview")drawDebugOverview(c);
  else if(page==="shore")drawDebugSheet(c,"shore",4,4,32,32);
+ else if(page==="water")drawDebugSheet(c,"water",8,8,32,32);
  else if(page==="ground")drawDebugSheet(c,"ground",8,4,32,32);
  else drawDebugSheet(c,"road",4,4,32,32);
 }
