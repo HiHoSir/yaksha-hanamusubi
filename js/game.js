@@ -935,112 +935,123 @@ function loop(t){if(!busy){S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
-// A cycles: connected field test -> raw field chips -> road chips. B returns to title.
-const DEBUG_PAGES=["overview","tiles","road"];
+// Uses the analyzed orthogonal map-chip sheets directly.
+const DEBUG_PAGES=["overview","ground","road"];
 const DEBUG_ASSETS={
- field:{src:"assets/terrain/field-tileset-32-v3.png?v=3",size:[512,160]},
- road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]}
+ ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
+ road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
+ shore:{src:"assets/terrain/world-ortho-shore-v1.png",size:[128,128]},
+ forest:{src:"assets/terrain/world-ortho-forest-v1.png",size:[192,128]},
+ mountain:{src:"assets/terrain/world-ortho-mountain-v1.png",size:[288,192]},
+ landmarks:{src:"assets/terrain/world-ortho-landmarks-v1.png",size:[384,192]}
 };
 const DEBUG_ART={},DEBUG_FALLBACK={};
 for(const [key,spec] of Object.entries(DEBUG_ASSETS)){
  const im=new Image();
- const ready=img=>{DEBUG_ART[key]=img;if(S.area==="debugField")map();};
- const fail=()=>{
-  if(!spec.fallback){window.__YK_DEBUG_ATLAS_ERROR=key;return;}
-  const fb=new Image();fb.onload=()=>{DEBUG_FALLBACK[key]=true;ready(fb)};fb.onerror=()=>{window.__YK_DEBUG_ATLAS_ERROR=key;if(S.area==="debugField")map()};fb.src=spec.fallback;
+ const useFallback=()=>{
+  if(!spec.fallback){window.__YK_DEBUG_ATLAS_ERROR=key;if(S.area==="debugField")map();return;}
+  const fb=new Image();
+  fb.onload=()=>{DEBUG_FALLBACK[key]=true;DEBUG_ART[key]=fb;if(S.area==="debugField")map()};
+  fb.onerror=()=>{window.__YK_DEBUG_ATLAS_ERROR=key;if(S.area==="debugField")map()};
+  fb.src=spec.fallback;
  };
  im.onload=()=>{
-  if(spec.size&&(im.naturalWidth!==spec.size[0]||im.naturalHeight<spec.size[1])){fail();return;}
-  ready(im);
+  if(spec.size&&(im.naturalWidth!==spec.size[0]||im.naturalHeight!==spec.size[1])){useFallback();return;}
+  DEBUG_ART[key]=im;if(S.area==="debugField")map();
  };
- im.onerror=fail;im.src=spec.src;DEBUG_ART[key]=im;
+ im.onerror=useFallback;im.src=spec.src;DEBUG_ART[key]=im;
 }
 const debugReady=key=>{const im=DEBUG_ART[key];return !!(im&&im.complete&&im.naturalWidth>0)};
-const DEBUG_W=24,DEBUG_H=24,DEBUG_CELL=32;
-const makeDebugTerrain=()=>{
- const rows=Array.from({length:DEBUG_H},()=>Array(DEBUG_W).fill(0)); // 0 grass, 1 mountain, 2 forest, 3 water
- // Sea/coast: stepped bays exercise straight, outer-corner and inner-corner masks.
- for(let y=0;y<DEBUG_H;y++)for(let x=0;x<DEBUG_W;x++){
-  if(x>=19||(x>=17&&y>=4&&y<=18)||(x>=15&&y>=8&&y<=14))rows[y][x]=3;
- }
- // Interior pond with a one-cell inlet.
- for(let y=13;y<=18;y++)for(let x=2;x<=7;x++)rows[y][x]=3;
- rows[15][8]=3;rows[16][8]=3;
- // Mountain mass: irregular edges + single protrusion.
- for(let y=2;y<=8;y++)for(let x=2;x<=8;x++)if(!(x===8&&y<5)&&!(x<4&&y===8))rows[y][x]=1;
- rows[4][9]=1;
- // Forest mass: separate irregular cluster.
- for(let y=3;y<=10;y++)for(let x=11;x<=15;x++)if(!(x===11&&y<5)&&!(x===15&&y>8))rows[y][x]=2;
- rows[9][10]=2;
- return rows;
-};
-const DEBUG_TERRAIN=makeDebugTerrain();
-const debugSame=(kind,x,y)=>x>=0&&y>=0&&x<DEBUG_W&&y<DEBUG_H&&DEBUG_TERRAIN[y][x]===kind;
-const debugMask=(kind,x,y)=>(debugSame(kind,x,y-1)?1:0)|(debugSame(kind,x+1,y)?2:0)|(debugSame(kind,x,y+1)?4:0)|(debugSame(kind,x-1,y)?8:0);
-const debugLandMask=(x,y)=>{
- const land=(gx,gy)=>gx<0||gy<0||gx>=DEBUG_W||gy>=DEBUG_H||DEBUG_TERRAIN[gy][gx]!==3;
- return (land(x,y-1)?1:0)|(land(x+1,y)?2:0)|(land(x,y+1)?4:0)|(land(x-1,y)?8:0);
-};
+const debugAllReady=()=>["ground","road","shore","forest","mountain","landmarks"].every(debugReady);
+const debug32=(c,key,cols,slot,x,y)=>{const im=DEBUG_ART[key];c.drawImage(im,(slot%cols)*32,Math.floor(slot/cols)*32,32,32,x,y,32,32)};
+const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{const im=DEBUG_ART[key];c.drawImage(im,(slot%cols)*w,Math.floor(slot/cols)*h,w,h,footX-anchorX,footY-anchorY,w,h)};
+
 function drawDebugOverview(c){
- const im=DEBUG_ART.field;if(!debugReady("field"))return false;
- c.fillStyle="#27465a";c.fillRect(0,0,768,768);
- for(let y=0;y<DEBUG_H;y++)for(let x=0;x<DEBUG_W;x++){
-  const t=DEBUG_TERRAIN[y][x],dx=x*32,dy=y*32;
-  if(t===3){
-   const m=debugLandMask(x,y);
-   if(m)c.drawImage(im,(m&15)*32,32,32,32,dx,dy,32,32);
-   else {const v=8+((x*3+y*5)&7);c.drawImage(im,v*32,0,32,32,dx,dy,32,32);}
-  }else{
-   const v=(x*5+y*3)&7;c.drawImage(im,v*32,0,32,32,dx,dy,32,32);
-   if(t===1)c.drawImage(im,(debugMask(1,x,y)&15)*32,64,32,32,dx,dy,32,32);
-   if(t===2)c.drawImage(im,(debugMask(2,x,y)&15)*32,128,32,32,dx,dy,32,32);
-  }
+ if(!debugAllReady())return false;
+ const cell=32,ox=32,oy=88,cols=22,rows=18;
+ c.fillStyle="#102631";c.fillRect(0,0,768,768);
+
+ // Real grass atlas across the whole test field.
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  const slot=(x*3+y*5)%8;
+  debug32(c,"ground",8,slot,ox+x*cell,oy+y*cell);
  }
- // 32px reference grid is intentionally subtle and can reveal accidental scaling/seams.
+
+ // Water bay using the real water/shore chips.
+ for(let y=1;y<rows-1;y++)for(let x=16;x<cols;x++)debug32(c,"ground",8,8+((x+y)&7),ox+x*cell,oy+y*cell);
+ for(let y=2;y<rows-2;y++){
+  const x=15;
+  debug32(c,"ground",8,0,ox+x*cell,oy+y*cell);
+  debug32(c,"shore",4,1,ox+x*cell,oy+y*cell);
+ }
+ // Outer/inner shore corner samples around a small inlet.
+ const shoreSamples=[[13,3,4],[14,3,0],[15,3,4],[13,4,3],[15,4,1],[13,5,6],[14,5,2],[15,5,6],[14,4,8]];
+ for(const [x,y,slot] of shoreSamples){debug32(c,"ground",8,0,ox+x*cell,oy+y*cell);debug32(c,"shore",4,slot,ox+x*cell,oy+y*cell);}
+
+ // Real road grammar through the center.
+ for(let x=2;x<=11;x++)debug32(c,"road",4,0,ox+x*cell,oy+9*cell);
+ for(let y=6;y<=13;y++)debug32(c,"road",4,1,ox+8*cell,oy+y*cell);
+ debug32(c,"road",4,10,ox+8*cell,oy+9*cell);
+ debug32(c,"road",4,2,ox+11*cell,oy+9*cell);
+ debug32(c,"road",4,3,ox+11*cell,oy+10*cell);
+ for(let y=10;y<=13;y++)debug32(c,"road",4,1,ox+11*cell,oy+y*cell);
+
+ // Forest and mountain are overhang sprites on 32px logical feet.
+ const forestItems=[
+  [3,4,0],[4,4,1],[5,4,2],[3,5,3],[4,5,4],[5,5,5],
+  [4,6,1],[5,6,2],[6,6,0]
+ ];
+ const mountainItems=[
+  [1,2,0],[2,2,1],[3,2,2],[1,3,3],[2,3,4],[3,3,5],
+  [9,2,1],[10,2,2],[9,3,4],[10,3,5]
+ ];
+ for(const [x,y,slot] of forestItems)debugSprite(c,"forest",3,slot,64,64,ox+x*cell+16,oy+(y+1)*cell,32,56);
+ for(const [x,y,slot] of mountainItems)debugSprite(c,"mountain",3,slot,96,96,ox+x*cell+16,oy+(y+1)*cell,48,86);
+
+ // A landmark at the road terminus for scale.
+ debugSprite(c,"landmarks",4,0,96,96,ox+11*cell+16,oy+14*cell,48,86);
+
+ // Player at practical field-test scale.
+ hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.56);
+
+ // Reference grid last: seams and accidental scaling stay visible.
  c.save();c.strokeStyle="rgba(255,255,255,.10)";c.lineWidth=1;
- for(let n=0;n<=24;n++){c.beginPath();c.moveTo(n*32+.5,0);c.lineTo(n*32+.5,768);c.stroke();c.beginPath();c.moveTo(0,n*32+.5);c.lineTo(768,n*32+.5);c.stroke();}
+ for(let x=0;x<=cols;x++){c.beginPath();c.moveTo(ox+x*cell+.5,oy);c.lineTo(ox+x*cell+.5,oy+rows*cell);c.stroke()}
+ for(let y=0;y<=rows;y++){c.beginPath();c.moveTo(ox,oy+y*cell+.5);c.lineTo(ox+cols*cell,oy+y*cell+.5);c.stroke()}
  c.restore();
- hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.16);
- c.save();c.fillStyle="rgba(6,17,24,.80)";c.fillRect(10,10,430,58);c.fillStyle="#fff3c4";c.font="bold 18px sans-serif";c.fillText("DEBUG MAP — 32px 接続テスト",22,35);c.font="13px sans-serif";c.fillText("草原 / 水辺 / 山 / 森　A:表示切替　B:タイトル",22,57);c.restore();
- worldHint("十字キーで移動 · 1マス=32px · 継ぎ目/境界/反復を確認");return true;
+
+ c.save();c.fillStyle="rgba(7,20,29,.91)";c.fillRect(14,14,520,58);c.strokeStyle="#d5b36b";c.strokeRect(14.5,14.5,519,57);
+ c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — 32px 実チップ接続テスト",28,40);
+ c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("草原 / 水辺 / 道 / 森 / 山 / 建物　A:表示切替　B:タイトル",28,61);c.restore();
+ worldHint("十字キーで移動 · 1マス=32px · 継ぎ目/境界/実寸を確認");
+ return true;
 }
-function drawDebugTiles(c){
- const im=DEBUG_ART.field;if(!debugReady("field"))return false;
+function drawDebugSheet(c,key,cols,rows,sw=32,sh=32){
+ const im=DEBUG_ART[key];if(!debugReady(key))return false;
  c.fillStyle="#17313a";c.fillRect(0,0,768,768);
- c.fillStyle="#fff3c4";c.font="bold 23px sans-serif";c.fillText("DEBUG FIELD TILESET — RAW 32px",24,40);
- c.font="13px sans-serif";c.fillStyle="#d9d2b0";c.fillText("row0: grass/water · row1: shore · row2: mountain · row4: forest",24,63);
- const scale=2,tw=32*scale,th=32*scale,ox=128,oy=92;
- const rows=[0,1,2,4];
- for(let r=0;r<rows.length;r++)for(let x=0;x<16;x++){
-  const dx=ox+(x%8)*tw,dy=oy+(r*2+Math.floor(x/8))*th;
-  c.drawImage(im,x*32,rows[r]*32,32,32,dx,dy,tw,th);
-  c.strokeStyle="rgba(255,245,190,.38)";c.strokeRect(dx+.5,dy+.5,tw-1,th-1);
- }
- worldHint("A：ROAD一覧へ · B：タイトルへ戻る");return true;
-}
-function drawDebugRoad(c){
- const im=DEBUG_ART.road;if(!debugReady("road"))return false;
- c.fillStyle="#17313a";c.fillRect(0,0,768,768);
- c.fillStyle="#fff3c4";c.font="bold 23px sans-serif";c.fillText("DEBUG ROAD — "+(DEBUG_FALLBACK.road?"v1 FALLBACK":"v2"),24,40);
- c.font="13px sans-serif";c.fillStyle="#d9d2b0";c.fillText("直線 / 曲がり / T字 / 十字 / 行き止まり",24,63);
- const cols=4,rows=4,sw=32,sh=32,scale=4,dw=128,dh=128,ox=128,oy=92;
+ c.fillStyle="#fff3c4";c.font="bold 23px sans-serif";c.fillText("DEBUG "+key.toUpperCase()+" — "+(DEBUG_FALLBACK[key]?"fallback":"analyzed"),24,40);
+ const maxW=700,maxH=600,scale=Math.max(1,Math.floor(Math.min(maxW/(cols*sw),maxH/(rows*sh))));
+ const dw=sw*scale,dh=sh*scale,totalW=cols*dw,totalH=rows*dh,ox=(768-totalW)/2,oy=86;
  for(let i=0;i<cols*rows;i++){
   const sx=(i%cols)*sw,sy=Math.floor(i/cols)*sh,x=ox+(i%cols)*dw,y=oy+Math.floor(i/cols)*dh;
   c.drawImage(im,sx,sy,sw,sh,x,y,dw,dh);c.strokeStyle="rgba(255,245,190,.45)";c.strokeRect(x+.5,y+.5,dw-1,dh-1);
-  c.fillStyle="rgba(5,15,22,.72)";c.fillRect(x+3,y+3,28,18);c.fillStyle="#fff3c4";c.font="12px sans-serif";c.fillText(String(i),x+8,y+16);
+  c.fillStyle="rgba(5,15,22,.68)";c.fillRect(x+2,y+2,28,18);c.fillStyle="#fff3c4";c.font="12px sans-serif";c.fillText(String(i),x+8,y+15);
  }
- worldHint("A：接続マップへ · B：タイトルへ戻る");return true;
+ worldHint("A：次の表示へ · B：タイトルへ戻る");
+ return true;
 }
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
- const key=page==="road"?"road":"field";
- if(!debugReady(key)){
+ const key=page==="road"?"road":"ground";
+ if(!debugReady(key)||(page==="overview"&&!debugAllReady())){
   c.fillStyle="#102631";c.fillRect(0,0,768,768);c.fillStyle="#fff3c4";c.font="20px sans-serif";
   c.fillText(window.__YK_DEBUG_ATLAS_ERROR?("DEBUG asset error: "+window.__YK_DEBUG_ATLAS_ERROR):"DEBUG assets loading…",210,380);
   worldHint("DEBUG素材読込中 · Bでタイトルへ戻る");return;
  }
- if(page==="overview")drawDebugOverview(c);else if(page==="tiles")drawDebugTiles(c);else drawDebugRoad(c);
+ if(page==="overview")drawDebugOverview(c);
+ else if(page==="ground")drawDebugSheet(c,"ground",8,4,32,32);
+ else drawDebugSheet(c,"road",4,4,32,32);
 }
 window.YKDebugField=(enabled=true)=>{
  const hudEl=$("hud"),objectiveEl=$("objective");
@@ -1049,7 +1060,7 @@ window.YKDebugField=(enabled=true)=>{
  if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
  if(enabled){
   window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};
-  window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=384;S.y=608;S.dir="u";S.frame=1;busy=false;
+  window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=384;S.y=610;S.dir="u";S.frame=1;busy=false;
   $("title")?.classList.remove("show");map();return true;
  }
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};
