@@ -951,7 +951,7 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
 // Uses the analyzed orthogonal map-chip sheets directly.
-const DEBUG_PAGES=["autotile","autotile2x","connections","assets32","overview","shore","water","ground","road"];
+const DEBUG_PAGES=["landscape","landscape2x","terrainAssets","autotile","autotile2x","connections","assets32","overview","shore","water","ground","road"];
 const DEBUG_ASSETS={
  ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
@@ -1149,9 +1149,37 @@ function drawDebugAutotile(c,page){
  worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
 
+const DEBUG_LANDSCAPE=window.YK_LANDSCAPE?.fixture();
+function drawDebugLandscape(c,page){
+ const land=window.YK_LANDSCAPE,a=window.YK_AUTOTILE;
+ c.fillStyle="#102631";c.fillRect(0,0,768,768);c.textAlign="left";c.textBaseline="alphabetic";
+ const redraw=()=>{if(S.area==="debugField")map();};land.load(redraw);a.load(redraw);
+ if(!land.ready()||!a.ready()){c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(Object.keys({...land.errors,...a.errors}).length?"地形画像の読込エラー":"新しい地形を読込中…",48,360);worldHint("B：タイトルへ戻る");return;}
+ const zoom=page==="landscape2x"?2:1;
+ c.save();c.beginPath();c.rect(48,100,640,544);c.clip();
+ if(page==="terrainAssets"){
+  land.keys.forEach((k,i)=>{
+   const x=65+i%3*205,y=130+Math.floor(i/3)*230;
+   for(let yy=0;yy<160;yy+=8)for(let xx=0;xx<176;xx+=8){c.fillStyle=((xx+yy)/8)%2?"#38505a":"#536773";c.fillRect(x+xx,y+yy,8,8);}
+   const [w,h]=land.specs[k];land.drawAsset(c,k,x+40,y+32,w,h);
+   c.fillStyle="#fff3c4";c.font="16px sans-serif";c.fillText(({mountain:"山 / 96×88",water:"海・川の水面",snow:"雪原",barren:"荒地",sand:"砂浜"})[k],x,y+192);
+  });
+ }else{
+  const cx=zoom===2?clamp(S.x-48-160,0,320):0,cy=zoom===2?clamp(S.y-100-136,0,272):0;
+  c.translate(48,100);c.scale(zoom,zoom);c.translate(-cx,-cy);
+  land.draw(c,DEBUG_LANDSCAPE,{foot:S.y-100,draw:()=>hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56)});
+ }
+ c.restore();c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="terrainAssets"?"新しい地形素材 / 透過確認":"地形セット / "+zoom+"倍",48,45);
+ c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("草原・森・山・海岸・川・雪原・荒地",48,75);
+ c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 新素材 → 森の比較 → 旧素材　B：戻る",48,690);
+ c.font="14px sans-serif";c.fillStyle="#aec2c8";c.fillText("検証用：全地形を通り抜け可 / 本編への反映は確認後",48,720);
+ worldHint("十字キーで夜叉姫を移動 · 本編の記録は変更しません");
+}
+
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
+ if(["landscape","landscape2x","terrainAssets"].includes(page)){drawDebugLandscape(c,page);return;}
  if(["autotile","autotile2x","connections","assets32"].includes(page)){drawDebugAutotile(c,page);return;}
  const key=page==="road"?"road":"ground";
  if(!debugReady(key)||(page==="overview"&&!debugAllReady())){

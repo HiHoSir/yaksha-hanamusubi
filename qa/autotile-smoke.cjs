@@ -32,7 +32,7 @@ class LocalImage extends NativeImage{
 const storage=new Map(),windowEvents={};
 const sandbox={document:doc,Image:LocalImage,console,Math:Object.create(Math),Date,performance:{now:()=>now},setTimeout:(f,m)=>schedule(f,m),clearTimeout:id=>timers.delete(id),setInterval:(f,m)=>schedule(f,m,m),clearInterval:id=>timers.delete(id),requestAnimationFrame:f=>schedule(f,16),confirm:()=>false,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener:(n,f)=>(windowEvents[n]??=[]).push(f),YK_AUDIO:{beep(){},syncBgm(){},unlock(){}},setPointerCapture(){}};
 sandbox.window=sandbox;vm.createContext(sandbox);
-for(const file of ['data.js','world.js','save.js','input.js','autotile.js','game.js']){let source=fs.readFileSync(path.join(root,'js',file),'utf8');if(file==='game.js')source=source.replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();');vm.runInContext(source,sandbox,{filename:file});}
+for(const file of ['data.js','world.js','save.js','input.js','autotile.js','landscape.js','game.js']){let source=fs.readFileSync(path.join(root,'js',file),'utf8');if(file==='game.js')source=source.replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();');vm.runInContext(source,sandbox,{filename:file});}
 function tap(id){assert(el(id),id);el(id).fire('pointerdown');el(id).fire('pointerup')}
 function dataTap(key,value){const e=elements.find(x=>x.dataset[key]===value);assert(e,key+':'+value);e.fire('pointerdown');e.fire('pointerup')}
 function key(k){for(const f of docEvents.keydown||[])f({key:k,preventDefault(){}});for(const f of docEvents.keyup||[])f({key:k,preventDefault(){}})}
@@ -43,7 +43,7 @@ function check(name,fn){fn();results.push(name)}
 (async()=>{
  await Promise.all(loaded.map(im=>im.decode()));advance(32);
  const a=sandbox.YK_AUTOTILE;
- a.load();await Promise.all(loaded.map(im=>im.decode()));advance(1);
+ a.load();sandbox.YK_LANDSCAPE.load();await Promise.all(loaded.map(im=>im.decode()));advance(1);
  check('all original atlases loaded with exact dimensions',()=>assert(a.ready(),JSON.stringify(a.errors)));
  const qaImages={};for(const key of a.keys){const im=new NativeImage();im.src=fs.readFileSync(path.join(root,'assets/terrain/original-32-v2',key+'.png'));await im.decode();qaImages[key]=im;}
  check('ten 32px PNGs have binary alpha and real transparent pixels',()=>{
@@ -89,19 +89,40 @@ function check(name,fn){fn();results.push(name)}
   a.drawScene(c,m,{foot:140,draw:()=>calls.push('hero')});
   assert.equal(calls.filter(x=>x==='hero').length,1);assert.equal(calls.indexOf('hero'),objects.filter(t=>t.foot<=140).length);
  });
+ const land=sandbox.YK_LANDSCAPE;
+ check('five landscape assets load at declared sizes with binary alpha',()=>{
+  assert(land.ready(),JSON.stringify(land.errors));assert.equal(land.keys.length,5);
+  for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===255);p[i]?solid++:transparent++;}assert(solid>0);if(k==='mountain')assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
+ });
+ check('all 256 water neighborhoods keep channels open and close exposed shores',()=>{
+  for(let mask=0;mask<256;mask++){
+   const n={n:!!(mask&1),e:!!(mask&2),s:!!(mask&4),w:!!(mask&8)},d={nw:!!(mask&16),ne:!!(mask&32),sw:!!(mask&64),se:!!(mask&128)};
+   assert(land.contains(16,16,n,d,5));
+   for(const [side,x,y] of [['n',16,0],['e',31,16],['s',16,31],['w',0,16]])assert.equal(land.contains(x,y,n,d,5),n[side]);
+   if(n.n&&n.w&&!d.nw)assert(!land.contains(0,0,n,d,5));
+  }
+  const m=[['river','sea']];assert(land.adjacent(m,0,0,t=>t==='sea'||t==='river').e);
+ });
+ check('mixed terrain renders all regions and sorts mountain forest and hero by depth',()=>{
+  const m=land.fixture(),types=new Set(m.flat());for(const t of ['grass','forest','mountain','snowMountain','snow','barren','sea','river'])assert(types.has(t));
+  const objects=land.objects(m);assert(objects.some(o=>o.kind==='mountain'));assert(objects.some(o=>o.kind==='forest'));
+  for(let i=1;i<objects.length;i++)assert(objects[i].foot>=objects[i-1].foot);
+  const c=createCanvas(640,544).getContext('2d');let actor=0;assert(land.draw(c,m,{foot:280,draw:()=>actor++}));assert.equal(actor,1);
+  fs.writeFileSync(path.join(output,'05-landscape-floor.png'),c.canvas.toBuffer('image/png'));
+ });
  const before=JSON.parse(JSON.stringify(sandbox.gameState));sandbox.YK_SAVE.auto(sandbox.gameState);
  const stateBefore=JSON.stringify(sandbox.gameState),saveBefore=[...storage];
  check('title DEBUG MAP opens new original terrain',()=>{el('debugMap').fire('click');assert.equal(sandbox.gameState.area,'debugField');assert.equal(sandbox.__YK_DEBUG_PAGE,0);assert(!el('title').classList.contains('show'));});
- shot('01-original');
+ shot('01-landscape');
  check('movement uses real touch direction handlers',()=>{const x=sandbox.gameState.x;tap('right');assert(sandbox.gameState.x>x);assert.equal(sandbox.gameState.walk,before.walk);});
- el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,1);shot('02-original-2x');
- el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,2);shot('03-connections');
- el('ok').fire('click');shot('04-assets32');
- check('all nine debug pages render and cycle',()=>{for(let i=0;i<6;i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
+ el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,1);shot('02-landscape-2x');
+ el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,2);shot('03-terrain-assets');
+ el('ok').fire('click');shot('04-forest');
+ check('all twelve debug pages render and cycle',()=>{for(let i=0;i<9;i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3'))));
+ check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});

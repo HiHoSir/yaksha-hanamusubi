@@ -58,5 +58,6 @@ window.YK_AUTOTILE=(()=>{
   for(let x=10;x<=17;x++)m[8][x]='forest';m[11][10]='forest';for(let y=11;y<=13;y++)m[y][15]='forest';
   return m;
  }
- return {load,ready,roles,neighbors,forestObjects,drawScene,drawCell,drawMap,drawAsset,fixture,errors,specs,keys,baseColor};
+ function drawCrown(c,x,y,w=80,h=80){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(crown,x,y,w,h);return true;}
+ return {drawCrown,load,ready,roles,neighbors,forestObjects,drawScene,drawCell,drawMap,drawAsset,fixture,errors,specs,keys,baseColor};
 })();
