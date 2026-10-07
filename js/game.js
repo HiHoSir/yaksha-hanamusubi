@@ -147,8 +147,9 @@ const ENEMY_ART={};
 });
 const ENEMY_ATLAS=new Image();ENEMY_ATLAS.onload=assetLoaded;ENEMY_ATLAS.datasetSrc="assets/enemies/enemy-standard-atlas-128.png?v=15.55.47";
 const ENEMY_ATLAS_CELL=128,ENEMY_ATLAS_COLS=4;
-const VARIANT_ATLAS=new Image();VARIANT_ATLAS.onload=assetLoaded;VARIANT_ATLAS.datasetSrc="assets/enemies/enemy-variant-atlas-128.png?v=15.55.47";
+const VARIANT_ATLAS=new Image();VARIANT_ATLAS.onload=assetLoaded;VARIANT_ATLAS.datasetSrc="assets/enemies/enemy-variant-atlas-128.png?v=15.55.48";
 const VARIANT_ATLAS_CELL=128,VARIANT_ATLAS_COLS=4;
+const VARIANT_WORN_ATLAS=new Image();VARIANT_WORN_ATLAS.onload=assetLoaded;VARIANT_WORN_ATLAS.datasetSrc="assets/enemies/enemy-variant-worn-atlas-128.png?v=15.55.48";
 const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
@@ -158,6 +159,7 @@ function ensureBattleAssets(){
  for(const im of Object.values(ENEMY_ART))ensureImage(im);
  ensureImage(ENEMY_ATLAS);
  ensureImage(VARIANT_ATLAS);
+ ensureImage(VARIANT_WORN_ATLAS);
  for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
 }
 function rareReady(r){
@@ -173,10 +175,12 @@ function enemyArt(c,x,y){
  const dedicated=profile?.art&&ENEMY_ART[profile.art],fallback=B9EN[profile?.fallback||kind];
  const atlasIndex=Number.isInteger(profile?.atlas)?profile.atlas:null,atlasReady=atlasIndex!==null&&layerReady(ENEMY_ATLAS);
  const rareDef=battle?.rareId?Object.values(D.rareKinds).find(r=>r.id===battle.rareId):null;
- const variantIndex=Number.isInteger(rareDef?.variantAtlas)?rareDef.variantAtlas:null,variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
+ const variantIndex=Number.isInteger(rareDef?.variantAtlas)?rareDef.variantAtlas:null;
+ const wornVariantReady=variantIndex!==null&&battle?.clothingBroken&&layerReady(VARIANT_WORN_ATLAS);
+ const variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
  const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:null;
- const im=battle?.rareId?(variantReady?VARIANT_ATLAS:rareLegacy):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback));if(!layerReady(im))return;
- const bakedAtlas=variantReady||atlasReady;
+ const im=battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback));if(!layerReady(im))return;
+ const bakedAtlas=wornVariantReady||variantReady||atlasReady;
  const cell=bakedAtlas?128:null;
  const scale=bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);
  const w=(bakedAtlas?cell:im.naturalWidth)*scale,h=(bakedAtlas?cell:im.naturalHeight)*scale;
@@ -190,7 +194,8 @@ function enemyArt(c,x,y){
  }
  if(!bakedAtlas)shadow(c,x+ox,shadowY,65*shadowScale,15*shadowScale,.28);
  c.save();c.imageSmoothingEnabled=bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated));c.imageSmoothingQuality="high";
- if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else if(atlasReady){const sx=(atlasIndex%ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL,sy=Math.floor(atlasIndex/ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL;c.drawImage(im,sx,sy,ENEMY_ATLAS_CELL,ENEMY_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
