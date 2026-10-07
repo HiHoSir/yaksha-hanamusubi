@@ -23,13 +23,13 @@ function tap(el,fn){
 }
 function stopAll(){for(const stop of directionStops)stop();for(const [el,t] of timers){clearTimeout(t.delay);clearInterval(t.repeat)}timers.clear()}
 window.addEventListener("blur",stopAll);window.addEventListener("pagehide",stopAll);document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll()});
-function directions(bindings,fn){
+function directions(bindings,fn,timing=()=>({delay:260,repeat:105})){
  const pressed=new Map();let timer=null;
  const stop=()=>{pressed.clear();clearTimeout(timer);timer=null;};directionStops.push(stop);
  const vector=()=>{let x=0,y=0;for(const v of pressed.values()){x+=v[0];y+=v[1];}return [Math.sign(x),Math.sign(y)];};
  const step=()=>{const [x,y]=vector();if(x||y)fn(x,y);};
- const repeat=()=>{timer=null;if(!pressed.size)return;step();if(pressed.size)timer=setTimeout(repeat,105);};
- const press=(key,v)=>{if(pressed.has(key))return;pressed.set(key,v);step();if(pressed.size&&timer===null)timer=setTimeout(repeat,260);};
+ const repeat=()=>{timer=null;if(!pressed.size)return;step();if(pressed.size)timer=setTimeout(repeat,timing().repeat);};
+ const press=(key,v)=>{if(pressed.has(key))return;pressed.set(key,v);step();if(pressed.size&&timer===null)timer=setTimeout(repeat,timing().delay);};
  const release=key=>{pressed.delete(key);if(!pressed.size){clearTimeout(timer);timer=null;}};
  for(const [el,v] of bindings){
   el.addEventListener("pointerdown",e=>{e.preventDefault();try{el.setPointerCapture?.(e.pointerId)}catch(_){}press("p"+e.pointerId,v);});

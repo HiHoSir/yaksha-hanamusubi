@@ -34,7 +34,7 @@ jobs:
           if(!game.includes('world-ortho-ground-v2.png')||!game.includes('world-ortho-road-v2.png'))throw new Error('debug assets missing');
           if(!game.includes('DEBUG_FALLBACK')||!game.includes('naturalWidth!==spec.size[0]'))throw new Error('debug asset validation/fallback missing');
           if(!game.includes('drawDebugOverview')||!game.includes('drawDebugSheet'))throw new Error('debug inspection pages missing');
-          if(!game.includes('if(debugField){map();return;}'))throw new Error('debug movement isolation missing');
+          if(!game.includes('if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}'))throw new Error('debug movement isolation missing');
           console.log('boot contract OK');
           NODE
       - name: Required production assets

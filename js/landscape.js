@@ -1,13 +1,13 @@
 // Original terrain art. Display sizes are independent of the 32px movement grid.
 window.YK_LANDSCAPE=(()=>{
- const specs={greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={};
+ const specs={grass:[256,256],greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={};
  const placeKeys=['village','town','hermit','jizo','cave','torii'];
  const oldKeys=['water','snow','barren','sand'];
  const keys=Object.keys(specs),water=t=>t==='sea'||t==='river';let started=false;
  function ready(){return keys.every(k=>art[k]?.complete&&art[k].naturalWidth===specs[k][0]&&art[k].naturalHeight===specs[k][1]&&!errors[k]);}
  function load(change=()=>{}){
   if(started)return;started=true;
-  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
+  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=k==='grass'?'assets/terrain/grass-v1/grass.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
  }
  function fixture(){
   const m=Array.from({length:17},()=>Array(20).fill('grass'));
@@ -118,7 +118,7 @@ window.YK_LANDSCAPE=(()=>{
  function drawFloor(c,map){
   const a=window.YK_AUTOTILE;
   for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
-   a.drawCell(c,'grass',{},x*32,y*32);
+   c.drawImage(art.grass,x%8*32,y%8*32,32,32,x*32,y*32,32,32);
    const t=map[y][x],kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
    if(!['water','snow','barren','sand'].includes(kind))continue;
    const same=v=>v===undefined||(kind==='water'?water(v):kind==='snow'?(v==='snow'||v==='snowMountain'):kind==='barren'?(v==='barren'||v==='rockMountain'):kind==='sand'?(v==='sand'||water(v)):v===kind);
@@ -152,6 +152,29 @@ window.YK_LANDSCAPE=(()=>{
   for(let i=0;i<covered.length;i++)if(!covered[i])pixels.data[i*4+3]=0;
   c.putImageData(pixels,0,0);roads.set(map,canvas);return canvas;
  }
+ // Collision uses feet and ground footprints, not roofs or tree overhangs.
+ function walkable(map,x,y,r=5){
+  if(x-r<0||y-r<0||x+r>=map[0].length*32||y+r>=map.length*32)return false;
+  const bridge=(px,py)=>(map.decorations||[]).some(o=>o.kind==='bridge'&&px>=o.x&&px<o.x+o.width&&py>=o.y+o.height*.30&&py<=o.y+o.height*.82);
+  for(const [dx,dy] of [[0,0],[-r,0],[r,0],[0,-r],[0,r],[-r*.7,-r*.7],[r*.7,-r*.7],[-r*.7,r*.7],[r*.7,r*.7]]){
+   const px=x+dx,py=y+dy,t=map[Math.floor(py/32)]?.[Math.floor(px/32)];
+   if(water(t)?!bridge(px,py):!['grass','sand','snow','barren'].includes(t))return false;
+  }
+  const hit=(l,t,w,h)=>Math.hypot(x-Math.max(l,Math.min(x,l+w)),y-Math.max(t,Math.min(y,t+h)))<r;
+  for(const o of map.decorations||[]){
+   if(o.ground)continue;
+   if(o.kind==='torii'){
+    if(hit(o.x+o.width*.18,o.foot-14,8,12)||hit(o.x+o.width*.72,o.foot-14,8,12))return false;
+   }else if(hit(o.x+o.width*.12,o.foot-o.height*.35,o.width*.76,o.height*.35-8))return false;
+  }
+  return true;
+ }
+ const floors=new WeakMap();
+ function floorLayer(map){
+  if(floors.has(map))return floors.get(map);
+  const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;
+  drawFloor(layer.getContext('2d'),map);floors.set(map,layer);return layer;
+ }
  function objects(map){
   const a=window.YK_AUTOTILE,trees=a.forestObjects(map).map(t=>({...t,kind:'forest'}));
   const mountains=[];
@@ -162,7 +185,7 @@ window.YK_LANDSCAPE=(()=>{
   return [...trees,...mountains,...(map.decorations||[]).filter(o=>!o.ground)].sort((a,b)=>a.foot-b.foot||a.x-b.x);
  }
  function draw(c,map,actor){
-  if(!ready()||!window.YK_AUTOTILE.ready())return false;c.imageSmoothingEnabled=false;drawFloor(c,map);c.drawImage(roadLayer(map),0,0);
+  if(!ready()||!window.YK_AUTOTILE.ready())return false;c.imageSmoothingEnabled=false;c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);
   for(const o of (map.decorations||[]).filter(o=>o.ground))c.drawImage(art[o.kind],o.x,o.y,o.width,o.height);
   let drawn=false;
   for(const o of objects(map)){
@@ -173,5 +196,5 @@ window.YK_LANDSCAPE=(()=>{
   if(actor&&!drawn)actor.draw();return true;
  }
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
- return {specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
+ return {walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
 })();

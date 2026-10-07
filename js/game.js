@@ -3,6 +3,7 @@
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
 window.gameState=YK_SAVE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
+let debugMotion=null;
 let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
 function assetLoaded(){
  if(assetDrawQueued)return;assetDrawQueued=true;
@@ -657,7 +658,9 @@ function encounter(){return beginEncounter()}
 function action(){
  if(S.area==="debugField"){
   const pages=(typeof DEBUG_PAGES!=="undefined"?DEBUG_PAGES:["overview","tiles","road"]);
+  YK_INPUT.stopAll();debugMotion=null;
   window.__YK_DEBUG_PAGE=((window.__YK_DEBUG_PAGE||0)+1)%pages.length;
+  debugSafePosition();
   message("DEBUG："+pages[window.__YK_DEBUG_PAGE],700);map();return true;
  }
  if($("dialog").classList.contains("show")){nextDialog();return true;}
@@ -738,7 +741,7 @@ function villageBlocked(x,y){
  return !VILLAGE_LAYOUT.walkZones.some(rect=>inRect(x,y,rect))||
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
-function collision(x,y){if(S.area==="debugField")return x<24||x>744||y<92||y>720;if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
+function collision(x,y){if(S.area==="debugField"){const m=debugCollisionMap();return m?!YK_LANDSCAPE.walkable(m,x-48,y-100):x<53||x>683||y<105||y>639;}if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
   if(typeof YK_WORLD==="undefined"||!YK_WORLD)return true;
   if(!YK_WORLD.walkable(x,y))return true;
 }if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
@@ -754,11 +757,10 @@ function exitArea(){
 }
 function move(dx,dy,dir){
  if(busy)return;
- const debugOrthogonal=S.area==="debugField";
- if(debugOrthogonal&&dx&&dy)return;
+ if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
  S.dir=dir;
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
- const norm=Math.hypot(dx,dy)||1,debugField=S.area==="debugField",sp=(Number($("speedSelect").value)||1)*((S.area==="field"||debugField)?8:22);
+ const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(S.area==="field"?8:22);
  const vx=dx/norm*sp,vy=dy/norm*sp,steps=Math.ceil(sp/2),startX=S.x,startY=S.y;
  for(let i=0;i<steps;i++){
   const nx=clamp(S.x+vx/steps,27,741),ny=clamp(S.y+vy/steps,34,736);
@@ -773,7 +775,6 @@ function move(dx,dy,dir){
  }
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
- if(debugField){map();return;}
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  if(ex&&ex!==S.area){
@@ -911,7 +912,7 @@ function drawWorld(){
  document.querySelectorAll("[data-world-place]").forEach(b=>YK_INPUT.tap(b,()=>{const k=b.dataset.worldPlace;S.destination=k;YK_SAVE.auto(S);drawWorld();}));
 }
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
-YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);});
+YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:{delay:260,repeat:105});
 YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは手帳を開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは地図を開きません",1200):worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPでは設定を変更しません",1200);if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{selectCmd(i);cmd(b.dataset.cmd)}));
@@ -946,7 +947,7 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){if(!busy){S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+function loop(t){if(!busy){if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
@@ -1137,19 +1138,45 @@ function drawDebugAutotile(c,page){
    c.fillStyle="#112b20";c.font="14px monospace";c.fillText("NESW "+[n.n,n.e,n.s,n.w].map(Number).join(""),x,y+87);
   }
  }else{
-  const cameraX=zoom===2?clamp(S.x-48-160,0,320):0,cameraY=zoom===2?clamp(S.y-100-136,0,272):0;
+  const pos=debugDrawPosition();
+  const cameraX=zoom===2?clamp(pos.x-48-160,0,320):0,cameraY=zoom===2?clamp(pos.y-100-136,0,272):0;
   c.translate(48,100);c.scale(zoom,zoom);c.translate(-cameraX,-cameraY);
-  a.drawScene(c,DEBUG_TERRAIN,{foot:S.y-100,draw:()=>hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56)});
+  a.drawScene(c,DEBUG_TERRAIN,{foot:pos.y-100,draw:()=>hero(c,pos.x-48,pos.y-100,S.dir,S.frame,S.outfit,.56)});
  }
  c.restore();
  c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="assets32"?"32×32 PNG / 実寸と3倍・透明確認":page==="connections"?"森：16接続パターン":("森のサイズ比較 / "+zoom+"倍"),48,45);
  c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(page==="connections"||page==="assets32"?"旧32px素材：接続構造の確認用":"移動マス32px / 樹冠80px / 夜叉姫との比率を確認",48,75);
  c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 接続 → PNG一覧 → 旧素材　B：戻る",48,690);
- c.fillStyle="#aec2c8";c.font="14px sans-serif";c.fillText("検証用：地形は通り抜け可 / 山・海岸は次工程",48,720);
+ c.fillStyle="#aec2c8";c.font="14px sans-serif";c.fillText("32px歩行・森に当たり判定あり / 旧素材の比較用",48,720);
  worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
 
 const DEBUG_LANDSCAPE=window.YK_LANDSCAPE?.fixture(),DEBUG_PLACES=window.YK_LANDSCAPE?.placesFixture();
+function debugCollisionMap(){
+ const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
+ return ['landscape','landscape2x'].includes(page)?DEBUG_LANDSCAPE:['landmarks','landmarks2x'].includes(page)?DEBUG_PLACES:['autotile','autotile2x'].includes(page)?DEBUG_TERRAIN:null;
+}
+function debugSafePosition(){
+ const m=debugCollisionMap();if(!m)return;
+ if(YK_LANDSCAPE.walkable(m,S.x-48,S.y-100))return;
+ let best=null,dist=Infinity;
+ for(let y=16;y<544;y+=16)for(let x=16;x<640;x+=16){const d=Math.hypot(x-(S.x-48),y-(S.y-100));if(d<dist&&YK_LANDSCAPE.walkable(m,x,y)){best=[x,y];dist=d;}}
+ if(best){S.x=best[0]+48;S.y=best[1]+100;}
+}
+function debugDrawPosition(){
+ if(!debugMotion)return {x:S.x,y:S.y};
+ const t=clamp((performance.now()-debugMotion.at)/144,0,1);
+ return {x:debugMotion.x+(S.x-debugMotion.x)*t,y:debugMotion.y+(S.y-debugMotion.y)*t};
+}
+function moveDebug(dx,dy,dir){
+ if(dx&&dy||!debugCollisionMap()||debugMotion)return;
+ S.dir=dir;const x=S.x,y=S.y;
+ // Sweep a full 32px stride in 2px increments, stopping before a footprint.
+ for(let i=0;i<16;i++){const nx=S.x+Math.sign(dx)*2,ny=S.y+Math.sign(dy)*2;if(collision(nx,ny))break;S.x=nx;S.y=ny;}
+ if(S.x!==x||S.y!==y){debugMotion={x,y,at:performance.now()};walkPhase=(walkPhase+1)%4;S.frame=[0,2,0,2][walkPhase];lastMoved=performance.now();}
+ else S.frame=1;
+ map();
+}
 function drawDebugLandscape(c,page){
  const land=window.YK_LANDSCAPE,a=window.YK_AUTOTILE;
  c.fillStyle="#102631";c.fillRect(0,0,768,768);c.textAlign="left";c.textBaseline="alphabetic";
@@ -1159,21 +1186,22 @@ function drawDebugLandscape(c,page){
  const places=["landmarks","landmarks2x","placeAssets"].includes(page);
  c.save();c.beginPath();c.rect(48,100,640,544);c.clip();
  if(page==="terrainAssets"||page==="placeAssets"){
-  (places?land.placeKeys:land.keys.filter(k=>!land.placeKeys.includes(k))).forEach((k,i)=>{
+  (places?land.placeKeys:land.keys.filter(k=>k!=="grass"&&!land.placeKeys.includes(k))).forEach((k,i)=>{
    const x=65+i%3*205,y=104+Math.floor(i/3)*134;
    for(let yy=0;yy<100;yy+=8)for(let xx=0;xx<176;xx+=8){c.fillStyle=((xx+yy)/8)%2?"#38505a":"#536773";c.fillRect(x+xx,y+yy,8,8);}
    const [w,h]=land.specs[k];land.drawAsset(c,k,x+(176-w)/2,y+(96-h)/2,w,h);
    c.fillStyle="#fff3c4";c.font="16px sans-serif";c.fillText(({village:"村",town:"町",hermit:"仙人の庵",jizo:"地蔵",cave:"洞窟入口",torii:"鳥居",greenMountain:"緑の山",rockMountain:"岩山",snowMountain:"雪山",shrine:"祠",lantern:"石灯籠",bridge:"木橋",flowers:"花と草むら",road:"土の道",water:"海・川の水面",snow:"雪原",barren:"荒地",sand:"砂浜"})[k],x,y+123);
   });
  }else{
-  const cx=zoom===2?clamp(S.x-48-160,0,320):0,cy=zoom===2?clamp(S.y-100-136,0,272):0;
+  const pos=debugDrawPosition();
+  const cx=zoom===2?clamp(pos.x-48-160,0,320):0,cy=zoom===2?clamp(pos.y-100-136,0,272):0;
   c.translate(48,100);c.scale(zoom,zoom);c.translate(-cx,-cy);
-  land.draw(c,places?DEBUG_PLACES:DEBUG_LANDSCAPE,{foot:S.y-100,draw:()=>hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56)});
+  land.draw(c,places?DEBUG_PLACES:DEBUG_LANDSCAPE,{foot:pos.y-100,draw:()=>hero(c,pos.x-48,pos.y-100,S.dir,S.frame,S.outfit,.56)});
  }
  c.restore();c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="terrainAssets"||page==="placeAssets"?"素材一覧 / 透過確認":(places?"集落と拠点 / ":"地形と道 / ")+zoom+"倍",48,45);
  c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(places?"村・町・仙人の庵・地蔵・洞窟・鳥居":"地形のつながり / 土の道・砂浜・橋・祠",48,75);
  c.font="15px sans-serif";c.fillText("A：地形 → 2倍 → 素材 → 集落と拠点 → 比較　B：戻る",48,690);
- c.font="14px sans-serif";c.fillStyle="#aec2c8";c.fillText("検証用：全地形を通り抜け可 / 本編への反映は確認後",48,720);
+ c.font="14px sans-serif";c.fillStyle="#aec2c8";c.fillText("32px歩行・当たり判定あり / 水辺は橋で渡れます",48,720);
  worldHint("十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
 
@@ -1196,14 +1224,14 @@ function drawDebugField(c){
 }
 window.YKDebugField=(enabled=true)=>{
  if(enabled&&S.area==="debugField")return true;
- YK_INPUT.stopAll();
+ YK_INPUT.stopAll();debugMotion=null;
  const hudEl=$("hud"),objectiveEl=$("objective");
  document.querySelectorAll(".dpad .diagonal").forEach(b=>{b.style.visibility=enabled?"hidden":"visible"});
  if(hudEl)hudEl.style.display=enabled?"none":"";
  if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
  if(enabled){
   window.__YK_DEBUG_RETURN=JSON.parse(JSON.stringify(S));
-  window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=350;S.y=612;S.dir="u";S.frame=1;busy=false;
+  window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=352;S.y=612;S.dir="u";S.frame=1;busy=false;
   $("title")?.classList.remove("show");map();return true;
  }
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};

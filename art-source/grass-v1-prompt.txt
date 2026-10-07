@@ -1,0 +1,5 @@
+Method: built-in image_gen (original generated artwork).
+Use case: stylized-concept. Asset type: seamless grass ground texture for original Japanese folklore 16-bit late SNES quarter-view RPG world map. Square fully opaque seamless tile, flat ground only, no perspective plane edges. Muted warm meadow greens centered on #83b54d, subtle broad irregular patches in slightly lighter and darker greens, sparse tiny clusters of short grass blades and a few tiny ochre flecks. Calm and readable, neither plain solid green nor noisy lawn. Hand placed crisp chunky pixel art, limited 6 color green palette, no gradients, no antialiasing, no shadows from objects, no trees, bushes, flowers, rocks, paths, text or borders. Equal detail all across image, tileable edges. Designed to read at 128x128 pixels.
+
+Game preparation: tools/prepare-landscape-asset.py grass SOURCE.png
+Output: assets/terrain/grass-v1/grass.png, 256x256, nearest-neighbor resampling, 16-color palette, matching border texels.
