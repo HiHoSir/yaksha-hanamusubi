@@ -1,6 +1,6 @@
 window.YK_SAVE=(()=>{
 const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=11;
-const fresh=()=>({saveVersion:VER,villageRevision:2,relics:{},rareWins:{},equippedRelic:null,x:230,y:534,worldRevision:5,worldPosition:[230,534],visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの剣",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
+const fresh=()=>({saveVersion:VER,villageRevision:2,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの剣",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
@@ -14,6 +14,11 @@ function migrate(raw){
  // avoiding world/canvas work inside the synchronous localStorage Continue path.
  if(raw?.villageRevision!==2&&s.area==="village"){s.x=373;s.y=690;}
  s.villageRevision=2;
+ // Revision 88 changes world coordinates, not story progress or local-map positions.
+ if(raw&&Number(raw.worldRevision||0)<88&&typeof YK_WORLD!=="undefined"){
+  if(s.area==="field")[s.x,s.y]=YK_WORLD.migratePosition([s.x,s.y]);
+  s.worldPosition=YK_WORLD.migratePosition(raw.worldPosition);
+ }
  s.worldRevision=(typeof YK_WORLD!=="undefined"&&YK_WORLD)?YK_WORLD.revision:(Number(s.worldRevision)||5);
  s.worldPosition=Array.isArray(s.worldPosition)&&Number.isFinite(Number(s.worldPosition[0]))&&Number.isFinite(Number(s.worldPosition[1]))?[Number(s.worldPosition[0]),Number(s.worldPosition[1])]:(typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.hub?YK_WORLD.hub.slice():[230,534]);
  s.visitedAreas={...(s.visitedAreas||{}),field:true,[s.area]:true};

@@ -3,6 +3,7 @@
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
 window.gameState=YK_SAVE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
+let fieldMotion=null;
 let debugMotion=null,debugAngle=0,debugTargetAngle=0,debugPreset=0,debugCameraTime=0;
 let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
 function assetLoaded(){
@@ -171,6 +172,7 @@ function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return f
 const D=YK_DATA, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
 function state(v){
+ fieldMotion=null;
  resetBattleAnimation();
  S=window.gameState=YK_SAVE.migrate(v);
  battle=null;battleLocked=false;dialogQueue=[];dialogAfter=null;
@@ -182,7 +184,9 @@ function stabilizeLoadedState(){
  const area=D.areas[S.area]?S.area:"field";S.area=area;
  S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
  S.encounterGrace=Math.max(Number(S.encounterGrace)||0,D.areas[area]?.grace||0);
- if(area==="teahouse"||area==="osumiHome"){
+ if(area==="field"){
+   if(!YK_WORLD.walkable(S.x,S.y))[S.x,S.y]=YK_WORLD.start;
+ }else if(area==="teahouse"||area==="osumiHome"){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
@@ -481,73 +485,25 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  c.restore();
 }
 window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;return window.__YK_COLLISION_DEBUG};
-let terrainReady=false,cachedTerrainRev=-1;
-const worldAtlas=new Image();
-worldAtlas.onload=()=>{terrainReady=false;assetLoaded();};
-worldAtlas.src="assets/maps/world-atlas-v15.33.png";
-function drawWorldTerrain(c){
- const source=$("worldTerrain"),terrainRev=window.__YK_TERRAIN_REV||0;
- if(!layerReady(worldAtlas)){YK_WORLD.draw(c,null);return;}
- if(!terrainReady||cachedTerrainRev!==terrainRev){const tc=source.getContext("2d");tc.clearRect(0,0,source.width,source.height);tc.save();tc.scale(2,2);YK_WORLD.draw(tc,worldAtlas);tc.restore();terrainReady=true;cachedTerrainRev=terrainRev;}
- c.imageSmoothingEnabled=false;c.drawImage(source,0,0,768,768);
-}
-const fieldFrame=document.createElement("canvas");
-fieldFrame.width=768;fieldFrame.height=768;
-const fieldFrameCtx=fieldFrame.getContext("2d");
-function drawRoundedField(c,source){
- // The near-field scale stays stable; only the distant ground bends sharply away.
- const cx=384,anchor=474,curveTop=188,landTop=214,strip=2;
- const sky=c.createLinearGradient(0,0,0,300);
- sky.addColorStop(0,"#87b5cb");sky.addColorStop(.52,"#bfd4cb");sky.addColorStop(.86,"#dce1c0");sky.addColorStop(1,"#dfe2b9");
- c.fillStyle=sky;c.fillRect(0,0,768,768);
- c.save();c.globalAlpha=.20;c.fillStyle="#f7f1d7";
- for(const [x,y,rx,ry] of [[70,72,140,32],[335,53,180,38],[650,80,155,34]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()}c.restore();
- // Organic low mountain ridges replace the old triangular peaks.
- c.save();c.globalAlpha=.22;c.fillStyle="#76947e";c.beginPath();c.moveTo(-20,220);
- c.bezierCurveTo(55,181,90,178,145,201);c.bezierCurveTo(205,158,250,148,314,198);c.bezierCurveTo(365,172,415,160,468,199);c.bezierCurveTo(525,154,580,153,638,196);c.bezierCurveTo(690,172,735,181,790,216);
- c.lineTo(790,250);c.lineTo(-20,250);c.closePath();c.fill();
- c.globalAlpha=.12;c.fillStyle="#547462";c.beginPath();c.moveTo(-20,230);
- c.bezierCurveTo(90,198,150,204,220,226);c.bezierCurveTo(315,182,370,187,445,224);c.bezierCurveTo(535,190,620,193,790,229);
- c.lineTo(790,258);c.lineTo(-20,258);c.closePath();c.fill();c.restore();
- // Far ground remains visible just long enough to establish continuity, then rapidly
- // compresses into the curved horizon instead of ending in a horizontal band.
- const sourceCut=150;
- for(let sy=sourceCut;sy<768;sy+=strip){
-  let dy=sy,scale=1.075,dh=strip+1,alpha=1;
-  if(sy<anchor){
-   const t=Math.max(0,Math.min(1,(anchor-sy)/(anchor-sourceCut)));
-   const bend=Math.pow(t,1.65);
-   scale=1.075-.14*bend;
-   dy=anchor-(anchor-sy)*(1-.34*bend);
-   dh=strip*(1-.30*bend)+1.05;
-   if(sy<curveTop+80)alpha=Math.max(0,Math.min(1,(sy-curveTop)/80));
-  }else{
-   const near=Math.min(1,(sy-anchor)/294);scale=1.075+.025*near;
-  }
-  if(alpha<=0)continue;
-  const dw=768*scale,dx=cx-dw/2;c.globalAlpha=alpha;c.drawImage(source,0,sy,768,strip,dx,dy,dw,dh);
- }
- c.globalAlpha=1;
- // A shallow bowed mist edge follows the curvature rather than forming a stripe.
- c.save();c.globalCompositeOperation="screen";c.fillStyle="rgba(235,238,211,.18)";
- c.beginPath();c.moveTo(-20,238);c.quadraticCurveTo(384,186,788,238);c.quadraticCurveTo(384,218,-20,238);c.fill();c.restore();
- const veil=c.createLinearGradient(0,185,0,355);
- veil.addColorStop(0,"rgba(231,237,207,.28)");veil.addColorStop(.45,"rgba(220,231,199,.13)");veil.addColorStop(1,"rgba(214,227,193,0)");
- c.fillStyle=veil;c.fillRect(0,180,768,185);
-}function map(){
+function drawWorldTerrain(c){YK_WORLD.draw(c);}
+function map(){
  if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
   g.clearRect(0,0,768,768);g.fillStyle="#102635";g.fillRect(0,0,768,768);
   worldHint("フィールド読込待機中");return;
  }
- g.clearRect(0,0,768,768);g.imageSmoothingEnabled=false;
+ g.clearRect(0,0,768,768);g.fillStyle="#102635";g.fillRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="debugField"){drawDebugField(g);return;}
  if(S.area==="field"){
-  const camera=YK_WORLD.camera(S.x,S.y,S.dir);
-  fieldFrameCtx.clearRect(0,0,768,768);fieldFrameCtx.imageSmoothingEnabled=false;
-  fieldFrameCtx.save();fieldFrameCtx.scale(camera.zoom,camera.zoom);fieldFrameCtx.translate(-camera.x,-camera.y);
-  YK_WORLD.draw(fieldFrameCtx,null);drawActorsOn(fieldFrameCtx);YK_WORLD.drawProductionForeground?.(fieldFrameCtx,S.y);fieldFrameCtx.restore();
-  g.drawImage(fieldFrame,0,0,768,768);
+  YK_LANDSCAPE.load(assetLoaded);YK_AUTOTILE.load(assetLoaded);
+  const t=fieldMotion?clamp((performance.now()-fieldMotion.at)/144,0,1):1;
+  const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
+  const y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
+  g.save();g.translate(0,32);g.scale(1.2,1.2);
+  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4);
+  g.restore();
+  if(!ready){g.fillStyle='#102635';g.fillRect(0,0,768,768);}
+
   const k=YK_WORLD.near(S.x,S.y);
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"フィールドを進んで入口へ · 地図で目的地を確認");return;
  }
@@ -643,12 +599,13 @@ function beginEncounter(){
  ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
  if(!area||!pool?.length||area.encounter<=0)return false;
+ if(S.area==="field"&&YK_WORLD.near(S.x,S.y))return false;
  if(S.encounterGrace>0||S.encounterSteps<(area.min||12))return false;
  if(Math.random()>=area.encounter)return false;
  const e=pool[Math.floor(Math.random()*pool.length)];
  const variant=D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
  const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
- resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
+ fieldMotion=null;resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=false;
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent="どうする？";$("battle").classList.add("show");
@@ -741,10 +698,7 @@ function villageBlocked(x,y){
  return !VILLAGE_LAYOUT.walkZones.some(rect=>inRect(x,y,rect))||
   VILLAGE_LAYOUT.buildings.some(b=>hitRect(b.rect))||villageWaterBlocked(x,y);
 }
-function collision(x,y){if(S.area==="debugField"){const m=debugCollisionMap();return m?!YK_LANDSCAPE.walkable(m,x-48,y-100):x<53||x>683||y<105||y>639;}if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="field"){
-  if(typeof YK_WORLD==="undefined"||!YK_WORLD)return true;
-  if(!YK_WORLD.walkable(x,y))return true;
-}if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
+function collision(x,y){if(S.area==="debugField"){const m=debugCollisionMap();return m?!YK_LANDSCAPE.walkable(m,x-48,y-100):x<53||x>683||y<105||y>639;}if(S.area==="field")return !window.YK_WORLD?.walkable(x,y);if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if(S.area==="village"&&villageBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome")&&interiorBlocked(x,y))return true;if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome")return null;
  if(S.area==="village"){
@@ -758,12 +712,13 @@ function exitArea(){
 function move(dx,dy,dir){
  if(busy)return;
  if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
+ if(S.area==="field"&&(fieldMotion||dx&&dy))return;
  S.dir=dir;
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
- const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(S.area==="field"?8:22);
+ const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(S.area==="field"?32:22);
  const vx=dx/norm*sp,vy=dy/norm*sp,steps=Math.ceil(sp/2),startX=S.x,startY=S.y;
  for(let i=0;i<steps;i++){
-  const nx=clamp(S.x+vx/steps,27,741),ny=clamp(S.y+vy/steps,34,736);
+  const nx=clamp(S.x+vx/steps,27,S.area==="field"?YK_WORLD.size-27:741),ny=clamp(S.y+vy/steps,34,S.area==="field"?YK_WORLD.size-34:736);
   if(!collision(nx,ny)){S.x=nx;S.y=ny;}
   // On the open field, a blocked diagonal step must stop instead of sliding
   // along one axis. This keeps coast, river and mountain edges predictable
@@ -774,6 +729,7 @@ function move(dx,dy,dir){
   }
  }
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
+ if(S.area==="field")fieldMotion={x:startX,y:startY,at:performance.now()};
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
@@ -884,7 +840,7 @@ function worldMap(){if(busy)return;YK_INPUT.stopAll();busy=true;$("worldMap").cl
 function worldHint(text){rr(g,114,724,540,30,8,"#07131fe8","#c9ad78");g.font="16px sans-serif";g.textAlign="center";g.fillStyle="#fff0ca";g.fillText(text,384,745);}
 function enterWorldPlace(k){
  const p=YK_WORLD.places[k];if(!p)return;
- S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
+ fieldMotion=null;S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
  [S.x,S.y]=k==="village"?[373,690]:k==="waterfall"?[70,600]:[70,430];
  S.dir=k==="village"?"u":"r";S.frame=1;walkPhase=0;
  S.encounterSteps=0;S.encounterGrace=D.areas[k].grace||9;
@@ -892,18 +848,18 @@ function enterWorldPlace(k){
 }
 function drawWorldPins(c,labels){
  for(const [k,p] of Object.entries(YK_WORLD.places)){
-  const [x,y]=p.point,selected=S.destination===k;
+  const [x,y]=p.point.map(v=>v*768/YK_WORLD.size),selected=S.destination===k;
   c.beginPath();c.arc(x,y,selected?9:6,0,Math.PI*2);c.fillStyle=selected?"#ffe091":S.visitedAreas[k]?"#d987a9":"#fff5dd";c.fill();c.strokeStyle="#502c48";c.lineWidth=2;c.stroke();
   if(labels){const w=106;rr(c,x-w/2,y+12,w,25,5,selected?"#6b354e":"#102835ed","#cfb67c");c.font="14px sans-serif";c.fillStyle="#fff7e4";c.textAlign="center";c.fillText(p.name,x,y+30);}
  }
 }
 function drawWorld(){
  const c=wg;c.clearRect(0,0,720,720);c.save();c.scale(720/768,720/768);c.imageSmoothingEnabled=true;
- drawWorldTerrain(c);
- if(S.area==="field"){const camera=YK_WORLD.camera(S.x,S.y,S.dir);c.save();c.strokeStyle="#fff3b9";c.lineWidth=2;c.setLineDash([6,4]);c.strokeRect(camera.x,camera.y,camera.size,camera.size);c.restore();}
+ c.save();c.scale(768/YK_WORLD.size,768/YK_WORLD.size);drawWorldTerrain(c);c.restore();
+ if(S.area==="field"){const camera=YK_WORLD.camera(S.x,S.y,S.dir);c.save();c.strokeStyle="#fff3b9";c.lineWidth=2;c.setLineDash([6,4]);c.strokeRect(camera.x*768/YK_WORLD.size,camera.y*768/YK_WORLD.size,camera.size*768/YK_WORLD.size,camera.size*768/YK_WORLD.size);c.restore();}
  drawWorldPins(c,true);
  const area=S.area==="teahouse"||S.area==="osumiHome"?"village":S.area;
- const pos=area==="field"?[S.x,S.y]:YK_WORLD.places[area]?.point||YK_WORLD.hub;
+ const pos=(area==="field"?[S.x,S.y]:YK_WORLD.places[area]?.point||YK_WORLD.hub).map(v=>v*768/YK_WORLD.size);
  c.beginPath();c.arc(pos[0],pos[1]-8,13,0,Math.PI*2);c.strokeStyle="#fff";c.lineWidth=3;c.stroke();
  c.fillStyle="#70edff";c.beginPath();c.moveTo(pos[0],pos[1]-4);c.lineTo(pos[0]-7,pos[1]-16);c.lineTo(pos[0]+7,pos[1]-16);c.closePath();c.fill();c.restore();
  const target=YK_WORLD.places[S.destination];
@@ -912,7 +868,7 @@ function drawWorld(){
  document.querySelectorAll("[data-world-place]").forEach(b=>YK_INPUT.tap(b,()=>{const k=b.dataset.worldPlace;S.destination=k;YK_SAVE.auto(S);drawWorld();}));
 }
 function battlePad(d){if(!$("battle").classList.contains("show"))return false;selectCmd(battleCursor+(d==="u"||d==="l"?-1:1));return true}
-YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:{delay:260,repeat:105});
+YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>["debugField","field"].includes(S.area)?{delay:160,repeat:160}:{delay:260,repeat:105});
 YK_INPUT.tap($("ok"),()=>battle?cmd(["attack","skill","item","escape"][battleCursor]):action());YK_INPUT.tap($("cancel"),()=>{if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPでは手帳を開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{selectCmd(i);cmd(b.dataset.cmd)}));
@@ -947,7 +903,7 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){if(!busy){if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+function loop(t){if(!busy){if(fieldMotion){if(t-fieldMotion.at>=144){fieldMotion=null;S.frame=1;}map();}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.

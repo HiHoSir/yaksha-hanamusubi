@@ -95,6 +95,36 @@ function check(name,fn){fn();results.push(name)}
  const quarterGround=land.groundLayer(sandbox.__qaEval('DEBUG_QUARTER'));
  quarterGround.snapshot=new NativeImage();quarterGround.snapshot.src=quarterGround.canvas.toBuffer('image/png');await quarterGround.snapshot.decode();
  loaded.push(quarterGround.snapshot);
+ const world=sandbox.YK_WORLD,mainGround=land.groundLayer(world.mapData);
+ mainGround.snapshot=new NativeImage();mainGround.snapshot.src=mainGround.canvas.toBuffer('image/png');await mainGround.snapshot.decode();loaded.push(mainGround.snapshot);
+ check('production world uses an 80x80 original terrain map with safe entrances',()=>{
+  assert.equal(world.size,2560);assert.equal(world.mapData.length,80);
+  assert(world.walkable(...world.start));
+  for(const [id,p] of Object.entries(world.places)){assert(world.walkable(...p.point),id);assert.equal(world.near(...p.point),id);}
+ });
+ check('every production road is cardinal and its full centerline is traversable',()=>{
+  for(const route of world.roads)for(let i=1;i<route.length;i++){
+   const a=route[i-1],b=route[i];assert(a[0]===b[0]||a[1]===b[1]);
+   const n=Math.abs(b[0]-a[0])+Math.abs(b[1]-a[1]);
+   for(let j=0;j<=n;j+=2){const x=a[0]+(b[0]-a[0])*j/n,y=a[1]+(b[1]-a[1])*j/n;assert(world.walkable(x,y),'blocked road '+x+','+y);}
+  }
+ });
+ check('all story entrances are connected by four-direction walking cells',()=>{
+  const queue=[world.start],seen=new Set([world.start.join(',')]);
+  for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){
+   const nx=x+dx,ny=y+dy,k=nx+','+ny;
+   if(seen.has(k)||!world.walkable(nx,ny)||!world.walkable(x+dx/2,y+dy/2))continue;
+   seen.add(k);queue.push([nx,ny]);
+  }}
+  for(const [id,p] of Object.entries(world.places))assert(seen.has(p.point.join(',')),id+' unreachable');
+ });
+ check('legacy saves migrate coordinates once without altering progress or local interiors',()=>{
+  const old={worldRevision:87,area:'field',x:637,y:191,worldPosition:[637,191],quest:3,gold:321,lv:7,visitedAreas:{waterfall:true}};
+  const migrated=sandbox.YK_SAVE.migrate(old);assert.deepEqual([migrated.x,migrated.y],Array.from(world.places.waterfall.point));assert.equal(migrated.quest,3);assert.equal(migrated.gold,321);assert.equal(migrated.lv,7);assert(migrated.visitedAreas.waterfall);
+  assert.deepEqual(JSON.parse(JSON.stringify(sandbox.YK_SAVE.migrate(migrated))),JSON.parse(JSON.stringify(migrated)));
+  const local=sandbox.YK_SAVE.migrate({...old,area:'teahouse',x:384,y:625});assert.equal(local.x,384);assert.equal(local.y,625);
+ });
+
  check('twenty-three landscape assets load at declared sizes with binary alpha',()=>{
   assert(land.ready(),JSON.stringify(land.errors));assert.equal(land.keys.length,23);
   for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===255);p[i]?solid++:transparent++;}assert(solid>0);if(!['horizon','grass','water','snow','barren','sand','road'].includes(k))assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));if(k==='horizon')continue;for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
@@ -272,6 +302,30 @@ function check(name,fn){fn();results.push(name)}
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
+ check('production field moves 32px, enters and exits every existing story area',()=>{
+  sandbox.__qaEval('busy=false;S.encounterGrace=999;');
+  const y=sandbox.gameState.y;tap('up');advance(160);assert.equal(sandbox.gameState.y,y-32);
+  assert(!sandbox.__qaEval('collision(S.x,S.y)'));shot('15-production-field');
+  const pixel=el('game').canvas.getContext('2d').getImageData(200,570,1,1).data;assert(pixel[1]>pixel[2]*1.2,'production grass is actually rendered');
+  sandbox.__qaEval('worldMap()');shot('16-production-overview','worldCanvas');sandbox.__qaEval('close("worldMap")');
+  for(const [id,p] of Object.entries(world.places)){
+   sandbox.__qaEval('busy=false;S.area="field";fieldMotion=null;');[sandbox.gameState.x,sandbox.gameState.y]=p.point;
+   sandbox.__qaEval('action()');assert.equal(sandbox.gameState.area,id);
+   if(id==='village'){sandbox.gameState.x=384;sandbox.gameState.y=714;tap('down');}
+   else {sandbox.gameState.x=44;sandbox.gameState.y=430;tap('left');}
+   assert.equal(sandbox.gameState.area,'field',id+' exit');assert(world.walkable(sandbox.gameState.x,sandbox.gameState.y));
+  }
+  sandbox.__qaEval('restoreState(YK_SAVE.migrate({worldRevision:88,area:"field",x:2000,y:2096}));');
+  assert.equal(sandbox.gameState.x,2000,'large coordinate preserved');
+ });
+ check('production encounters and save restore retain expanded world coordinates',()=>{
+  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.encounterGrace=0;S.encounterSteps=100;');
+  const before=[sandbox.gameState.x,sandbox.gameState.y],random=sandbox.Math.random;sandbox.Math.random=()=>0;
+  assert(sandbox.__qaEval('beginEncounter()'));assert(el('battle').classList.contains('show'));assert.equal(sandbox.gameState.area,'field');assert.deepEqual([sandbox.gameState.x,sandbox.gameState.y],before);sandbox.Math.random=random;
+  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;');
+  [sandbox.gameState.x,sandbox.gameState.y]=world.places.forest.point;sandbox.YK_SAVE.auto(sandbox.gameState);
+  sandbox.__qaEval('restoreState(YK_SAVE.loadAuto());');assert.deepEqual([sandbox.gameState.x,sandbox.gameState.y],Array.from(world.places.forest.point));
+ });
  check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1')||p.includes('landscape-v2')||p.includes('landscape-v3')||p.includes('places-v1')||p.includes('grass-v1')||p.includes('quarter-v1'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
