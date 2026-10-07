@@ -1139,12 +1139,11 @@ function drawDebugAutotile(c,page){
  }else{
   const cameraX=zoom===2?clamp(S.x-48-160,0,320):0,cameraY=zoom===2?clamp(S.y-100-136,0,272):0;
   c.translate(48,100);c.scale(zoom,zoom);c.translate(-cameraX,-cameraY);
-  a.drawMap(c,DEBUG_TERRAIN);
-  hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56);
+  a.drawScene(c,DEBUG_TERRAIN,{foot:S.y-100,draw:()=>hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56)});
  }
  c.restore();
- c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="assets32"?"32×32 PNG / 実寸と3倍・透明確認":page==="connections"?"森：16接続パターン":("オリジナル地形 / "+zoom+"倍"),48,45);
- c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("32px = 16px×4 / 草原base 1・森9 / 透過PNG",48,75);
+ c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="assets32"?"32×32 PNG / 実寸と3倍・透明確認":page==="connections"?"森：16接続パターン":("森のサイズ比較 / "+zoom+"倍"),48,45);
+ c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(page==="connections"||page==="assets32"?"旧32px素材：接続構造の確認用":"移動マス32px / 樹冠80px / 夜叉姫との比率を確認",48,75);
  c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 接続 → PNG一覧 → 旧素材　B：戻る",48,690);
  c.fillStyle="#aec2c8";c.font="14px sans-serif";c.fillText("検証用：地形は通り抜け可 / 山・海岸は次工程",48,720);
  worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");

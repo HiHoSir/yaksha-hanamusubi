@@ -80,6 +80,15 @@ function check(name,fn){fn();results.push(name)}
   assert.equal(a.roles('forest',a.neighbors(m,0,0))[1][0],1);
   assert.equal(a.roles('forest',a.neighbors(m,1,0))[0][0],1);
  });
+ check('large forest objects cover each forest cell once and sort by depth',()=>{
+  const m=a.fixture(),objects=a.forestObjects(m),seen=new Set();let last=-Infinity;
+  for(const t of objects){assert.equal(t.width,80);assert.equal(t.height,80);assert(t.foot>=last);last=t.foot;for(const [x,y] of t.cells){assert.equal(m[y][x],'forest');assert(!seen.has(x+','+y));seen.add(x+','+y);}}
+  assert.equal(seen.size,m.flat().filter(x=>x==='forest').length);
+  const calls=[],c=createCanvas(640,544).getContext('2d'),draw=c.drawImage.bind(c);
+  c.drawImage=(im,...args)=>{if(im.width===64)calls.push('tree');return draw(im,...args)};
+  a.drawScene(c,m,{foot:140,draw:()=>calls.push('hero')});
+  assert.equal(calls.filter(x=>x==='hero').length,1);assert.equal(calls.indexOf('hero'),objects.filter(t=>t.foot<=140).length);
+ });
  const before=JSON.parse(JSON.stringify(sandbox.gameState));sandbox.YK_SAVE.auto(sandbox.gameState);
  const stateBefore=JSON.stringify(sandbox.gameState),saveBefore=[...storage];
  check('title DEBUG MAP opens new original terrain',()=>{el('debugMap').fire('click');assert.equal(sandbox.gameState.area,'debugField');assert.equal(sandbox.__YK_DEBUG_PAGE,0);assert(!el('title').classList.contains('show'));});
@@ -92,7 +101,7 @@ function check(name,fn){fn();results.push(name)}
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2'))));
+ check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});
