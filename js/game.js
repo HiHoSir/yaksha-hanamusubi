@@ -968,61 +968,87 @@ const debugSprite=(c,key,cols,slot,w,h,footX,footY,anchorX=w/2,anchorY=h-8)=>{co
 
 function drawDebugOverview(c){
  if(!debugAllReady())return false;
- const cell=32,ox=32,oy=88,cols=22,rows=18;
+ const cell=32,ox=48,oy=100,cols=20,rows=17;
  c.fillStyle="#102631";c.fillRect(0,0,768,768);
+ c.textAlign="left";c.textBaseline="alphabetic";
 
- // Real grass atlas across the whole test field.
+ // Continuous grass base from the analyzed ground sheet.
  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
-  const slot=(x*3+y*5)%8;
+  const slot=(x+y*3)%8;
   debug32(c,"ground",8,slot,ox+x*cell,oy+y*cell);
  }
 
- // Water bay using the real water/shore chips.
- for(let y=1;y<rows-1;y++)for(let x=16;x<cols;x++)debug32(c,"ground",8,8+((x+y)&7),ox+x*cell,oy+y*cell);
- for(let y=2;y<rows-2;y++){
-  const x=15;
-  debug32(c,"ground",8,0,ox+x*cell,oy+y*cell);
-  debug32(c,"shore",4,1,ox+x*cell,oy+y*cell);
+ // Coast: water occupies the east side, with a stepped inlet.
+ const isWater=(x,y)=>x>=16||(x>=14&&y>=4&&y<=12)||(x>=13&&y>=7&&y<=10);
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  if(!isWater(x,y))continue;
+  debug32(c,"ground",8,8+((x*3+y*5)&7),ox+x*cell,oy+y*cell);
  }
- // Outer/inner shore corner samples around a small inlet.
- const shoreSamples=[[13,3,4],[14,3,0],[15,3,4],[13,4,3],[15,4,1],[13,5,6],[14,5,2],[15,5,6],[14,4,8]];
- for(const [x,y,slot] of shoreSamples){debug32(c,"ground",8,0,ox+x*cell,oy+y*cell);debug32(c,"shore",4,slot,ox+x*cell,oy+y*cell);}
 
- // Real road grammar through the center.
- for(let x=2;x<=11;x++)debug32(c,"road",4,0,ox+x*cell,oy+9*cell);
- for(let y=6;y<=13;y++)debug32(c,"road",4,1,ox+8*cell,oy+y*cell);
- debug32(c,"road",4,10,ox+8*cell,oy+9*cell);
- debug32(c,"road",4,2,ox+11*cell,oy+9*cell);
- debug32(c,"road",4,3,ox+11*cell,oy+10*cell);
- for(let y=10;y<=13;y++)debug32(c,"road",4,1,ox+11*cell,oy+y*cell);
-
- // Forest and mountain are overhang sprites on 32px logical feet.
- const forestItems=[
-  [3,4,0],[4,4,1],[5,4,2],[3,5,3],[4,5,4],[5,5,5],
-  [4,6,1],[5,6,2],[6,6,0]
+ // Shore is intentionally authored rather than inferred here. This lets us inspect
+ // straight sides, outer corners and an inlet with the real source slots.
+ const shore=[
+  [15,1,1],[15,2,1],[15,3,1],
+  [14,4,4],[15,4,0],
+  [13,5,1],[13,6,1],
+  [12,7,4],[13,7,0],
+  [12,8,3],[12,9,3],
+  [12,10,6],[13,10,2],
+  [13,11,1],[13,12,1],
+  [14,13,6],[15,13,2],
+  [15,14,1],[15,15,1]
  ];
- const mountainItems=[
-  [1,2,0],[2,2,1],[3,2,2],[1,3,3],[2,3,4],[3,3,5],
-  [9,2,1],[10,2,2],[9,3,4],[10,3,5]
+ for(const [x,y,slot] of shore){
+  debug32(c,"ground",8,0,ox+x*cell,oy+y*cell);
+  debug32(c,"shore",4,slot,ox+x*cell,oy+y*cell);
+ }
+
+ // Road network: enough grammar to inspect straight, cross and bend continuity.
+ for(let x=2;x<=10;x++)debug32(c,"road",4,0,ox+x*cell,oy+10*cell);
+ for(let y=7;y<=14;y++)debug32(c,"road",4,1,ox+7*cell,oy+y*cell);
+ debug32(c,"road",4,10,ox+7*cell,oy+10*cell);
+ debug32(c,"road",4,2,ox+10*cell,oy+10*cell);
+ debug32(c,"road",4,3,ox+10*cell,oy+11*cell);
+ for(let y=11;y<=14;y++)debug32(c,"road",4,1,ox+10*cell,oy+y*cell);
+
+ // Mountain cluster. Ground-foot stays 32px even though art overhangs.
+ const mountains=[
+  [1,2,0],[2,2,1],[3,2,2],
+  [1,3,3],[2,3,4],[3,3,5],
+  [7,2,0],[8,2,1],[7,3,3],[8,3,4]
  ];
- for(const [x,y,slot] of forestItems)debugSprite(c,"forest",3,slot,64,64,ox+x*cell+16,oy+(y+1)*cell,32,56);
- for(const [x,y,slot] of mountainItems)debugSprite(c,"mountain",3,slot,96,96,ox+x*cell+16,oy+(y+1)*cell,48,86);
+ for(const [x,y,slot] of mountains)
+  debugSprite(c,"mountain",3,slot,96,96,ox+x*cell+16,oy+(y+1)*cell,48,86);
 
- // A landmark at the road terminus for scale.
- debugSprite(c,"landmarks",4,0,96,96,ox+11*cell+16,oy+14*cell,48,86);
+ // Forest cluster with deliberate overlap, matching the 32px logical foot rhythm.
+ const forests=[
+  [2,5,0],[3,5,1],[4,5,2],
+  [3,6,3],[4,6,4],[5,6,5],
+  [4,7,1],[5,7,2],[6,7,0]
+ ];
+ for(const [x,y,slot] of forests)
+  debugSprite(c,"forest",3,slot,64,64,ox+x*cell+16,oy+(y+1)*cell,32,56);
 
- // Player at practical field-test scale.
+ // Landmark at the end of the branch for world-scale comparison.
+ debugSprite(c,"landmarks",4,0,96,96,ox+10*cell+16,oy+15*cell,48,86);
+
+ // Player in a practical comparison scale.
  hero(c,S.x,S.y,S.dir,S.frame,S.outfit,.56);
 
- // Reference grid last: seams and accidental scaling stay visible.
+ // Grid is drawn last so bad crops, seams and anchors remain obvious.
  c.save();c.strokeStyle="rgba(255,255,255,.10)";c.lineWidth=1;
  for(let x=0;x<=cols;x++){c.beginPath();c.moveTo(ox+x*cell+.5,oy);c.lineTo(ox+x*cell+.5,oy+rows*cell);c.stroke()}
  for(let y=0;y<=rows;y++){c.beginPath();c.moveTo(ox,oy+y*cell+.5);c.lineTo(ox+cols*cell,oy+y*cell+.5);c.stroke()}
  c.restore();
 
- c.save();c.fillStyle="rgba(7,20,29,.91)";c.fillRect(14,14,520,58);c.strokeStyle="#d5b36b";c.strokeRect(14.5,14.5,519,57);
- c.fillStyle="#fff3c4";c.font="bold 20px sans-serif";c.fillText("DEBUG MAP — 32px 実チップ接続テスト",28,40);
- c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("草原 / 水辺 / 道 / 森 / 山 / 建物　A:表示切替　B:タイトル",28,61);c.restore();
+ // iPhone-safe title. Explicit left alignment avoids inherited textAlign=center clipping.
+ c.save();c.textAlign="left";c.textBaseline="alphabetic";
+ c.fillStyle="rgba(7,20,29,.92)";c.fillRect(48,22,470,54);
+ c.strokeStyle="#d5b36b";c.strokeRect(48.5,22.5,469,53);
+ c.fillStyle="#fff3c4";c.font="bold 18px sans-serif";c.fillText("32px 実チップ接続テスト",62,44);
+ c.font="12px sans-serif";c.fillStyle="#d9d2b0";c.fillText("草原 / 山 / 森 / 道 / 海岸　A:表示切替　B:タイトル",62,63);
+ c.restore();
+
  worldHint("十字キーで移動 · 1マス=32px · 継ぎ目/境界/実寸を確認");
  return true;
 }
@@ -1060,7 +1086,7 @@ window.YKDebugField=(enabled=true)=>{
  if(objectiveEl)objectiveEl.style.display=enabled?"none":"";
  if(enabled){
   window.__YK_DEBUG_RETURN={area:S.area,x:S.x,y:S.y,dir:S.dir};
-  window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=384;S.y=610;S.dir="u";S.frame=1;busy=false;
+  window.__YK_DEBUG_PAGE=0;S.area="debugField";S.x=350;S.y=612;S.dir="u";S.frame=1;busy=false;
   $("title")?.classList.remove("show");map();return true;
  }
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};
