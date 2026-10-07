@@ -1159,10 +1159,10 @@ function drawDebugLandscape(c,page){
  c.save();c.beginPath();c.rect(48,100,640,544);c.clip();
  if(page==="terrainAssets"){
   land.keys.forEach((k,i)=>{
-   const x=65+i%3*205,y=130+Math.floor(i/3)*230;
-   for(let yy=0;yy<160;yy+=8)for(let xx=0;xx<176;xx+=8){c.fillStyle=((xx+yy)/8)%2?"#38505a":"#536773";c.fillRect(x+xx,y+yy,8,8);}
-   const [w,h]=land.specs[k];land.drawAsset(c,k,x+40,y+32,w,h);
-   c.fillStyle="#fff3c4";c.font="16px sans-serif";c.fillText(({mountain:"山 / 96×88",water:"海・川の水面",snow:"雪原",barren:"荒地",sand:"砂浜"})[k],x,y+192);
+   const x=65+i%3*205,y=104+Math.floor(i/3)*134;
+   for(let yy=0;yy<100;yy+=8)for(let xx=0;xx<176;xx+=8){c.fillStyle=((xx+yy)/8)%2?"#38505a":"#536773";c.fillRect(x+xx,y+yy,8,8);}
+   const [w,h]=land.specs[k];land.drawAsset(c,k,x+(176-w)/2,y+(96-h)/2,w,h);
+   c.fillStyle="#fff3c4";c.font="16px sans-serif";c.fillText(({greenMountain:"緑の山",rockMountain:"岩山",snowMountain:"雪山",shrine:"祠",lantern:"石灯籠",bridge:"木橋",flowers:"花と草むら",water:"海・川の水面",snow:"雪原",barren:"荒地",sand:"砂浜"})[k],x,y+123);
   });
  }else{
   const cx=zoom===2?clamp(S.x-48-160,0,320):0,cy=zoom===2?clamp(S.y-100-136,0,272):0;
@@ -1170,7 +1170,7 @@ function drawDebugLandscape(c,page){
   land.draw(c,DEBUG_LANDSCAPE,{foot:S.y-100,draw:()=>hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56)});
  }
  c.restore();c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="terrainAssets"?"新しい地形素材 / 透過確認":"地形セット / "+zoom+"倍",48,45);
- c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("草原・森・山・海岸・川・雪原・荒地",48,75);
+ c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("緑の山・岩山・雪山 / 祠・石灯籠・木橋・花",48,75);
  c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 新素材 → 森の比較 → 旧素材　B：戻る",48,690);
  c.font="14px sans-serif";c.fillStyle="#aec2c8";c.fillText("検証用：全地形を通り抜け可 / 本編への反映は確認後",48,720);
  worldHint("十字キーで夜叉姫を移動 · 本編の記録は変更しません");

@@ -90,9 +90,9 @@ function check(name,fn){fn();results.push(name)}
   assert.equal(calls.filter(x=>x==='hero').length,1);assert.equal(calls.indexOf('hero'),objects.filter(t=>t.foot<=140).length);
  });
  const land=sandbox.YK_LANDSCAPE;
- check('five landscape assets load at declared sizes with binary alpha',()=>{
-  assert(land.ready(),JSON.stringify(land.errors));assert.equal(land.keys.length,5);
-  for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===255);p[i]?solid++:transparent++;}assert(solid>0);if(k==='mountain')assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
+ check('eleven landscape assets load at declared sizes with binary alpha',()=>{
+  assert(land.ready(),JSON.stringify(land.errors));assert.equal(land.keys.length,11);
+  for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===255);p[i]?solid++:transparent++;}assert(solid>0);if(!['water','snow','barren','sand'].includes(k))assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
  });
  check('all 256 water neighborhoods keep channels open and close exposed shores',()=>{
   for(let mask=0;mask<256;mask++){
@@ -104,11 +104,19 @@ function check(name,fn){fn();results.push(name)}
   const m=[['river','sea']];assert(land.adjacent(m,0,0,t=>t==='sea'||t==='river').e);
  });
  check('mixed terrain renders all regions and sorts mountain forest and hero by depth',()=>{
-  const m=land.fixture(),types=new Set(m.flat());for(const t of ['grass','forest','mountain','snowMountain','snow','barren','sea','river'])assert(types.has(t));
-  const objects=land.objects(m);assert(objects.some(o=>o.kind==='mountain'));assert(objects.some(o=>o.kind==='forest'));
+  const m=land.fixture(),types=new Set(m.flat());for(const t of ['grass','forest','mountain','rockMountain','snowMountain','snow','barren','sea','river'])assert(types.has(t));
+  const objects=land.objects(m);for(const k of ['greenMountain','rockMountain','snowMountain','shrine','lantern'])assert(objects.some(o=>o.kind===k));assert(objects.some(o=>o.kind==='forest'));
   for(let i=1;i<objects.length;i++)assert(objects[i].foot>=objects[i-1].foot);
   const c=createCanvas(640,544).getContext('2d');let actor=0;assert(land.draw(c,m,{foot:280,draw:()=>actor++}));assert.equal(actor,1);
   fs.writeFileSync(path.join(output,'05-landscape-floor.png'),c.canvas.toBuffer('image/png'));
+ });
+ check('decorations occupy suitable terrain and bridge spans both river banks',()=>{
+  const m=land.fixture(),decor=m.decorations;
+  for(const k of ['shrine','lantern','bridge','flowers'])assert(decor.some(o=>o.kind===k));
+  for(const o of decor){assert(o.x>=0&&o.y>=0&&o.x+o.width<=640&&o.y+o.height<=544);const cy=Math.floor((o.foot-1)/32);if(o.kind==='bridge'){assert.equal(m[cy][Math.floor(o.x/32)],'grass');assert.equal(m[cy][Math.floor((o.x+o.width-1)/32)],'grass');assert.equal(m[cy][Math.floor((o.x+o.width/2)/32)],'river');assert(o.ground);}else assert.equal(m[cy][Math.floor((o.x+o.width/2)/32)],'grass');}
+  const q=createCanvas(640,544).getContext('2d'),draw=q.drawImage.bind(q),calls=[];
+  q.drawImage=(im,...args)=>{if(im.width===96&&im.height===40)calls.push('bridge');if(im.width===40&&im.height===24)calls.push('flowers');return draw(im,...args)};
+  land.draw(q,m,{foot:0,draw:()=>calls.push('hero')});assert(calls.indexOf('bridge')<calls.indexOf('hero'));assert(calls.lastIndexOf('flowers')<calls.indexOf('hero'));
  });
  const before=JSON.parse(JSON.stringify(sandbox.gameState));sandbox.YK_SAVE.auto(sandbox.gameState);
  const stateBefore=JSON.stringify(sandbox.gameState),saveBefore=[...storage];
@@ -122,7 +130,7 @@ function check(name,fn){fn();results.push(name)}
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1'))));
+ check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1')||p.includes('landscape-v2'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});

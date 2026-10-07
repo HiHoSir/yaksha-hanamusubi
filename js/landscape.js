@@ -1,11 +1,12 @@
 // Original terrain art. Display sizes are independent of the 32px movement grid.
 window.YK_LANDSCAPE=(()=>{
- const specs={mountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64]},art={},errors={};
+ const specs={greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24]},art={},errors={};
+ const oldKeys=['water','snow','barren','sand'];
  const keys=Object.keys(specs),water=t=>t==='sea'||t==='river';let started=false;
  function ready(){return keys.every(k=>art[k]?.complete&&art[k].naturalWidth===specs[k][0]&&art[k].naturalHeight===specs[k][1]&&!errors[k]);}
  function load(change=()=>{}){
   if(started)return;started=true;
-  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src='assets/terrain/landscape-v1/'+k+'.png';}
+  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
  }
  function fixture(){
   const m=Array.from({length:17},()=>Array(20).fill('grass'));
@@ -17,6 +18,18 @@ window.YK_LANDSCAPE=(()=>{
   for(let y=12;y<17;y++)for(let x=0;x<(y===12?5:6);x++)m[y][x]='barren';
   for(const [x,y] of [[10,4],[10,5],[10,6],[11,6],[11,7],[11,8],[11,9],[12,9],[13,9],[14,9],[15,9]])m[y][x]='river';
   m[7][10]=m[8][10]='river';
+  for(let y=13;y<=14;y++)for(let x=1;x<=4;x++)m[y][x]='rockMountain';
+  // Object positions use world pixels; flowers and bridge lie under actors.
+  m.decorations=[
+   {kind:'shrine',x:224,y:176,width:64,height:64,foot:240},
+   {kind:'lantern',x:198,y:224,width:24,height:40,foot:264},
+   {kind:'lantern',x:294,y:224,width:24,height:40,foot:264},
+   {kind:'bridge',x:288,y:152,width:96,height:40,foot:184,ground:true},
+   {kind:'flowers',x:210,y:298,width:40,height:24,foot:322,ground:true},
+   {kind:'flowers',x:260,y:340,width:40,height:24,foot:364,ground:true},
+   {kind:'flowers',x:424,y:360,width:40,height:24,foot:384,ground:true},
+   {kind:'flowers',x:236,y:436,width:40,height:24,foot:460,ground:true}
+  ];
   return m;
  }
  function adjacent(map,x,y,predicate){return {n:predicate(map[y-1]?.[x]),e:predicate(map[y]?.[x+1]),s:predicate(map[y+1]?.[x]),w:predicate(map[y]?.[x-1])};}
@@ -51,25 +64,30 @@ window.YK_LANDSCAPE=(()=>{
   const a=window.YK_AUTOTILE;
   for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
    a.drawCell(c,'grass',{},x*32,y*32);
-   const t=map[y][x],kind=water(t)?'water':t==='snowMountain'?'snow':t;
+   const t=map[y][x],kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
    if(!['water','snow','barren'].includes(kind))continue;
-   const same=v=>v===undefined||(kind==='water'?water(v):kind==='snow'?(v==='snow'||v==='snowMountain'):v===kind);
+   const same=v=>v===undefined||(kind==='water'?water(v):kind==='snow'?(v==='snow'||v==='snowMountain'):kind==='barren'?(v==='barren'||v==='rockMountain'):v===kind);
    const n=adjacent(map,x,y,same),diag={nw:same(map[y-1]?.[x-1]),ne:same(map[y-1]?.[x+1]),sw:same(map[y+1]?.[x-1]),se:same(map[y+1]?.[x+1])};
    c.drawImage(maskTile(kind,n,diag,x%2*32,y%2*32),x*32,y*32);
   }
  }
  function objects(map){
   const a=window.YK_AUTOTILE,trees=a.forestObjects(map).map(t=>({...t,kind:'forest'}));
-  const mountains=a.forestObjects(map.map(row=>row.map(t=>t==='mountain'||t==='snowMountain'?'forest':'grass'))).map(t=>({...t,kind:'mountain',x:t.x-8,y:t.foot-88,width:96,height:88}));
-  return [...trees,...mountains].sort((a,b)=>a.foot-b.foot||a.x-b.x);
+  const mountains=[];
+  for(const [terrain,kind] of [['mountain','greenMountain'],['rockMountain','rockMountain'],['snowMountain','snowMountain']]){
+   const cells=map.map(row=>row.map(t=>t===terrain?'forest':'grass'));
+   mountains.push(...a.forestObjects(cells).map(t=>({...t,kind,x:t.x-8,y:t.foot-88,width:96,height:88})));
+  }
+  return [...trees,...mountains,...(map.decorations||[]).filter(o=>!o.ground)].sort((a,b)=>a.foot-b.foot||a.x-b.x);
  }
  function draw(c,map,actor){
   if(!ready()||!window.YK_AUTOTILE.ready())return false;c.imageSmoothingEnabled=false;drawFloor(c,map);
+  for(const o of (map.decorations||[]).filter(o=>o.ground))c.drawImage(art[o.kind],o.x,o.y,o.width,o.height);
   let drawn=false;
   for(const o of objects(map)){
    if(actor&&!drawn&&actor.foot<o.foot){actor.draw();drawn=true;}
    if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,o.x,o.y,o.width,o.height);
-   else c.drawImage(art.mountain,o.x,o.y,o.width,o.height);
+   else c.drawImage(art[o.kind],o.x,o.y,o.width,o.height);
   }
   if(actor&&!drawn)actor.draw();return true;
  }
