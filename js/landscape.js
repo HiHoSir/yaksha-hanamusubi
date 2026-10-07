@@ -26,10 +26,10 @@ window.YK_LANDSCAPE=(()=>{
    for(let x=Math.max(0,coast-2);x<coast;x++)if(m[y][x]==='grass')m[y][x]='sand';
   }
   m.paths=[
-   [[304,520],[304,448],[272,416],[272,336],[256,304],[256,192]],
-   [[256,252],[432,252],[464,224],[480,192]],
-   [[272,416],[352,416],[432,416],[392,464]],
-   [[272,416],[224,416],[208,464],[176,496]],
+   [[304,520],[304,448],[256,448],[256,192]],
+   [[256,252],[480,252],[480,192]],
+   [[256,416],[392,416],[392,464]],
+   [[256,416],[208,416],[208,496],[176,496]],
    [[256,304],[208,304]]
   ];
   // Object positions use world pixels; flowers and bridge lie under actors.
@@ -59,7 +59,7 @@ window.YK_LANDSCAPE=(()=>{
    {kind:'village',x:64,y:244,width:112,height:80,foot:324},
    {kind:'town',x:410,y:228,width:144,height:104,foot:332},
    {kind:'torii',x:420,y:134,width:64,height:64,foot:198},
-   {kind:'jizo',x:218,y:320,width:24,height:40,foot:360},
+   {kind:'jizo',x:218,y:296,width:24,height:40,foot:336},
    {kind:'jizo',x:368,y:296,width:24,height:40,foot:336},
    {kind:'bridge',x:288,y:332,width:96,height:56,foot:388,ground:true},
    {kind:'flowers',x:168,y:370,width:40,height:24,foot:394,ground:true},
@@ -68,7 +68,7 @@ window.YK_LANDSCAPE=(()=>{
   m.paths=[
    [[272,524],[272,360],[120,360],[120,324]],
    [[272,360],[482,360],[482,332]],
-   [[272,360],[272,208],[262,164]],
+   [[272,360],[272,208],[262,208],[262,164]],
    [[272,208],[124,208],[124,152]],
    [[400,360],[400,204],[452,204],[452,198]],
    [[400,360],[400,408]]
@@ -86,10 +86,16 @@ window.YK_LANDSCAPE=(()=>{
   return true;
  }
  function groundInside(x,y,n,diag,sx,sy){
-  if(!contains(x,y,n,diag))return false;
+  // Ground is a continuous surface: never cut an inner corner out of a
+  // connected cell. The water contour has a different shoreline contract.
+  // Fade exposed-edge roughness to zero where it meets a connected edge.
   const edge=[1,1,2,2,2,3,3,2,1,1,0,0,1,1,2,1];
-  const dx=edge[((y+sy)>>1)%16],dy=edge[((x+sx)>>1)%16];
-  return !(!n.w&&x<dx||!n.e&&31-x<dx||!n.n&&y<dy||!n.s&&31-y<dy);
+  const dx=Math.min(edge[((y+sy)>>1)%16],n.n?y:32,n.s?31-y:32);
+  const dy=Math.min(edge[((x+sx)>>1)%16],n.w?x:32,n.e?31-x:32);
+  if(!n.w&&x<dx||!n.e&&31-x<dx||!n.n&&y<dy||!n.s&&31-y<dy)return false;
+  const corner=(u,v)=>u<2&&v<6||u<4&&v<4||u<6&&v<2;
+  return !(!n.w&&!n.n&&corner(x,y)||!n.e&&!n.n&&corner(31-x,y)||
+   !n.w&&!n.s&&corner(x,31-y)||!n.e&&!n.s&&corner(31-x,31-y));
  }
  const masks=new Map();
  function maskTile(kind,n,diag,sx,sy){

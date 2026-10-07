@@ -129,6 +129,29 @@ function check(name,fn){fn();results.push(name)}
    assert.strictEqual(land.roadLayer(m),layer,'road layer cached');
   }
  });
+ check('roads use cardinal segments with uninterrupted walkable centerlines',()=>{
+  for(const m of [land.fixture(),land.placesFixture()]){
+   const layer=land.roadLayer(m),p=layer.getContext('2d').getImageData(0,0,layer.width,layer.height).data;
+   for(const path of m.paths)for(let i=1;i<path.length;i++){
+    const [ax,ay]=path[i-1],[bx,by]=path[i];assert(ax===bx||ay===by,'diagonal road');
+    const steps=Math.abs(bx-ax)+Math.abs(by-ay);
+    for(let j=0;j<=steps;j++){
+     const x=ax+Math.sign(bx-ax)*j,y=ay+Math.sign(by-ay)*j;
+     assert.equal(p[(y*layer.width+x)*4+3],255,'broken road centerline '+x+','+y);
+    }
+   }
+  }
+ });
+ check('all 256 ground neighborhoods preserve whole shared edges without corner pinholes',()=>{
+  for(let mask=0;mask<256;mask++){
+   const n={n:!!(mask&1),e:!!(mask&2),s:!!(mask&4),w:!!(mask&8)},d={nw:!!(mask&16),ne:!!(mask&32),sw:!!(mask&64),se:!!(mask&128)};
+   for(const sx of [0,32])for(const sy of [0,32])for(let i=0;i<32;i++){
+    for(const [side,x,y] of [['n',i,0],['e',31,i],['s',i,31],['w',0,i]])
+     if(n[side])assert(land.groundInside(x,y,n,d,sx,sy),'ground seam '+mask+' '+side+' '+i);
+   }
+   assert(land.groundInside(16,16,n,d,0,0),'ground center missing');
+  }
+ });
  check('wide beach borders the sea and ground joins preserve shared edges',()=>{
   const m=land.fixture();assert(m.flat().filter(t=>t==='sand').length>=20);
   for(const y of [1,11,15]){const sea=m[y].indexOf('sea');assert.equal(m[y][sea-1],'sand');assert.equal(m[y][sea-2],'sand');}
