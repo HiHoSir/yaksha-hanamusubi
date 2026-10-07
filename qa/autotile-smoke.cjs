@@ -45,7 +45,7 @@ function check(name,fn){fn();results.push(name)}
  const a=sandbox.YK_AUTOTILE;
  a.load();await Promise.all(loaded.map(im=>im.decode()));advance(1);
  check('all original atlases loaded with exact dimensions',()=>assert(a.ready(),JSON.stringify(a.errors)));
- const qaImages={};for(const key of a.keys){const im=new NativeImage();im.src=fs.readFileSync(path.join(root,'assets/terrain/original-32-v1',key+'.png'));await im.decode();qaImages[key]=im;}
+ const qaImages={};for(const key of a.keys){const im=new NativeImage();im.src=fs.readFileSync(path.join(root,'assets/terrain/original-32-v2',key+'.png'));await im.decode();qaImages[key]=im;}
  check('ten 32px PNGs have binary alpha and real transparent pixels',()=>{
   assert.equal(a.keys.length,10);
   for(const key of a.keys){const im=qaImages[key];assert.equal(im.width,32);assert.equal(im.height,32);const c=createCanvas(32,32),q=c.getContext('2d');q.drawImage(im,0,0);const pixels=q.getImageData(0,0,32,32).data;let clear=0,solid=0;const colors=new Set();for(let i=0;i<pixels.length;i+=4){assert(pixels[i+3]===0||pixels[i+3]===255);if(!pixels[i+3])clear++;else{solid++;colors.add([pixels[i],pixels[i+1],pixels[i+2]].join(','));}}assert(clear>0&&solid>0,key);assert(colors.size<=9,key+' palette');}
@@ -55,6 +55,17 @@ function check(name,fn){fn();results.push(name)}
   const px=(name,x,y)=>Array.from(pixels[name].slice((y*32+x)*4,(y*32+x)*4+4));
   for(const [l,r] of [['core','core'],['corner_tl','edge_top'],['edge_top','corner_tr'],['edge_left','core'],['core','edge_right'],['corner_bl','edge_bottom'],['edge_bottom','corner_br']])for(let y=0;y<32;y++)assert.deepEqual(px(l,31,y),px(r,0,y),l+' → '+r+' y'+y);
   for(const [t,b] of [['core','core'],['corner_tl','edge_left'],['edge_left','corner_bl'],['edge_top','core'],['core','edge_bottom'],['corner_tr','edge_right'],['edge_right','corner_br']])for(let x=0;x<32;x++)assert.deepEqual(px(t,x,31),px(b,x,0),t+' ↓ '+b+' x'+x);
+ });
+ check('canonical roles preserve all four distinct 32px source quadrants',()=>{
+  const masks={core:{n:1,e:1,s:1,w:1},edge_top:{e:1,s:1,w:1},edge_right:{n:1,s:1,w:1},edge_bottom:{n:1,e:1,w:1},edge_left:{n:1,e:1,s:1},corner_tl:{e:1,s:1},corner_tr:{s:1,w:1},corner_bl:{n:1,e:1},corner_br:{n:1,w:1}};
+  for(const [role,mask] of Object.entries(masks)){
+   const actual=createCanvas(32,32).getContext('2d'),expected=createCanvas(32,32).getContext('2d');
+   a.drawCell(actual,'forest',mask,0,0);a.drawCell(expected,'grass',{},0,0);expected.drawImage(qaImages['forest_'+role],0,0);
+   assert.deepEqual(actual.getImageData(0,0,32,32).data,expected.getImageData(0,0,32,32).data,role);
+  }
+  const q=createCanvas(32,32).getContext('2d');q.drawImage(qaImages.forest_core,0,0);
+  const quadrants=[...Array(4)].map((_,i)=>Buffer.from(q.getImageData(i%2*16,(i>>1)*16,16,16).data).toString('base64'));
+  assert.equal(new Set(quadrants).size,4);
  });
  check('16 forest cardinal cases stay in atlas bounds',()=>{
   for(const kind of ['forest'])for(let mask=0;mask<16;mask++){
@@ -81,7 +92,7 @@ function check(name,fn){fn();results.push(name)}
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v1'))));
+ check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});
