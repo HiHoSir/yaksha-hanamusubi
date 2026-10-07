@@ -7,7 +7,10 @@ from PIL import Image
 
 SIZES = {'greenMountain': (96, 88), 'snowMountain': (96, 88),
          'shrine': (64, 64), 'lantern': (24, 40),
-         'bridge': (96, 40), 'flowers': (40, 24)}
+         'bridge': (96, 40), 'flowers': (40, 24),
+         'village': (112,80), 'town': (144,104), 'hermit': (72,72),
+         'jizo': (24,40), 'cave': (80,64), 'torii': (64,64)}
+PLACES = {'village','town','hermit','jizo','cave','torii'}
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -24,7 +27,7 @@ def main():
     im = im.convert('RGB').quantize(colors=16, method=Image.Quantize.MEDIANCUT,
                                    dither=Image.Dither.NONE).convert('RGBA')
     im.putalpha(alpha)
-    target = Path(__file__).resolve().parent.parent / 'assets/terrain/landscape-v2'
+    target = Path(__file__).resolve().parent.parent / 'assets/terrain' / ('places-v1' if args.kind in PLACES else 'landscape-v2')
     target.mkdir(parents=True, exist_ok=True)
     im.save(target / (args.kind + '.png'))
 

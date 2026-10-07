@@ -951,7 +951,7 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
 // Uses the analyzed orthogonal map-chip sheets directly.
-const DEBUG_PAGES=["landscape","landscape2x","terrainAssets","autotile","autotile2x","connections","assets32","overview","shore","water","ground","road"];
+const DEBUG_PAGES=["landscape","landscape2x","terrainAssets","landmarks","landmarks2x","placeAssets","autotile","autotile2x","connections","assets32","overview","shore","water","ground","road"];
 const DEBUG_ASSETS={
  ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
@@ -1149,29 +1149,30 @@ function drawDebugAutotile(c,page){
  worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
 
-const DEBUG_LANDSCAPE=window.YK_LANDSCAPE?.fixture();
+const DEBUG_LANDSCAPE=window.YK_LANDSCAPE?.fixture(),DEBUG_PLACES=window.YK_LANDSCAPE?.placesFixture();
 function drawDebugLandscape(c,page){
  const land=window.YK_LANDSCAPE,a=window.YK_AUTOTILE;
  c.fillStyle="#102631";c.fillRect(0,0,768,768);c.textAlign="left";c.textBaseline="alphabetic";
  const redraw=()=>{if(S.area==="debugField")map();};land.load(redraw);a.load(redraw);
  if(!land.ready()||!a.ready()){c.fillStyle="#fff3c4";c.font="20px sans-serif";c.fillText(Object.keys({...land.errors,...a.errors}).length?"地形画像の読込エラー":"新しい地形を読込中…",48,360);worldHint("B：タイトルへ戻る");return;}
- const zoom=page==="landscape2x"?2:1;
+ const zoom=page==="landscape2x"||page==="landmarks2x"?2:1;
+ const places=["landmarks","landmarks2x","placeAssets"].includes(page);
  c.save();c.beginPath();c.rect(48,100,640,544);c.clip();
- if(page==="terrainAssets"){
-  land.keys.forEach((k,i)=>{
+ if(page==="terrainAssets"||page==="placeAssets"){
+  (places?land.placeKeys:land.keys.filter(k=>!land.placeKeys.includes(k))).forEach((k,i)=>{
    const x=65+i%3*205,y=104+Math.floor(i/3)*134;
    for(let yy=0;yy<100;yy+=8)for(let xx=0;xx<176;xx+=8){c.fillStyle=((xx+yy)/8)%2?"#38505a":"#536773";c.fillRect(x+xx,y+yy,8,8);}
    const [w,h]=land.specs[k];land.drawAsset(c,k,x+(176-w)/2,y+(96-h)/2,w,h);
-   c.fillStyle="#fff3c4";c.font="16px sans-serif";c.fillText(({greenMountain:"緑の山",rockMountain:"岩山",snowMountain:"雪山",shrine:"祠",lantern:"石灯籠",bridge:"木橋",flowers:"花と草むら",water:"海・川の水面",snow:"雪原",barren:"荒地",sand:"砂浜"})[k],x,y+123);
+   c.fillStyle="#fff3c4";c.font="16px sans-serif";c.fillText(({village:"村",town:"町",hermit:"仙人の庵",jizo:"地蔵",cave:"洞窟入口",torii:"鳥居",greenMountain:"緑の山",rockMountain:"岩山",snowMountain:"雪山",shrine:"祠",lantern:"石灯籠",bridge:"木橋",flowers:"花と草むら",road:"土の道",water:"海・川の水面",snow:"雪原",barren:"荒地",sand:"砂浜"})[k],x,y+123);
   });
  }else{
   const cx=zoom===2?clamp(S.x-48-160,0,320):0,cy=zoom===2?clamp(S.y-100-136,0,272):0;
   c.translate(48,100);c.scale(zoom,zoom);c.translate(-cx,-cy);
-  land.draw(c,DEBUG_LANDSCAPE,{foot:S.y-100,draw:()=>hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56)});
+  land.draw(c,places?DEBUG_PLACES:DEBUG_LANDSCAPE,{foot:S.y-100,draw:()=>hero(c,S.x-48,S.y-100,S.dir,S.frame,S.outfit,.56)});
  }
- c.restore();c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="terrainAssets"?"新しい地形素材 / 透過確認":"地形セット / "+zoom+"倍",48,45);
- c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText("緑の山・岩山・雪山 / 祠・石灯籠・木橋・花",48,75);
- c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 新素材 → 森の比較 → 旧素材　B：戻る",48,690);
+ c.restore();c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="terrainAssets"||page==="placeAssets"?"素材一覧 / 透過確認":(places?"集落と拠点 / ":"地形と道 / ")+zoom+"倍",48,45);
+ c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(places?"村・町・仙人の庵・地蔵・洞窟・鳥居":"地形のつながり / 土の道・砂浜・橋・祠",48,75);
+ c.font="15px sans-serif";c.fillText("A：地形 → 2倍 → 素材 → 集落と拠点 → 比較　B：戻る",48,690);
  c.font="14px sans-serif";c.fillStyle="#aec2c8";c.fillText("検証用：全地形を通り抜け可 / 本編への反映は確認後",48,720);
  worldHint("十字キーで夜叉姫を移動 · 本編の記録は変更しません");
 }
@@ -1179,7 +1180,7 @@ function drawDebugLandscape(c,page){
 function drawDebugField(c){
  c.clearRect(0,0,768,768);c.imageSmoothingEnabled=false;
  const page=DEBUG_PAGES[window.__YK_DEBUG_PAGE||0];
- if(["landscape","landscape2x","terrainAssets"].includes(page)){drawDebugLandscape(c,page);return;}
+ if(["landscape","landscape2x","terrainAssets","landmarks","landmarks2x","placeAssets"].includes(page)){drawDebugLandscape(c,page);return;}
  if(["autotile","autotile2x","connections","assets32"].includes(page)){drawDebugAutotile(c,page);return;}
  const key=page==="road"?"road":"ground";
  if(!debugReady(key)||(page==="overview"&&!debugAllReady())){
