@@ -31,7 +31,7 @@ jobs:
           if(!html.includes('id="debugMap"'))throw new Error('debug map title entry missing');
           if(!game.includes('const DEBUG_PAGES=["overview","tiles","road"]'))throw new Error('debug page contract missing');
           if(!game.includes('const DEBUG_ART={}')||!game.includes('const DEBUG_ASSETS='))throw new Error('debug asset loader missing');
-          if(!game.includes('field-tileset-32-v3.png')||!game.includes('world-ortho-road-v2.png'))throw new Error('debug assets missing');
+          if(!game.includes('world-ortho-ground-v2.png')||!game.includes('world-ortho-road-v2.png'))throw new Error('debug assets missing');
           if(!game.includes('DEBUG_FALLBACK')||!game.includes('naturalWidth!==spec.size[0]'))throw new Error('debug asset validation/fallback missing');
           if(!game.includes('drawDebugOverview')||!game.includes('drawDebugTiles')||!game.includes('drawDebugRoad'))throw new Error('debug inspection pages missing');
           if(!game.includes('if(debugField){map();return;}'))throw new Error('debug movement isolation missing');
