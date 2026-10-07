@@ -116,6 +116,10 @@ for(const outfit of ["normal","light","white","navy","yukata","demon"]){
  BATTLE_SPRITES[outfit]={};
  for(const pose of ["attack","hit"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/battle-v9/${outfit}-${pose}.png`;BATTLE_SPRITES[outfit][pose]=im;}
 }
+BATTLE_SPRITES.stardust={};
+for(const pose of ["idle","attack","hit","guard","victory","skill"]){
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/battle-v9/stardust-${pose}.png?v=15.55.50`;BATTLE_SPRITES.stardust[pose]=im;
+}
 const LAYERED_SPRITES={};
 for(const [outfit,folder] of Object.entries(HERO_FOLDERS)){
  const set=LAYERED_SPRITES[outfit]={};
@@ -778,10 +782,13 @@ function move(dx,dy,dir){
  const im=B9IMG.battle;if(im&&im.complete&&im.naturalWidth)bg.drawImage(im,0,0,768,430);else{bg.fillStyle="#14283d";bg.fillRect(0,0,768,430)}
 
  const sprite=BATTLE_SPRITES[S.outfit]?.[battlePose];
- if(battlePose!=="idle"&&layerReady(sprite)){
-  const scale=.48,x=battlePose==="attack"?218:170,y=322;
+ if(layerReady(sprite)){
+  const actionPose=battlePose==="attack"||battlePose==="skill";
+  const x=actionPose?218:170,y=322,maxW=380,maxH=280;
+  const scale=Math.min(maxW/sprite.naturalWidth,maxH/sprite.naturalHeight);
+  const w=sprite.naturalWidth*scale,h=sprite.naturalHeight*scale;
   shadow(bg,x,y,62,20,.32);bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
-  bg.drawImage(sprite,x-384*scale,y-480*scale,768*scale,512*scale);bg.restore();
+  bg.drawImage(sprite,x-w/2,y-h,w,h);bg.restore();
  }else hero(bg,170,310,"r",1,S.outfit,1.48);
  const progress=battleFx?Math.min(1,(performance.now()-battleFx.start)/battleFx.duration):1;
  const recoil=battleFx?.target==="enemy"&&!battleFx.reduced?Math.sin(progress*Math.PI*8)*7*(1-progress):0;
@@ -848,13 +855,13 @@ function cmd(n){
  if(n==='bloom')n='skill';if(n==='herb')n='item';
  battleLocked=true;
  renderBattleCommands();
- if(n==='guard'){battle.guarding=true;$('battleText').textContent='夜叉姫は 身を守っている！';renderBattle();battleLater(foe,420);return;}
+ if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='夜叉姫は 身を守っている！';renderBattle();battleLater(foe,420);return;}
  if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);renderBattle();battleLater(foe,480);return;}
  if(n==="attack"||n==="skill"){
   const d=n==="skill"?20+S.lv*3+relicBonus("skill")+Math.floor(Math.random()*12):S.atk+relicBonus("atk")+Math.floor(Math.random()*8);
   if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,420);return;}
   if(battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance){const guarded=Math.max(1,Math.ceil(d*.35));battle.hp-=guarded;battlePose="attack";$("battleText").textContent=`${battle.name}は大鋏で防いだ！ ${guarded}ダメージ`;startBattleFx("impact","enemy",guarded);renderBattle();battleLater(()=>{battlePose="idle";if(battle.hp<=0)return win();battleLater(foe,260)},320);return;}
-  battle.hp-=d;battlePose="attack";
+  battle.hp-=d;battlePose=n==="skill"?"skill":"attack";
   if(battle.rareId&&battle.hp/battle.max<=D.rareRules.breakHpRatio)battle.clothingBroken=true;
   $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
   YK_AUDIO.beep(n==="skill"?720:330,.08);startBattleFx(n==="skill"?"petals":"slash","enemy",d);renderBattle();
@@ -891,7 +898,7 @@ function win(){
  const previousLevel=S.lv;
  while(S.xp>=S.lv*40){S.xp-=S.lv*40;S.lv++;S.maxhp+=12;S.hp=S.maxhp;S.maxmp+=2;S.mp=S.maxmp;S.atk+=3;S.def++}
  if(S.lv>previousLevel)battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
- $('battleText').textContent=battle.rewardText;battle.phase='result';battle.readyAt=performance.now()+400;battleLocked=false;battlePose='idle';battleCursor=0;
+ $('battleText').textContent=battle.rewardText;battle.phase='result';battle.readyAt=performance.now()+400;battleLocked=false;battlePose='victory';battleCursor=0;
  YK_SAVE.auto(S);renderBattle();
 }
 function endBattle(){$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(reward)message(reward,4500)}
