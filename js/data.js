@@ -6,7 +6,8 @@ const outfits={
  white:{name:"水辺の白装束",body:"#f7f5ee",trim:"#71b7c5",skirt:"#dce8e7"},
  navy:{name:"水辺の藍装束",body:"#183b67",trim:"#f1d6a0",skirt:"#102844"},
  yukata:{name:"宵桜の浴衣",body:"#503567",trim:"#ef9fba",skirt:"#382347"},
- demon:{name:"小鬼の戯れ着",body:"#a43d59",trim:"#2b1636",skirt:"#51213b"}
+ demon:{name:"小鬼の戯れ着",body:"#a43d59",trim:"#2b1636",skirt:"#51213b"},
+ stardust:{name:"星屑の姫君",body:"#f2c84b",trim:"#d92f3f",skirt:"#d92f3f"}
 };
 const areas={
  field:{name:"花霞野",ground:"#88a857",path:"#d6bf8a",water:"#4f93a8",encounter:.045,min:14,grace:9},

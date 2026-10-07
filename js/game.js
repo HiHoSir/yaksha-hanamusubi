@@ -105,8 +105,8 @@ function loadNpcAssetSet(){
 let npcAssetsLoaded=false;
 function ensureNpcAssets(){if(npcAssetsLoaded)return;npcAssetsLoaded=true;loadNpcAssetSet();}
 for(const [k,v] of Object.entries(B9)){const im=new Image();im.onload=assetLoaded;im.src=v;B9IMG[k]=im}
-const OUTFIT_READY={normal:true,basewear:true,light:true,white:true,navy:true,yukata:true,demon:true};
-const HERO_FOLDERS={normal:"normal-v9",basewear:"basewear",light:"light-v9",white:"white-v9",navy:"navy-v9",yukata:"yukata-v9",demon:"demon-v9"};
+const OUTFIT_READY={normal:true,basewear:true,light:true,white:true,navy:true,yukata:true,demon:true,stardust:true};
+const HERO_FOLDERS={normal:"normal-v9",basewear:"basewear",light:"light-v9",white:"white-v9",navy:"navy-v9",yukata:"yukata-v9",demon:"demon-v9",stardust:"stardust-v1"};
 const BATTLE_SPRITES={};
 let battlePose="idle",battleFx=null;
 const battleTimers=new Set();
