@@ -29,8 +29,19 @@ const enemies={
  fox:[["妖狐",98,18,38,25],["影九尾",120,20,48,32]]
 };
 const enemyProfiles={
- "野の小鬼":{art:"field-oni",fallback:"redoni",style:"bruiser",scale:1.04,attack:"角突進",fx:"impact",variance:3},
- "化け狸":{art:"field-tanuki",fallback:"redoni",style:"trickster",scale:.94,attack:"木の葉ばらまき",fx:"petals",variance:5}
+ // "art" is added only after a dedicated PNG exists under assets/enemies/standard/.
+ // Until then, legacy art is an explicit fallback so missing files never masquerade as finished assets.
+ "野の小鬼":{fallback:"redoni",style:"bruiser",scale:1.04,attack:"角突進",fx:"impact",variance:3},
+ "化け狸":{fallback:"crowtengu",style:"trickster",scale:.94,attack:"木の葉ばらまき",fx:"petals",variance:5},
+ "灯火狐":{fallback:"ninefox",style:"caster",scale:.96,attack:"狐火",fx:"petals",variance:4},
+ "磯妖":{fallback:"umibozu",style:"bruiser",scale:1.02,attack:"潮打ち",fx:"impact",variance:4},
+ "泡くらげ":{fallback:"umibozu",style:"floater",scale:.90,attack:"泡まとい",fx:"petals",variance:5},
+ "木霊":{fallback:"yokai_flower",style:"caster",scale:.94,attack:"木の葉散らし",fx:"petals",variance:4},
+ "迷い蜘蛛":{fallback:"yokai_flower",style:"trickster",scale:.98,attack:"糸がらめ",fx:"impact",variance:5},
+ "水蛇":{fallback:"umibozu",style:"bruiser",scale:1.00,attack:"水刃",fx:"impact",variance:4},
+ "滝童":{fallback:"crowtengu",style:"caster",scale:.96,attack:"水柱",fx:"impact",variance:4},
+ "妖狐":{fallback:"ninefox",style:"caster",scale:1.00,attack:"狐火連ね",fx:"petals",variance:4},
+ "影九尾":{fallback:"ninefox",style:"boss",scale:1.08,attack:"影尾の一閃",fx:"impact",variance:3}
 };
 // Static artwork must exist for both states before a variant enters the encounter pool.
 const rareKinds={
