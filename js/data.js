@@ -29,7 +29,7 @@ const enemies={
  fox:[["妖狐",98,18,38,25],["影九尾",120,20,48,32]]
 };
 const enemyProfiles={
- "野の小鬼":{atlas:0,fallback:"redoni",style:"bruiser",scale:1.04,attack:"角突進",fx:"impact",variance:3},
+ "野の小鬼":{atlas:0,fallback:"redoni",style:"bruiser",scale:1.04,attack:"角突進",fx:"impact",variance:3,yOffset:14,shadowScale:.82,shadowYOffset:10},
  "化け狸":{atlas:1,fallback:"crowtengu",style:"trickster",scale:.94,attack:"木の葉ばらまき",fx:"petals",variance:5},
  "灯火狐":{atlas:2,fallback:"ninefox",style:"caster",scale:.96,attack:"狐火",fx:"petals",variance:4},
  "磯妖":{atlas:3,fallback:"umibozu",style:"bruiser",scale:1.02,attack:"潮打ち",fx:"impact",variance:4},
