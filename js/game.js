@@ -951,7 +951,7 @@ titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
 // Uses the analyzed orthogonal map-chip sheets directly.
-const DEBUG_PAGES=["overview","ground","road"];
+const DEBUG_PAGES=["overview","shore","ground","road"];
 const DEBUG_ASSETS={
  ground:{src:"assets/terrain/world-ortho-ground-v2.png?v=2",fallback:"assets/terrain/world-ortho-ground-v1.png",size:[256,128]},
  road:{src:"assets/terrain/world-ortho-road-v2.png?v=2",fallback:"assets/terrain/world-ortho-road-v1.png",size:[128,128]},
@@ -1004,25 +1004,9 @@ function drawDebugOverview(c){
   debug32(c,"ground",8,slot,dx,dy);
  }
 
- // Coast edge overlay. Slots are explicit so each orientation can be visually verified.
- const shore=[
-  [15,1,1],[15,2,1],[15,3,1],
-  [14,4,4],[15,4,0],
-  [13,5,1],[13,6,1],
-  [12,7,4],[13,7,0],
-  [12,8,3],[12,9,3],
-  [12,10,6],[13,10,2],
-  [13,11,1],[13,12,1],
-  [14,13,6],[15,13,2],
-  [15,14,1],[15,15,1]
- ];
- for(const [x,y,slot] of shore){
-  const dx=ox+x*cell,dy=oy+y*cell;
-  c.fillStyle="#91b85a";c.fillRect(dx,dy,cell+.5,cell+.5);
-  debug32(c,"ground",8,0,dx,dy);
-  debug32(c,"shore",4,slot,dx,dy);
- }
-
+ // Composed overview intentionally omits the weak shore-v1 overlay.
+ // The raw shore atlas has its own inspection page; here we verify the real
+ // grass/water ground chips without a misleading beige seam.
  // Road network: enough grammar to inspect straight, cross and bend continuity.
  for(let x=2;x<=10;x++)debug32(c,"road",4,0,ox+x*cell,oy+10*cell);
  for(let y=7;y<=14;y++)debug32(c,"road",4,1,ox+7*cell,oy+y*cell);
@@ -1096,6 +1080,7 @@ function drawDebugField(c){
   worldHint("DEBUG素材読込中 · Bでタイトルへ戻る");return;
  }
  if(page==="overview")drawDebugOverview(c);
+ else if(page==="shore")drawDebugSheet(c,"shore",4,4,32,32);
  else if(page==="ground")drawDebugSheet(c,"ground",8,4,32,32);
  else drawDebugSheet(c,"road",4,4,32,32);
 }
