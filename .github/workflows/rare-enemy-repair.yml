@@ -1,6 +1,9 @@
 name: Rare Enemy Sprite Repair
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/rare-enemy-repair.yml'
 jobs:
   repair:
     runs-on: ubuntu-latest
