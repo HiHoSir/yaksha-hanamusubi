@@ -1,0 +1,29 @@
+name: Investigate pre-shadow Oni sources
+on:
+  push:
+    paths:
+      - 'qa/investigate-oni-originals.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - run: python qa/investigate-oni-originals.py
+      - name: Store reference outputs only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add design-reference/enemies/original-investigation/
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: preserve pre-shadow oni source comparison"
+            git push
+          fi
