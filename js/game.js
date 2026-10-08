@@ -107,6 +107,7 @@ function ensureNpcAssets(){if(npcAssetsLoaded)return;npcAssetsLoaded=true;loadNp
 for(const [k,v] of Object.entries(B9)){const im=new Image();im.onload=assetLoaded;im.src=v;B9IMG[k]=im}
 const OUTFIT_READY={normal:true,basewear:true,light:true,white:true,navy:true,yukata:true,demon:true,stardust:true};
 const HERO_FOLDERS={normal:"normal-v9",basewear:"basewear",light:"light-v9",white:"white-v9",navy:"navy-v9",yukata:"yukata-v9",demon:"demon-v9",stardust:"stardust-v1"};
+const NORMAL_RENEWAL_SHEET=new Image();NORMAL_RENEWAL_SHEET.onload=assetLoaded;NORMAL_RENEWAL_SHEET.src="assets/characters/yashahime/normal-renewal-sheet.png?v=15.55.51";
 const BATTLE_SPRITES={};
 let battlePose="idle",battleFx=null;
 const battleTimers=new Set();
@@ -116,6 +117,8 @@ for(const outfit of ["normal","light","white","navy","yukata","demon"]){
  BATTLE_SPRITES[outfit]={};
  for(const pose of ["attack","hit"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/battle-v9/${outfit}-${pose}.png`;BATTLE_SPRITES[outfit][pose]=im;}
 }
+BATTLE_SPRITES.normal.attack.datasetSrc="assets/characters/yashahime/battle-v9/normal-renewal-attack.png?v=15.55.51";
+BATTLE_SPRITES.normal.hit.datasetSrc="assets/characters/yashahime/battle-v9/normal-renewal-hit.png?v=15.55.51";
 BATTLE_SPRITES.stardust={};
 for(const pose of ["idle","attack","hit","guard","victory","skill"]){
  const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/battle-v9/stardust-${pose}.png?v=15.55.50`;BATTLE_SPRITES.stardust[pose]=im;
@@ -464,8 +467,16 @@ function villageDoorAction(){
 
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
- const layered=LAYERED_SPRITES[outfit]||LAYERED_SPRITES.normal;
  const frameIndex=Math.max(0,Math.min(2,Number(frame)||0));
+ if(outfit==="normal"&&layerReady(NORMAL_RENEWAL_SHEET)){
+  const row={d:0,l:1,r:2,u:3}[dir]??0,col=[2,1,0][frameIndex],sw=64,sh=64;
+  const scale=104*z/312,anchorX={d:256,u:256,l:200,r:314}[dir]||256;
+  c.save();c.imageSmoothingEnabled=false;
+  shadow(c,x,y+9*z,31*z,10*z,.32);
+  c.drawImage(NORMAL_RENEWAL_SHEET,col*sw,row*sh,sw,sh,x-anchorX*scale,y+9*z-480*scale,512*scale,512*scale);
+  c.restore();return;
+ }
+ const layered=LAYERED_SPRITES[outfit]||LAYERED_SPRITES.normal;
  const requested=layered?.[dir]?.[frameIndex];
  const sprite=layerReady(requested)?requested:layered?.[dir]?.[1];
  if(layerReady(sprite)){
@@ -908,7 +919,7 @@ function renderRelics(){
  $("itemsPanel").innerHTML=`<p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
  document.querySelectorAll("[data-relic]").forEach(b=>YK_INPUT.tap(b,()=>{const id=b.dataset.relic;S.equippedRelic=Object.hasOwn(D.relics,id)&&S.relics[id]?id:null;YK_SAVE.auto(S);busy=false;menu();}));
 }
-function menu(){if(busy)return;YK_INPUT.stopAll();busy=true;$("statusPanel").innerHTML=`夜叉姫　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus("atk")}　守備力 ${S.def+relicBonus("def")}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${S.weapon}`;renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
+function menu(){if(busy)return;YK_INPUT.stopAll();busy=true;$("statusPanel").innerHTML=`夜叉姫　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus("atk")}　守備力 ${S.def+relicBonus("def")}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${S.weapon}`;renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>{const thumb=k==="normal"?"assets/characters/yashahime/normal-renewal-thumb.png?v=15.55.51":`assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png`;return `<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="${thumb}" alt="" loading="lazy"><span>${v.name}</span></button>`}).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
 function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n);return `<div class="slot"><b>${n}番</b>　${i?`${i.lv}段 / ${i.area}`:"記録なし"}<div class="slotBtns"><button data-save="${n}">記録する</button><button data-load="${n}">記録から再開</button></div></div>`}).join("");document.querySelectorAll("[data-save]").forEach(b=>YK_INPUT.tap(b,()=>{YK_SAVE.saveSlot(+b.dataset.save,S);slots()}));document.querySelectorAll("[data-load]").forEach(b=>YK_INPUT.tap(b,()=>{const v=YK_SAVE.loadSlot(+b.dataset.load);if(v){restoreState(v);close("saveMenu")}}))}
 function close(id){YK_INPUT.stopAll();$(id).classList.remove("show");busy=false;hud()}
 function worldMap(){if(busy)return;YK_INPUT.stopAll();busy=true;$("worldMap").classList.add("show");drawWorld()}
