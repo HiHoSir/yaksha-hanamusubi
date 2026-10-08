@@ -158,6 +158,31 @@ function rareReady(r){
  ensureImage(RARE_ART[r.id]?.intact);ensureImage(RARE_ART[r.id]?.worn);
  return layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);
 }
+// Variant atlas artwork may contain unintended translucent body pixels.
+// Normalize only the rare-enemy atlas at runtime; keep fully transparent
+// background pixels transparent and preserve the source files unchanged.
+const OPAQUE_VARIANT_CACHE=new WeakMap();
+function opaqueVariantSource(im){
+ if(!layerReady(im))return im;
+ const cached=OPAQUE_VARIANT_CACHE.get(im);
+ if(cached&&cached.width===im.naturalWidth&&cached.height===im.naturalHeight)return cached;
+ try{
+  const surface=document.createElement("canvas");
+  surface.width=im.naturalWidth;surface.height=im.naturalHeight;
+  const ctx=surface.getContext("2d",{willReadFrequently:true});
+  ctx.drawImage(im,0,0);
+  const pixels=ctx.getImageData(0,0,surface.width,surface.height);
+  const data=pixels.data;
+  for(let i=3;i<data.length;i+=4){
+   // Ignore near-invisible antialias fringes; body and clothing pixels
+   // should not reveal the battlefield through their interior.
+   data[i]=data[i]<32?0:255;
+  }
+  ctx.putImageData(pixels,0,0);
+  OPAQUE_VARIANT_CACHE.set(im,surface);
+  return surface;
+ }catch(e){console.warn("Variant alpha normalization unavailable",e);return im;}
+}
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0)+YK_EQUIPMENT.bonus(S,stat);}
 function enemyArt(c,x,y){
  const name=battle?.baseName||battle?.name||"",profile=D.enemyProfiles?.[name];
@@ -184,10 +209,10 @@ function enemyArt(c,x,y){
  }
  if(!bakedAtlas)shadow(c,x+ox,shadowY,65*shadowScale,15*shadowScale,.28);
  c.save();c.imageSmoothingEnabled=bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated));c.imageSmoothingQuality="high";
- if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
- else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(opaqueVariantSource(im),sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(opaqueVariantSource(im),sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else if(atlasReady){const sx=(atlasIndex%ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL,sy=Math.floor(atlasIndex/ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL;c.drawImage(im,sx,sy,ENEMY_ATLAS_CELL,ENEMY_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
- else c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
+ else c.drawImage(battle?.rareId?opaqueVariantSource(im):im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
 let villageDoorMotion=null,villagePaintAt=0,npcPaintAt=0;
