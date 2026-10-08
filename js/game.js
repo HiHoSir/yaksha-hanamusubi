@@ -148,7 +148,7 @@ for(const [id,stem] of Object.entries(HD_RARE_STEMS)){
  for(const state of ["intact"]){
   const im=new Image();im.onload=assetLoaded;
   im.onerror=()=>{im.datasetFailed="1";};
-  im.datasetSrc=`assets/enemies/hd512/${stem}-${state}-512.png?v=15.57.27`;
+  im.datasetSrc=`assets/enemies/hd512/${stem}-${state}-512.png?v=15.57.31`;
   HD_RARE_ART[id][state]=im;
  }
 }
