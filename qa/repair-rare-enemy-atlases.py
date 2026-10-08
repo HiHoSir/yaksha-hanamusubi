@@ -9,6 +9,7 @@ Inspect comparison.png before deploying. Originals remain untouched.
 from pathlib import Path
 from PIL import Image
 import numpy as np
+import json
 
 ROOT = Path(__file__).resolve().parents[1] / "assets/enemies"
 PATHS = [ROOT / "enemy-variant-atlas-128.png", ROOT / "enemy-variant-worn-atlas-128.png"]
@@ -57,6 +58,8 @@ def normalized_pair(original, worn):
     sw, sh = b1[2] - b1[0], b1[3] - b1[1]
     scale = min(cw / sw, ch / sh)
     target_w, target_h = max(1, round(sw * scale)), max(1, round(sh * scale))
+    if target_w > CELL or target_h > CELL:
+        raise ValueError('Scaled sprite exceeds atlas cell')
     region = worn.crop(b1).resize((target_w, target_h), Image.Resampling.NEAREST)
     result = Image.new("RGBA", (CELL, CELL))
     left = max(0, min(CELL - target_w, (b0[0] + b0[2] - target_w) // 2))
@@ -71,9 +74,15 @@ def main():
     w, h = before[0].size
     assert w % CELL == 0 and h % CELL == 0
     outputs = [Image.new("RGBA", (w, h)) for _ in PATHS]
+    metrics = []
     for y in range(0, h, CELL):
         for x in range(0, w, CELL):
-            repaired = normalized_pair(*(im.crop((x, y, x+CELL, y+CELL)) for im in before))
+            original_cells = [im.crop((x, y, x+CELL, y+CELL)) for im in before]
+            repaired = normalized_pair(*original_cells)
+            metrics.append({"index": (y // CELL) * (w // CELL) + x // CELL,
+                            "before": [bounds(im) for im in original_cells],
+                            "after": [bounds(im) for im in repaired]})
+            assert all(im.size == (CELL, CELL) for im in repaired)
             for out, tile in zip(outputs, repaired):
                 out.paste(tile, (x, y))
     output_dir = ROOT / "reviewed-candidates"
@@ -90,6 +99,10 @@ def main():
         preview.alpha_composite(source, (0, row * h))
         preview.alpha_composite(fixed, (w, row * h))
     preview.save(output_dir / "comparison.png", optimize=True)
+    (output_dir / "bounds-report.json").write_text(
+        json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    print("Review sizes and alignment in bounds-report.json before publishing.")
     print("Compare originals versus candidates before deployment.")
 
 
