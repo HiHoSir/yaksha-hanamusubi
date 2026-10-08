@@ -95,17 +95,44 @@ window.YK_SETTLEMENT=(()=>{
  }
  const riverDepth=10;
  function waterHeight(x,y){return northHeight(x,y)-riverDepth;}
+ let riverBed=null;
+ function riverBedLayer(){
+  if(riverBed)return riverBed;
+  const bed=riverBed=document.createElement('canvas');bed.width=1536;bed.height=1280;const q=bed.getContext('2d');q.imageSmoothingEnabled=false;
+  // Muted earth texture and submerged stones, covered by a translucent turquoise sheet.
+  for(let y=0;y<1280;y+=64)for(let x=0;x<1536;x+=64)YK_LANDSCAPE.drawAsset(q,'road',x,y,64,64);
+  q.fillStyle='#549b8380';q.fillRect(0,0,1536,1280);
+  for(let i=0;i<430;i++){const x=(i*179+37)%1536,y=(i*97+41)%1280;q.fillStyle=i%3?'#476e6280':'#d1d3a080';q.fillRect(x,y,3+i%5,2+i%3);}
+  for(let i=0;i<180;i++){const vertical=i<110,x=vertical?1256+(i*29)%78:(i*113)%1536,y=vertical?(i*83)%1024:1034+(i*17)%74;q.fillStyle=i%2?'#8b9d79':'#6c8973';q.fillRect(x,y,4+i%7,3+i%4);q.fillStyle='#b6bea077';q.fillRect(x+1,y,3+i%4,1);}
+  q.fillStyle='#168fa966';q.fillRect(0,0,1536,1280);return bed;
+ }
  function riverTerrain(c,cam){
-  const g=groundLayer(),bankPattern=c.createPattern(art.wall,'repeat'),at=(x,y,z)=>{const p=project(x,y,cam);return p?{...p,y:p.y-z*p.scale}:null;};
+  const g=riverBedLayer(),reflection=groundLayer(),bankPattern=c.createPattern(art.wall,'repeat'),at=(x,y,z)=>{const p=project(x,y,cam);return p?{...p,y:p.y-z*p.scale}:null;};
   c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
   const wall=(x1,y1,x2,y2)=>{const z=northHeight((x1+x2)/2,(y1+y2)/2),a=at(x1,y1,z),b=at(x2,y2,z),d=at(x1,y1,z-riverDepth),e=at(x2,y2,z-riverDepth);if(!a||!b||!d||!e||Math.max(d.y,e.y)<136||Math.min(a.y,b.y)>544||Math.max(a.x,b.x)<0||Math.min(a.x,b.x)>640)return;const f=clamp((Math.min(a.y,b.y)-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.lineTo(e.x,e.y);c.lineTo(d.x,d.y);c.closePath();c.fillStyle=bankPattern;c.fill();};
-  const surface=(l,r,y)=>{const z=waterHeight((l+r)/2,y),a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,waterHeight((l+r)/2,y+3.99));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);};
+  const surface=(l,r,y)=>{const z=waterHeight((l+r)/2,y),a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,waterHeight((l+r)/2,y+3.99));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l,y,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);c.globalAlpha*=.32;c.drawImage(reflection,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);};
   // Banks descend to the water while bridge decks retain the ground elevation.
   for(let y=0;y<1024;y+=4){if(y>=368&&y<460)continue;surface(1248,1344,y);if(y%16===0){wall(1248,y,1248,y+16);wall(1344,y,1344,y+16);}}
   for(let y=1024;y<1120;y+=4){surface(0,704,y);surface(832,1536,y);}
   for(const [l,r] of [[0,704],[832,1248],[1344,1536]])wall(l,1024,r,1024);
   for(const [l,r] of [[0,704],[832,1536]])wall(l,1120,r,1120);
   c.restore();
+ }
+ function riverLife(c,cam,time){
+  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
+  for(let i=0;i<16;i++){
+   const phase=time*.00035+i*2.3,vertical=i<10;
+   const x=vertical?1296+Math.sin(phase*.73+i)*25:240+(i-10)*202+Math.sin(phase)*54;
+   const y=vertical?(i<3?220+i*24:674+(i-3)*40)+Math.sin(phase)*18:1070+Math.sin(phase*.71+i)*22;
+   if(bridges.some(b=>x>b.x-16&&x<b.x+b.width+16&&y>b.y-16&&y<b.y+b.height+16))continue;
+   const p=project(x,y,cam);if(!p)continue;p.y-=waterHeight(x,y)*p.scale;
+   if(p.x<0||p.x>640||p.y<145||p.y>544)continue;
+   const fade=clamp((p.y-145)/72,0,1),z=p.scale*(i%3===0?1.1:.85),angle=vertical?Math.PI/2+Math.sin(phase)*.25:Math.cos(phase)>=0?0:Math.PI;
+   c.save();c.translate(p.x,p.y);c.rotate(angle);c.scale(z,z);
+   const shape=()=>{c.fillRect(-4,-1,9,2);c.fillRect(-3,-2,6,4);c.fillRect(-2,-3,3,1);const tail=Math.round(Math.sin(time*.009+i));c.fillRect(-7,-2+tail,2,4);c.fillRect(-5,-1+tail,2,2);};
+   c.save();c.translate(1,3);c.globalAlpha=fade*.12;c.fillStyle='#123a48';shape();c.restore();
+   c.globalAlpha=fade*.68;c.fillStyle=i%4===0?'#936f48':'#285e65';shape();c.globalAlpha=fade*.45;c.fillStyle='#9ac7b8';c.fillRect(-2,-2,5,1);c.restore();
+  }c.restore();
  }
  function flow(c,cam,time){
   c.save();c.strokeStyle='#c0f4ea';c.globalAlpha=.48;c.lineWidth=1.5;
@@ -136,7 +163,18 @@ window.YK_SETTLEMENT=(()=>{
   for(let y=-512;y<n.front;y+=4)strip(-512,2048,y,n.height,n.height);
   const spans=[[-512,704],[832,1136],[1216,1248],[1344,2048]];
   for(const [l,r] of spans){const a=at(l,n.front,0),b=at(r,n.front,0);if(!a||!b)continue;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.save();c.beginPath();c.rect(a.x,a.y-n.height*a.scale,b.x-a.x,n.height*a.scale);c.clip();for(let x=l;x<r;x+=96){const u=at(x,n.front,0),v=at(Math.min(r,x+96),n.front,0);c.drawImage(art.wall,u.x,u.y-n.height*u.scale,v.x-u.x,n.height*u.scale);}c.restore();}
-  for(const [l,r] of n.ramps)for(let y=n.front;y<n.bottom;y+=4)strip(l,r,y,northHeight((l+r)/2,y),northHeight((l+r)/2,y+4));
+  for(const [l,r] of n.ramps){
+   // Visible side faces taper towards the foot of each slope.
+   for(const [x,dark] of [[l,false],[r,true]]){const a=at(x,n.front,n.height),b=at(x,n.front,0),d=at(x,n.bottom,0);if(!a||!b||!d)continue;c.globalAlpha=clamp((d.y-136)/72,0,1)*.85;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.lineTo(d.x,d.y);c.closePath();c.fillStyle=dark?'#304b35':'#648054';c.fill();}
+   for(let y=n.front;y<n.bottom;y+=4){
+    strip(l,r,y,northHeight((l+r)/2,y),northHeight((l+r)/2,y+4));
+    const a=at(l,y,northHeight(l,y)),b=at(r,y,northHeight(r,y)),d=at(l,y+4,northHeight(l,y+4));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)continue;
+    const fade=clamp((a.y-136)/72,0,1),progress=(y-n.front)/(n.bottom-n.front);c.globalAlpha=fade;
+    const shade=c.createLinearGradient(a.x,0,b.x,0);shade.addColorStop(0,'#e5d59c55');shade.addColorStop(.12,'#d9cd9614');shade.addColorStop(.72,'#1e342816');shade.addColorStop(1,'#1e342876');c.fillStyle=shade;c.fillRect(a.x,a.y,b.x-a.x,d.y-a.y+.5);
+    c.globalAlpha=fade*(.06+.12*progress);c.fillStyle='#253e28';c.fillRect(a.x,a.y,b.x-a.x,d.y-a.y+.5);
+    c.globalAlpha=fade*.85;const rim=Math.max(2,5*a.scale);c.drawImage(art.wall,0,(y%32)/32*art.wall.height,art.wall.width,art.wall.height/8,a.x,a.y,rim,d.y-a.y+.5);c.drawImage(art.wall,0,(y%32)/32*art.wall.height,art.wall.width,art.wall.height/8,b.x-rim,a.y,rim,d.y-a.y+.5);
+   }
+  }
   c.restore();
  }
  function waterfall(c,cam,time){
@@ -146,10 +184,16 @@ window.YK_SETTLEMENT=(()=>{
   if(a&&b&&a.y>=136&&a.y-n.height*a.scale<544){
    const w=b.x-a.x,h=n.height*a.scale,top=a.y-h,f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);
    // Reuse the river texture for the falling sheet; moving highlights and foam give it flow.
-   c.drawImage(g,1248+512,480+512,96,48,a.x,top,w,h);
+   c.drawImage(g,1248+512,480+512,96,48,a.x,top,w,h);const curtain=c.createLinearGradient(a.x,0,b.x,0);curtain.addColorStop(0,'#185d7370');curtain.addColorStop(.18,'#b2efea38');curtain.addColorStop(.7,'#b2efea18');curtain.addColorStop(1,'#185d7370');c.fillStyle=curtain;c.fillRect(a.x,top,w,h);
    c.save();c.beginPath();c.rect(a.x,top,w,h+8*a.scale);c.clip();
    c.fillStyle='#dcfff0';for(let i=0;i<19;i++){const x=a.x+(i+.5)*w/19,y=top+((time*.065+i*17)%56)*a.scale;c.globalAlpha=f*(.25+(i%3)*.12);c.fillRect(x,y,Math.max(1,2*a.scale),(8+i%5)*a.scale);}
    c.globalAlpha=f*.8;for(let i=0;i<16;i++){const wave=Math.sin(time*.004+i*2);c.fillRect(a.x+i*w/16,a.y+(wave*2-2)*a.scale,w/18,(3+i%3)*a.scale);}c.restore();
+   // Flattened rings sit on the pool, while droplets arc upwards in front of the falling sheet.
+   for(let i=0;i<5;i++){const phase=(time*.00055+i*.2)%1,rx=w*(.14+phase*.43),ry=a.scale*(3+phase*12);c.globalAlpha=f*(1-phase)*.30;c.strokeStyle='#d9fff3';c.lineWidth=Math.max(1,a.scale);c.beginPath();c.ellipse(a.x+w*.5,a.y+5*a.scale,rx,ry,0,0,Math.PI*2);c.stroke();}
+   for(let i=0;i<9;i++){const pulse=Math.sin(time*.003+i*1.7),px=a.x+(i+.5)*w/9,py=a.y+(2-pulse*3)*a.scale,sz=(4+i%3)*a.scale;c.globalAlpha=f*.22;c.fillStyle='#bdeee8';c.fillRect(px-sz,py-sz,sz*2,sz);c.fillRect(px-sz*.6,py-sz*1.5,sz*1.2,sz*2);}
+   for(let i=0;i<34;i++){const phase=(time*.0009+i*.618)%1,origin=(i%17+.5)/17,drift=((i*13)%11-5)*phase,px=a.x+origin*w+drift*a.scale,py=a.y+(phase*10-4*Math.sin(phase*Math.PI)*(3+i%4))*a.scale;
+    c.globalAlpha=f*(1-phase)*.8;c.fillStyle=i%3?'#e7fff5':'#84d6df';const sz=Math.max(1,(i%3+1)*a.scale*.7);c.fillRect(px,py,sz,sz);}
+
   }c.restore();
  }
  function raisedTerrain(c,cam){
@@ -201,7 +245,7 @@ window.YK_SETTLEMENT=(()=>{
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();
   c.save();c.translate(0,32);c.scale(1.2,1.2);
-  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);flow(q,cam,time);}});
+  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);riverLife(q,cam,time);flow(q,cam,time);}});
   const near=doors.find(d=>Math.abs(state.x-d.x)<58&&Math.abs(state.y-d.y)<64);
   if(near){const p=project(near.x,near.y,camera(state.x,state.y));if(p){p.y-=elevation(near.x,near.y)*p.scale;c.font='bold 14px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-82,p.y-116,164,26);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-98);}}
   c.restore();return true;

@@ -26,6 +26,8 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  for(let i=0;i<6;i++){await run('move(0,-1,"u");');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));}
  assert.equal(await run('YK_SETTLEMENT.elevation(S.x,S.y)'),56,'player climbs north slope');
  await run('S.x=1190;S.y=760;map();');await page.screenshot({path:path.join(out,'village-waterfall.png')});
+ await run('S.x=1190;S.y=650;map();');await page.screenshot({path:path.join(out,'village-spray.png')});
+ await run('S.x=768;S.y=750;map();');await page.screenshot({path:path.join(out,'village-slope.png')});
  await run('S.x=1424;S.y=480;map();');await page.screenshot({path:path.join(out,'village-terrace.png')});
  await run('S.x=768;S.y=730;map();');await page.waitForTimeout(2500);await page.screenshot({path:path.join(out,'village-wandering.png')});
  assert.deepEqual(errors,[]);console.log('8 residents wander safely for simulated 120s; shops fixed; conversation freeze; terrace/stairs/cliff verified');
