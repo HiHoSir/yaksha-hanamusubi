@@ -140,8 +140,6 @@ const ENEMY_ATLAS_CELL=128,ENEMY_ATLAS_COLS=4;
 const VARIANT_ATLAS=new Image();VARIANT_ATLAS.onload=assetLoaded;VARIANT_ATLAS.datasetSrc="assets/enemies/enemy-variant-atlas-128.png?v=15.55.48";
 const VARIANT_ATLAS_CELL=128,VARIANT_ATLAS_COLS=4;
 const VARIANT_WORN_ATLAS=new Image();VARIANT_WORN_ATLAS.onload=assetLoaded;VARIANT_WORN_ATLAS.datasetSrc="assets/enemies/enemy-variant-worn-atlas-128.png?v=15.55.48";
-const ONI_FIXED_ATLAS=new Image();ONI_FIXED_ATLAS.onload=assetLoaded;ONI_FIXED_ATLAS.datasetSrc="assets/enemies/reviewed-candidates/enemy-variant-atlas-128.png?v=15.57.20";
-const ONI_FIXED_WORN=new Image();ONI_FIXED_WORN.onload=assetLoaded;ONI_FIXED_WORN.datasetSrc="assets/enemies/reviewed-candidates/enemy-variant-worn-atlas-128.png?v=15.57.20";
 const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
@@ -152,8 +150,6 @@ function ensureBattleAssets(){
  ensureImage(ENEMY_ATLAS);
  ensureImage(VARIANT_ATLAS);
  ensureImage(VARIANT_WORN_ATLAS);
- ensureImage(ONI_FIXED_ATLAS);
- ensureImage(ONI_FIXED_WORN);
  for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
 }
 function rareReady(r){
@@ -161,55 +157,6 @@ function rareReady(r){
  if(Number.isInteger(r.variantAtlas)){ensureImage(VARIANT_ATLAS);return layerReady(VARIANT_ATLAS);}
  ensureImage(RARE_ART[r.id]?.intact);ensureImage(RARE_ART[r.id]?.worn);
  return layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);
-}
-// Variant atlas artwork may contain unintended translucent body pixels.
-// Normalize only the rare-enemy atlas at runtime; keep fully transparent
-// background pixels transparent and preserve the source files unchanged.
-const OPAQUE_VARIANT_CACHE=new WeakMap();
-function opaqueVariantSource(im){
- if(!layerReady(im))return im;
- const cached=OPAQUE_VARIANT_CACHE.get(im);
- if(cached&&cached.width===im.naturalWidth&&cached.height===im.naturalHeight)return cached;
- try{
-  const surface=document.createElement("canvas");
-  surface.width=im.naturalWidth;surface.height=im.naturalHeight;
-  const ctx=surface.getContext("2d",{willReadFrequently:true});
-  ctx.drawImage(im,0,0);
-  const pixels=ctx.getImageData(0,0,surface.width,surface.height);
-  const data=pixels.data;
-  for(let i=3;i<data.length;i+=4){
-   // Preserve fully transparent pixels and discard only nearly invisible
-   // fringes. The source atlases have pervasive fractional body opacity:
-   // treat every visible sprite pixel as solid rather than punching holes
-   // through hair, skin and clothing at the previous threshold of 32.
-   data[i]=data[i]===0?0:255;
-  }
-  ctx.putImageData(pixels,0,0);
-  OPAQUE_VARIANT_CACHE.set(im,surface);
-  return surface;
- }catch(e){console.warn("Variant alpha normalization unavailable",e);return im;}
-}
-const RARE_BOUNDS_CACHE=new WeakMap();
-function rareBounds(im,index){
- const source=opaqueVariantSource(im);
- let cache=RARE_BOUNDS_CACHE.get(source);
- if(!cache){cache=new Map();RARE_BOUNDS_CACHE.set(source,cache);}
- if(cache.has(index))return cache.get(index);
- let bounds={x:0,y:0,w:128,h:128};
- try{
-  const canvas=document.createElement("canvas");
-  canvas.width=canvas.height=128;
-  const ctx=canvas.getContext("2d",{willReadFrequently:true});
-  ctx.drawImage(source,(index%4)*128,Math.floor(index/4)*128,128,128,0,0,128,128);
-  const pixels=ctx.getImageData(0,0,128,128).data;
-  let minX=128,minY=128,maxX=-1,maxY=-1;
-  for(let y=0;y<128;y++)for(let x=0;x<128;x++){
-   if(pixels[(y*128+x)*4+3]<128)continue;
-   minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
-  }
-  if(maxX>=0)bounds={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
- }catch(e){console.warn("Rare sprite bounds unavailable",e);}
- cache.set(index,bounds);return bounds;
 }
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0)+YK_EQUIPMENT.bonus(S,stat);}
 function enemyArt(c,x,y){
@@ -219,12 +166,11 @@ function enemyArt(c,x,y){
  const atlasIndex=Number.isInteger(profile?.atlas)?profile.atlas:null,atlasReady=atlasIndex!==null&&layerReady(ENEMY_ATLAS);
  const rareDef=battle?.rareId?Object.values(D.rareKinds).find(r=>r.id===battle.rareId):null;
  const variantIndex=Number.isInteger(rareDef?.variantAtlas)?rareDef.variantAtlas:null;
- const wornVariantReady=false; // Damaged shared atlas is visually corrupted; keep intact art until rebuilt.
+ const wornVariantReady=variantIndex!==null&&battle?.clothingBroken&&layerReady(VARIANT_WORN_ATLAS);
  const variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
  const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:null;
- const useFixedOni=battle?.rareId==="oni"&&variantIndex===0&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN);
- const im=useFixedOni?(battle.clothingBroken?ONI_FIXED_WORN:ONI_FIXED_ATLAS):battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback));if(!layerReady(im))return;
- const bakedAtlas=useFixedOni||wornVariantReady||variantReady||atlasReady;
+ const im=battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback));if(!layerReady(im))return;
+ const bakedAtlas=wornVariantReady||variantReady||atlasReady;
  const cell=bakedAtlas?128:null;
  const scale=bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);
  const w=(bakedAtlas?cell:im.naturalWidth)*scale,h=(bakedAtlas?cell:im.naturalHeight)*scale;
@@ -238,21 +184,10 @@ function enemyArt(c,x,y){
  }
  if(!bakedAtlas)shadow(c,x+ox,shadowY,65*shadowScale,15*shadowScale,.28);
  c.save();c.imageSmoothingEnabled=bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated));c.imageSmoothingQuality="high";
- if(useFixedOni){
-  const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
-  const sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
-  // The repaired oni artwork is already aligned in its 128px cells.
-  c.drawImage(im,sx,sy,128,128,x+ox-w/2,baseY+oy-h,w,h);
- }
- else if(wornVariantReady){
-  const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
-  c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);
- }
- else if(variantReady){
-  const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
-  c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);
- } else if(atlasReady){const sx=(atlasIndex%ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL,sy=Math.floor(atlasIndex/ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL;c.drawImage(im,sx,sy,ENEMY_ATLAS_CELL,ENEMY_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
- else c.drawImage(battle?.rareId?opaqueVariantSource(im):im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
+ if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ else if(atlasReady){const sx=(atlasIndex%ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL,sy=Math.floor(atlasIndex/ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL;c.drawImage(im,sx,sy,ENEMY_ATLAS_CELL,ENEMY_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ else c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
 let villageDoorMotion=null,villagePaintAt=0,npcPaintAt=0;
@@ -1460,7 +1395,7 @@ window.YKDebugField=(enabled=true)=>{
   const previous=battle;
   try{battle=selectedBattle;enemyArt(c,420,190);}finally{battle=previous;}
   let alphaReport=" / 画像未読込";
-  const source=isRare?(rare?.id==="oni"&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN)?(selected==="worn"?ONI_FIXED_WORN:ONI_FIXED_ATLAS):VARIANT_ATLAS):ENEMY_ATLAS;
+  const source=isRare?(selected==="worn"?VARIANT_WORN_ATLAS:VARIANT_ATLAS):ENEMY_ATLAS;
   if(layerReady(source)){
    try{
     const sourceCanvas=document.createElement("canvas");sourceCanvas.width=128;sourceCanvas.height=128;
@@ -1471,20 +1406,11 @@ window.YKDebugField=(enabled=true)=>{
      const data=sourceContext.getImageData(0,0,128,128).data;
      let opaque=0,translucent=0,clear=0;
      for(let j=3;j<data.length;j+=4){if(data[j]===255)opaque++;else if(data[j]===0)clear++;else translucent++;}
-     let correctedSemi=-1;
-     if(isRare){
-      const corrected=opaqueVariantSource(source),cc=document.createElement("canvas");
-      cc.width=128;cc.height=128;
-      const cx=cc.getContext("2d",{willReadFrequently:true});
-      cx.drawImage(corrected,(cellIndex%4)*128,Math.floor(cellIndex/4)*128,128,128,0,0,128,128);
-      const out=cx.getImageData(0,0,128,128).data;correctedSemi=0;
-      for(let j=3;j<out.length;j+=4)if(out[j]>0&&out[j]<255)correctedSemi++;
-     }
-     alphaReport=" / 元PNG: 不透明"+opaque+" 半透明"+translucent+" 透明"+clear+(correctedSemi>=0?" / 描画補正後の半透明 "+correctedSemi:"");
+     alphaReport=" / 元PNG: 不透明"+opaque+" 半透明"+translucent+" 透明"+clear;
     }
    }catch(e){alphaReport=" / 透明度診断不可";}
   }
-  info.textContent=(isRare&&selected==="worn"&&rare?.id!=="oni"?"損傷版は素材破綻のため通常衣装を代替表示 ／ ":"")+(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+alphaReport;
+  info.textContent=(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+alphaReport;
  }
  function open(){if(battle)return;panel.classList.add("show");ensureBattleAssets();refresh();}
  function close(){panel.classList.remove("show");}
