@@ -219,7 +219,7 @@ function enemyArt(c,x,y){
  const atlasIndex=Number.isInteger(profile?.atlas)?profile.atlas:null,atlasReady=atlasIndex!==null&&layerReady(ENEMY_ATLAS);
  const rareDef=battle?.rareId?Object.values(D.rareKinds).find(r=>r.id===battle.rareId):null;
  const variantIndex=Number.isInteger(rareDef?.variantAtlas)?rareDef.variantAtlas:null;
- const wornVariantReady=variantIndex!==null&&battle?.clothingBroken&&layerReady(VARIANT_WORN_ATLAS);
+ const wornVariantReady=false; // Damaged shared atlas is visually corrupted; keep intact art until rebuilt.
  const variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
  const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:null;
  const useFixedOni=battle?.rareId==="oni"&&variantIndex===0&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN);
@@ -1460,7 +1460,7 @@ window.YKDebugField=(enabled=true)=>{
   const previous=battle;
   try{battle=selectedBattle;enemyArt(c,420,190);}finally{battle=previous;}
   let alphaReport=" / 画像未読込";
-  const source=isRare?(rare?.id==="oni"&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN)?(selected==="worn"?ONI_FIXED_WORN:ONI_FIXED_ATLAS):(selected==="worn"?VARIANT_WORN_ATLAS:VARIANT_ATLAS)):ENEMY_ATLAS;
+  const source=isRare?(rare?.id==="oni"&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN)?(selected==="worn"?ONI_FIXED_WORN:ONI_FIXED_ATLAS):VARIANT_ATLAS):ENEMY_ATLAS;
   if(layerReady(source)){
    try{
     const sourceCanvas=document.createElement("canvas");sourceCanvas.width=128;sourceCanvas.height=128;
@@ -1484,7 +1484,7 @@ window.YKDebugField=(enabled=true)=>{
     }
    }catch(e){alphaReport=" / 透明度診断不可";}
   }
-  info.textContent=(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+alphaReport;
+  info.textContent=(isRare&&selected==="worn"&&rare?.id!=="oni"?"損傷版は素材破綻のため通常衣装を代替表示 ／ ":"")+(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+alphaReport;
  }
  function open(){if(battle)return;panel.classList.add("show");ensureBattleAssets();refresh();}
  function close(){panel.classList.remove("show");}
