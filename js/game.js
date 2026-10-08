@@ -1408,7 +1408,23 @@ window.YKDebugField=(enabled=true)=>{
   for(let y=0;y<360;y+=32)for(let x=0;x<640;x+=32)if(((x+y)/32)%2===0){c.fillStyle="#597267";c.fillRect(x,y,32,32);}
   const previous=battle;
   try{battle=selectedBattle;enemyArt(c,320,190);}finally{battle=previous;}
-  info.textContent=(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+" ／ 素材読み込み中は再表示されます";
+  let alphaReport=" / 画像未読込";
+  const source=isRare?(selected==="worn"?VARIANT_WORN_ATLAS:VARIANT_ATLAS):ENEMY_ATLAS;
+  if(layerReady(source)){
+   try{
+    const sourceCanvas=document.createElement("canvas");sourceCanvas.width=128;sourceCanvas.height=128;
+    const sourceContext=sourceCanvas.getContext("2d",{willReadFrequently:true});
+    const cellIndex=isRare?rare.variantAtlas:D.enemyProfiles?.[name]?.atlas;
+    if(Number.isInteger(cellIndex)){
+     sourceContext.drawImage(source,(cellIndex%4)*128,Math.floor(cellIndex/4)*128,128,128,0,0,128,128);
+     const data=sourceContext.getImageData(0,0,128,128).data;
+     let opaque=0,translucent=0,clear=0;
+     for(let j=3;j<data.length;j+=4){if(data[j]===255)opaque++;else if(data[j]===0)clear++;else translucent++;}
+     alphaReport=" / PNG: 不透明"+opaque+" 半透明"+translucent+" 透明"+clear;
+    }
+   }catch(e){alphaReport=" / 透明度診断不可";}
+  }
+  info.textContent=(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+alphaReport;
  }
  function open(){if(battle)return;panel.classList.add("show");ensureBattleAssets();refresh();}
  function close(){panel.classList.remove("show");}
