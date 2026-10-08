@@ -74,5 +74,6 @@ const story=[
  {area:"fox",speaker:"白狐の使い",target:null,objective:"九尾の祠で白狐の使いに会う",lines:["その花びらは、かつて交わされた約束の欠片。","続く旅の手がかりは、ここで預かっておこう。今は巡った土地を訪ねてみるといい。"],unlock:"約束の手がかりを得た。続きの物語は制作中です。"}
 ];
 const objectives=[...story.map(s=>s.objective),"手がかりを得た。各地を探索する（物語の続きは制作中）"];
-return {outfits,areas,enemies,enemyProfiles,objectives,story,rareKinds,relics,rareRules};
+const vegetables={radish:{name:'だいこん',hp:18,mp:0},carrot:{name:'にんじん',hp:12,mp:0},cucumber:{name:'きゅうり',hp:8,mp:2}};
+return {vegetables,outfits,areas,enemies,enemyProfiles,objectives,story,rareKinds,relics,rareRules};
 })();

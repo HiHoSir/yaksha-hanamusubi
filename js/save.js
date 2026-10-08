@@ -1,6 +1,6 @@
 window.YK_SAVE=(()=>{
 const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=14;
-const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:3,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,mp:18,maxmp:18,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
+const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:3,vegetables:{},harvests:{},relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,mp:18,maxmp:18,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
@@ -28,6 +28,8 @@ function migrate(raw){
  if(typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.places&&!YK_WORLD.places[s.destination])s.destination=null;
  s.quest=Math.max(0,Math.min(YK_DATA.story.length,Math.floor(Number(s.quest)||0)));
  const cleanCounts=value=>Object.fromEntries(Object.keys(YK_DATA.relics).filter(k=>Number.isFinite(value?.[k])&&value[k]>0).map(k=>[k,Math.min(999999,Math.floor(value[k]))]));
+ s.vegetables=Object.fromEntries(Object.keys(YK_DATA.vegetables).map(k=>[k,Math.min(99,Math.max(0,Math.floor(Number(s.vegetables?.[k])||0)))]));
+ s.harvests=Object.fromEntries(Object.entries(s.harvests&&typeof s.harvests==='object'?s.harvests:{}).filter(([k,v])=>/^village-garden-[0-2]$/.test(k)&&Number.isFinite(v)&&v>=0).map(([k,v])=>[k,Math.floor(v)]));
  s.relics=cleanCounts(s.relics);s.rareWins=cleanCounts(s.rareWins);
  if(!Object.hasOwn(YK_DATA.relics,s.equippedRelic)||!s.relics[s.equippedRelic])s.equippedRelic=null;
  s.chests=s.chests&&typeof s.chests==="object"&&!Array.isArray(s.chests)?s.chests:{};

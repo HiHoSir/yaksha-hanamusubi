@@ -75,7 +75,19 @@ window.YK_WORLD=(()=>{
  // Minor scenery sits off the travel lane. These are scenery, not extra story entrances.
  object('castle',center([49,61])[0],center([49,61])[1],112,112);
  object('cave',center([28,50])[0],center([28,50])[1],80,64);
- for(const [tx,ty] of [[18,58],[45,55],[61,38],[34,27],[24,18]]){const [x,y]=center([tx,ty]);object('jizo',x,y,24,40);}
+ const guides=[[20,58,'街道の地蔵','川は橋を渡るのじゃ。里では旅支度を整えられるぞ。'],[45,55,'橋の地蔵','大橋の東側じゃ。入り江へは南の街道をたどるのじゃ。'],[61,38,'森の地蔵','北へ向かう道は川の橋につながっておる。'],[35,27,'峠の地蔵','東の高原には月見の湯がある。疲れたら立ち寄るがよい。'],[24,18,'山道の地蔵','この山道の北に九尾の祠があるぞ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
+ for(const g of guides)object('jizo',g.x,g.y,24,40);
+ function guideRoute(from,target){
+  const nodes=new Map(),key=(x,y)=>x+','+y;
+  for(const road of roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],dx=Math.sign(bx-ax)*32,dy=Math.sign(by-ay)*32,n=(Math.abs(bx-ax)+Math.abs(by-ay))/32;for(let j=0;j<=n;j++)nodes.set(key(ax+j*dx,ay+j*dy),[ax+j*dx,ay+j*dy]);}
+  const nearest=p=>[...nodes.keys()].sort((a,b)=>Math.hypot(nodes.get(a)[0]-p[0],nodes.get(a)[1]-p[1])-Math.hypot(nodes.get(b)[0]-p[0],nodes.get(b)[1]-p[1]))[0];
+  const start=nearest(from),end=nearest(target),queue=[start],prev=new Map([[start,null]]);
+  for(let i=0;i<queue.length&& !prev.has(end);i++){const [x,y]=nodes.get(queue[i]);for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const k=key(x+dx,y+dy);if(nodes.has(k)&&!prev.has(k)){prev.set(k,queue[i]);queue.push(k);}}}
+  if(!prev.has(end))return '地図で街道と橋の位置を確かめるのじゃ。';
+  const path=[];for(let k=end;k;k=prev.get(k))path.unshift(nodes.get(k));const turns=[];
+  for(let i=1;i<path.length;i++){const [x,y]=path[i],[px,py]=path[i-1],d=x>px?'東':x<px?'西':y>py?'南':'北';if(turns.at(-1)!==d)turns.push(d);}
+  return turns.length?'そばの街道に出たら、まず'+turns.slice(0,3).join('、次の曲がり角で')+'へ進むのじゃ。':'目的地はこの近くじゃ。入口でAを押すのじゃ。';
+ }
  for(const [tx,ty] of [[15,61],[20,60],[45,63],[54,63],[58,46],[43,25]]){const [x,y]=center([tx,ty]);mapData.decorations.push({kind:'flowers',x,y,width:40,height:24,foot:y+24,ground:true});}
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
  const tileAt=(x,y)=>mapData[Math.floor(y/32)]?.[Math.floor(x/32)]||'sea';
@@ -89,5 +101,5 @@ window.YK_WORLD=(()=>{
   const id=Object.keys(legacy).sort((a,b)=>Math.hypot(point[0]-legacy[a][0],point[1]-legacy[a][1])-Math.hypot(point[0]-legacy[b][0],point[1]-legacy[b][1]))[0];
   return places[id].point.slice();
  }
- return {start,hub,places,roads,worldObjects,mapData,walkable,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition};
+ return {start,hub,places,roads,guides,guideRoute,worldObjects,mapData,walkable,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition};
 })();

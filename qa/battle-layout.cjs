@@ -23,13 +23,14 @@ const server=http.createServer((req,res)=>{
  assert.equal(await page.evaluate(()=>window.gameState.gold),935);
  assert.equal(await page.evaluate(()=>window.gameState.equipmentInventory.short_blade),1);
  await page.screenshot({path:path.join(__dirname,'results/autotile/shop-mobile-'+height+'.png')});
- await page.locator('[data-close="shop"]').tap();await page.locator('#bookBtn').tap();
+ await page.locator('[data-close="shop"]').tap();await page.locator('#bookBtn').tap();await page.locator('[data-field-command="equipment"]').tap();
  await page.locator('[data-equip-slot="weapon"]').selectOption('short_blade');
  assert.equal(await page.evaluate(()=>window.gameState.equipment.weapon),'short_blade');
  assert((await page.locator('#statusPanel').innerText()).includes('攻撃力 18'));
  assert.equal(await page.locator('[data-outfit]').count(),2);
  for(const slot of ['weapon','head','body','feet'])assert(await page.locator('[data-equip-slot="'+slot+'"]').evaluate(el=>el.getBoundingClientRect().right<=window.innerWidth),'equipment overflow');
  await page.screenshot({path:path.join(__dirname,'results/autotile/equipment-mobile-'+height+'.png')});
+ await page.locator('[data-close="menu"]').tap();await page.locator('#bookBtn').tap();await page.locator('[data-field-command="outfits"]').tap();
  await page.locator('[data-outfit="stardust"]').tap();
  assert.equal(await page.evaluate(()=>window.gameState.outfit),'stardust');
  assert.equal(await page.evaluate(()=>window.gameState.equipment.weapon),'short_blade');

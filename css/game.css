@@ -238,3 +238,14 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 #pad.dialogActive .dpad{pointer-events:none;opacity:.4}
 #pad.dialogActive #cancel{opacity:.4}
 @media(max-height:720px){#dialog .dialogWindow{bottom:10px;padding:10px 12px}#dialogText{font-size:15px;min-height:44px}}
+
+/* Compact field command window stays inside the map, clear of A/B. */
+#commandMenu{position:absolute;inset:0;background:transparent;align-items:flex-start;justify-content:flex-start;padding:12px;z-index:35}
+.commandWindow{width:min(300px,100%);max-height:100%;overflow:auto;background:#102437f5;border:3px double #f1dfb2;border-radius:8px;padding:10px;box-shadow:3px 5px 0 #07121d80;color:#fff4dc}
+#commandStatus{border-bottom:1px solid #bfa978;padding:0 0 7px;font-size:14px}
+#fieldCommands{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:7px}
+#fieldCommands button{min-height:36px;padding:6px 9px;border:0;background:transparent;border-radius:3px;text-align:left;font-size:17px;color:#fff4dc}
+#fieldCommands button.selected{background:#38526b;outline:1px solid #e6c68b}
+#commandHelp{font-size:12px;line-height:1.5;margin:7px 0 0;color:#e1d5b6}
+
+#menu{position:absolute;inset:0;background:#06132166;padding:10px;z-index:36}#menu .window{top:10px;bottom:10px;max-height:calc(100% - 20px);left:10px;right:10px;padding:12px}#fieldCommands button{min-height:40px}

@@ -525,7 +525,7 @@ function map(){
   if(!ready){g.fillStyle='#102635';g.fillRect(0,0,768,768);}
 
   const k=YK_WORLD.near(S.x,S.y);
-  worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"フィールドを進んで入口へ · 地図で目的地を確認");return;
+  worldHint(nearbyGuide()?"A：地蔵に道を聞く":k?"A："+YK_WORLD.places[k].name+"へ入る":"A：行動 ／ 地図で目的地を確認");return;
  }
  if(S.area==="village"){
   const t=fieldMotion?clamp((performance.now()-fieldMotion.at)/144,0,1):1;
@@ -533,7 +533,7 @@ function map(){
   const actors=areaNPCs().map(n=>({x:n.x,y:n.y,draw:(x,y,z)=>{g.save();g.translate(x,y);g.scale(z,z);npc(g,0,0,n.type,n.name,n.dir||"d",n.frame??1);g.restore();}}));
   actors.push({hero:true,x:view.x,y:view.y,draw:(x,y,z)=>hero(g,x,y-9*.56*z,S.dir,S.frame,S.outfit,.56*z)});
   if(!YK_SETTLEMENT.draw(g,view,actors,villageDoorMotion))worldHint("鬼灯の里を読込中…");
-  else worldHint("A：話す・入る ／ 南の橋・北の道からフィールドへ");
+  else worldHint(nearbyInspectable()?"A：話す・調べる ／ 行動からも選べます":"A：話す・入る ／ 行動：コマンド");
   return;
  }
  else if(S.area==="teahouse") drawInterior(g,"tea");
@@ -638,6 +638,29 @@ function beginEncounter(){
  selectCmd(0);renderBattle();YK_AUDIO.beep(220,.06);return true;
 }
 function encounter(){return beginEncounter()}
+function inspectTargets(){
+ const texts={rocks:'苔むした岩だ。雨風に削られ、角が丸くなっている。',fence:'木を組んだ柵だ。丁寧に縄が巻かれている。',crates:'旅の荷箱だ。乾いた藁と木の香りがする。',basket:'編み目の細かい籠だ。里の人の手仕事が伝わってくる。',hozuki:'鬼灯の実が、風に揺れて小さな灯りのように見える。'};
+ if(S.area==='village'){const v=YK_SETTLEMENT;return [
+ ...v.gardens.map((a,i)=>({id:'village-garden-'+i,name:'畑',x:a.x,y:a.y-30,w:a.w,h:76,garden:true,text:'葉の下で、野菜がゆっくり育っている。'})),
+ {name:'井戸',x:v.well.x,y:v.well.y,w:54,h:36,text:'井戸の底から、ひんやりした風が吹いてくる。水面に小さな空が映った。'},
+ ...v.props.map(a=>({name:'里の風景',x:a.x,y:a.y,w:a.w*.8,h:24,text:texts[a.kind]})),
+ ...v.trees.map(a=>({name:'木',x:a.x,y:a.y,w:28,h:28,text:'枝の間で小鳥が鳴いている。葉を透かした光が足元に揺れた。'})),
+ ...v.bridges.map(a=>({name:'橋',x:a.x+a.width/2,y:a.y+a.height/2,w:a.width,h:a.height,text:'橋板の下を澄んだ水が流れている。小魚がさっと影へ隠れた。'})),
+ ...v.buildings.map(a=>({name:a.name,x:a.x,y:a.y-35,w:a.w*.78,h:70,text:a.kind==='shrine'?'小さな社に花が供えられている。里を見守る、静かな場所だ。':'軒先がきれいに掃かれている。人の暮らしの気配がする。'}))];}
+ if(S.area==='field')return YK_WORLD.mapData.decorations.filter(a=>['flowers','cave','castle','lantern','bridge','bridgeNS'].includes(a.kind)).map(a=>({name:'道ばた',x:a.x+a.width/2,y:a.foot,w:a.width,h:24,text:({flowers:'草花が風に揺れている。道ばたにも、小さな命が息づいている。',cave:'洞穴の奥から冷たい風が吹いてくる。今は先へ進めそうにない。',castle:'遠くに城が見える。あそこにも、誰かの暮らしがあるのだろう。',lantern:'石灯籠には、旅の無事を願う小さな札が結ばれている。',bridge:'橋の下を水が流れている。足元を確かめて渡ろう。',bridgeNS:'橋板が小さくきしんだ。しっかりした造りだ。'})[a.kind]}));
+ return [];
+}
+function nearbyInspectable(){const f=({u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]})[S.dir]||[0,1];return inspectTargets().map(o=>{const x=clamp(S.x,o.x-o.w/2,o.x+o.w/2),y=clamp(S.y,o.y-o.h/2,o.y+o.h/2);return {...o,distance:Math.hypot(S.x-x,S.y-y),dot:(o.x-S.x)*f[0]+(o.y-S.y)*f[1]};}).filter(o=>o.distance<=48&&o.dot>=-12&&(S.area!=='village'||Math.abs(YK_SETTLEMENT.elevation(S.x,S.y)-YK_SETTLEMENT.elevation(o.x,o.y))<22)).sort((a,b)=>a.distance-b.distance)[0];}
+function inspectObject(){const o=nearbyInspectable();if(!o)return false;let text=o.text;
+ if(o.garden){const last=S.harvests[o.id];if(last!=null&&S.walk-last<160)text='まだ育ちかけの野菜だ。しばらく旅をしてから、また見に来よう。';
+ else{S.harvests[o.id]=S.walk;if(Math.random()<.6){const ids=Object.keys(D.vegetables),id=ids[Math.floor(Math.random()*ids.length)],v=D.vegetables[id];if((S.vegetables[id]||0)<99){S.vegetables[id]=(S.vegetables[id]||0)+1;text='畑の端に、食べごろの'+v.name+'を見つけた。'+v.name+'を1つ手に入れた！';}else text=v.name+'は、もう持ちきれない。';}else text='葉をそっと持ち上げてみた。今は食べごろの野菜がないようだ。';YK_SAVE.auto(S);}}
+ return talk({n:o.name,t:[text]});
+}
+function useVegetable(id){const v=D.vegetables[id];if(!v||!S.vegetables[id])return;if(S.hp>=S.maxhp&&(!v.mp||S.mp>=S.maxmp))return message('今は食べなくても大丈夫そうだ。',1400);S.vegetables[id]--;S.hp=Math.min(S.maxhp,S.hp+v.hp);S.mp=Math.min(S.maxmp,S.mp+v.mp);YK_SAVE.auto(S);renderRelics();renderStatus();hud(false);message(v.name+'を食べて、元気が戻った。',1800);}
+function nearbyGuide(){return S.area==='field'?YK_WORLD.guides.filter(g=>Math.hypot(S.x-g.x,S.y-g.y)<76).sort((a,b)=>Math.hypot(S.x-a.x,S.y-a.y)-Math.hypot(S.x-b.x,S.y-b.y))[0]:null;}
+function guideTalk(){const g=nearbyGuide();if(!g)return false;const event=D.story[S.quest],target=event?.area,place=YK_WORLD.places[target];
+ const lines=event?['今は「'+event.objective+'」のじゃ。',YK_WORLD.guideRoute([g.x,g.y],place.point),g.tip]:['よくぞここまで旅を続けたのう。今の物語は一区切りじゃ。',g.tip];
+ lines.push(S.hp<S.maxhp*.4?'体が少なくなっておる。薬草や回復の術を使い、宿や湯で休むのじゃ。':!S.equipment.weapon?'武器は買うだけでは力にならぬ。「そうび」で身につけるのじゃ。':'迷ったときは「ちず」と「つよさ」で旅支度を確かめるのじゃ。');return talk({n:g.name,t:lines});}
 function action(){
  if(S.area==="debugField"){
   const pages=(typeof DEBUG_PAGES!=="undefined"?DEBUG_PAGES:["overview","tiles","road"]);
@@ -648,7 +671,8 @@ function action(){
  }
  if($("dialog").classList.contains("show")){nextDialog();return true;}
  if(busy)return false;
- if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}message("目的地の入口付近で A を押してください。",1400);return false;}
+ if(guideTalk())return true;
+ if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}if(inspectObject())return true;openCommands();return true;}
  if(openNearbyChest())return true;
  if(villageDoorAction())return true;
  if(S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom"){
@@ -669,7 +693,7 @@ function action(){
   busy=true;$("hotSpringText").textContent="湯気の向こうで、花びらが静かに揺れている。";
   $("hotSpring").classList.add("show");renderHotSpring();return true;
  }
- message("ここには特に何もない。",800);return false;
+ if(inspectObject())return true;openCommands();return true;
 }
 function hotChoice(choice){
  if(!$("hotSpring").classList.contains("show"))return;
@@ -877,10 +901,24 @@ function endBattle(){$("pad").classList.remove("battleActive");const reward=batt
 function defeat(){$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
 function renderRelics(){
  const owned=Object.entries(D.relics).filter(([id])=>S.relics[id]);
- $("itemsPanel").innerHTML=`<p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
- document.querySelectorAll("[data-relic]").forEach(b=>YK_INPUT.tap(b,()=>{const id=b.dataset.relic;S.equippedRelic=Object.hasOwn(D.relics,id)&&S.relics[id]?id:null;YK_SAVE.auto(S);busy=false;menu();}));
+ $("itemsPanel").innerHTML=`<button id="fieldHerb">薬草を使う</button><p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
+ $('itemsPanel').innerHTML+=Object.entries(D.vegetables).filter(([id])=>S.vegetables[id]>0).map(([id,v])=>`<button data-vegetable="${id}">${v.name} × ${S.vegetables[id]}<small>体${v.hp}回復${v.mp?'・技'+v.mp+'回復':''}</small></button>`).join('');document.querySelectorAll('[data-vegetable]').forEach(b=>YK_INPUT.tap(b,()=>useVegetable(b.dataset.vegetable)));
+ YK_INPUT.tap($('fieldHerb'),()=>{if(S.potions<=0)return message('薬草を持っていない。',1400);if(S.hp>=S.maxhp)return message('体は満ちている。',1400);S.potions--;S.hp=Math.min(S.maxhp,S.hp+35+relicBonus('heal'));YK_SAVE.auto(S);renderStatus();renderRelics();hud(false);});
+ document.querySelectorAll("[data-relic]").forEach(b=>YK_INPUT.tap(b,()=>{const id=b.dataset.relic;S.equippedRelic=Object.hasOwn(D.relics,id)&&S.relics[id]?id:null;YK_SAVE.auto(S);busy=false;menu("items");}));
 }
-function menu(){if(busy)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
+const FIELD_COMMANDS=[['talk','はなす','近くの人や地蔵に話しかける'],['search','しらべる','足元のつづらや入口を調べる'],['skill','じゅつ','花癒し：技3で体を32回復'],['items','どうぐ','薬草やお守りを確かめる'],['equipment','そうび','武器や防具を身につける'],['status','つよさ','段・体・技と旅の目的を確かめる'],['map','ちず','目的地と街道を確かめる'],['save','きろく','旅の記録を残す'],['outfits','おまけ','衣装を選ぶ'],['exit','もどる','旅へ戻る']];
+let fieldCursor=0;
+function openCommands(){if(busy)return false;YK_INPUT.stopAll();fieldMotion=null;S.frame=1;busy=true;fieldCursor=0;$('commandMenu').classList.add('show');renderCommands();return true;}
+function renderCommands(){$('commandStatus').textContent=`夜叉姫　${S.lv}段　${S.gold}両`;$('fieldCommands').innerHTML=FIELD_COMMANDS.map(([id,label],i)=>`<button data-field-command="${id}" class="${i===fieldCursor?'selected':''}">${i===fieldCursor?'▶ ':''}${label}</button>`).join('');document.querySelectorAll('[data-field-command]').forEach((b,i)=>YK_INPUT.tap(b,()=>{fieldCursor=i;fieldConfirm();}));$('commandHelp').textContent=FIELD_COMMANDS[fieldCursor][2]+' ／ A 決定・B 戻る';}
+function fieldPad(dir){if(!$('commandMenu').classList.contains('show'))return false;const row=Math.floor(fieldCursor/2),next=dir==='u'?fieldCursor-2:dir==='d'?fieldCursor+2:row*2+(dir==='l'?0:1);if(next>=0&&next<FIELD_COMMANDS.length)fieldCursor=next;renderCommands();return true;}
+function fieldConfirm(){const id=FIELD_COMMANDS[fieldCursor][0];close('commandMenu');
+ if(id==='exit')return;
+ if(id==='talk'){if(guideTalk())return;if(nearestNPC(100)){action();return;}message('近くには話せる相手がいない。',1400);return;}
+ if(id==='search'){if(guideTalk()||openNearbyChest()||villageDoorAction())return;if(S.area==='field'&&YK_WORLD.near(S.x,S.y)){enterWorldPlace(YK_WORLD.near(S.x,S.y));return;}if(inspectObject())return;message('足元には特に何もない。',1400);return;}
+ if(id==='skill'){if(S.hp>=S.maxhp)return message('体は満ちている。',1400);if(S.mp<3)return message('技が足りない。',1400);S.mp-=3;S.hp=Math.min(S.maxhp,S.hp+32+relicBonus('heal'));YK_SAVE.auto(S);hud();message('花癒しの術で体が回復した。',1800);return;}
+ if(id==='map')return worldMap();if(id==='save'){busy=true;slots();$('saveMenu').classList.add('show');return;}menu(id);
+}
+function menu(section=null){if(busy)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu("outfits")}));$("menu").classList.add("show");$('detailTitle').textContent=FIELD_COMMANDS.find(c=>c[0]===section)?.[1]||'つよさ';document.querySelectorAll('[data-menu-section]').forEach(el=>el.style.display=!section||el.dataset.menuSection===section?'':'none');}
 
 const CHEST_ART={};
 for(const state of ['closed','open']){const im=new Image();im.onload=assetLoaded;im.src=`assets/objects/tsuzura-${state}.png?v=15.56.1`;CHEST_ART[state]=im;}
@@ -896,7 +934,7 @@ function openNearbyChest(){
  if(!c)return false;const result=E.open(S,c.id);if(result.ok)YK_SAVE.auto(S);message(result.text,3500);map();return true;
 }
 function renderStatus(){
- $('statusPanel').innerHTML=`夜叉姫　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus('atk')}　守備力 ${S.def+relicBonus('def')}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${E.items[S.equipment.weapon]?.name||'素手'}`;
+ $('statusPanel').innerHTML=`夜叉姫　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus('atk')}　守備力 ${S.def+relicBonus('def')}<br>旅の目的：${D.story[S.quest]?.objective||"巡った土地を訪ねる"}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${E.items[S.equipment.weapon]?.name||'素手'}`;
 }
 function equipmentDelta(item,slot){
  const current=E.items[S.equipment[slot]]||{};
@@ -911,7 +949,7 @@ function renderEquipment(){
  document.querySelectorAll('[data-equip-slot]').forEach(el=>el.addEventListener('change',()=>{if(E.equip(S,el.dataset.equipSlot,el.value||null)){YK_SAVE.auto(S);renderStatus();renderEquipment();}}));
 }
 let shopMode='buy';
-function openShop(){if(busy)return;YK_INPUT.stopAll();busy=true;shopMode='buy';$('shopNotice').textContent='旅が進むと品ぞろえが増えます。買った品は「つよさ → 装備」で身につけられます。';renderShop();$('shop').classList.add('show');}
+function openShop(){if(busy)return;YK_INPUT.stopAll();busy=true;shopMode='buy';$('shopNotice').textContent='旅が進むと品ぞろえが増えます。買った品は「行動 → そうび」で身につけられます。';renderShop();$('shop').classList.add('show');}
 function renderShop(){
  $('shopGold').textContent=`所持金：${S.gold}両`;
  const list=shopMode==='buy'?E.stock(S):Object.values(E.items).filter(i=>S.equipmentInventory[i.id]>0);
@@ -963,9 +1001,9 @@ function battlePad(d){
  const next=d==='u'?battleCursor-2:d==='d'?battleCursor+2:row*2+(d==='l'?0:1);
  if(next>=0&&next<n)selectCmd(next);return true;
 }
-const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
-YK_INPUT.tap($("ok"),()=>battle?battleConfirm():action());YK_INPUT.tap($("cancel"),()=>{if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
-YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
+const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!fieldPad(dir)&&!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
+YK_INPUT.tap($("ok"),()=>battle?battleConfirm():$('commandMenu').classList.contains('show')?fieldConfirm():action());YK_INPUT.tap($("cancel"),()=>{if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
+YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):openCommands());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{if(!battle||battleLocked)return;selectCmd(i);battleConfirm()}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
@@ -976,9 +1014,9 @@ YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return mess
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
- if(e.key==="Escape"){if(battle){e.preventDefault();battleBack();return;}for(const id of ["shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
+ if(e.key==="Escape"){if(battle){e.preventDefault();battleBack();return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
  if(["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;
- const fn={Enter:()=>battle?battleConfirm():action()}[e.key];
+ const fn={Enter:()=>battle?battleConfirm():$('commandMenu').classList.contains('show')?fieldConfirm():action()}[e.key];
  if(fn){e.preventDefault();fn()}
 });
 $("app")?.addEventListener("contextmenu",e=>e.preventDefault());

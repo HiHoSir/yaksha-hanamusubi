@@ -94,3 +94,4 @@ jobs:
           node qa/movement.cjs
           node qa/dialog.cjs
           node qa/residents.cjs
+          node qa/guide-menu.cjs
