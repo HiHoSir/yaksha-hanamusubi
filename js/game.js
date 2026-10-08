@@ -140,6 +140,8 @@ const ENEMY_ATLAS_CELL=128,ENEMY_ATLAS_COLS=4;
 const VARIANT_ATLAS=new Image();VARIANT_ATLAS.onload=assetLoaded;VARIANT_ATLAS.datasetSrc="assets/enemies/enemy-variant-atlas-128.png?v=15.55.48";
 const VARIANT_ATLAS_CELL=128,VARIANT_ATLAS_COLS=4;
 const VARIANT_WORN_ATLAS=new Image();VARIANT_WORN_ATLAS.onload=assetLoaded;VARIANT_WORN_ATLAS.datasetSrc="assets/enemies/enemy-variant-worn-atlas-128.png?v=15.55.48";
+const ONI_FIXED_ATLAS=new Image();ONI_FIXED_ATLAS.onload=assetLoaded;ONI_FIXED_ATLAS.datasetSrc="assets/enemies/reviewed-candidates/enemy-variant-atlas-128.png?v=15.57.20";
+const ONI_FIXED_WORN=new Image();ONI_FIXED_WORN.onload=assetLoaded;ONI_FIXED_WORN.datasetSrc="assets/enemies/reviewed-candidates/enemy-variant-worn-atlas-128.png?v=15.57.20";
 const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
@@ -150,6 +152,8 @@ function ensureBattleAssets(){
  ensureImage(ENEMY_ATLAS);
  ensureImage(VARIANT_ATLAS);
  ensureImage(VARIANT_WORN_ATLAS);
+ ensureImage(ONI_FIXED_ATLAS);
+ ensureImage(ONI_FIXED_WORN);
  for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
 }
 function rareReady(r){
@@ -218,7 +222,8 @@ function enemyArt(c,x,y){
  const wornVariantReady=variantIndex!==null&&battle?.clothingBroken&&layerReady(VARIANT_WORN_ATLAS);
  const variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
  const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:null;
- const im=battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback));if(!layerReady(im))return;
+ const useFixedOni=battle?.rareId==="oni"&&variantIndex===0&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN);
+ const im=useFixedOni?(battle.clothingBroken?ONI_FIXED_WORN:ONI_FIXED_ATLAS):battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback));if(!layerReady(im))return;
  const bakedAtlas=wornVariantReady||variantReady||atlasReady;
  const cell=bakedAtlas?128:null;
  const scale=bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);
@@ -233,8 +238,8 @@ function enemyArt(c,x,y){
  }
  if(!bakedAtlas)shadow(c,x+ox,shadowY,65*shadowScale,15*shadowScale,.28);
  c.save();c.imageSmoothingEnabled=bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated));c.imageSmoothingQuality="high";
- if(wornVariantReady||variantReady){
-  const intact=rareBounds(VARIANT_ATLAS,variantIndex);
+ if(useFixedOni||wornVariantReady||variantReady){
+  const intact=rareBounds(useFixedOni?ONI_FIXED_ATLAS:VARIANT_ATLAS,variantIndex);
   const current=rareBounds(im,variantIndex);
   const height=intact.h*scale;
   const factor=height/Math.max(1,current.h);
