@@ -1394,7 +1394,7 @@ window.YKDebugField=(enabled=true)=>{
  const entries=new Map();
  for(const [area,pool] of Object.entries(D.enemies))for(const e of pool||[])if(!entries.has(e[0]))entries.set(e[0],e);
  for(const [name,e] of entries){
-  const option=document.createElement("option");option.value=name;option.textContent=name+(D.rareKinds[name]?"（特異種あり）":"");picker.append(option);
+  const option=document.createElement("option");option.value=name;option.textContent=name+(D.rareKinds[name]?"（特異種あり）":"");if(typeof picker.append==="function")picker.append(option);else if(typeof picker.appendChild==="function")picker.appendChild(option);
  }
  function refresh(){
   const name=picker.value,e=entries.get(name),rare=D.rareKinds[name],selected=variant.value;
