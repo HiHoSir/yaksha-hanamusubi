@@ -67,7 +67,7 @@ window.YK_SETTLEMENT=(()=>{
  }
  const unproject=(x,y,cam)=>YK_LANDSCAPE.unproject(x,y,cam,1.4);
  const terrace={left:1360,right:1504,back:192,front:352,height:32,stairLeft:1392,stairRight:1456,stairBottom:432};
- const upland={front:560,height:56,bottom:688,ramps:[[704,832],[1136,1216]],river:[1248,1344]};
+ const upland={front:560,height:80,bottom:688,ramps:[[704,832],[1136,1216]],river:[1248,1344]};
  function northHeight(x,y){const n=upland;if(y<=n.front)return n.height;if(y<n.bottom&&n.ramps.some(([l,r])=>x>=l&&x<=r))return n.height*(n.bottom-y)/(n.bottom-n.front);return 0;}
  function elevation(x,y){return northHeight(x,y)+shrineHeight(x,y);}
  function shrineHeight(x,y){const t=terrace;if(x>=t.left&&x<=t.right&&y>=t.back&&y<=t.front)return t.height;if(x>=t.stairLeft&&x<=t.stairRight&&y>t.front&&y<t.stairBottom)return t.height*(t.stairBottom-y)/(t.stairBottom-t.front);return 0;}
@@ -93,7 +93,7 @@ window.YK_SETTLEMENT=(()=>{
   c.drawImage(im,0,0,half,im.height,r.x-r.w*.5*openness,r.y,r.w*.5,r.h);
   c.drawImage(im,half,0,half,im.height,r.x+r.w*.5+r.w*.5*openness,r.y,r.w*.5,r.h);c.restore();
  }
- const riverDepth=10;
+ const riverDepth=24;
  function waterHeight(x,y){return northHeight(x,y)-riverDepth;}
  let riverBed=null;
  function riverBedLayer(){
@@ -107,15 +107,26 @@ window.YK_SETTLEMENT=(()=>{
   q.fillStyle='#168fa966';q.fillRect(0,0,1536,1280);return bed;
  }
  function riverTerrain(c,cam){
-  const g=riverBedLayer(),reflection=groundLayer(),bankPattern=c.createPattern(art.wall,'repeat'),at=(x,y,z)=>{const p=project(x,y,cam);return p?{...p,y:p.y-z*p.scale}:null;};
+  const g=riverBedLayer(),reflection=groundLayer(),at=(x,y,z)=>{const p=project(x,y,cam);return p?{...p,y:p.y-z*p.scale}:null;};
   c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
-  const wall=(x1,y1,x2,y2)=>{const z=northHeight((x1+x2)/2,(y1+y2)/2),a=at(x1,y1,z),b=at(x2,y2,z),d=at(x1,y1,z-riverDepth),e=at(x2,y2,z-riverDepth);if(!a||!b||!d||!e||Math.max(d.y,e.y)<136||Math.min(a.y,b.y)>544||Math.max(a.x,b.x)<0||Math.min(a.x,b.x)>640)return;const f=clamp((Math.min(a.y,b.y)-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.lineTo(e.x,e.y);c.lineTo(d.x,d.y);c.closePath();c.fillStyle=bankPattern;c.fill();};
+  // Texture coordinates stay attached to the bank in world space, never the screen.
+  // Draw complete water first, then banks: strips must not overwrite earlier bank faces.
+  const wall=(x1,y1,x2,y2)=>{
+   const z=northHeight((x1+x2)/2,(y1+y2)/2),a=at(x1,y1,z),b=at(x2,y2,z),d=at(x1,y1,z-riverDepth),e=at(x2,y2,z-riverDepth);
+   if(!a||!b||!d||!e||Math.max(d.y,e.y)<136||Math.min(a.y,b.y)>544||Math.max(a.x,b.x)<0||Math.min(a.x,b.x)>640)return;
+   const f=clamp((Math.min(a.y,b.y)-136)/72,0,1),length=Math.hypot(x2-x1,y2-y1),source=((x1===x2?y1:x1)%96+96)%96;
+   c.save();c.globalAlpha=f*f*(3-2*f);c.imageSmoothingEnabled=true;
+   c.transform((b.x-a.x)/length,(b.y-a.y)/length,(d.x-a.x)/riverDepth,(d.y-a.y)/riverDepth,a.x,a.y);
+   c.drawImage(art.wall,source/96*art.wall.width,0,length/96*art.wall.width,art.wall.height,0,-.4,length+.35,riverDepth+1);
+   c.fillStyle=x1===x2?'#29443333':'#203a4038';c.fillRect(0,0,length+.35,riverDepth+1);c.restore();
+  };
   const surface=(l,r,y)=>{const z=waterHeight((l+r)/2,y),a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,waterHeight((l+r)/2,y+3.99));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l,y,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);c.globalAlpha*=.32;c.drawImage(reflection,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);};
   // Banks descend to the water while bridge decks retain the ground elevation.
-  for(let y=0;y<1024;y+=4){if(y>=368&&y<460)continue;surface(1248,1344,y);if(y%16===0){wall(1248,y,1248,y+16);wall(1344,y,1344,y+16);}}
+  for(let y=0;y<1024;y+=4){if(y>=368&&y<464)continue;surface(1248,1344,y);}
   for(let y=1024;y<1120;y+=4){surface(0,704,y);surface(832,1536,y);}
-  for(const [l,r] of [[0,704],[832,1248],[1344,1536]])wall(l,1024,r,1024);
-  for(const [l,r] of [[0,704],[832,1536]])wall(l,1120,r,1120);
+  for(let y=0;y<1024;y+=16){if(y>=368&&y<464)continue;wall(1248,y,1248,y+16);wall(1344,y,1344,y+16);}
+  for(const [l,r] of [[0,704],[832,1248],[1344,1536]])for(let x=l;x<r;x+=16)wall(x,1024,Math.min(r,x+16),1024);
+  for(const [l,r] of [[0,704],[832,1536]])for(let x=l;x<r;x+=16)wall(x,1120,Math.min(r,x+16),1120);
   c.restore();
  }
  function riverLife(c,cam,time){
@@ -186,7 +197,7 @@ window.YK_SETTLEMENT=(()=>{
    // Reuse the river texture for the falling sheet; moving highlights and foam give it flow.
    c.drawImage(g,1248+512,480+512,96,48,a.x,top,w,h);const curtain=c.createLinearGradient(a.x,0,b.x,0);curtain.addColorStop(0,'#185d7370');curtain.addColorStop(.18,'#b2efea38');curtain.addColorStop(.7,'#b2efea18');curtain.addColorStop(1,'#185d7370');c.fillStyle=curtain;c.fillRect(a.x,top,w,h);
    c.save();c.beginPath();c.rect(a.x,top,w,h+8*a.scale);c.clip();
-   c.fillStyle='#dcfff0';for(let i=0;i<19;i++){const x=a.x+(i+.5)*w/19,y=top+((time*.065+i*17)%56)*a.scale;c.globalAlpha=f*(.25+(i%3)*.12);c.fillRect(x,y,Math.max(1,2*a.scale),(8+i%5)*a.scale);}
+   c.fillStyle='#dcfff0';for(let i=0;i<19;i++){const x=a.x+(i+.5)*w/19,y=top+((time*.065+i*17)%n.height)*a.scale;c.globalAlpha=f*(.25+(i%3)*.12);c.fillRect(x,y,Math.max(1,2*a.scale),(8+i%5)*a.scale);}
    c.globalAlpha=f*.8;for(let i=0;i<16;i++){const wave=Math.sin(time*.004+i*2);c.fillRect(a.x+i*w/16,a.y+(wave*2-2)*a.scale,w/18,(3+i%3)*a.scale);}c.restore();
    // Flattened rings sit on the pool, while droplets arc upwards in front of the falling sheet.
    for(let i=0;i<5;i++){const phase=(time*.00055+i*.2)%1,rx=w*(.14+phase*.43),ry=a.scale*(3+phase*12);c.globalAlpha=f*(1-phase)*.30;c.strokeStyle='#d9fff3';c.lineWidth=Math.max(1,a.scale);c.beginPath();c.ellipse(a.x+w*.5,a.y+5*a.scale,rx,ry,0,0,Math.PI*2);c.stroke();}
