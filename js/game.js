@@ -182,7 +182,7 @@ function enemyArt(c,x,y){
   const p=Math.min(1,(performance.now()-battleFx.start)/battleFx.duration);
   const rush=Math.sin(p*Math.PI); ox=(profile?.style==="trickster"?-16:-26)*rush;oy=-Math.sin(p*Math.PI)*8;
  }
- if(!bakedAtlas)shadow(c,x+ox,shadowY,65*shadowScale,15*shadowScale,.28);
+ // Enemy contact shadows are baked into the sprite assets; no runtime shadow.
  c.save();c.imageSmoothingEnabled=bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated));c.imageSmoothingQuality="high";
  if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
