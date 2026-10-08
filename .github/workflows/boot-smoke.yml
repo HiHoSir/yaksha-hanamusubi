@@ -93,3 +93,4 @@ jobs:
           node qa/settlement.cjs
           node qa/movement.cjs
           node qa/dialog.cjs
+          node qa/residents.cjs

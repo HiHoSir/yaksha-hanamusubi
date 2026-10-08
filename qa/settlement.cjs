@@ -8,7 +8,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  const page=await browser.newPage({viewport:{width:393,height},isMobile:true,hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());
  const run=code=>page.evaluate(code=>window.__qaEval(code),code);
- await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');
+ await run('YK_SETTLEMENT.updateResidents=()=>false;state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');
  await page.waitForFunction(()=>window.YK_SETTLEMENT.ready()&&window.YK_AUTOTILE.ready());
  await page.screenshot({path:path.join(out,'village-entry-'+height+'.png')});
  const ownership=await page.evaluate(()=>{const v=YK_SETTLEMENT;return [...v.residents,...v.doors.flatMap(d=>v.insideResidents(d.id))].map(n=>n.id);});

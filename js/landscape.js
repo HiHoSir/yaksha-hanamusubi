@@ -317,12 +317,13 @@ window.YK_LANDSCAPE=(()=>{
   }
   c.globalAlpha=1;
   if(settings.afterGround)settings.afterGround(c,camera);
-  const projected=(settings.objects||objects(map)).map(o=>({o,p:project(o.x+o.width/2,o.foot,camera,zoom)})).filter(v=>v.p&&v.p.y>=top&&v.p.y<750).sort((a,b)=>a.p.y-b.p.y);
-  const player=project(actor.x,actor.foot,camera,zoom);let drawn=false;
+  const raised=(x,y)=>{const p=project(x,y,camera,zoom);return p?{...p,depth:p.y,y:p.y-(settings.elevation?.(x,y)||0)*p.scale}:null;};
+  const projected=(settings.objects||objects(map)).map(o=>({o,p:raised(o.x+o.width/2,o.foot)})).filter(v=>v.p&&v.p.depth>=top&&v.p.depth<750).sort((a,b)=>a.p.depth-b.p.depth);
+  const player=raised(actor.x,actor.foot);let drawn=false;
   for(const {o,p} of projected){
-   if(!drawn&&player.y<p.y){actor.draw(player.x,player.y,player.scale);drawn=true;}
+   if(!drawn&&player.depth<p.depth){actor.draw(player.x,player.y,player.scale);drawn=true;}
    const w=o.width*p.scale,h=o.height*p.scale,x=p.x-w/2,y=p.y-h;if(x+w<0||x>640)continue;
-   c.globalAlpha=Math.min(1,Math.max(0,(p.y-top)/70));
+   c.globalAlpha=Math.min(1,Math.max(0,(p.depth-top)/70));
    if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
   }
   if(!drawn)actor.draw(player.x,player.y,player.scale);

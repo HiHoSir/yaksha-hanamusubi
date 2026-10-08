@@ -212,7 +212,7 @@ function enemyArt(c,x,y){
  else c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
-let villageDoorMotion=null,villagePaintAt=0;
+let villageDoorMotion=null,villagePaintAt=0,npcPaintAt=0;
 const D=YK_DATA,E=YK_EQUIPMENT, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
 function state(v){
@@ -232,9 +232,10 @@ function stabilizeLoadedState(){
    if(!YK_WORLD.walkable(S.x,S.y))[S.x,S.y]=YK_WORLD.start;
  }else if(area==="village"){
    S.x=clamp(Number(S.x)||768,32,1504);S.y=clamp(Number(S.y)||1190,40,1248);
-   if(YK_SETTLEMENT.blocked(S.x,S.y))[S.x,S.y]=YK_SETTLEMENT.spawn;
+   if(YK_SETTLEMENT.blocked(S.x,S.y)||npcBlocked(S.x,S.y))[S.x,S.y]=YK_SETTLEMENT.spawn;
  }else if(area==="teahouse"||area==="osumiHome"||area==="villageRoom"){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
+   if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||[384,625];}
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
    if(collision(S.x,S.y)){
@@ -493,9 +494,11 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
 }function npc(c,x,y,type,name,dir="d",frame=1){
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
  const set=NPC_ASSETS[type];
- const animated=NPC_MOTION_DIRECTIONS[type]?.has(dir)===true;
+ const animated=(NPC_MOTION_DIRECTIONS[type]||NPC_MOTION_DIRECTIONS[NPC_ASSET_TYPES[type]])?.has(dir)===true;
+ if(idx!==1&&set&&animated&&!set.walkLoaded?.[dir]){set.walkLoaded??={};set.walkLoaded[dir]=true;for(const i of [0,2]){const im=new Image();im.onload=assetLoaded;im.src=`${NPC_ASSET_ROOT}/${NPC_ASSET_TYPES[type]}/${({d:"front",u:"back",l:"left",r:"right"})[dir]}-${i}.png`;set.frames[dir][i]=im;}}
  const safeIdx=animated?idx:1;
- const candidate=set?.frames?.[dir]?.[safeIdx];
+ const requested=set?.frames?.[dir]?.[safeIdx];
+ const candidate=layerReady(requested)?requested:set?.frames?.[dir]?.[1];
  const ready=candidate&&candidate.complete&&candidate.naturalWidth;
  const master=set?.frontMaster;
  const masterReady=master&&master.complete&&master.naturalWidth;
@@ -685,7 +688,7 @@ function action(){
   if(S.y>=590){leaveInterior();return true}
  }
  const n=nearestNPC(100);
- if(n){
+ if(n){faceNPC(n);n.frame=1;
   if(n.service==="shop"||(n.type==="merchant"&&n.service===undefined)){openShop();return true;}
   if(n.service==="rest")return talk({n:n.name,t:["旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();});
   const event=D.story[S.quest];
@@ -736,7 +739,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
  exit:{to:"field",rect:[720,1230,816,1280]},northExit:{to:"field",rect:[710,0,830,58]}};
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
-function collision(x,y){if(S.area==="debugField"){const m=debugCollisionMap();return m?!YK_LANDSCAPE.walkable(m,x-48,y-100):x<53||x>683||y<105||y>639;}if(S.area==="field")return !window.YK_WORLD?.walkable(x,y);if(S.area==="village")return villageBlocked(x,y)||npcBlocked(x,y);if(x<27||x>741||y<34||y>736)return true;if(npcBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom")&&interiorBlocked(x,y))return true;if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
+function collision(x,y,ignoreNPC=false){if(S.area==="debugField"){const m=debugCollisionMap();return m?!YK_LANDSCAPE.walkable(m,x-48,y-100):x<53||x>683||y<105||y>639;}if(S.area==="field")return !window.YK_WORLD?.walkable(x,y);if(S.area==="village")return villageBlocked(x,y)||!ignoreNPC&&npcBlocked(x,y);if(x<27||x>741||y<34||y>736)return true;if(!ignoreNPC&&npcBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom")&&interiorBlocked(x,y))return true;if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom")return null;
  if(S.area==="village"){
@@ -1029,7 +1032,7 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){tickVillageDoor(t);if(S.area==="village"&&!fieldMotion&&t-villagePaintAt>50){villagePaintAt=t;map();}if(!busy){if(fieldMotion){if(t-fieldMotion.at>=144){
+function loop(t){tickVillageDoor(t);const npcMoved=YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show"));if(npcMoved&&!fieldMotion&&t-npcPaintAt>33){npcPaintAt=t;map();}if(S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>50){villagePaintAt=t;map();}if(!busy){if(fieldMotion){if(t-fieldMotion.at>=144){
  const deadline=fieldMotion.at+144;fieldMotion=null;
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,t-32);}
