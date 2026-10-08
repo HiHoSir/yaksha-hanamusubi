@@ -12,6 +12,8 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Yaksha-hime battle poses and outfits | [yaksha-battle-sprites](.agents/skills/yaksha-battle-sprites/SKILL.md) |
 | Field/mapchip artwork and terrain | [field-mapchip-art](.agents/skills/field-mapchip-art/SKILL.md) |
 | Isolated private internal validation site | [sites-private-debug](.agents/skills/sites-private-debug/SKILL.md) |
+| Proven image-to-GitHub binary transfer, atlas and main commit | [github-image-atlas](skills/github-image-atlas/SKILL.md) |
+| Paired intact/worn enemy preprocessing and atlas build | [enemy-atlas-pipeline](skills/enemy-atlas-pipeline/SKILL.md) |
 
 ## Standing rules
 - Repository: `HiHoSir/yaksha-hanamusubi`, production branch `main`. Preserve existing save data, maps, controls and game-start flow.
@@ -33,3 +35,8 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 - Use the connected GitHub tools for repository operations and confirm changes on main.
 - Local DNS issues do not prove the GitHub connector is unavailable.
 - Verify binary files exist remotely before reporting successful asset deployment.
+
+## Reusable verified image delivery
+- Before working on PNG/ZIP asset integration, read `skills/github-image-atlas/SKILL.md`, `skills/enemy-atlas-pipeline/SKILL.md`, and `.agents/skills/github-artifact-delivery/SKILL.md` as relevant.
+- Reuse the proven Base64 Git blob -> tree -> commit -> fast-forward main -> verify workflow. When required, bridge encoded text via supported Library tools. Never conclude that DNS limitations prevent connector-based GitHub commits.
+- Treat source files, uploaded binaries, runtime references, CI status, and mobile visual QA as distinct checkpoints. Preserve original source assets and record what is verified.
