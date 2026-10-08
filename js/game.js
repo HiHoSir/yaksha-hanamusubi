@@ -172,7 +172,7 @@ function rareReady(r){
  return layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);
 }
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0)+YK_EQUIPMENT.bonus(S,stat);}
-function enemyArt(c,x,y){
+function enemyArt(c,x,y,debugSmoothing=null){
  const name=battle?.baseName||battle?.name||"",profile=D.enemyProfiles?.[name];
  const kind=/狐/.test(name)?"ninefox":/磯|泡|水|滝/.test(name)?"umibozu":/木|蜘蛛/.test(name)?"yokai_flower":"redoni";
  const dedicated=profile?.art&&ENEMY_ART[profile.art],fallback=B9EN[profile?.fallback||kind];
@@ -198,7 +198,7 @@ function enemyArt(c,x,y){
   const rush=Math.sin(p*Math.PI); ox=(profile?.style==="trickster"?-16:-26)*rush;oy=-Math.sin(p*Math.PI)*8;
  }
  // Enemy contact shadows are baked into the sprite assets; no runtime shadow.
- c.save();c.imageSmoothingEnabled=highResReady?true:(bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated)));c.imageSmoothingQuality="high";
+ c.save();c.imageSmoothingEnabled=debugSmoothing===null?(highResReady?true:(bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated)))):debugSmoothing;c.imageSmoothingQuality="high";
  if(highResReady){c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);}
  else if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
@@ -1382,6 +1382,19 @@ window.YKDebugField=(enabled=true)=>{
 (function setupEnemyDebug(){
  const openBtn=$("enemyDebugBtn"),panel=$("enemyDebugPanel"),picker=$("enemyDebugEnemy"),variant=$("enemyDebugVariant"),closeBtn=$("enemyDebugClose"),canvas=$("enemyDebugCanvas"),info=$("enemyDebugInfo");
  const outfit=$("battleDebugOutfit"),pose=$("battleDebugPose");
+ // Read-only image interpolation probe; battle rendering always keeps its default.
+ const smoothingLabel=document.createElement("label");
+ smoothingLabel.textContent="敵画像の縮小補間：";
+ smoothingLabel.style.cssText="display:block;margin:10px 0;color:#f9df9a;font-size:15px";
+ const smoothingMode=document.createElement("select");
+ smoothingMode.setAttribute("aria-label","敵画像の縮小補間");
+ for(const [value,label] of [["normal","通常（補間あり）"],["nearest","補間なし（比較）"]]){
+  const option=document.createElement("option");option.value=value;option.textContent=label;smoothingMode.appendChild(option);
+ }
+ smoothingMode.style.cssText="width:100%;font-size:16px;padding:8px;background:#193450;color:white;border-radius:8px";
+ smoothingLabel.appendChild(smoothingMode);
+ canvas.parentNode.insertBefore(smoothingLabel,canvas);
+
  if(!openBtn||!panel||!picker||!variant||!canvas)return;
  const entries=new Map();
  for(const [area,pool] of Object.entries(D.enemies))for(const e of pool||[])if(!entries.has(e[0]))entries.set(e[0],e);
@@ -1409,7 +1422,7 @@ window.YKDebugField=(enabled=true)=>{
    c.restore();
   }
   const previous=battle;
-  try{battle=selectedBattle;enemyArt(c,420,190);}finally{battle=previous;}
+  try{battle=selectedBattle;enemyArt(c,420,190,smoothingMode.value==="nearest"?false:null);}finally{battle=previous;}
   let alphaReport=" / 画像未読込";
   const hdDebug=isRare?HD_RARE_ART[rare?.id]?.[selected==="worn"?"worn":"intact"]:null;
   const debugHdReady=!!hdDebug&&layerReady(hdDebug);
@@ -1419,7 +1432,15 @@ window.YKDebugField=(enabled=true)=>{
     const sourceCanvas=document.createElement("canvas");sourceCanvas.width=128;sourceCanvas.height=128;
     const sourceContext=sourceCanvas.getContext("2d",{willReadFrequently:true});
     const cellIndex=debugHdReady?null:(isRare?rare.variantAtlas:D.enemyProfiles?.[name]?.atlas);
-    if(debugHdReady){alphaReport=" / 高解像度スプライト "+source.naturalWidth+"×"+source.naturalHeight;}
+    if(debugHdReady){
+     sourceCanvas.width=source.naturalWidth;sourceCanvas.height=source.naturalHeight;
+     sourceContext.imageSmoothingEnabled=false;
+     sourceContext.drawImage(source,0,0);
+     const pixels=sourceContext.getImageData(0,0,sourceCanvas.width,sourceCanvas.height).data;
+     let opaque=0,translucent=0,clear=0;
+     for(let k=3;k<pixels.length;k+=4){const a=pixels[k];if(a===255)opaque++;else if(a===0)clear++;else translucent++;}
+     alphaReport=" / HD "+source.naturalWidth+"×"+source.naturalHeight+" 不透明"+opaque+" 半透明"+translucent+" 透明"+clear;
+    }
     if(Number.isInteger(cellIndex)){
      sourceContext.drawImage(source,(cellIndex%4)*128,Math.floor(cellIndex/4)*128,128,128,0,0,128,128);
      const data=sourceContext.getImageData(0,0,128,128).data;
@@ -1437,6 +1458,7 @@ window.YKDebugField=(enabled=true)=>{
  closeBtn.addEventListener("click",close);
  picker.addEventListener("change",refresh);
  variant.addEventListener("change",refresh);
+ smoothingMode.addEventListener("change",refresh);
  outfit?.addEventListener("change",refresh);
  pose?.addEventListener("change",refresh);
  // Image loading is asynchronous, so refresh once all sprites have had time to arrive.
