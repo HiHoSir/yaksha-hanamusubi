@@ -1,0 +1,30 @@
+{
+  "prebake-intact": {
+    "width": 1199,
+    "height": 1312,
+    "alpha0": 897390,
+    "alpha255": 1129,
+    "alphaPartial": 674569
+  },
+  "prebake-worn": {
+    "width": 1199,
+    "height": 1312,
+    "alpha0": 907744,
+    "alpha255": 871,
+    "alphaPartial": 664473
+  },
+  "design-worn": {
+    "width": 1199,
+    "height": 1312,
+    "alpha0": 899712,
+    "alpha255": 644,
+    "alphaPartial": 672732
+  },
+  "baked-atlas-oni": {
+    "width": 128,
+    "height": 128,
+    "alpha0": 7954,
+    "alpha255": 2580,
+    "alphaPartial": 5850
+  }
+}
