@@ -178,12 +178,34 @@ function opaqueVariantSource(im){
    // fringes. The source atlases have pervasive fractional body opacity:
    // treat every visible sprite pixel as solid rather than punching holes
    // through hair, skin and clothing at the previous threshold of 32.
-   data[i]=data[i]<8?0:255;
+   data[i]=data[i]===0?0:255;
   }
   ctx.putImageData(pixels,0,0);
   OPAQUE_VARIANT_CACHE.set(im,surface);
   return surface;
  }catch(e){console.warn("Variant alpha normalization unavailable",e);return im;}
+}
+const RARE_BOUNDS_CACHE=new WeakMap();
+function rareBounds(im,index){
+ const source=opaqueVariantSource(im);
+ let cache=RARE_BOUNDS_CACHE.get(source);
+ if(!cache){cache=new Map();RARE_BOUNDS_CACHE.set(source,cache);}
+ if(cache.has(index))return cache.get(index);
+ let bounds={x:0,y:0,w:128,h:128};
+ try{
+  const canvas=document.createElement("canvas");
+  canvas.width=canvas.height=128;
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  ctx.drawImage(source,(index%4)*128,Math.floor(index/4)*128,128,128,0,0,128,128);
+  const pixels=ctx.getImageData(0,0,128,128).data;
+  let minX=128,minY=128,maxX=-1,maxY=-1;
+  for(let y=0;y<128;y++)for(let x=0;x<128;x++){
+   if(pixels[(y*128+x)*4+3]<128)continue;
+   minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+  }
+  if(maxX>=0)bounds={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
+ }catch(e){console.warn("Rare sprite bounds unavailable",e);}
+ cache.set(index,bounds);return bounds;
 }
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0)+YK_EQUIPMENT.bonus(S,stat);}
 function enemyArt(c,x,y){
@@ -211,9 +233,15 @@ function enemyArt(c,x,y){
  }
  if(!bakedAtlas)shadow(c,x+ox,shadowY,65*shadowScale,15*shadowScale,.28);
  c.save();c.imageSmoothingEnabled=bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated));c.imageSmoothingQuality="high";
- if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(opaqueVariantSource(im),sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
- else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(opaqueVariantSource(im),sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
- else if(atlasReady){const sx=(atlasIndex%ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL,sy=Math.floor(atlasIndex/ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL;c.drawImage(im,sx,sy,ENEMY_ATLAS_CELL,ENEMY_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
+ if(wornVariantReady||variantReady){
+  const intact=rareBounds(VARIANT_ATLAS,variantIndex);
+  const current=rareBounds(im,variantIndex);
+  const height=intact.h*scale;
+  const factor=height/Math.max(1,current.h);
+  const width=current.w*factor;
+  const sx=(variantIndex%4)*128+current.x,sy=Math.floor(variantIndex/4)*128+current.y;
+  c.drawImage(opaqueVariantSource(im),sx,sy,current.w,current.h,x+ox-width/2,baseY+oy-height,width,height);
+ } else if(atlasReady){const sx=(atlasIndex%ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL,sy=Math.floor(atlasIndex/ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL;c.drawImage(im,sx,sy,ENEMY_ATLAS_CELL,ENEMY_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else c.drawImage(battle?.rareId?opaqueVariantSource(im):im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
