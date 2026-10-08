@@ -54,25 +54,9 @@ const B9={
  hot:"assets/scenes/hotspring.png",dialogue:"assets/scenes/dialogue.png"
 };
 const B9IMG={};
-const NPC_ASSET_ROOT="assets/characters/npc";
-// β15.26: only directions with independently verified 3-frame high-resolution sets animate.
-// Other directions use their neutral frame; rejected generation outputs are never loaded.
-const NPC_MOTION_DIRECTIONS={
- elder:new Set(["r","l","d","u"]),
- teagirl:new Set(["r","l","d","u"]),
- osumi:new Set(["r","l","d","u"]),
- satoko:new Set(["r","l","d","u"]),
- merchant:new Set(["r","l","d","u"])
-};
-const NPC_ART_QUALITY={
- elder:{r:"independent-3frame",l:"mirrored-3frame",d:"position-only",u:"position-only"},
- teagirl:{r:"independent-3frame",l:"mirrored-3frame",d:"position-only",u:"position-only"},
- osumi:{r:"position-only",l:"position-only",d:"position-only",u:"position-only"},
- satoko:{r:"position-only",l:"position-only",d:"position-only",u:"position-only"},
- merchant:{r:"position-only",l:"position-only",d:"position-only",u:"position-only"}
-};
-// d/u currently use safe position-only provisional motion; r/l use full 3-frame art.
-
+const NPC_ASSET_ROOT="assets/characters/npc-v2";
+// Shared 3x4 atlases: four directions, two stride poses and one neutral pose.
+const NPC_ART_QUALITY=Object.fromEntries(['elder','teagirl','osumi','satoko','merchant'].map(k=>[k,{d:'regenerated-atlas',u:'regenerated-atlas',l:'regenerated-atlas',r:'regenerated-atlas'}]));
 window.YKNpcArtQuality=(type=null)=>{
  if(type)return NPC_ART_QUALITY[type]||null;
  return JSON.parse(JSON.stringify(NPC_ART_QUALITY));
@@ -86,14 +70,8 @@ const NPC_ASSET_TYPES={
 };
 const NPC_ASSETS={};
 function loadNpcAssetSet(){
- // Residents stand and turn. Load four shared neutral directions per archetype;
- // walking frames can be loaded when an actual wandering NPC needs them.
  for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
-  const set={frames:{}};
-  for(const [dir,fileDir] of Object.entries({d:"front",u:"back",l:"left",r:"right"})){
-   const im=new Image();im.onload=assetLoaded;im.src=`${NPC_ASSET_ROOT}/${folder}/${fileDir}-1.png`;
-   set.frames[dir]=[im,im,im];if(dir==="d")set.frontMaster=im;
-  }NPC_ASSETS[type]=set;
+  const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;NPC_ASSETS[type]={atlas};
  }
 }
 let npcAssetsLoaded=false;
@@ -493,23 +471,12 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  }
 }function npc(c,x,y,type,name,dir="d",frame=1){
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
- const set=NPC_ASSETS[type];
- const animated=(NPC_MOTION_DIRECTIONS[type]||NPC_MOTION_DIRECTIONS[NPC_ASSET_TYPES[type]])?.has(dir)===true;
- if(idx!==1&&set&&animated&&!set.walkLoaded?.[dir]){set.walkLoaded??={};set.walkLoaded[dir]=true;for(const i of [0,2]){const im=new Image();im.onload=assetLoaded;im.src=`${NPC_ASSET_ROOT}/${NPC_ASSET_TYPES[type]}/${({d:"front",u:"back",l:"left",r:"right"})[dir]}-${i}.png`;set.frames[dir][i]=im;}}
- const safeIdx=animated?idx:1;
- const requested=set?.frames?.[dir]?.[safeIdx];
- const candidate=layerReady(requested)?requested:set?.frames?.[dir]?.[1];
- const ready=candidate&&candidate.complete&&candidate.naturalWidth;
- const master=set?.frontMaster;
- const masterReady=master&&master.complete&&master.naturalWidth;
- if(ready||masterReady){
-   const draw=ready?candidate:master;
+ const atlas=NPC_ASSETS[type]?.atlas;
+ if(layerReady(atlas)){
    c.save();c.imageSmoothingEnabled=true;
-   const special=(type==="woman"||type==="teagirl"),child=(type==="child"),merchant=(type==="merchant");
-   const w=child?57:(merchant?68:(special?65:63));
-   const h=child?70:(merchant?80:(special?79:77));
-   shadow(c,x,y+7,w*.27,7,.22);
-   c.drawImage(draw,x-w/2,y-h*.84,w,h);
+   const child=type==='child',h=child?67:79,w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
+   shadow(c,x,y+7,w*.27,6,.17);
+   c.drawImage(atlas,idx*192,row*224,192,224,x-w/2,y+7-h*212/224,w,h);
    c.restore();
  }else if(!NPC_ASSET_TYPES[type]){
    // NPCs outside the five Hozuki-village roles keep their existing assets until their own map pass.

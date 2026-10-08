@@ -7,6 +7,8 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  const page=await browser.newPage({viewport:{width:393,height:852},isMobile:true,hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>YK_LANDSCAPE.ready());const run=code=>page.evaluate(code=>window.__qaEval(code),code);
  await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>YK_SETTLEMENT.ready()&&YK_AUTOTILE.ready());
+ await page.waitForFunction(()=>window.__qaEval('Object.values(NPC_ASSETS).length===5&&Object.values(NPC_ASSETS).every(s=>layerReady(s.atlas))'));
+ const atlasSizes=await run('Object.values(NPC_ASSETS).map(s=>[s.atlas.naturalWidth,s.atlas.naturalHeight])');assert(atlasSizes.every(([w,h])=>w===576&&h===896),'all five NPC atlases loaded');
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0;
   const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
