@@ -137,9 +137,9 @@ const ENEMY_ART={};
 });
 const ENEMY_ATLAS=new Image();ENEMY_ATLAS.onload=assetLoaded;ENEMY_ATLAS.datasetSrc="assets/enemies/enemy-standard-atlas-128.png?v=15.55.47";
 const ENEMY_ATLAS_CELL=128,ENEMY_ATLAS_COLS=4;
-const VARIANT_ATLAS=new Image();VARIANT_ATLAS.onload=assetLoaded;VARIANT_ATLAS.datasetSrc="assets/enemies/enemy-variant-atlas-128.png?v=15.57.26";
+const VARIANT_ATLAS=new Image();VARIANT_ATLAS.onload=assetLoaded;VARIANT_ATLAS.datasetSrc="assets/enemies/enemy-variant-atlas-128.png?v=15.57.27";
 const VARIANT_ATLAS_CELL=128,VARIANT_ATLAS_COLS=4;
-const VARIANT_WORN_ATLAS=new Image();VARIANT_WORN_ATLAS.onload=assetLoaded;VARIANT_WORN_ATLAS.datasetSrc="assets/enemies/enemy-variant-worn-atlas-128.png?v=15.57.26";
+const VARIANT_WORN_ATLAS=new Image();VARIANT_WORN_ATLAS.onload=assetLoaded;VARIANT_WORN_ATLAS.datasetSrc="assets/enemies/enemy-variant-worn-atlas-128.png?v=15.57.27";
 // Optional independent high-resolution sprites; missing files fall back to the current atlas.
 const HD_RARE_STEMS={oni:"oni",tanuki:"tanuki",lantern:"lantern_fox",shell:"crab",jelly:"jelly",tree:"tree",spider:"spider",snake:"snake",falls:"falls",ninefox:"ninefox"};
 const HD_RARE_ART={};
@@ -148,7 +148,7 @@ for(const [id,stem] of Object.entries(HD_RARE_STEMS)){
  for(const state of ["intact","worn"]){
   const im=new Image();im.onload=assetLoaded;
   im.onerror=()=>{im.datasetFailed="1";};
-  im.datasetSrc=`assets/enemies/hd512/${stem}-${state}-512.png?v=15.57.26`;
+  im.datasetSrc=`assets/enemies/hd512/${stem}-${state}-512.png?v=15.57.27`;
   HD_RARE_ART[id][state]=im;
  }
 }
