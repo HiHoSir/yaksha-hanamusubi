@@ -1455,7 +1455,7 @@ window.YKDebugField=(enabled=true)=>{
   const previous=battle;
   try{battle=selectedBattle;enemyArt(c,420,190);}finally{battle=previous;}
   let alphaReport=" / 画像未読込";
-  const source=isRare?(selected==="worn"?VARIANT_WORN_ATLAS:VARIANT_ATLAS):ENEMY_ATLAS;
+  const source=isRare?(rare?.id==="oni"&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN)?(selected==="worn"?ONI_FIXED_WORN:ONI_FIXED_ATLAS):(selected==="worn"?VARIANT_WORN_ATLAS:VARIANT_ATLAS)):ENEMY_ATLAS;
   if(layerReady(source)){
    try{
     const sourceCanvas=document.createElement("canvas");sourceCanvas.width=128;sourceCanvas.height=128;
