@@ -122,11 +122,11 @@ window.YK_SETTLEMENT=(()=>{
   };
   const surface=(l,r,y)=>{const z=waterHeight((l+r)/2,y),a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,waterHeight((l+r)/2,y+3.99));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l,y,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);c.globalAlpha*=.32;c.drawImage(reflection,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);};
   // Banks descend to the water while bridge decks retain the ground elevation.
-  for(let y=0;y<1024;y+=4){if(y>=368&&y<464)continue;surface(1248,1344,y);}
-  for(let y=1024;y<1120;y+=4){surface(0,704,y);surface(832,1536,y);}
-  for(let y=0;y<1024;y+=16){if(y>=368&&y<464)continue;wall(1248,y,1248,y+16);wall(1344,y,1344,y+16);}
-  for(const [l,r] of [[0,704],[832,1248],[1344,1536]])for(let x=l;x<r;x+=16)wall(x,1024,Math.min(r,x+16),1024);
-  for(const [l,r] of [[0,704],[832,1536]])for(let x=l;x<r;x+=16)wall(x,1120,Math.min(r,x+16),1120);
+  for(let y=0;y<1024;y+=4){surface(1248,1344,y);}
+  for(let y=1024;y<1120;y+=4){surface(0,1536,y);}
+  for(let y=0;y<1024;y+=16){wall(1248,y,1248,y+16);wall(1344,y,1344,y+16);}
+  for(const [l,r] of [[0,1248],[1344,1536]])for(let x=l;x<r;x+=16)wall(x,1024,Math.min(r,x+16),1024);
+  for(const [l,r] of [[0,1536]])for(let x=l;x<r;x+=16)wall(x,1120,Math.min(r,x+16),1120);
   c.restore();
  }
  function riverLife(c,cam,time){
@@ -162,7 +162,7 @@ window.YK_SETTLEMENT=(()=>{
   if(ground)return ground;
   ground=document.createElement('canvas');ground.width=size[0]+1024;ground.height=size[1]+1024;const c=ground.getContext('2d');c.imageSmoothingEnabled=false;
   for(let y=0;y<ground.height;y+=256)for(let x=0;x<ground.width;x+=256)YK_LANDSCAPE.drawAsset(c,'grass',x,y,256,256);
-  c.translate(512,512);c.drawImage(YK_LANDSCAPE.groundLayer(mapData),0,0);
+  c.translate(512,512);const floorMap=mapData.map(row=>row.slice());floorMap.paths=mapData.paths;floorMap.decorations=[];c.drawImage(YK_LANDSCAPE.groundLayer(floorMap),0,0);
   for(const [x,y] of [[242,966],[438,958],[632,974],[906,982],[1178,822],[1194,560],[1150,484],[876,626],[258,590],[584,354]])YK_LANDSCAPE.drawAsset(c,'flowers',x-24,y-16,48,28);
   for(const a of gardens){c.save();c.beginPath();c.rect(a.x-a.w/2,a.y-68,a.w,76);c.clip();for(let y=a.y-68;y<a.y+8;y+=64)for(let x=a.x-a.w/2;x<a.x+a.w/2;x+=64)YK_LANDSCAPE.drawAsset(c,'road',x,y,64,64);c.fillStyle='#4b301c88';c.fillRect(a.x-a.w/2,a.y-68,a.w,76);c.restore();}
   return ground;
@@ -217,6 +217,18 @@ window.YK_SETTLEMENT=(()=>{
   for(let y=t.front;y<t.stairBottom;y+=2){const a=at(t.stairLeft,y,shrineHeight(1424,y)),b=at(t.stairRight,y,shrineHeight(1424,y)),d=at(t.stairLeft,y+2,shrineHeight(1424,y+2));if(a&&b&&d&&d.y>a.y)c.drawImage(art.stairs,0,(y-t.front)/(t.stairBottom-t.front)*art.stairs.height,art.stairs.width,2/(t.stairBottom-t.front)*art.stairs.height,a.x,a.y,b.x-a.x,d.y-a.y+.6);}
   c.restore();
  }
+ const bridgeTextures={};
+ function bridgeDecks(c,cam){
+  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
+  for(const b of bridges){
+   if(!bridgeTextures[b.kind]){const im=document.createElement('canvas');im.width=b.kind==='bridge'?96:48;im.height=b.kind==='bridge'?40:96;YK_LANDSCAPE.drawAsset(im.getContext('2d'),b.kind,0,0,im.width,im.height);bridgeTextures[b.kind]=im;}
+   const im=bridgeTextures[b.kind],crop=b.kind==='bridge'?[4,10,88,18]:[9,8,30,80],height=elevation(b.x+b.width/2,b.y+b.height/2);
+   for(let y=b.y;y<b.y+b.height;y+=2){const next=Math.min(y+2,b.y+b.height),a=project(b.x,y,cam),r=project(b.x+b.width,y,cam),d=project(b.x,next,cam);if(!a||!r||!d)continue;
+    a.y-=height*a.scale;r.y-=height*r.scale;d.y-=height*d.scale;if(d.y<=a.y||d.y<136||a.y>544)continue;
+    const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(im,crop[0],crop[1]+(y-b.y)/b.height*crop[3],crop[2],(next-y)/b.height*crop[3],a.x,a.y,r.x-a.x,d.y-a.y+.6);
+   }
+  }c.restore();
+ }
  function bridgeObjects(sprite){
   const ns=bridges[0],ew=bridges[1];
   const posts=[];for(const x of [ns.x+8,ns.x+ns.width-8])for(const foot of [ns.y+8,ns.y+ns.height-8])posts.push({x:x-4,foot,width:8,height:28,draw:(c,l,t,w,h)=>c.drawImage(art.fence,9,0,14,art.fence.height,l,t,w,h)});
@@ -256,7 +268,7 @@ window.YK_SETTLEMENT=(()=>{
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();
   c.save();c.translate(0,32);c.scale(1.2,1.2);
-  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);riverLife(q,cam,time);flow(q,cam,time);}});
+  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);riverLife(q,cam,time);flow(q,cam,time);bridgeDecks(q,cam);}});
   const near=doors.find(d=>Math.abs(state.x-d.x)<58&&Math.abs(state.y-d.y)<64);
   if(near){const p=project(near.x,near.y,camera(state.x,state.y));if(p){p.y-=elevation(near.x,near.y)*p.scale;c.font='bold 14px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-82,p.y-116,164,26);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-98);}}
   c.restore();return true;
