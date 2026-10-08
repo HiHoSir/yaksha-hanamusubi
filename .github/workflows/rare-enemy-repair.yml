@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/rare-enemy-repair.yml'
+      - 'qa/repair-rare-enemy-atlases.py'
 permissions:
   contents: write
 jobs:
