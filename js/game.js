@@ -238,14 +238,19 @@ function enemyArt(c,x,y){
  }
  if(!bakedAtlas)shadow(c,x+ox,shadowY,65*shadowScale,15*shadowScale,.28);
  c.save();c.imageSmoothingEnabled=bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated));c.imageSmoothingQuality="high";
- if(useFixedOni||wornVariantReady||variantReady){
-  const intact=rareBounds(useFixedOni?ONI_FIXED_ATLAS:VARIANT_ATLAS,variantIndex);
-  const current=rareBounds(im,variantIndex);
-  const height=intact.h*scale;
-  const factor=height/Math.max(1,current.h);
-  const width=current.w*factor;
-  const sx=(variantIndex%4)*128+current.x,sy=Math.floor(variantIndex/4)*128+current.y;
-  c.drawImage(opaqueVariantSource(im),sx,sy,current.w,current.h,x+ox-width/2,baseY+oy-height,width,height);
+ if(useFixedOni){
+  const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
+  const sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
+  // The repaired oni artwork is already aligned in its 128px cells.
+  c.drawImage(im,sx,sy,128,128,x+ox-w/2,baseY+oy-h,w,h);
+ }
+ else if(wornVariantReady){
+  const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
+  c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);
+ }
+ else if(variantReady){
+  const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;
+  c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);
  } else if(atlasReady){const sx=(atlasIndex%ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL,sy=Math.floor(atlasIndex/ENEMY_ATLAS_COLS)*ENEMY_ATLAS_CELL;c.drawImage(im,sx,sy,ENEMY_ATLAS_CELL,ENEMY_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else c.drawImage(battle?.rareId?opaqueVariantSource(im):im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
