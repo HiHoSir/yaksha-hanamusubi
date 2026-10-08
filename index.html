@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1020">
-<title>夜叉姫の花結び奇譚 β15.57.1</title>
-<link rel="stylesheet" href="css/game.css?v=15.57.1">
+<title>夜叉姫の花結び奇譚 β15.57.2</title>
+<link rel="stylesheet" href="css/game.css?v=15.57.2">
 </head>
 <body>
 <canvas id="worldTerrain" width="1536" height="1536" hidden aria-hidden="true"></canvas>
 <div id="app">
   <header>
-    <div class="brand">夜叉姫の花結び奇譚 <small>β15.57.1</small></div>
+    <div class="brand">夜叉姫の花結び奇譚 <small>β15.57.2</small></div>
     <div class="topBtns">
       <button id="worldBtn">地図</button><button id="bookBtn">つよさ</button><button id="saveBtn">記録</button><button id="settingsBtn">設定</button>
     </div>
@@ -23,6 +23,7 @@
     <div id="hud"></div>
     <div id="objective"></div>
     <div id="message"></div>
+<div id="dialog" class="overlay" role="dialog" aria-labelledby="speaker"><div class="dialogWindow"><canvas id="dialogPortrait" width="180" height="180" aria-label="夜叉姫" style="display:none"></canvas><div id="speaker"></div><div id="dialogText"></div><button id="dialogNext">次へ</button></div></div>
   </main>
 
   <section id="pad" aria-label="ゲーム操作">
@@ -52,7 +53,7 @@
     <button id="newGame" class="primary" type="button" onclick="window.__YK_BOOT_START&&window.__YK_BOOT_START()">はじめから</button>
     <button id="continueGame">つづきから</button>
     <button id="debugMap" type="button" style="font-size:14px;opacity:.82">DEBUG MAP</button>
-    <div class="version">BETA 15.57.1</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
+    <div class="version">BETA 15.57.2</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
   </div>
   <script>
   // Boot-safe title control. This deliberately does not depend on game.js/YK_INPUT.
@@ -75,7 +76,7 @@
 <h2>世界地図</h2><canvas id="worldCanvas" width="720" height="720"></canvas>
 <p id="worldStatus" class="mapHint"></p><div id="worldPlaces" class="worldPlaces"></div><p class="mapHint">地名を選ぶと目的地の印を付けられます。目的地の入口付近で A を押して入ります。</p>
 <button data-close="worldMap">閉じる</button></div></div>
-<div id="dialog" class="overlay"><div class="dialogWindow"><canvas id="dialogPortrait" width="180" height="180" aria-label="夜叉姫" style="display:none"></canvas><div id="speaker"></div><div id="dialogText"></div><button id="dialogNext">次へ</button></div></div>
+
 
 <div id="battle" class="overlay" aria-label="戦闘">
   <div class="battleTop"><span id="enemyName"></span><span>体 <b id="enemyHp"></b></span></div>
@@ -117,16 +118,16 @@
 
 <div id="gameover" class="overlay"><div class="titlebox"><h2>力尽きた……</h2><p>最後の自動保存から再開できます。</p><button id="retryBtn" class="primary">再開する</button><button id="goTitleBtn">タイトルへ</button></div></div>
 
-<script src="js/data.js?v=15.57.1"></script>
-<script src="js/equipment.js?v=15.57.1"></script>
-<script src="js/world.js?v=15.57.1"></script>
-<script src="js/save.js?v=15.57.1"></script>
-<script src="js/audio.js?v=15.57.1"></script>
-<script src="js/input.js?v=15.57.1"></script>
-<script src="js/autotile.js?v=15.57.1"></script>
-<script src="js/landscape.js?v=15.57.1"></script>
-<script src="js/settlement.js?v=15.57.1"></script>
-<script src="js/game.js?v=15.57.1"></script>
+<script src="js/data.js?v=15.57.2"></script>
+<script src="js/equipment.js?v=15.57.2"></script>
+<script src="js/world.js?v=15.57.2"></script>
+<script src="js/save.js?v=15.57.2"></script>
+<script src="js/audio.js?v=15.57.2"></script>
+<script src="js/input.js?v=15.57.2"></script>
+<script src="js/autotile.js?v=15.57.2"></script>
+<script src="js/landscape.js?v=15.57.2"></script>
+<script src="js/settlement.js?v=15.57.2"></script>
+<script src="js/game.js?v=15.57.2"></script>
 
 
 

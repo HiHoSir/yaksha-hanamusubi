@@ -91,3 +91,5 @@ jobs:
           npx playwright install --with-deps chromium
           node qa/battle-layout.cjs
           node qa/settlement.cjs
+          node qa/movement.cjs
+          node qa/dialog.cjs

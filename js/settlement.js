@@ -80,7 +80,7 @@ window.YK_SETTLEMENT=(()=>{
    if(bridges.some(b=>x>b.x-12&&x<b.x+b.width+12&&y>b.y-8&&y<b.y+b.height+8))continue;
    const p=project(x,y,cam),q=project(x+(vertical?4:12),y+(vertical?8:0),cam);
    if(!p||!q||p.x<0||p.x>640||p.y<136||p.y>544)continue;
-   c.beginPath();c.moveTo(p.x,p.y);c.lineTo(q.x,q.y);c.stroke();
+   c.globalAlpha=.48*Math.min(1,(p.y-136)/72);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(q.x,q.y);c.stroke();
   }c.restore();
  }
  let ground=null;

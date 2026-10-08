@@ -216,7 +216,7 @@ let villageDoorMotion=null,villagePaintAt=0;
 const D=YK_DATA,E=YK_EQUIPMENT, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
 function state(v){
- villageDoorMotion=null;fieldMotion=null;$("pad").classList.remove("battleActive");
+ villageDoorMotion=null;fieldMotion=null;$("pad").classList.remove("dialogActive");$("cancel").disabled=false;$("pad").classList.remove("battleActive");
  resetBattleAnimation();
  S=window.gameState=YK_SAVE.migrate(v);
  battle=null;battleLocked=false;dialogQueue=[];dialogAfter=null;
@@ -619,7 +619,7 @@ function npcBlocked(x,y){
 }
 function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.dir=dx>0?"r":"l";n.dir=dx>0?"l":"r"}else{S.dir=dy>0?"d":"u";n.dir=dy>0?"u":"d"}}
 
-function hud(){YK_AUDIO.syncBgm(S.area);const a=D.areas[S.area];$("hud").innerHTML=`体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>${S.lv}段　${S.gold}両<br><span class="outfitHud">衣装：${D.outfits[S.outfit]?.name||"花守り装束"}${OUTFIT_READY[S.outfit]?"":"（制作中）"}</span>`;$("objective").textContent="目的： "+D.objectives[Math.min(S.quest,D.objectives.length-1)];map()}
+function hud(redraw=true){YK_AUDIO.syncBgm(S.area);const a=D.areas[S.area];$("hud").innerHTML=`体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>${S.lv}段　${S.gold}両<br><span class="outfitHud">衣装：${D.outfits[S.outfit]?.name||"花守り装束"}${OUTFIT_READY[S.outfit]?"":"（制作中）"}</span>`;$("objective").textContent="目的： "+D.objectives[Math.min(S.quest,D.objectives.length-1)];if(redraw)map()}
 function message(t,ms=1300){clearTimeout(msgTimer);$("message").textContent=t;$("message").style.display="block";msgTimer=setTimeout(()=>$("message").style.display="none",ms)}
 
 function talk(entry,after=null){
@@ -629,7 +629,7 @@ function talk(entry,after=null){
  dialogQueue=lines.filter(Boolean).map(t=>({speaker,text:String(t)}));
  if(!dialogQueue.length)return false;
  dialogAfter=typeof after==="function"?after:null;
- busy=true;$("dialog").classList.add("show");
+ YK_INPUT.stopAll();fieldMotion=null;busy=true;$("pad").classList.add("dialogActive");$("cancel").disabled=true;$("dialog").classList.add("show");
  nextDialog();return true;
 }
 function nextDialog(){
@@ -641,7 +641,7 @@ function nextDialog(){
   renderDialogPortrait();
   return;
  }
- $("dialog").classList.remove("show");
+ $("dialog").classList.remove("show");$("pad").classList.remove("dialogActive");$("cancel").disabled=false;YK_INPUT.stopAll();
  const after=dialogAfter;dialogAfter=null;busy=false;
  if(after)after();hud();
 }
@@ -779,7 +779,7 @@ function move(dx,dy,dir){
    S.visitedAreas[ex]=true;
    S.frame=1;walkPhase=0;S.encounterSteps=0;S.encounterGrace=D.areas[ex]?.grace||0;YK_INPUT.stopAll();message(D.areas[ex].name);YK_SAVE.auto(S)
  }else encounter();
- hud();if(S.walk%10===0)YK_SAVE.auto(S)
+ hud(!fieldStyle);if(S.walk%10===0)YK_SAVE.auto(S)
 }function renderBattle(){
  if(!battle)return;
  bg.clearRect(0,0,768,430);bg.imageSmoothingEnabled=false;
@@ -993,7 +993,7 @@ function battlePad(d){
  const next=d==='u'?battleCursor-2:d==='d'?battleCursor+2:row*2+(d==='l'?0:1);
  if(next>=0&&next<n)selectCmd(next);return true;
 }
-YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>["debugField","field"].includes(S.area)?{delay:160,repeat:160}:{delay:260,repeat:105});
+const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
 YK_INPUT.tap($("ok"),()=>battle?battleConfirm():action());YK_INPUT.tap($("cancel"),()=>{if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
@@ -1029,7 +1029,12 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){tickVillageDoor(t);if(S.area==="village"&&t-villagePaintAt>50){villagePaintAt=t;map();}if(!busy){if(fieldMotion){if(t-fieldMotion.at>=144){fieldMotion=null;S.frame=1;}map();}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+function loop(t){tickVillageDoor(t);if(S.area==="village"&&!fieldMotion&&t-villagePaintAt>50){villagePaintAt=t;map();}if(!busy){if(fieldMotion){if(t-fieldMotion.at>=144){
+ const deadline=fieldMotion.at+144;fieldMotion=null;
+ const [dx,dy]=movementInput.vector();
+ if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,t-32);}
+ else S.frame=1;
+ }map();}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.

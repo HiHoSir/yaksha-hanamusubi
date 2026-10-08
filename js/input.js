@@ -44,6 +44,7 @@ function directions(bindings,fn,timing=()=>({delay:260,repeat:105})){
  const keys={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
  document.addEventListener("keydown",e=>{if(!keys[e.key]||e.metaKey||e.ctrlKey||e.altKey||["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;e.preventDefault();if(!e.repeat)press(e.key,keys[e.key]);});
  document.addEventListener("keyup",e=>{if(keys[e.key])release(e.key);});
+ return {vector};
 }
 return {hold,tap,stopAll,directions};
 })();
