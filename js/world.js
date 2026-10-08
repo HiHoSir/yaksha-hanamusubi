@@ -56,7 +56,7 @@ window.YK_WORLD=(()=>{
   }
  }
  for(const s of crossings){const [tx,ty,kind]=s.split(','),[x,y]=center([+tx,+ty]);
-  const width=kind==='bridge'?96:48,height=kind==='bridge'?56:96;
+  const width=kind==='bridge'?96:112,height=kind==='bridge'?112:96;
   const top=kind==='bridge'?y-height*.56:y-height/2;
   mapData.decorations.push({kind,x:x-width/2,y:top,width,height,foot:top+height,ground:true});
  }
@@ -75,7 +75,7 @@ window.YK_WORLD=(()=>{
  // Minor scenery sits off the travel lane. These are scenery, not extra story entrances.
  object('castle',center([49,61])[0],center([49,61])[1],112,112);
  object('cave',center([28,50])[0],center([28,50])[1],80,64);
- const guides=[[20,58,'街道の地蔵','川は橋を渡るのじゃ。里では旅支度を整えられるぞ。'],[45,55,'橋の地蔵','大橋の東側じゃ。入り江へは南の街道をたどるのじゃ。'],[61,38,'森の地蔵','北へ向かう道は川の橋につながっておる。'],[35,27,'峠の地蔵','東の高原には月見の湯がある。疲れたら立ち寄るがよい。'],[24,18,'山道の地蔵','この山道の北に九尾の祠があるぞ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
+ const guides=[[20,58,'街道の地蔵','川は橋を渡るのじゃ。里では旅支度を整えられるぞ。'],[45,55,'橋の地蔵','大橋の東側じゃ。入り江へは南の街道をたどるのじゃ。'],[60,38,'森の地蔵','北へ向かう道は川の橋につながっておる。'],[35,27,'峠の地蔵','東の高原には月見の湯がある。疲れたら立ち寄るがよい。'],[24,18,'山道の地蔵','この山道の北に九尾の祠があるぞ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
  for(const g of guides)object('jizo',g.x,g.y,24,40);
  function guideRoute(from,target){
   const nodes=new Map(),key=(x,y)=>x+','+y;
@@ -89,6 +89,35 @@ window.YK_WORLD=(()=>{
   return turns.length?'そばの街道に出たら、まず'+turns.slice(0,3).join('、次の曲がり角で')+'へ進むのじゃ。':'目的地はこの近くじゃ。入口でAを押すのじゃ。';
  }
  for(const [tx,ty] of [[15,61],[20,60],[45,63],[54,63],[58,46],[43,25]]){const [x,y]=center([tx,ty]);mapData.decorations.push({kind:'flowers',x,y,width:40,height:24,foot:y+24,ground:true});}
+ // Small clearings reserve the foreground as well as the object's footprint:
+ // forest crowns and mountains extend above their ground cells in quarter view.
+ const landmarks=mapData.decorations.filter(o=>['jizo','cave','castle','lantern','flowers'].includes(o.kind));
+ const clearCell=(x,y)=>{
+  const t=mapData[y]?.[x];if(!t||['sea','river'].includes(t))return;
+  if(['forest','mountain','rockMountain','snowMountain'].includes(t))mapData[y][x]=snowy(x,y)?'snow':'grass';
+ };
+ const mainRoads=roads.slice();
+ for(const o of landmarks){
+  const x=o.x+o.width/2,y=o.foot,tx=Math.floor(x/32),ty=Math.floor(y/32);
+  const half=Math.max(2,Math.ceil(o.width/64));
+  for(let yy=ty-1;yy<=ty+3;yy++)for(let xx=tx-half;xx<=tx+half;xx++)clearCell(xx,yy);
+  if(!['jizo','cave','castle'].includes(o.kind))continue;
+  const front=[x,y+32],candidates=[];
+  for(const road of mainRoads)for(let i=1;i<road.length;i++){
+   const a=road[i-1],b=road[i];candidates.push([Math.max(Math.min(a[0],b[0]),Math.min(front[0],Math.max(a[0],b[0]))),Math.max(Math.min(a[1],b[1]),Math.min(front[1],Math.max(a[1],b[1])))]);
+  }
+  candidates.sort((a,b)=>Math.hypot(a[0]-x,a[1]-front[1])-Math.hypot(b[0]-x,b[1]-front[1]));
+  // Try both right-angle approaches without replacing any water with land.
+  for(const end of candidates){let connected=false;
+   for(const bend of [[end[0],front[1]],[front[0],end[1]]]){
+    const path=[front,bend,end].filter((p,i,a)=>!i||p[0]!==a[i-1][0]||p[1]!==a[i-1][1]),cells=[];
+    for(let i=1;i<path.length;i++){const a=path[i-1],b=path[i],n=Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]));for(let d=0;d<=n;d+=8)cells.push([Math.floor((a[0]+Math.sign(b[0]-a[0])*d)/32),Math.floor((a[1]+Math.sign(b[1]-a[1])*d)/32)]);}
+    if(cells.some(([cx,cy])=>['sea','river'].includes(mapData[cy]?.[cx])))continue;
+    for(const [cx,cy] of cells)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)clearCell(cx+dx,cy+dy);
+    if(path.length>1)roads.push(path);connected=true;break;
+   }if(connected)break;
+  }
+ }
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
  const tileAt=(x,y)=>mapData[Math.floor(y/32)]?.[Math.floor(x/32)]||'sea';
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=36)||null;

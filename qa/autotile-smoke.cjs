@@ -109,6 +109,13 @@ function check(name,fn){fn();results.push(name)}
    for(let j=0;j<=n;j+=2){const x=a[0]+(b[0]-a[0])*j/n,y=a[1]+(b[1]-a[1])*j/n;assert(world.walkable(x,y),'blocked road '+x+','+y);}
   }
  });
+ check('all production bridges pass offset approaches in both directions',()=>{
+  const bridges=world.mapData.decorations.filter(o=>['bridge','bridgeNS'].includes(o.kind));assert.equal(bridges.length,3);
+  for(const b of bridges){const ns=b.kind==='bridgeNS',cx=b.x+b.width/2,cy=ns?b.y+b.height/2:b.y+b.height*.56;
+   for(const offset of [-20,-16,0,16,20])for(let along=-80;along<=80;along+=2){const x=cx+(ns?offset:along),y=cy+(ns?along:offset);assert(world.walkable(x,y),b.kind+' approach '+offset+' at '+along);}
+   assert(!world.walkable(cx+(ns?80:0),cy+(ns?0:80)),'river outside deck remains blocked');
+  }
+ });
  check('all story entrances are connected by four-direction walking cells',()=>{
   const queue=[world.start],seen=new Set([world.start.join(',')]);
   for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){
@@ -117,6 +124,11 @@ function check(name,fn){fn();results.push(name)}
    seen.add(k);queue.push([nx,ny]);
   }}
   for(const [id,p] of Object.entries(world.places))assert(seen.has(p.point.join(',')),id+' unreachable');
+  for(const o of world.mapData.decorations.filter(o=>['jizo','cave','castle'].includes(o.kind))){
+   const x=o.x+o.width/2,y=o.foot;assert(seen.has([x,y+32].join(',')),o.kind+' interaction approach unreachable');
+   const tx=Math.floor(x/32),ty=Math.floor(y/32);
+   for(let yy=ty;yy<=ty+3;yy++)for(let xx=tx-2;xx<=tx+2;xx++)assert(!['forest','mountain','rockMountain','snowMountain'].includes(world.mapData[yy][xx]),o.kind+' foreground hidden');
+  }
  });
  check('legacy saves migrate coordinates once without altering progress or local interiors',()=>{
   const old={worldRevision:87,area:'field',x:637,y:191,worldPosition:[637,191],quest:3,gold:321,lv:7,visitedAreas:{waterfall:true}};
