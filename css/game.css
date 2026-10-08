@@ -224,3 +224,8 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 @media(max-height:720px){#battle{bottom:160px}#battleCanvas{max-height:27dvh}.battleVitals{padding-top:4px}#battle .battleInfo{min-height:48px;font-size:12px}#battle .battleCommands button{min-height:36px;padding:5px 8px}}
 
 .round small{display:block;font-size:10px;line-height:1.4;font-weight:500}
+/* Equipment is separate from the two optional character appearances. */
+.equipmentSlot{display:grid;grid-template-columns:3em minmax(0,1fr);gap:8px;align-items:center;margin:12px 0}.equipmentSlot select{min-width:0;width:100%;min-height:44px;font:inherit;font-size:14px;background:#fff5e4;color:#2d2130;border:1px solid #c9ad78;border-radius:6px;padding:6px}.equipmentSlot small{grid-column:2;color:#ead6b0;font-size:12px}
+#shopItems{display:grid;gap:9px;margin:12px 0}#shopItems button{text-align:left;min-height:60px;touch-action:pan-y}#shopItems small{display:block;font-size:12px;line-height:1.6}#shopNotice{min-height:3em;color:#ffe1a7;font-size:13px;line-height:1.5}#shopTabs [aria-pressed="true"]{border:2px solid #f4d185}#outfits img{width:90px;height:90px;object-fit:contain}#menu .choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+#shopTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}#shopTabs button{height:44px;min-height:44px;align-items:center}

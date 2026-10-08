@@ -1,6 +1,6 @@
 window.YK_SAVE=(()=>{
-const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=12;
-const fresh=()=>({saveVersion:VER,villageRevision:2,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,mp:18,maxmp:18,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの剣",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
+const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=13;
+const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:2,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,mp:18,maxmp:18,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
@@ -30,6 +30,8 @@ function migrate(raw){
  const cleanCounts=value=>Object.fromEntries(Object.keys(YK_DATA.relics).filter(k=>Number.isFinite(value?.[k])&&value[k]>0).map(k=>[k,Math.min(999999,Math.floor(value[k]))]));
  s.relics=cleanCounts(s.relics);s.rareWins=cleanCounts(s.rareWins);
  if(!Object.hasOwn(YK_DATA.relics,s.equippedRelic)||!s.relics[s.equippedRelic])s.equippedRelic=null;
+ s.chests=s.chests&&typeof s.chests==="object"&&!Array.isArray(s.chests)?s.chests:{};
+ YK_EQUIPMENT.migrate(s,raw);
  s.saveVersion=VER;s.encounterSteps=Number(s.encounterSteps)||0;s.encounterGrace=Number(s.encounterGrace)||0;s.teaVisits=Number(s.teaVisits)||0;
  return s;
 }

@@ -1,6 +1,9 @@
 window.YK_INPUT=(()=>{
 const timers=new Map();
 const directionStops=[];
+// A touch handler may replace its button before the synthetic click arrives.
+// Retain the logical control key across those DOM replacements.
+let lastTouch={at:-Infinity,key:null};
 function hold(el,fn){
  if(!el)return;
  const stop=()=>{const t=timers.get(el);if(t){clearTimeout(t.delay);clearInterval(t.repeat);timers.delete(el)}};
@@ -17,9 +20,10 @@ function tap(el,fn){
  // iOS-safe activation: click is the primary path; pointerdown is only a fallback
  // for environments where click is not emitted. De-dupe synthetic click.
  let pointerFiredAt=0;
+ const controlKey=()=>el.id||JSON.stringify(Object.entries(el.dataset||{}).sort());
  const run=e=>{try{e?.preventDefault?.()}catch(_){} fn(e)};
- el.addEventListener("click",e=>{if(Date.now()-pointerFiredAt<700){e.preventDefault();return;}run(e)});
- el.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")return;pointerFiredAt=Date.now();run(e)});
+ el.addEventListener("click",e=>{if(Date.now()-pointerFiredAt<700||(Date.now()-lastTouch.at<700&&lastTouch.key===controlKey())){e.preventDefault();return;}run(e)});
+ el.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")return;pointerFiredAt=Date.now();lastTouch={at:pointerFiredAt,key:controlKey()};run(e)});
 }
 function stopAll(){for(const stop of directionStops)stop();for(const [el,t] of timers){clearTimeout(t.delay);clearInterval(t.repeat)}timers.clear()}
 window.addEventListener("blur",stopAll);window.addEventListener("pagehide",stopAll);document.addEventListener("visibilitychange",()=>{if(document.hidden)stopAll()});

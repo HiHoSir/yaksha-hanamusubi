@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1020">
-<title>夜叉姫の花結び奇譚 β15.55.56</title>
-<link rel="stylesheet" href="css/game.css?v=15.55.56">
+<title>夜叉姫の花結び奇譚 β15.56.0</title>
+<link rel="stylesheet" href="css/game.css?v=15.56.0">
 </head>
 <body>
 <canvas id="worldTerrain" width="1536" height="1536" hidden aria-hidden="true"></canvas>
 <div id="app">
   <header>
-    <div class="brand">夜叉姫の花結び奇譚 <small>β15.55.56</small></div>
+    <div class="brand">夜叉姫の花結び奇譚 <small>β15.56.0</small></div>
     <div class="topBtns">
       <button id="worldBtn">地図</button><button id="bookBtn">つよさ</button><button id="saveBtn">記録</button><button id="settingsBtn">設定</button>
     </div>
@@ -52,7 +52,7 @@
     <button id="newGame" class="primary" type="button" onclick="window.__YK_BOOT_START&&window.__YK_BOOT_START()">はじめから</button>
     <button id="continueGame">つづきから</button>
     <button id="debugMap" type="button" style="font-size:14px;opacity:.82">DEBUG MAP</button>
-    <div class="version">BETA 15.55.56</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
+    <div class="version">BETA 15.56.0</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
   </div>
   <script>
   // Boot-safe title control. This deliberately does not depend on game.js/YK_INPUT.
@@ -93,11 +93,15 @@
 
 <div id="menu" class="overlay"><div class="window">
   <h2>つよさ</h2><div id="statusPanel"></div>
-  <p class="menuHelp">A：話す・調べる・決定　B：戻る<br>段＝成長の段階　体＝体力　技＝術の力　心の数＝成長に必要な経験</p><h3>衣装</h3><div id="outfits" class="choices"></div>
-  <h3>道具・装備</h3><div id="itemsPanel"></div>
+  <h3>装備</h3><div id="equipmentPanel"></div>
+  <h3>道具・お守り</h3><div id="itemsPanel"></div>
+  <h3>おまけの衣装</h3><div id="outfits" class="choices"></div>
+  <p class="menuHelp">A：話す・調べる・決定　B：戻る<br>段＝成長の段階　体＝体力　技＝術の力　心の数＝成長に必要な経験</p>
   <h3>旅の足あと</h3><div id="recordPanel"></div>
   <button data-close="menu">閉じる</button>
 </div></div>
+
+<div id="shop" class="overlay"><div class="window"><h2>鬼灯の里・兵具屋</h2><p id="shopGold"></p><p id="shopNotice" role="status" aria-live="polite"></p><div id="shopTabs" class="choices"><button data-shop-tab="buy">買う</button><button data-shop-tab="sell">売る</button></div><div id="shopItems"></div><button data-close="shop">店を出る</button></div></div>
 
 <div id="saveMenu" class="overlay"><div class="window">
   <h2>旅の記録</h2><div id="slots"></div><button data-close="saveMenu">閉じる</button>
@@ -113,14 +117,15 @@
 
 <div id="gameover" class="overlay"><div class="titlebox"><h2>力尽きた……</h2><p>最後の自動保存から再開できます。</p><button id="retryBtn" class="primary">再開する</button><button id="goTitleBtn">タイトルへ</button></div></div>
 
-<script src="js/data.js?v=15.55.56"></script>
-<script src="js/world.js?v=15.55.56"></script>
-<script src="js/save.js?v=15.55.56"></script>
-<script src="js/audio.js?v=15.55.56"></script>
-<script src="js/input.js?v=15.55.56"></script>
-<script src="js/autotile.js?v=15.55.56"></script>
-<script src="js/landscape.js?v=15.55.56"></script>
-<script src="js/game.js?v=15.55.56"></script>
+<script src="js/data.js?v=15.56.0"></script>
+<script src="js/equipment.js?v=15.56.0"></script>
+<script src="js/world.js?v=15.56.0"></script>
+<script src="js/save.js?v=15.56.0"></script>
+<script src="js/audio.js?v=15.56.0"></script>
+<script src="js/input.js?v=15.56.0"></script>
+<script src="js/autotile.js?v=15.56.0"></script>
+<script src="js/landscape.js?v=15.56.0"></script>
+<script src="js/game.js?v=15.56.0"></script>
 
 
 

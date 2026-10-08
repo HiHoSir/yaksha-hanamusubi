@@ -51,8 +51,7 @@ function drawFullLayer(c,im){if(!layerReady(im))return false;c.drawImage(im,0,0,
 const B9={
  village:"assets/maps/village.png",forest:"assets/maps/forest.png",
  battle:"assets/scenes/battle-field-v2.png",
- hot:"assets/scenes/hotspring.png",dialogue:"assets/scenes/dialogue.png",
- title:"assets/ui/title-yashahime.png",outfits:"assets/ui/outfits.png"
+ hot:"assets/scenes/hotspring.png",dialogue:"assets/scenes/dialogue.png"
 };
 const B9IMG={};
 const NPC_ASSET_ROOT="assets/characters/npc";
@@ -105,8 +104,8 @@ function loadNpcAssetSet(){
 let npcAssetsLoaded=false;
 function ensureNpcAssets(){if(npcAssetsLoaded)return;npcAssetsLoaded=true;loadNpcAssetSet();}
 for(const [k,v] of Object.entries(B9)){const im=new Image();im.onload=assetLoaded;im.src=v;B9IMG[k]=im}
-const OUTFIT_READY={normal:true,basewear:true,light:true,white:true,navy:true,yukata:true,demon:true,stardust:true};
-const HERO_FOLDERS={normal:"normal-v9",basewear:"basewear",light:"light-v9",white:"white-v9",navy:"navy-v9",yukata:"yukata-v9",demon:"demon-v9",stardust:"stardust-v1"};
+const OUTFIT_READY={normal:true,stardust:true};
+const HERO_FOLDERS={normal:"normal-v10",stardust:"stardust-v1"};
 const BATTLE_SPRITES={};
 // Source artwork includes different transparent margins. Match the visible
 // character height and foot line to the walking sprite used for idle poses.
@@ -126,9 +125,9 @@ let battlePose="idle",battleFx=null;
 const battleTimers=new Set();
 function resetBattleAnimation(){for(const id of battleTimers)clearTimeout(id);battleTimers.clear();battlePose="idle";battleFx=null;}
 function battleLater(fn,ms){const owner=battle;const id=setTimeout(()=>{battleTimers.delete(id);if(battle&&battle===owner)fn();},ms);battleTimers.add(id);}
-for(const outfit of ["normal","light","white","navy","yukata","demon"]){
- BATTLE_SPRITES[outfit]={};
- for(const pose of ["attack","hit"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/battle-v9/${outfit}-${pose}.png`;BATTLE_SPRITES[outfit][pose]=im;}
+BATTLE_SPRITES.normal={};
+for(const pose of ["idle","attack","hit","guard","victory","skill"]){
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/normal-v10/battle-${pose}.png`;BATTLE_SPRITES.normal[pose]=im;
 }
 BATTLE_SPRITES.stardust={};
 for(const pose of ["idle","attack","hit","guard","victory","skill"]){
@@ -186,7 +185,7 @@ function rareReady(r){
  ensureImage(RARE_ART[r.id]?.intact);ensureImage(RARE_ART[r.id]?.worn);
  return layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);
 }
-function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0);}
+function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0)+YK_EQUIPMENT.bonus(S,stat);}
 function enemyArt(c,x,y){
  const name=battle?.baseName||battle?.name||"",profile=D.enemyProfiles?.[name];
  const kind=/狐/.test(name)?"ninefox":/磯|泡|水|滝/.test(name)?"umibozu":/木|蜘蛛/.test(name)?"yokai_flower":"redoni";
@@ -218,7 +217,7 @@ function enemyArt(c,x,y){
  else c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
-const D=YK_DATA, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const D=YK_DATA,E=YK_EQUIPMENT, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
 function state(v){
  fieldMotion=null;$("pad").classList.remove("battleActive");
@@ -483,7 +482,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  const requested=layered?.[dir]?.[frameIndex];
  const sprite=layerReady(requested)?requested:layered?.[dir]?.[1];
  if(layerReady(sprite)){
-  const scale=104*z/312,anchorX={d:256,u:256,l:200,r:314}[dir]||256;
+  const scale=104*z/312,anchorX=outfit==="stardust"?({d:256,u:256,l:200,r:314}[dir]||256):256;
   c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality="high";
   shadow(c,x,y+9*z,31*z,10*z,.32);
   c.drawImage(sprite,x-anchorX*scale,y+9*z-480*scale,512*scale,512*scale);
@@ -565,7 +564,7 @@ function map(){
   else {const im=IMG[S.area]||IMG.field;if(im&&im.complete&&im.naturalWidth)g.drawImage(im,0,0,768,768);else{g.fillStyle="#274738";g.fillRect(0,0,768,768)}}
  }
  if(S.area==="field")drawWorldPins(g,false);
- drawActors();
+ drawChests();drawActors();
  // New village intentionally has no foreground canopy over actors.
  drawDoorHint();
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"フィールドを進んで入口へ · 地図で目的地を確認");}
@@ -672,12 +671,14 @@ function action(){
  if($("dialog").classList.contains("show")){nextDialog();return true;}
  if(busy)return false;
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}message("目的地の入口付近で A を押してください。",1400);return false;}
+ if(openNearbyChest())return true;
  if(villageDoorAction())return true;
  if(S.area==="teahouse"||S.area==="osumiHome"){
   if(S.y>=590){leaveInterior();return true}
  }
  const n=nearestNPC(100);
  if(n){
+  if(n.type==="merchant"){openShop();return true;}
   const event=D.story[S.quest];
   if(event&&event.area===S.area&&event.speaker===n.name){const stage=S.quest;
    return talk({n:n.name,t:event.lines},()=>{if(S.quest!==stage)return;S.quest=stage+1;if(event.petal)S.petals++;S.destination=event.target;YK_SAVE.auto(S);message(event.unlock,4200);});
@@ -711,9 +712,9 @@ function renderHotSpring(){
  const c=$("hotSpringCanvas"),q=c.getContext("2d");q.clearRect(0,0,c.width,c.height);
  cover(q,B9IMG.hot,c.width,c.height);
  if(!hotBathing){hero(q,384,365,"d",1,S.outfit,1.8);return;}
- // The same covered white water outfit is used; the lower body sits behind water.
+ // Keep the selected appearance; water masks the lower body.
  q.save();q.beginPath();q.rect(0,0,c.width,245);q.clip();
- hero(q,384,295,"d",1,"white",1.5);q.restore();
+ hero(q,384,295,"d",1,S.outfit,1.5);q.restore();
  q.save();q.beginPath();q.ellipse(384,192,202,85,0,0,Math.PI*2);q.clip();
  q.fillStyle="#60969b";q.fillRect(170,240,430,60);q.restore();
  q.strokeStyle="rgba(221,246,240,.62)";q.lineWidth=2;
@@ -883,7 +884,7 @@ function cmd(n){
   if(S.potions<=0){battleLocked=false;return $("battleText").textContent="薬草がない！"}
   S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;$("battleText").textContent=`体を${healed}回復！`;renderBattle();battleLater(foe,300);
  }else{
-  if(Math.random()<.78){$("battleText").textContent="うまく逃げ切った！";battle.phase="result";battle.readyAt=performance.now()+400;battleLocked=false;renderBattle()}
+  if(Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";battle.phase="result";battle.readyAt=performance.now()+400;battleLocked=false;renderBattle()}
   else{$("battleText").textContent="逃げられない！";battleLater(foe,300)}
  }
 }
@@ -905,6 +906,7 @@ function win(){
  if(battle.rareId){const id=battle.rareId,first=!S.rareWins[id];S.rareWins[id]=(S.rareWins[id]||0)+1;
   if(first||Math.random()<D.rareRules.repeatDropChance){S.relics[id]=(S.relics[id]||0)+1;loot=` ／ ${D.relics[id].name}を入手！`;}
  }
+ const equipmentDrop=E.drop(S,battle.baseName);if(equipmentDrop)loot+=` ／ ${E.items[equipmentDrop].name}を入手！`;
  battle.rewardText=`${battle.name}を こらしめた！ 心の数 ${battle.xp} ／ ${battle.gold}両${loot}`;
  const previousLevel=S.lv;
  while(S.xp>=S.lv*40){S.xp-=S.lv*40;S.lv++;S.maxhp+=12;S.hp=S.maxhp;S.maxmp+=2;S.mp=S.maxmp;S.atk+=3;S.def++}
@@ -919,7 +921,50 @@ function renderRelics(){
  $("itemsPanel").innerHTML=`<p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
  document.querySelectorAll("[data-relic]").forEach(b=>YK_INPUT.tap(b,()=>{const id=b.dataset.relic;S.equippedRelic=Object.hasOwn(D.relics,id)&&S.relics[id]?id:null;YK_SAVE.auto(S);busy=false;menu();}));
 }
-function menu(){if(busy)return;YK_INPUT.stopAll();busy=true;$("statusPanel").innerHTML=`夜叉姫　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus("atk")}　守備力 ${S.def+relicBonus("def")}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${S.weapon}`;renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
+function menu(){if(busy)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
+
+const CHEST_ART={};
+for(const state of ['closed','open']){const im=new Image();im.onload=assetLoaded;im.src=`assets/objects/tsuzura-${state}.png`;CHEST_ART[state]=im;}
+function drawChests(){
+ for(const c of E.chests.filter(c=>c.area===S.area)){
+  const im=CHEST_ART[S.chests[c.id]?'open':'closed'];
+  if(layerReady(im))g.drawImage(im,c.x-28,c.y-47,56,56);
+  if(Math.hypot(S.x-c.x,S.y-c.y)<=65){g.save();g.font='13px sans-serif';g.textAlign='center';g.fillStyle='#fff4cd';g.strokeStyle='#18212b';g.lineWidth=3;g.strokeText('A：つづら',c.x,c.y-46);g.fillText('A：つづら',c.x,c.y-46);g.restore();}
+ }
+}
+function openNearbyChest(){
+ const c=E.chests.filter(c=>c.area===S.area&&Math.hypot(S.x-c.x,S.y-c.y)<=65).sort((a,b)=>Math.hypot(S.x-a.x,S.y-a.y)-Math.hypot(S.x-b.x,S.y-b.y))[0];
+ if(!c)return false;const result=E.open(S,c.id);if(result.ok)YK_SAVE.auto(S);message(result.text,3500);map();return true;
+}
+function renderStatus(){
+ $('statusPanel').innerHTML=`夜叉姫　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus('atk')}　守備力 ${S.def+relicBonus('def')}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${E.items[S.equipment.weapon]?.name||'素手'}`;
+}
+function equipmentDelta(item,slot){
+ const current=E.items[S.equipment[slot]]||{};
+ return Object.entries({atk:'攻撃',def:'守備',skill:'術',heal:'回復',escape:'逃走'}).map(([k,label])=>{const d=(item?.[k]||0)-(current[k]||0);return d?`${label}${d>0?'+':''}${d}${k==='escape'?'%':''}`:''}).filter(Boolean).join(' ');
+}
+function renderEquipment(){
+ $('equipmentPanel').innerHTML='<p class="menuHelp">装備は能力に反映されます。衣装の見た目は変わりません。候補の数字は現在の装備との差です。</p>'+Object.entries(E.slots).map(([slot,label])=>{
+  const id=S.equipment[slot],current=E.items[id];
+  const options=Object.values(E.items).filter(i=>i.slot===slot&&S.equipmentInventory[i.id]>0);
+  return `<label class="equipmentSlot"><strong>${label}</strong><select data-equip-slot="${slot}" aria-label="${label}の装備"><option value="" ${!id?'selected':''}>外す ${equipmentDelta(null,slot)}</option>`+options.map(i=>`<option value="${i.id}" ${id===i.id?'selected':''}>${i.name} ×${S.equipmentInventory[i.id]} ${equipmentDelta(i,slot)}</option>`).join('')+`</select><small>${current?E.summary(current):'装備なし'}</small></label>`;
+ }).join('');
+ document.querySelectorAll('[data-equip-slot]').forEach(el=>el.addEventListener('change',()=>{if(E.equip(S,el.dataset.equipSlot,el.value||null)){YK_SAVE.auto(S);renderStatus();renderEquipment();}}));
+}
+let shopMode='buy';
+function openShop(){if(busy)return;YK_INPUT.stopAll();busy=true;shopMode='buy';$('shopNotice').textContent='旅が進むと品ぞろえが増えます。買った品は「つよさ → 装備」で身につけられます。';renderShop();$('shop').classList.add('show');}
+function renderShop(){
+ $('shopGold').textContent=`所持金：${S.gold}両`;
+ const list=shopMode==='buy'?E.stock(S):Object.values(E.items).filter(i=>S.equipmentInventory[i.id]>0);
+ $('shopItems').innerHTML=list.map(i=>{
+  const price=shopMode==='buy'?i.price:Math.floor((i.price||0)/2),owned=S.equipmentInventory[i.id]||0;
+  const blocked=shopMode==='buy'?S.gold<price||owned>=99:!price||owned<=(Object.values(S.equipment).includes(i.id)?1:0);
+  return `<button data-shop-item="${i.id}" ${blocked?'disabled':''}><strong>${i.name}</strong>　${price}両<small>${E.slots[i.slot]} ／ ${E.summary(i)}<br>所持 ${owned}　${equipmentDelta(i,i.slot)}${!i.price&&shopMode==='sell'?' ／ 売却不可':''}</small></button>`;
+ }).join('')||'<p>売れる品を持っていません。</p>';
+ document.querySelectorAll('[data-shop-item]').forEach(b=>YK_INPUT.tap(b,()=>{const error=shopMode==='buy'?E.buy(S,b.dataset.shopItem):E.sell(S,b.dataset.shopItem);$('shopNotice').textContent=error||E.items[b.dataset.shopItem].name+(shopMode==='buy'?'を買った。':'を売った。');if(!error){YK_SAVE.auto(S);hud();}renderShop();}));
+ document.querySelectorAll('[data-shop-tab]').forEach(b=>b.setAttribute?.('aria-pressed',String(b.dataset.shopTab===shopMode)));
+}
+
 function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n);return `<div class="slot"><b>${n}番</b>　${i?`${i.lv}段 / ${i.area}`:"記録なし"}<div class="slotBtns"><button data-save="${n}">記録する</button><button data-load="${n}">記録から再開</button></div></div>`}).join("");document.querySelectorAll("[data-save]").forEach(b=>YK_INPUT.tap(b,()=>{YK_SAVE.saveSlot(+b.dataset.save,S);slots()}));document.querySelectorAll("[data-load]").forEach(b=>YK_INPUT.tap(b,()=>{const v=YK_SAVE.loadSlot(+b.dataset.load);if(v){restoreState(v);close("saveMenu")}}))}
 function close(id){YK_INPUT.stopAll();$(id).classList.remove("show");busy=false;hud()}
 function worldMap(){if(busy)return;YK_INPUT.stopAll();busy=true;$("worldMap").classList.add("show");drawWorld()}
@@ -960,8 +1005,9 @@ function battlePad(d){
  if(next>=0&&next<n)selectCmd(next);return true;
 }
 YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!battlePad(dir))move(x*22,y*22,dir);},()=>["debugField","field"].includes(S.area)?{delay:160,repeat:160}:{delay:260,repeat:105});
-YK_INPUT.tap($("ok"),()=>battle?battleConfirm():action());YK_INPUT.tap($("cancel"),()=>{if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
+YK_INPUT.tap($("ok"),()=>battle?battleConfirm():action());YK_INPUT.tap($("cancel"),()=>{if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):menu());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
+document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{if(!battle||battleLocked)return;selectCmd(i);battleConfirm()}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
@@ -971,7 +1017,7 @@ YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return mess
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
- if(e.key==="Escape"){if(battle){e.preventDefault();battleBack();return;}for(const id of ["worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
+ if(e.key==="Escape"){if(battle){e.preventDefault();battleBack();return;}for(const id of ["shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
  if(["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;
  const fn={Enter:()=>battle?battleConfirm():action()}[e.key];
  if(fn){e.preventDefault();fn()}

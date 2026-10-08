@@ -1,0 +1,254 @@
+{
+  "front-right-leg-up.png": {
+    "bounds": [
+      151,
+      168,
+      360,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-466c0fbe-fbb2-4a2b-96fb-db3e5c4a456c.png",
+    "cell": 0
+  },
+  "front-neutral.png": {
+    "bounds": [
+      151,
+      168,
+      362,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-466c0fbe-fbb2-4a2b-96fb-db3e5c4a456c.png",
+    "cell": 1
+  },
+  "front-left-leg-up.png": {
+    "bounds": [
+      152,
+      167,
+      362,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-466c0fbe-fbb2-4a2b-96fb-db3e5c4a456c.png",
+    "cell": 2
+  },
+  "back-right-leg-up.png": {
+    "bounds": [
+      137,
+      168,
+      375,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-862f3c39-16ae-4c9a-b0ed-1e87eb093132.png",
+    "cell": 0
+  },
+  "back-neutral.png": {
+    "bounds": [
+      141,
+      168,
+      369,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-862f3c39-16ae-4c9a-b0ed-1e87eb093132.png",
+    "cell": 1
+  },
+  "back-left-leg-up.png": {
+    "bounds": [
+      135,
+      168,
+      373,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-862f3c39-16ae-4c9a-b0ed-1e87eb093132.png",
+    "cell": 2
+  },
+  "right-right-leg-up.png": {
+    "bounds": [
+      157,
+      168,
+      342,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-2936d57a-066d-49b5-8362-5af7017fcbe9.png",
+    "cell": 0
+  },
+  "right-neutral.png": {
+    "bounds": [
+      156,
+      168,
+      330,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-2936d57a-066d-49b5-8362-5af7017fcbe9.png",
+    "cell": 1
+  },
+  "right-left-leg-up.png": {
+    "bounds": [
+      157,
+      168,
+      336,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-2936d57a-066d-49b5-8362-5af7017fcbe9.png",
+    "cell": 2
+  },
+  "left-right-leg-up.png": {
+    "bounds": [
+      180,
+      168,
+      369,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-b112a059-f986-4ac1-946f-4747082630a0.png",
+    "cell": 0
+  },
+  "left-neutral.png": {
+    "bounds": [
+      183,
+      168,
+      368,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-b112a059-f986-4ac1-946f-4747082630a0.png",
+    "cell": 1
+  },
+  "left-left-leg-up.png": {
+    "bounds": [
+      177,
+      168,
+      369,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-b112a059-f986-4ac1-946f-4747082630a0.png",
+    "cell": 2
+  },
+  "battle-idle.png": {
+    "bounds": [
+      131,
+      168,
+      352,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-66b7f2b5-c157-41df-9fc5-804d4c9ebe88.png",
+    "cell": 0
+  },
+  "battle-attack.png": {
+    "bounds": [
+      152,
+      168,
+      409,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-66b7f2b5-c157-41df-9fc5-804d4c9ebe88.png",
+    "cell": 1
+  },
+  "battle-hit.png": {
+    "bounds": [
+      21,
+      168,
+      318,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-66b7f2b5-c157-41df-9fc5-804d4c9ebe88.png",
+    "cell": 2
+  },
+  "battle-guard.png": {
+    "bounds": [
+      130,
+      168,
+      357,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-66b7f2b5-c157-41df-9fc5-804d4c9ebe88.png",
+    "cell": 3
+  },
+  "battle-victory.png": {
+    "bounds": [
+      142,
+      168,
+      368,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-66b7f2b5-c157-41df-9fc5-804d4c9ebe88.png",
+    "cell": 4
+  },
+  "battle-skill.png": {
+    "bounds": [
+      132,
+      168,
+      391,
+      480
+    ],
+    "anchor": [
+      256,
+      480
+    ],
+    "source": "exec-66b7f2b5-c157-41df-9fc5-804d4c9ebe88.png",
+    "cell": 5
+  }
+}

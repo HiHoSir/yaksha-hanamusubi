@@ -19,7 +19,7 @@ jobs:
           node - <<'NODE'
           const fs=require('fs');
           const html=fs.readFileSync('index.html','utf8');
-          const order=['js/data.js','js/world.js','js/save.js','js/audio.js','js/input.js','js/autotile.js','js/landscape.js','js/game.js'];
+          const order=['js/data.js','js/equipment.js','js/world.js','js/save.js','js/audio.js','js/input.js','js/autotile.js','js/landscape.js','js/game.js'];
           let last=-1;
           for(const p of order){const i=html.indexOf(p);if(i<0||i<=last)throw new Error('bad script order: '+p);last=i}
           const world=fs.readFileSync('js/world.js','utf8');
@@ -76,6 +76,9 @@ jobs:
           }
           console.log('orthogonal debug sheets OK');
           NODE
+
+      - name: Equipment economy and save migration
+        run: node qa/equipment.cjs
 
       - name: Original terrain and debug boot
         run: |

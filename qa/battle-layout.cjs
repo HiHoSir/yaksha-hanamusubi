@@ -17,6 +17,27 @@ const server=http.createServer((req,res)=>{
  for(const id of ['up','down','left','right','ok','cancel']){assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' occluded '+height);}
  await page.locator('#right').tap();await page.locator('#ok').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'skill');await page.locator('#cancel').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'root');
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
- await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});assert.deepEqual(errors,[]);console.log('mobile layout and real touch OK: 393x'+height);await context.close();
+ await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});
+ await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="village";S.x=450;S.y=284;S.dir="r";S.gold=1000;action();'));
+ await page.locator('[data-shop-item="short_blade"]').tap();
+ assert.equal(await page.evaluate(()=>window.gameState.gold),935);
+ assert.equal(await page.evaluate(()=>window.gameState.equipmentInventory.short_blade),1);
+ await page.screenshot({path:path.join(__dirname,'results/autotile/shop-mobile-'+height+'.png')});
+ await page.locator('[data-close="shop"]').tap();await page.locator('#bookBtn').tap();
+ await page.locator('[data-equip-slot="weapon"]').selectOption('short_blade');
+ assert.equal(await page.evaluate(()=>window.gameState.equipment.weapon),'short_blade');
+ assert((await page.locator('#statusPanel').innerText()).includes('攻撃力 18'));
+ assert.equal(await page.locator('[data-outfit]').count(),2);
+ for(const slot of ['weapon','head','body','feet'])assert(await page.locator('[data-equip-slot="'+slot+'"]').evaluate(el=>el.getBoundingClientRect().right<=window.innerWidth),'equipment overflow');
+ await page.screenshot({path:path.join(__dirname,'results/autotile/equipment-mobile-'+height+'.png')});
+ await page.locator('[data-outfit="stardust"]').tap();
+ assert.equal(await page.evaluate(()=>window.gameState.outfit),'stardust');
+ assert.equal(await page.evaluate(()=>window.gameState.equipment.weapon),'short_blade');
+ await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="cove";S.x=280;S.y=590;S.dir="r";action();action();'));
+ assert.equal(await page.evaluate(()=>window.gameState.equipmentInventory.tide_staff),1);
+ assert.equal(await page.evaluate(()=>window.YK_SAVE.loadAuto().equipmentInventory.tide_staff),1);
+ await page.screenshot({path:path.join(__dirname,'results/autotile/chest-mobile-'+height+'.png')});
+ assert.deepEqual(errors,[]);console.log('equipment buy/equip, bonus appearance and chest touch OK: 393x'+height);
+ console.log('mobile layout and real touch OK: 393x'+height);await context.close();
  }}finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

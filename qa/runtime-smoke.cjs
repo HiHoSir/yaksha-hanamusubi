@@ -32,7 +32,7 @@ class LocalImage extends NativeImage{
 const storage=new Map(),windowEvents={};
 const sandbox={document:doc,Image:LocalImage,console,Math:Object.create(Math),Date,performance:{now:()=>now},setTimeout:(f,m)=>schedule(f,m),clearTimeout:id=>timers.delete(id),setInterval:(f,m)=>schedule(f,m,m),clearInterval:id=>timers.delete(id),requestAnimationFrame:f=>schedule(f,16),confirm:()=>false,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener:(n,f)=>(windowEvents[n]??=[]).push(f),YK_AUDIO:{beep(){}},setPointerCapture(){}};
 sandbox.window=sandbox;vm.createContext(sandbox);
-for(const file of ['data.js','world.js','save.js','input.js','game.js']){let source=fs.readFileSync(path.join(root,'js',file),'utf8');if(file==='game.js')source=source.replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();');vm.runInContext(source,sandbox,{filename:file});}
+for(const file of ['data.js','equipment.js','world.js','save.js','input.js','game.js']){let source=fs.readFileSync(path.join(root,'js',file),'utf8');if(file==='game.js')source=source.replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();');vm.runInContext(source,sandbox,{filename:file});}
 function tap(id){assert(el(id),id);el(id).fire('pointerdown');el(id).fire('pointerup')}
 function dataTap(key,value){const e=elements.find(x=>x.dataset[key]===value);assert(e,key+':'+value);e.fire('pointerdown');e.fire('pointerup')}
 function key(k){for(const f of docEvents.keydown||[])f({key:k,preventDefault(){}});for(const f of docEvents.keyup||[])f({key:k,preventDefault(){}})}
@@ -43,7 +43,7 @@ check('new game and A advances opening dialogue',()=>{tap('newGame');advance(240
 sandbox.Math.random=()=>1;
 check('hold moves; release returns to neutral',()=>{Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterGrace:100});tap('right');assert.equal(sandbox.gameState.x,238);advance(220);assert.equal(sandbox.gameState.frame,1)});
 check('all 7 hero sets retain all four directions (28 checks)',()=>{
- for(const outfit of ['basewear','normal','light','white','navy','yukata','demon']){tap('bookBtn');dataTap('outfit',outfit);dataTap('close','menu');assert.equal(sandbox.gameState.outfit,outfit);
+ for(const outfit of ['normal','stardust']){tap('bookBtn');dataTap('outfit',outfit);dataTap('close','menu');assert.equal(sandbox.gameState.outfit,outfit);
   for(const [button,dir] of [['left','l'],['right','r'],['up','u'],['down','d']]){Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterGrace:100});tap(button);assert.equal(sandbox.gameState.dir,dir);advance(220);shot(outfit+'-'+dir);}
  }
 });
@@ -54,7 +54,7 @@ check('pagehide cancels held pointer',()=>{
  Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterGrace:100});el('right').fire('pointerdown');for(const f of windowEvents.pagehide||[])f();let x=sandbox.gameState.x;advance(800);assert.equal(sandbox.gameState.x,x);el('right').fire('pointerup');
 });
 check('save and restore selected outfit and direction',()=>{
- Object.assign(sandbox.gameState,{area:'field',x:230,y:534,outfit:'basewear',dir:'l'});sandbox.YK_SAVE.auto(sandbox.gameState);const s=sandbox.YK_SAVE.loadAuto();assert.equal(s.outfit,'basewear');assert.equal(s.dir,'l');
+ Object.assign(sandbox.gameState,{area:'field',x:230,y:534,outfit:'normal',dir:'l'});sandbox.YK_SAVE.auto(sandbox.gameState);const s=sandbox.YK_SAVE.loadAuto();assert.equal(s.outfit,'normal');assert.equal(s.dir,'l');
 });
 check('keyboard battle cursor and item command',()=>{
  Object.assign(sandbox.gameState,{area:'field',x:230,y:534,outfit:'normal',encounterSteps:40,encounterGrace:0});sandbox.Math.random=()=>0;tap('right');assert(el('battle').classList.contains('show'));key('ArrowRight');key('ArrowRight');assert(elements.find(x=>x.dataset.cmd==='item').classList.contains('selected'));const n=sandbox.gameState.potions;key('Enter');assert.equal(sandbox.gameState.potions,n-1);advance(350);shot('battle','battleCanvas');
@@ -63,14 +63,14 @@ check('battle escape returns to movement',()=>{advance(400);dataTap('cmd','escap
 check('battle victory awards and saves progress',()=>{Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterSteps:40,encounterGrace:0,atk:999});sandbox.Math.random=()=>0;const wins=sandbox.gameState.wins;tap('right');dataTap('cmd','attack');advance(700);assert.equal(sandbox.gameState.wins,wins+1);assert(!el('battle').classList.contains('show'));assert.equal(sandbox.YK_SAVE.loadAuto().wins,wins+1)});
 check('defeat does not overwrite autosave; retry restores it',()=>{Object.assign(sandbox.gameState,{area:'field',x:230,y:534,hp:100,maxhp:100,atk:1,def:0,encounterSteps:40,encounterGrace:0});sandbox.YK_SAVE.auto(sandbox.gameState);sandbox.gameState.hp=1;tap('right');dataTap('cmd','attack');advance(920);assert(el('gameover').classList.contains('show'));assert.equal(sandbox.YK_SAVE.loadAuto().hp,100);tap('retryBtn');assert.equal(sandbox.gameState.hp,100);assert(!el('gameover').classList.contains('show'))});
 check('all 6 costumes in dialogue, battle and hot spring',()=>{
- for(const outfit of ['normal','light','white','navy','yukata','demon']){
+ for(const outfit of ['normal','stardust']){
   tap('newGame');sandbox.gameState.outfit=outfit;advance(240);shot('dialog-'+outfit,'dialogPortrait');tap('ok');tap('ok');
   Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterSteps:40,encounterGrace:0});sandbox.Math.random=()=>0;tap('right');assert(el('battle').classList.contains('show'));shot('battle-'+outfit,'battleCanvas');dataTap('cmd','escape');advance(400);
   Object.assign(sandbox.gameState,{area:'hotspring',x:384,y:500,dir:'d'});tap('ok');assert(el('hotSpring').classList.contains('show'));shot('hot-'+outfit,'hotSpringCanvas');dataTap('hot','bath');assert.equal(sandbox.gameState.outfit,outfit);assert.equal(sandbox.gameState.hp,sandbox.gameState.maxhp);shot('hot-bathing','hotSpringCanvas');dataTap('hot','leave');assert(!el('hotSpring').classList.contains('show'));
  }
 });
 check('six costumes show attack, hit and idle; repeated commands cannot stack damage',()=>{
- for(const outfit of ['normal','light','white','navy','yukata','demon']){
+ for(const outfit of ['normal','stardust']){
   Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterSteps:40,encounterGrace:0,outfit,atk:1,hp:1000,maxhp:1000,def:0});
   sandbox.Math.random=()=>0;tap('right');assert(el('battle').classList.contains('show'));
   dataTap('cmd','attack');assert.equal(sandbox.__qaEval('battlePose'),'attack');shot('attack-'+outfit,'battleCanvas');
@@ -101,7 +101,7 @@ check('world roads connect all entrances at both movement speeds',()=>{
 });
 check('old field saves migrate safely and preserve quest and outfit',()=>{
  const old=sandbox.YK_SAVE.migrate({saveVersion:11,worldRevision:1,area:'field',x:384,y:550,quest:3,outfit:'navy',gold:777});
- assert.deepEqual([old.x,old.y],[230,534]);assert.equal(old.gold,777);assert.equal(old.quest,3);assert.equal(old.outfit,'navy');
+ assert.deepEqual([old.x,old.y],[230,534]);assert.equal(old.gold,777);assert.equal(old.quest,3);assert.equal(old.outfit,'normal');
 });
 check('all seven entrances enter on A, mark visits and return to the same road',()=>{
  sandbox.gameState.quest=6;
