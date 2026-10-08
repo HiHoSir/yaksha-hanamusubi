@@ -224,7 +224,7 @@ function enemyArt(c,x,y){
  const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:null;
  const useFixedOni=battle?.rareId==="oni"&&variantIndex===0&&layerReady(ONI_FIXED_ATLAS)&&layerReady(ONI_FIXED_WORN);
  const im=useFixedOni?(battle.clothingBroken?ONI_FIXED_WORN:ONI_FIXED_ATLAS):battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback));if(!layerReady(im))return;
- const bakedAtlas=wornVariantReady||variantReady||atlasReady;
+ const bakedAtlas=useFixedOni||wornVariantReady||variantReady||atlasReady;
  const cell=bakedAtlas?128:null;
  const scale=bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);
  const w=(bakedAtlas?cell:im.naturalWidth)*scale,h=(bakedAtlas?cell:im.naturalHeight)*scale;
