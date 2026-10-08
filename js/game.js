@@ -1420,6 +1420,7 @@ window.YKDebugField=(enabled=true)=>{
 // Read-only enemy sprite inspector: never starts combat or mutates saved state.
 (function setupEnemyDebug(){
  const openBtn=$("enemyDebugBtn"),panel=$("enemyDebugPanel"),picker=$("enemyDebugEnemy"),variant=$("enemyDebugVariant"),closeBtn=$("enemyDebugClose"),canvas=$("enemyDebugCanvas"),info=$("enemyDebugInfo");
+ const outfit=$("battleDebugOutfit"),pose=$("battleDebugPose");
  if(!openBtn||!panel||!picker||!variant||!canvas)return;
  const entries=new Map();
  for(const [area,pool] of Object.entries(D.enemies))for(const e of pool||[])if(!entries.has(e[0]))entries.set(e[0],e);
@@ -1436,8 +1437,18 @@ window.YKDebugField=(enabled=true)=>{
   // Checkerboard reveals unintended translucency in opaque enemy body regions.
   c.fillStyle="#28485a";c.fillRect(0,0,640,360);
   for(let y=0;y<360;y+=32)for(let x=0;x<640;x+=32)if(((x+y)/32)%2===0){c.fillStyle="#597267";c.fillRect(x,y,32,32);}
+  const selectedOutfit=outfit?.value||"normal",selectedPose=pose?.value||"idle";
+  const heroSprite=BATTLE_SPRITES[selectedOutfit]?.[selectedPose];
+  ensureImage(heroSprite);
+  if(layerReady(heroSprite)){
+   const box=battleSpriteLayout(heroSprite,selectedOutfit,selectedPose);
+   const k=.82,offsetX=105-box.x*k,offsetY=265-box.foot*k;
+   c.save();c.imageSmoothingEnabled=false;
+   c.drawImage(heroSprite,box.left*k+offsetX,box.top*k+offsetY,box.width*k,box.height*k);
+   c.restore();
+  }
   const previous=battle;
-  try{battle=selectedBattle;enemyArt(c,320,190);}finally{battle=previous;}
+  try{battle=selectedBattle;enemyArt(c,420,190);}finally{battle=previous;}
   let alphaReport=" / 画像未読込";
   const source=isRare?(selected==="worn"?VARIANT_WORN_ATLAS:VARIANT_ATLAS):ENEMY_ATLAS;
   if(layerReady(source)){
@@ -1471,6 +1482,8 @@ window.YKDebugField=(enabled=true)=>{
  closeBtn.addEventListener("click",close);
  picker.addEventListener("change",refresh);
  variant.addEventListener("change",refresh);
+ outfit?.addEventListener("change",refresh);
+ pose?.addEventListener("change",refresh);
  // Image loading is asynchronous, so refresh once all sprites have had time to arrive.
  let poll=0;const update=()=>{if(panel.classList.contains("show"))refresh();if(++poll<12)setTimeout(update,350);};
  openBtn.addEventListener("click",()=>{poll=0;setTimeout(update,350);});
