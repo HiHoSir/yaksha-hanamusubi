@@ -1387,13 +1387,13 @@ window.YKDebugField=(enabled=true)=>{
  smoothingLabel.textContent="敵画像の縮小補間：";
  smoothingLabel.style.cssText="display:block;margin:10px 0;color:#f9df9a;font-size:15px";
  const smoothingMode=document.createElement("select");
- smoothingMode.setAttribute("aria-label","敵画像の縮小補間");
+ if(typeof smoothingMode.setAttribute==="function")smoothingMode.setAttribute("aria-label","敵画像の縮小補間");
  for(const [value,label] of [["normal","通常（補間あり）"],["nearest","補間なし（比較）"]]){
-  const option=document.createElement("option");option.value=value;option.textContent=label;smoothingMode.appendChild(option);
+  const option=document.createElement("option");option.value=value;option.textContent=label;if(typeof smoothingMode.appendChild==="function")smoothingMode.appendChild(option);
  }
  smoothingMode.style.cssText="width:100%;font-size:16px;padding:8px;background:#193450;color:white;border-radius:8px";
- smoothingLabel.appendChild(smoothingMode);
- canvas.parentNode.insertBefore(smoothingLabel,canvas);
+ if(typeof smoothingLabel.appendChild==="function")smoothingLabel.appendChild(smoothingMode);
+ if(canvas.parentNode&&typeof canvas.parentNode.insertBefore==="function")canvas.parentNode.insertBefore(smoothingLabel,canvas);
 
  if(!openBtn||!panel||!picker||!variant||!canvas)return;
  const entries=new Map();
