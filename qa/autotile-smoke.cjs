@@ -43,7 +43,7 @@ function check(name,fn){fn();results.push(name)}
 (async()=>{
  await Promise.all(loaded.map(im=>im.decode()));advance(32);
  const a=sandbox.YK_AUTOTILE;
- a.load();sandbox.YK_LANDSCAPE.load();await Promise.all(loaded.map(im=>im.decode()));advance(1);
+ a.load();sandbox.YK_LANDSCAPE.load();sandbox.YK_SETTLEMENT.load();await Promise.all(loaded.map(im=>im.decode()));advance(1);
  check('all original atlases loaded with exact dimensions',()=>assert(a.ready(),JSON.stringify(a.errors)));
  const qaImages={};for(const key of a.keys){const im=new NativeImage();im.src=fs.readFileSync(path.join(root,'assets/terrain/original-32-v2',key+'.png'));await im.decode();qaImages[key]=im;}
  check('ten 32px PNGs have binary alpha and real transparent pixels',()=>{
