@@ -361,6 +361,33 @@ function check(name,fn){fn();results.push(name)}
   const old=sandbox.YK_SAVE.migrate({saveVersion:11,lv:4});assert.equal(old.maxmp,24);assert.equal(old.mp,24);
   assert.equal(sandbox.YK_SAVE.migrate({...old,mp:0}).mp,0);
  });
+ battleSetup();
+ // Inspect the actual hero pixels emitted by production renderBattle, excluding
+ // background/enemy/shadow. This catches transparent-margin scale regressions.
+ for(const outfit of ['normal','basewear','light','white','navy','yukata','demon','stardust']){
+  sandbox.__qaEval(`S.outfit=${JSON.stringify(outfit)};ensureBattleAssets()`);
+ }
+ await Promise.all(loaded.map(im=>im.decode()));advance(1);
+ check('all 48 battle outfit/pose combinations keep visible height and ground contact',()=>{
+  const isolated=createCanvas(768,430),ic=isolated.getContext('2d'),context=el('battleCanvas').getContext(),draw=context.drawImage;
+  const heroImages=sandbox.__qaEval('[...Object.values(BATTLE_SPRITES).flatMap(Object.values),...Object.values(LAYERED_SPRITES).flatMap(s=>Object.values(s).flat())]');
+  const preview=createCanvas(1200,480),pc=preview.getContext('2d');pc.fillStyle='#849098';pc.fillRect(0,0,1200,480);
+  context.drawImage=(im,...args)=>{if(heroImages.includes(im))ic.drawImage(im,...args);return draw(im,...args)};
+  try{for(const [oi,outfit] of ['normal','basewear','light','white','navy','yukata','demon','stardust'].entries()){
+   for(const [pi,pose] of ['idle','attack','hit','guard','victory','skill'].entries()){
+    ic.clearRect(0,0,768,430);sandbox.__qaEval(`S.outfit=${JSON.stringify(outfit)};battlePose=${JSON.stringify(pose)};renderBattle()`);
+    const pixels=ic.getImageData(0,0,768,430).data;let top=430,bottom=-1;
+    for(let y=0;y<430;y++)for(let x=0;x<768;x++)if(pixels[(y*768+x)*4+3]>16){top=Math.min(top,y);bottom=Math.max(bottom,y)}
+    assert(bottom-top>=148&&bottom-top<=160,`${outfit}/${pose}: visible height ${bottom-top}`);
+    assert(Math.abs(bottom-323)<=2,`${outfit}/${pose}: feet ${bottom}`);
+    if(outfit==='normal'||outfit==='stardust'){
+     const x=pi*200,y=outfit==='normal'?0:240;pc.drawImage(isolated,40,130,330,210,x,y+25,200,200);
+     pc.fillStyle='#fff';pc.font='14px sans-serif';pc.fillText(outfit+'/'+pose,x+5,y+20);
+    }
+   }
+  }}finally{context.drawImage=draw}
+  fs.writeFileSync(path.join(output,'hero-battle-scale.png'),preview.toBuffer('image/png'));
+ });
  sandbox.Math.random=originalRandom;
  check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1')||p.includes('landscape-v2')||p.includes('landscape-v3')||p.includes('places-v1')||p.includes('grass-v1')||p.includes('quarter-v1'))));
  fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));

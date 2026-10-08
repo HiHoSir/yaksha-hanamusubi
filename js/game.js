@@ -108,6 +108,20 @@ for(const [k,v] of Object.entries(B9)){const im=new Image();im.onload=assetLoade
 const OUTFIT_READY={normal:true,basewear:true,light:true,white:true,navy:true,yukata:true,demon:true,stardust:true};
 const HERO_FOLDERS={normal:"normal-v9",basewear:"basewear",light:"light-v9",white:"white-v9",navy:"navy-v9",yukata:"yukata-v9",demon:"demon-v9",stardust:"stardust-v1"};
 const BATTLE_SPRITES={};
+// Source artwork includes different transparent margins. Match the visible
+// character height and foot line to the walking sprite used for idle poses.
+const STARDUST_BATTLE_METRICS={
+ idle:{height:444,foot:471},attack:{height:320,foot:472},
+ hit:{height:318,foot:472},guard:{height:458,foot:484},
+ victory:{height:457,foot:483},skill:{height:438,foot:464}
+};
+function battleSpriteLayout(sprite,outfit,pose){
+ const metrics=outfit==="stardust"?STARDUST_BATTLE_METRICS[pose]:{height:312,foot:480};
+ const scale=104*1.48/metrics.height;
+ const x=pose==="attack"||pose==="skill"?218:170,foot=310+9*1.48;
+ return {x,foot,left:x-sprite.naturalWidth*scale/2,top:foot-metrics.foot*scale,
+  width:sprite.naturalWidth*scale,height:sprite.naturalHeight*scale};
+}
 let battlePose="idle",battleFx=null;
 const battleTimers=new Set();
 function resetBattleAnimation(){for(const id of battleTimers)clearTimeout(id);battleTimers.clear();battlePose="idle";battleFx=null;}
@@ -783,12 +797,9 @@ function move(dx,dy,dir){
 
  const sprite=BATTLE_SPRITES[S.outfit]?.[battlePose];
  if(layerReady(sprite)){
-  const actionPose=battlePose==="attack"||battlePose==="skill";
-  const x=actionPose?218:170,y=322,maxW=380,maxH=280;
-  const scale=Math.min(maxW/sprite.naturalWidth,maxH/sprite.naturalHeight);
-  const w=sprite.naturalWidth*scale,h=sprite.naturalHeight*scale;
-  shadow(bg,x,y,62,20,.32);bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
-  bg.drawImage(sprite,x-w/2,y-h,w,h);bg.restore();
+  const box=battleSpriteLayout(sprite,S.outfit,battlePose);
+  shadow(bg,box.x,box.foot,31*1.48,10*1.48,.32);bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
+  bg.drawImage(sprite,box.left,box.top,box.width,box.height);bg.restore();
  }else hero(bg,170,310,"r",1,S.outfit,1.48);
  const progress=battleFx?Math.min(1,(performance.now()-battleFx.start)/battleFx.duration):1;
  const recoil=battleFx?.target==="enemy"&&!battleFx.reduced?Math.sin(progress*Math.PI*8)*7*(1-progress):0;
