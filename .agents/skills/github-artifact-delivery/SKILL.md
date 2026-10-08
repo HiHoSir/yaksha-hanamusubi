@@ -71,3 +71,10 @@ The Code Mode GitHub connector accepts base64 image content, but local files und
 - Existing atlas sprites can be extracted or scaled inside GitHub Actions, but are **not equivalent** to the 20 newly prepared 512×512 original-derived PNGs. Never silently substitute upscaled atlas images for the requested HD deliverable.
 - The real completion criterion for this pending task is 20 separate GitHub PNG objects under `assets/enemies/hd512/`, matching the approved local ZIP, plus loader and visual checks. Record an actual upload/transfer route only after its success is confirmed.
 - If local-to-GitHub transfer is blocked, do not loop through code-only commits and call them an image fix. Acknowledge the limitation once, keep the source artifacts available, and prioritize obtaining a supported transfer bridge.
+
+## GitHub connector first
+- For GitHub repository changes, use the connected GitHub actions before considering local git or curl.
+- Local DNS resolution failure does not indicate a failure of the GitHub connector.
+- For text files, create_file or update_file on main makes a direct remote commit without a pull request.
+- For binary PNG assets, use create_blob with actual base64 bytes and commit through tree/ref operations when a supported binary-data handoff is available.
+- Verify each expected remote PNG before claiming that image deployment succeeded.
