@@ -1037,12 +1037,12 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){tickVillageDoor(t);const npcMoved=YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show"));if(npcMoved&&!fieldMotion&&t-npcPaintAt>33){npcPaintAt=t;map();}if(S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>50){villagePaintAt=t;map();}if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
+function loop(t){tickVillageDoor(t);const npcMoved=YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show"));const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>50;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
  const deadline=fieldMotion.at+144;fieldMotion=null;
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
- }map(motionTime);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+ }map(motionTime);}else if(idleNpcPaint||idleVillagePaint){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
