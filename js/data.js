@@ -8,6 +8,7 @@ const areas={
  village:{name:"鬼灯の里",ground:"#8ca25d",path:"#c9ad78",water:"#5599aa",encounter:0,min:99,grace:0},
  teahouse:{name:"花見茶屋",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
  osumiHome:{name:"お澄の家",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
+ villageRoom:{name:"里の建物",ground:"#6b4932",encounter:0,min:9999,grace:0},
  shrine:{name:"天妖の社",ground:"#557f57",path:"#a79a72",water:"#467f90",encounter:.028,min:20,grace:12},
  cove:{name:"海の入り江",ground:"#c6b783",path:"#e0c996",water:"#3e8ea7",encounter:.035,min:17,grace:10},
  forest:{name:"忘れの森",ground:"#426d49",path:"#82795c",water:"#3f7882",encounter:.052,min:12,grace:10},

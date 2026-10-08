@@ -32,7 +32,7 @@ class LocalImage extends NativeImage{
 const storage=new Map(),windowEvents={};
 const sandbox={document:doc,Image:LocalImage,console,Math:Object.create(Math),Date,performance:{now:()=>now},setTimeout:(f,m)=>schedule(f,m),clearTimeout:id=>timers.delete(id),setInterval:(f,m)=>schedule(f,m,m),clearInterval:id=>timers.delete(id),requestAnimationFrame:f=>schedule(f,16),confirm:()=>false,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener:(n,f)=>(windowEvents[n]??=[]).push(f),YK_AUDIO:{beep(){},syncBgm(){},unlock(){}},setPointerCapture(){}};
 sandbox.window=sandbox;vm.createContext(sandbox);
-for(const file of ['data.js','equipment.js','world.js','save.js','input.js','autotile.js','landscape.js','game.js']){let source=fs.readFileSync(path.join(root,'js',file),'utf8');if(file==='game.js')source=source.replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();');vm.runInContext(source,sandbox,{filename:file});}
+for(const file of ['data.js','equipment.js','world.js','save.js','input.js','autotile.js','landscape.js','settlement.js','game.js']){let source=fs.readFileSync(path.join(root,'js',file),'utf8');if(file==='game.js')source=source.replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();');vm.runInContext(source,sandbox,{filename:file});}
 function tap(id){assert(el(id),id);el(id).fire('pointerdown');el(id).fire('pointerup')}
 function dataTap(key,value){const e=elements.find(x=>x.dataset[key]===value);assert(e,key+':'+value);e.fire('pointerdown');e.fire('pointerup')}
 function key(k){for(const f of docEvents.keydown||[])f({key:k,preventDefault(){}});for(const f of docEvents.keyup||[])f({key:k,preventDefault(){}})}
@@ -311,7 +311,7 @@ function check(name,fn){fn();results.push(name)}
   for(const [id,p] of Object.entries(world.places)){
    sandbox.__qaEval('busy=false;S.area="field";fieldMotion=null;');[sandbox.gameState.x,sandbox.gameState.y]=p.point;
    sandbox.__qaEval('action()');assert.equal(sandbox.gameState.area,id);
-   if(id==='village'){sandbox.gameState.x=384;sandbox.gameState.y=714;tap('down');}
+   if(id==='village'){sandbox.gameState.x=768;sandbox.gameState.y=1228;tap('down');}
    else {sandbox.gameState.x=44;sandbox.gameState.y=430;tap('left');}
    assert.equal(sandbox.gameState.area,'field',id+' exit');assert(world.walkable(sandbox.gameState.x,sandbox.gameState.y));
   }
@@ -390,7 +390,7 @@ function check(name,fn){fn();results.push(name)}
  });
 
  check('merchant action opens shop; purchase equips and persists without changing appearance',()=>{
-  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="village";S.x=450;S.y=284;S.dir="r";S.gold=1000;action()');
+  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="village";S.x=660;S.y=912;S.dir="l";S.gold=1000;action()');
   assert(el('shop').classList.contains('show'));dataTap('shopItem','short_blade');assert.equal(sandbox.gameState.gold,935);
   sandbox.__qaEval('close("shop");menu()');assert.equal(elements.filter(e=>e.dataset.outfit).length,2);
   const select=elements.find(e=>e.dataset.equipSlot==='weapon');assert(select);select.value='short_blade';select.fire('change');

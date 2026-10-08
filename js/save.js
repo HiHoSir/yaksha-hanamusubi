@@ -1,6 +1,6 @@
 window.YK_SAVE=(()=>{
-const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=13;
-const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:2,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,mp:18,maxmp:18,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
+const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=14;
+const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:3,relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:100,maxhp:100,mp:18,maxmp:18,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:14,def:4,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
@@ -11,12 +11,12 @@ function migrate(raw){
  s.maxmp=Math.max(1,Math.floor(Number(raw?.maxmp)||18+(s.lv-1)*2));
  s.mp=raw?.mp!=null&&Number.isFinite(Number(raw.mp))?Math.max(0,Math.min(s.maxmp,Math.floor(Number(raw.mp)))):s.maxmp;
  s.x=Number.isFinite(Number(s.x))?Number(s.x):384;s.y=Number.isFinite(Number(s.y))?Number(s.y):500;
- if(s.lastInterior!=="teahouse"&&s.lastInterior!=="osumiHome")s.lastInterior=null;
+ if(!["teahouse","osumiHome","inn","shop","farmHome","weaverHome","riverHome"].includes(s.lastInterior))s.lastInterior=null;
  if((s.area==="teahouse"||s.area==="osumiHome")&&(!Number.isFinite(Number(s.x))||!Number.isFinite(Number(s.y)))){s.x=384;s.y=650;}
  // Keep migration data-only. Field collision validation is performed by game.js after restore,
  // avoiding world/canvas work inside the synchronous localStorage Continue path.
- if(raw?.villageRevision!==2&&s.area==="village"){s.x=373;s.y=690;}
- s.villageRevision=2;
+ if(raw?.villageRevision!==3&&s.area==="village"){s.x=768;s.y=1190;}
+ s.villageRevision=3;
  // Revision 88 changes world coordinates, not story progress or local-map positions.
  if(raw&&Number(raw.worldRevision||0)<88&&typeof YK_WORLD!=="undefined"){
   if(s.area==="field")[s.x,s.y]=YK_WORLD.migratePosition([s.x,s.y]);

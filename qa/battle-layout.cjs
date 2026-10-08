@@ -18,7 +18,7 @@ const server=http.createServer((req,res)=>{
  await page.locator('#right').tap();await page.locator('#ok').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'skill');await page.locator('#cancel').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'root');
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
  await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});
- await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="village";S.x=450;S.y=284;S.dir="r";S.gold=1000;action();'));
+ await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="village";S.x=660;S.y=912;S.dir="l";S.gold=1000;action();'));
  await page.locator('[data-shop-item="short_blade"]').tap();
  assert.equal(await page.evaluate(()=>window.gameState.gold),935);
  assert.equal(await page.evaluate(()=>window.gameState.equipmentInventory.short_blade),1);
