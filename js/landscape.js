@@ -287,8 +287,10 @@ window.YK_LANDSCAPE=(()=>{
   const angle=camera.angle||0,cs=Math.cos(angle),sn=Math.sin(angle),dx=x-camera.x,dy=y-camera.y;
   const vx=cs*dx+sn*dy,vy=-sn*dx+cs*dy,c=cameraCurve(zoom,camera.preset||0);
   if(vy<c.offset[0]||vy>c.offset[800])return null;
-  let lo=0,hi=800;for(let i=0;i<24;i++){const mid=(lo+hi)/2;if(lineAt(mid,zoom,camera.preset||0).offset<vy)lo=mid;else hi=mid;}
-  const sy=(lo+hi)/2,l=lineAt(sy,zoom,camera.preset||0);return {x:320+vx*l.xScale,y:sy,scale:l.scale,xScale:l.xScale};
+  // Invert the cached piecewise-linear curve directly. Avoid 24 scale/power
+  // evaluations per object and terrain vertex on every animation frame.
+  let lo=0,hi=800;while(hi-lo>1){const mid=(lo+hi)>>1;if(c.offset[mid]<=vy)lo=mid;else hi=mid;}
+  const sy=lo+(vy-c.offset[lo])/(c.offset[hi]-c.offset[lo]),l=lineAt(sy,zoom,camera.preset||0);return {x:320+vx*l.xScale,y:sy,scale:l.scale,xScale:l.xScale};
  }
  function unproject(x,y,camera,zoom=1.4){
   if(y<0||y>800)return null;const l=lineAt(y,zoom,camera.preset||0),vx=(x-320)/l.xScale,vy=l.offset,a=camera.angle||0,cs=Math.cos(a),sn=Math.sin(a);

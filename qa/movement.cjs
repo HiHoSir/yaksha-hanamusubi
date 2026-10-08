@@ -9,7 +9,8 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  const run=code=>page.evaluate(code=>window.__qaEval(code),code);
  await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>YK_SETTLEMENT.ready()&&YK_AUTOTILE.ready());
  for(const area of ['village','field']){
-  await run(`state(YK_SAVE.fresh());busy=false;S.area='${area}';S.x=${area==='village'?768:688};S.y=${area==='village'?1190:2096};S.encounterGrace=999;map();`);
+  await run(`state(YK_SAVE.fresh());busy=false;S.area='${area}';S.x=${area==='village'?768:688};S.y=${area==='village'?1190:2096};S.encounterGrace=999;hud();`);
+  await page.evaluate(()=>{window.__hudWrites=0;window.__hudObserver?.disconnect();window.__hudObserver=new MutationObserver(records=>window.__hudWrites+=records.length);window.__hudObserver.observe(document.getElementById('hud'),{childList:true,subtree:true,characterData:true});});
   await page.keyboard.down('ArrowUp');
   const trace=await page.evaluate(()=>new Promise(resolve=>{const out=[],start=performance.now();function sample(t){out.push(window.__qaEval('({at:performance.now(),y:fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*Math.min(1,(performance.now()-fieldMotion.at)/144):S.y,moving:!!fieldMotion})'));if(t-start<850)requestAnimationFrame(sample);else resolve(out);}requestAnimationFrame(sample);}));
   await page.keyboard.up('ArrowUp');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));
@@ -17,6 +18,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   const distance=trace[0].y-trace.at(-1).y;
   assert(distance>160&&distance<230,area+' continuous pace '+distance);
   assert(gaps<=Math.max(2,trace.length*.1),area+' idle frames '+gaps+'/'+trace.length);
+  assert.equal(await page.evaluate(()=>window.__hudWrites),0,'unchanged HUD is not rebuilt while walking');
   const stopped=await run('S.y');await page.waitForTimeout(250);assert.equal(await run('S.y'),stopped,'release stops queued movement');
   const timing=await run('(()=>{const times=[];for(let i=0;i<12;i++){const t=performance.now();map();times.push(performance.now()-t);}return times.sort((a,b)=>a-b);})()');
   console.log(area+': '+trace.length+' frames, '+gaps+' pauses, '+distance.toFixed(1)+'px / 850ms, median render '+timing[6].toFixed(1)+'ms');

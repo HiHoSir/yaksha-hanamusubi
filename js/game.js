@@ -506,7 +506,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
 }
 window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;return window.__YK_COLLISION_DEBUG};
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
-function map(){
+function map(frameTime=performance.now()){
  if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
   g.clearRect(0,0,768,768);g.fillStyle="#102635";g.fillRect(0,0,768,768);
   worldHint("フィールド読込待機中");return;
@@ -516,7 +516,7 @@ function map(){
  if(S.area==="debugField"){drawDebugField(g);return;}
  if(S.area==="field"){
   YK_LANDSCAPE.load(assetLoaded);YK_AUTOTILE.load(assetLoaded);
-  const t=fieldMotion?clamp((performance.now()-fieldMotion.at)/144,0,1):1;
+  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
   const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
   const y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
   g.save();g.translate(0,32);g.scale(1.2,1.2);
@@ -528,7 +528,7 @@ function map(){
   worldHint(nearbyGuide()?"A：地蔵に道を聞く":k?"A："+YK_WORLD.places[k].name+"へ入る":"A：行動 ／ 地図で目的地を確認");return;
  }
  if(S.area==="village"){
-  const t=fieldMotion?clamp((performance.now()-fieldMotion.at)/144,0,1):1;
+  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
   const view={...S,x:fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y:fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y};
   const actors=areaNPCs().map(n=>({x:n.x,y:n.y,draw:(x,y,z)=>{g.save();g.translate(x,y);g.scale(z,z);npc(g,0,0,n.type,n.name,n.dir||"d",n.frame??1);g.restore();}}));
   actors.push({hero:true,x:view.x,y:view.y,draw:(x,y,z)=>hero(g,x,y-9*.56*z,S.dir,S.frame,S.outfit,.56*z)});
@@ -544,7 +544,7 @@ function map(){
   else {const im=IMG[S.area]||IMG.field;if(im&&im.complete&&im.naturalWidth)g.drawImage(im,0,0,768,768);else{g.fillStyle="#274738";g.fillRect(0,0,768,768)}}
  }
  if(S.area==="field")drawWorldPins(g,false);
- drawChests();drawActors();
+ drawChests();drawActors(frameTime);
  // New village intentionally has no foreground canopy over actors.
  drawDoorHint();
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"フィールドを進んで入口へ · 地図で目的地を確認");}
@@ -567,16 +567,16 @@ function areaNPCs(){
  return NPCS[S.area]||[];
 }
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
-function drawActorsOn(c){
+function drawActorsOn(c,frameTime=performance.now()){
  const actors=areaNPCs().map(n=>({y:n.y,kind:"npc",n}));
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero"){const t=fieldMotion?clamp((performance.now()-fieldMotion.at)/144,0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y,S.dir,S.frame,S.outfit,S.area==="field"?.16:["village","teahouse","osumiHome","villageRoom"].includes(S.area)?.68:.92);}
+   if(a.kind==="hero"){const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y,S.dir,S.frame,S.outfit,S.area==="field"?.16:["village","teahouse","osumiHome","villageRoom"].includes(S.area)?.68:.92);}
    else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
-function drawActors(){drawActorsOn(g)}
+function drawActors(frameTime){drawActorsOn(g,frameTime)}
 function nearestNPC(max=92){let best=null,bd=max;for(const n of areaNPCs()){const dx=n.x-S.x,dy=n.y-S.y,d=Math.hypot(dx,dy);if(d>=bd)continue;const facing={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[S.dir]||[0,1],dot=(dx*facing[0]+dy*facing[1])/(d||1);if(dot<-.15)continue;best=n;bd=d}return best}
 function npcBlocked(x,y){
  const list=areaNPCs();
@@ -589,7 +589,7 @@ function npcBlocked(x,y){
 }
 function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.dir=dx>0?"r":"l";n.dir=dx>0?"l":"r"}else{S.dir=dy>0?"d":"u";n.dir=dy>0?"u":"d"}}
 
-function hud(redraw=true){YK_AUDIO.syncBgm(S.area);const a=D.areas[S.area];$("hud").innerHTML=`体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>${S.lv}段　${S.gold}両<br><span class="outfitHud">衣装：${D.outfits[S.outfit]?.name||"花守り装束"}${OUTFIT_READY[S.outfit]?"":"（制作中）"}</span>`;$("objective").textContent="目的： "+D.objectives[Math.min(S.quest,D.objectives.length-1)];if(redraw)map()}
+function hud(redraw=true){YK_AUDIO.syncBgm(S.area);const a=D.areas[S.area];const text=`体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>${S.lv}段　${S.gold}両<br><span class="outfitHud">衣装：${D.outfits[S.outfit]?.name||"花守り装束"}${OUTFIT_READY[S.outfit]?"":"（制作中）"}</span>`;if($("hud").innerHTML!==text)$("hud").innerHTML=text;const objective="目的： "+D.objectives[Math.min(S.quest,D.objectives.length-1)];if($("objective").textContent!==objective)$("objective").textContent=objective;if(redraw)map()}
 function message(t,ms=1300){clearTimeout(msgTimer);$("message").textContent=t;$("message").style.display="block";msgTimer=setTimeout(()=>$("message").style.display="none",ms)}
 
 function talk(entry,after=null){
@@ -1037,12 +1037,12 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){tickVillageDoor(t);const npcMoved=YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show"));if(npcMoved&&!fieldMotion&&t-npcPaintAt>33){npcPaintAt=t;map();}if(S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>50){villagePaintAt=t;map();}if(!busy){if(fieldMotion){if(t-fieldMotion.at>=144){
+function loop(t){tickVillageDoor(t);const npcMoved=YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show"));if(npcMoved&&!fieldMotion&&t-npcPaintAt>33){npcPaintAt=t;map();}if(S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>50){villagePaintAt=t;map();}if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
  const deadline=fieldMotion.at+144;fieldMotion=null;
  const [dx,dy]=movementInput.vector();
- if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,t-32);}
+ if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
- }map();}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+ }map(motionTime);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.

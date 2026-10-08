@@ -248,7 +248,7 @@ function check(name,fn){fn();results.push(name)}
  check('perspective projection is invertible and keeps feet at a shared anchor',()=>{
   const samples=JSON.parse(fs.readFileSync(path.join(root,'design-reference/mode7/yaksha_mode7_curve_samples.json'),'utf8'));for(const v of samples)assert(Math.abs(land.perspectiveScale(v.t)-v.scale)<.000001);
   const camera={x:464,y:1168};
-  for(const z of [1.4,1.8])for(const angle of [0,Math.PI/4,Math.PI/2,Math.PI,Math.PI*1.5])for(const preset of [0,1,2])for(const x of [0,320,640])for(const y of [136,260,354,543]){
+  for(const z of [1.4,1.8])for(const angle of [0,Math.PI/4,Math.PI/2,Math.PI,Math.PI*1.5])for(const preset of [0,1,2])for(const x of [0,320,640])for(const y of [.001,136,136.125,260,353.75,354,543,799.5,799.999]){
    const cam={...camera,angle,preset},w=land.unproject(x,y,cam,z),back=land.project(w.x,w.y,cam,z);assert(Math.abs(back.x-x)<1e-3);assert(Math.abs(back.y-y)<1e-3);
   }
   const p=land.project(464,1168,camera);assert.equal(p.x,320);assert(Math.abs(p.y-354)<1e-3);
