@@ -56,6 +56,10 @@ def load_rgba(path: Path) -> Image.Image:
 
 
 def fit_to_canvas(im: Image.Image, size: int, margin: int, bottom: int | None = None) -> Image.Image:
+    # Approved 512px RGBA assets are canonical. Never crop, resample, or
+    # alpha-composite them again; doing so can change antialiased outlines.
+    if size == HD_SIZE and im.size == (HD_SIZE, HD_SIZE):
+        return im.copy()
     bbox = im.getchannel("A").getbbox()
     if bbox is None:
         raise ValueError("image has no visible pixels")
