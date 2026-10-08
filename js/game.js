@@ -1423,6 +1423,27 @@ window.YKDebugField=(enabled=true)=>{
   }
   const previous=battle;
   try{battle=selectedBattle;enemyArt(c,420,190,smoothingMode.value==="nearest"?false:null);}finally{battle=previous;}
+  // Flood-fill transparent pixels from the canvas edges. Transparent islands
+  // not connected to the exterior are potential accidental holes in artwork.
+  function enclosedTransparentPixels(data,width,height){
+   const seen=new Uint8Array(width*height),queue=new Int32Array(width*height);
+   let read=0,write=0;
+   const visit=(x,y)=>{
+    const i=y*width+x;
+    if(seen[i]||data[i*4+3]!==0)return;
+    seen[i]=1;queue[write++]=i;
+   };
+   for(let x=0;x<width;x++){visit(x,0);visit(x,height-1);}
+   for(let y=1;y<height-1;y++){visit(0,y);visit(width-1,y);}
+   while(read<write){
+    const i=queue[read++],x=i%width,y=(i-x)/width;
+    if(x>0)visit(x-1,y);if(x+1<width)visit(x+1,y);
+    if(y>0)visit(x,y-1);if(y+1<height)visit(x,y+1);
+   }
+   let holes=0;
+   for(let i=0;i<seen.length;i++)if(!seen[i]&&data[i*4+3]===0)holes++;
+   return holes;
+  }
   let alphaReport=" / 画像未読込";
   const hdDebug=isRare?HD_RARE_ART[rare?.id]?.[selected==="worn"?"worn":"intact"]:null;
   const debugHdReady=!!hdDebug&&layerReady(hdDebug);
@@ -1439,14 +1460,15 @@ window.YKDebugField=(enabled=true)=>{
      const pixels=sourceContext.getImageData(0,0,sourceCanvas.width,sourceCanvas.height).data;
      let opaque=0,translucent=0,clear=0;
      for(let k=3;k<pixels.length;k+=4){const a=pixels[k];if(a===255)opaque++;else if(a===0)clear++;else translucent++;}
-     alphaReport=" / HD "+source.naturalWidth+"×"+source.naturalHeight+" 不透明"+opaque+" 半透明"+translucent+" 透明"+clear;
+     alphaReport=" / HD "+source.naturalWidth+"×"+source.naturalHeight+" 不透明"+opaque+" 半透明"+translucent+" 透明"+clear+" 内部透明候補"+enclosedTransparentPixels(pixels,sourceCanvas.width,sourceCanvas.height);
     }
     if(Number.isInteger(cellIndex)){
+     sourceContext.clearRect(0,0,128,128);
      sourceContext.drawImage(source,(cellIndex%4)*128,Math.floor(cellIndex/4)*128,128,128,0,0,128,128);
      const data=sourceContext.getImageData(0,0,128,128).data;
      let opaque=0,translucent=0,clear=0;
      for(let j=3;j<data.length;j+=4){if(data[j]===255)opaque++;else if(data[j]===0)clear++;else translucent++;}
-     alphaReport=" / 元PNG: 不透明"+opaque+" 半透明"+translucent+" 透明"+clear;
+     alphaReport=" / アトラス: 不透明"+opaque+" 半透明"+translucent+" 透明"+clear+" 内部透明候補"+enclosedTransparentPixels(data,128,128);
     }
    }catch(e){alphaReport=" / 透明度診断不可";}
   }
