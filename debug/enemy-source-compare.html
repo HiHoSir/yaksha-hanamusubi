@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>変異種グラフィック原本比較・内部検査</title>
+<style>
+:root{color-scheme:dark}body{margin:0;padding:14px;font:15px system-ui,sans-serif;background:#17212b;color:#eef3f7}
+h1{font-size:21px;margin:5px 0}p{line-height:1.55;color:#b6cbd7}button,select{font-size:16px;padding:10px;background:#294354;color:#fff;border:1px solid #658498;border-radius:8px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.item{border:1px solid #516476;border-radius:12px;padding:10px;margin:15px 0}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.view{min-width:0}
+.check{background-color:#ededed;background-image:linear-gradient(45deg,#aaa 25%,transparent 25%),linear-gradient(-45deg,#aaa 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#aaa 75%),linear-gradient(-45deg,transparent 75%,#aaa 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;min-height:145px;display:flex;align-items:center}
+.check img{display:block;width:100%;height:auto;object-fit:contain;image-rendering:auto}
+.dark{background:#182633;background-image:none}.view h3{font-size:14px}.stats{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#0e171e;padding:7px;line-height:1.45}
+.good{color:#8ce0aa}.bad{color:#ffb09b}small{color:#bbced8}
+</style></head><body>
+<h1>敵変異種 原本・ゲーム画像 比較</h1>
+<p>GitHubに保存された通常・損傷計20組を比較します。左は保存原本、右は現在ゲームで使用する512px画像です。検査はブラウザ内で実行し、画像は書き換えません。</p>
+<div class="controls"><label>種類 <select id="kind"></select></label><label>背景 <select id="bg"><option value="check">市松</option><option value="dark">暗色</option></select></label><button id="scan">全20組を検査</button></div>
+<p id="overall" aria-live="polite">検査前</p><main id="root"></main>
+<script>
+'use strict';
+const stems=['oni','tanuki','lantern_fox','crab','jelly','tree','spider','snake','falls','ninefox'];
+const labels=['鬼','狸','灯籠狐','蟹','水母','樹木','蜘蛛','蛇','滝','九尾狐'];
+const names=stems.map((stem,i)=>({stem,prefix:String(i+1).padStart(2,'0'),name:labels[i]}));
+const kind=document.getElementById('kind'),bg=document.getElementById('bg'),root=document.getElementById('root'),overall=document.getElementById('overall');
+kind.innerHTML='<option value="all">全10種類</option>'+names.map(o=>'<option value="'+o.stem+'">'+o.name+' ('+o.stem+')</option>').join('');
+const cache='?compare=20261009';
+function load(url){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve({ok:true,img});img.onerror=()=>resolve({ok:false,img});img.src=url+cache;});}
+function inspect(image){
+ const w=image.naturalWidth,h=image.naturalHeight,cv=document.createElement('canvas');cv.width=w;cv.height=h;
+ const cx=cv.getContext('2d',{willReadFrequently:true});cx.clearRect(0,0,w,h);cx.drawImage(image,0,0);
+ const a=cx.getImageData(0,0,w,h).data,seen=new Uint8Array(w*h),queue=new Int32Array(w*h);
+ let opaque=0,semi=0,clear=0,read=0,write=0,holes=0;
+ for(let i=3;i<a.length;i+=4){if(a[i]===255)opaque++;else if(a[i]===0)clear++;else semi++;}
+ function push(x,y){let k=y*w+x;if(seen[k]||a[k*4+3]!==0)return;seen[k]=1;queue[write++]=k;}
+ for(let x=0;x<w;x++){push(x,0);push(x,h-1)}
+ for(let y=1;y<h-1;y++){push(0,y);push(w-1,y)}
+ while(read<write){const k=queue[read++],x=k%w,y=(k-x)/w;if(x>0)push(x-1,y);if(x+1<w)push(x+1,y);if(y>0)push(x,y-1);if(y+1<h)push(x,y+1);}
+ for(let k=0;k<seen.length;k++)if(!seen[k]&&a[k*4+3]===0)holes++;
+ return {w,h,opaque,semi,clear,holes};
+}
+function stat(o){return o.w+'×'+o.h+'\n不透明:'+o.opaque+' 半透明:'+o.semi+'\n透明:'+o.clear+' 内部透明候補:'+o.holes;}
+async function build(){
+ const selected=kind.value,filtered=selected==='all'?names:names.filter(x=>x.stem===selected);
+ root.replaceChildren();overall.textContent='読み込み・検査中…';
+ let loaded=0,failed=0,holeCandidates=0;
+ for(const item of filtered)for(const state of ['intact','worn']){
+  const source='assets/enemies/variants/source/'+state+'/'+item.prefix+'_'+item.stem+'.png';
+  const live='assets/enemies/hd512/'+item.stem+'-'+state+'-512.png';
+  // This page lives under debug/; relative image URLs must target repository root.
+  const urls=['../'+source,'../'+live];
+  const section=document.createElement('section');section.className='item';
+  const title=document.createElement('h2');title.textContent=item.name+' / '+(state==='intact'?'通常':'損傷');title.style.fontSize='17px';section.append(title);
+  const pair=document.createElement('div');pair.className='pair';section.append(pair);
+  for(let j=0;j<2;j++){
+   const box=document.createElement('div');box.className='view';
+   const h=document.createElement('h3');h.textContent=j?'現行HD画像':'保存原本';box.append(h);
+   const surface=document.createElement('div');surface.className='check '+(bg.value==='dark'?'dark':'');
+   const st=document.createElement('div');st.className='stats';st.textContent='読み込み中';box.append(surface,st);pair.append(box);
+   const result=await load(urls[j]);
+   if(!result.ok){failed++;st.textContent='読込失敗: '+urls[j];st.classList.add('bad');continue;}
+   loaded++;surface.append(result.img);
+   try{const metrics=inspect(result.img);if(metrics.holes>0)holeCandidates++;st.textContent=stat(metrics);if(metrics.holes)st.classList.add('bad');else st.classList.add('good');}
+   catch(err){failed++;st.textContent='画素検査不可: '+err.message;}
+  }
+  root.append(section);
+ }
+ overall.textContent='読込成功 '+loaded+'/'+(filtered.length*4)+'、読込/検査失敗 '+failed+'、内部透明候補あり '+holeCandidates+'。内部透明は正常な隙間の可能性もあります。';
+}
+document.getElementById('scan').onclick=build;kind.onchange=build;bg.onchange=()=>{document.querySelectorAll('.check').forEach(e=>e.className='check '+(bg.value==='dark'?'dark':''));};
+build();
+</script></body></html>
