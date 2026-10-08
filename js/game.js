@@ -1420,7 +1420,16 @@ window.YKDebugField=(enabled=true)=>{
      const data=sourceContext.getImageData(0,0,128,128).data;
      let opaque=0,translucent=0,clear=0;
      for(let j=3;j<data.length;j+=4){if(data[j]===255)opaque++;else if(data[j]===0)clear++;else translucent++;}
-     alphaReport=" / PNG: 不透明"+opaque+" 半透明"+translucent+" 透明"+clear;
+     let correctedSemi=-1;
+     if(isRare){
+      const corrected=opaqueVariantSource(source),cc=document.createElement("canvas");
+      cc.width=128;cc.height=128;
+      const cx=cc.getContext("2d",{willReadFrequently:true});
+      cx.drawImage(corrected,(cellIndex%4)*128,Math.floor(cellIndex/4)*128,128,128,0,0,128,128);
+      const out=cx.getImageData(0,0,128,128).data;correctedSemi=0;
+      for(let j=3;j<out.length;j+=4)if(out[j]>0&&out[j]<255)correctedSemi++;
+     }
+     alphaReport=" / 元PNG: 不透明"+opaque+" 半透明"+translucent+" 透明"+clear+(correctedSemi>=0?" / 描画補正後の半透明 "+correctedSemi:"");
     }
    }catch(e){alphaReport=" / 透明度診断不可";}
   }
