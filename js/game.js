@@ -145,7 +145,7 @@ const HD_RARE_STEMS={oni:"oni",tanuki:"tanuki",lantern:"lantern_fox",shell:"crab
 const HD_RARE_ART={};
 for(const [id,stem] of Object.entries(HD_RARE_STEMS)){
  HD_RARE_ART[id]={};
- for(const state of ["intact","worn"]){
+ for(const state of ["intact"]){
   const im=new Image();im.onload=assetLoaded;
   im.onerror=()=>{im.datasetFailed="1";};
   im.datasetSrc=`assets/enemies/hd512/${stem}-${state}-512.png?v=15.57.27`;
@@ -153,7 +153,7 @@ for(const [id,stem] of Object.entries(HD_RARE_STEMS)){
  }
 }
 const RARE_ART={};
-for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact","worn"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
+for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
 function ensureBattleAssets(){
  const set=BATTLE_SPRITES[S.outfit]||BATTLE_SPRITES.normal;if(set)for(const im of Object.values(set))ensureImage(im);
@@ -161,7 +161,7 @@ function ensureBattleAssets(){
  for(const im of Object.values(ENEMY_ART))ensureImage(im);
  ensureImage(ENEMY_ATLAS);
  ensureImage(VARIANT_ATLAS);
- ensureImage(VARIANT_WORN_ATLAS);
+ // Worn imagery retired: never request the damaged atlas.
  for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
  for(const set of Object.values(HD_RARE_ART))for(const im of Object.values(set))ensureImage(im);
 }
@@ -179,10 +179,10 @@ function enemyArt(c,x,y,debugSmoothing=null){
  const atlasIndex=Number.isInteger(profile?.atlas)?profile.atlas:null,atlasReady=atlasIndex!==null&&layerReady(ENEMY_ATLAS);
  const rareDef=battle?.rareId?Object.values(D.rareKinds).find(r=>r.id===battle.rareId):null;
  const variantIndex=Number.isInteger(rareDef?.variantAtlas)?rareDef.variantAtlas:null;
- const wornVariantReady=variantIndex!==null&&battle?.clothingBroken&&layerReady(VARIANT_WORN_ATLAS);
+ const wornVariantReady=false; // damaged clothing visuals disabled
  const variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
- const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.[battle.clothingBroken?"worn":"intact"]:null;
- const hd=HD_RARE_ART[battle?.rareId]?.[battle?.clothingBroken?"worn":"intact"];
+ const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.intact:null;
+ const hd=HD_RARE_ART[battle?.rareId]?.intact;
  const highResReady=!!hd&&layerReady(hd);
  const im=highResReady?hd:(battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback)));if(!layerReady(im))return;
  const bakedAtlas=!highResReady&&(wornVariantReady||variantReady||atlasReady);
@@ -805,7 +805,7 @@ function move(dx,dy,dir){
  const recoil=battleFx?.target==="enemy"&&!battleFx.reduced?Math.sin(progress*Math.PI*8)*7*(1-progress):0;
  bg.save();if(battle.hp<=0)bg.globalAlpha=.25;enemyArt(bg,585+recoil,255);bg.restore();
  drawBattleFx(bg,progress);
- $("enemyName").textContent=battle.name+(battle.rareId?"【特異種】":"")+(battle.clothingBroken?"・衣装損傷":"");$("enemyHp").textContent=Math.max(0,battle.hp)+"/"+battle.max;$("battleHp").textContent=S.hp+"/"+S.maxhp;
+ $("enemyName").textContent=battle.name+(battle.rareId?"【特異種】":"");$("enemyHp").textContent=Math.max(0,battle.hp)+"/"+battle.max;$("battleHp").textContent=S.hp+"/"+S.maxhp;
  $("battleMp").textContent=S.mp+"/"+S.maxmp;$("battleLevel").textContent=S.lv;
  $("battleHpBar").style.width=(100*S.hp/S.maxhp)+"%";$("battleMpBar").style.width=(100*S.mp/S.maxmp)+"%";
  $("battleHpBar").style.background=S.hp/S.maxhp<.25?"#e27268":"#8bc88a";renderBattleCommands();
@@ -873,7 +873,7 @@ function cmd(n){
   if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,420);return;}
   if(battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance){const guarded=Math.max(1,Math.ceil(d*.35));battle.hp-=guarded;battlePose="attack";$("battleText").textContent=`${battle.name}は大鋏で防いだ！ ${guarded}ダメージ`;startBattleFx("impact","enemy",guarded);renderBattle();battleLater(()=>{battlePose="idle";if(battle.hp<=0)return win();battleLater(foe,260)},320);return;}
   battle.hp-=d;battlePose=n==="skill"?"skill":"attack";
-  if(battle.rareId&&battle.hp/battle.max<=D.rareRules.breakHpRatio)battle.clothingBroken=true;
+  // Rare enemy damage no longer changes outfit sprites.
   $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
   YK_AUDIO.beep(n==="skill"?720:330,.08);startBattleFx(n==="skill"?"petals":"slash","enemy",d);renderBattle();
   battleLater(()=>{battlePose="idle";renderBattle()},320);
@@ -1405,7 +1405,7 @@ window.YKDebugField=(enabled=true)=>{
   const name=picker.value,e=entries.get(name),rare=D.rareKinds[name],selected=variant.value;
   if(!e)return;
   const isRare=selected!=="normal"&&!!rare;
-  const selectedBattle={name:isRare?rare.name:name,baseName:name,rareId:isRare?rare.id:null,clothingBroken:isRare&&selected==="worn",hp:e[1],max:e[1],atk:e[2]};
+  const selectedBattle={name:isRare?rare.name:name,baseName:name,rareId:isRare?rare.id:null,clothingBroken:false,hp:e[1],max:e[1],atk:e[2]};
   ensureBattleAssets();
   const c=canvas.getContext("2d");c.clearRect(0,0,640,360);
   // Checkerboard reveals unintended translucency in opaque enemy body regions.
@@ -1445,9 +1445,9 @@ window.YKDebugField=(enabled=true)=>{
    return holes;
   }
   let alphaReport=" / 画像未読込";
-  const hdDebug=isRare?HD_RARE_ART[rare?.id]?.[selected==="worn"?"worn":"intact"]:null;
+  const hdDebug=isRare?HD_RARE_ART[rare?.id]?.intact:null;
   const debugHdReady=!!hdDebug&&layerReady(hdDebug);
-  const source=debugHdReady?hdDebug:(isRare?(selected==="worn"?VARIANT_WORN_ATLAS:VARIANT_ATLAS):ENEMY_ATLAS);
+  const source=debugHdReady?hdDebug:(isRare?VARIANT_ATLAS:ENEMY_ATLAS);
   if(layerReady(source)){
    try{
     const sourceCanvas=document.createElement("canvas");sourceCanvas.width=128;sourceCanvas.height=128;
@@ -1472,7 +1472,7 @@ window.YKDebugField=(enabled=true)=>{
     }
    }catch(e){alphaReport=" / 透明度診断不可";}
   }
-  info.textContent=(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+alphaReport;
+  info.textContent=(isRare?rare.name:name)+" ／ "+(isRare?"特異種・通常衣装":"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+alphaReport;
  }
  function open(){if(battle)return;panel.classList.add("show");ensureBattleAssets();refresh();}
  function close(){panel.classList.remove("show");}
