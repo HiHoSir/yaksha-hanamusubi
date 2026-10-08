@@ -22,3 +22,9 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 - Perform battle debug and actual battle checks when feasible; distinguish source checks, code tests, deployment and iPhone Safari confirmation.
 - For private Sites/ROM research, do not release protected source graphics on public GitHub Pages.
 - Report verified facts and unresolved blockers precisely; a successful source-code commit does not mean generated binary assets were transferred.
+
+## GitHub branch and artifact handoff
+- This project normally commits **directly to `main`** using the connected GitHub tools. Do not assume a pull request is needed.
+- GitHub `create_file` / `update_file` on main create actual remote commits. Verify the resulting SHA on main.
+- For asset changes, reuse conversation-uploaded or already-generated files before asking for uploads. Never repeatedly delegate GitHub commit/push to the user.
+- For binary PNG/ZIP integration, read [github-artifact-delivery](.agents/skills/github-artifact-delivery/SKILL.md) and verify actual remote bytes before claiming completion.
