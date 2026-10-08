@@ -1387,6 +1387,40 @@ window.YKDebugField=(enabled=true)=>{
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};
  S=window.gameState=JSON.parse(JSON.stringify(r));$("title")?.classList.add("show");busy=true;map();return false;
 };
+// Read-only enemy sprite inspector: never starts combat or mutates saved state.
+(function setupEnemyDebug(){
+ const openBtn=$("enemyDebugBtn"),panel=$("enemyDebugPanel"),picker=$("enemyDebugEnemy"),variant=$("enemyDebugVariant"),closeBtn=$("enemyDebugClose"),canvas=$("enemyDebugCanvas"),info=$("enemyDebugInfo");
+ if(!openBtn||!panel||!picker||!variant||!canvas)return;
+ const entries=new Map();
+ for(const [area,pool] of Object.entries(D.enemies))for(const e of pool||[])if(!entries.has(e[0]))entries.set(e[0],e);
+ for(const [name,e] of entries){
+  const option=document.createElement("option");option.value=name;option.textContent=name+(D.rareKinds[name]?"（特異種あり）":"");picker.append(option);
+ }
+ function refresh(){
+  const name=picker.value,e=entries.get(name),rare=D.rareKinds[name],selected=variant.value;
+  if(!e)return;
+  const isRare=selected!=="normal"&&!!rare;
+  const selectedBattle={name:isRare?rare.name:name,baseName:name,rareId:isRare?rare.id:null,clothingBroken:isRare&&selected==="worn",hp:e[1],max:e[1],atk:e[2]};
+  ensureBattleAssets();
+  const c=canvas.getContext("2d");c.clearRect(0,0,640,360);
+  // Checkerboard reveals unintended translucency in opaque enemy body regions.
+  c.fillStyle="#28485a";c.fillRect(0,0,640,360);
+  for(let y=0;y<360;y+=32)for(let x=0;x<640;x+=32)if(((x+y)/32)%2===0){c.fillStyle="#597267";c.fillRect(x,y,32,32);}
+  const previous=battle;
+  try{battle=selectedBattle;enemyArt(c,320,190);}finally{battle=previous;}
+  info.textContent=(isRare?rare.name:name)+" ／ "+(isRare?(selected==="worn"?"特異種・衣装損傷":"特異種・通常衣装"):"通常種")+(isRare&&Number.isInteger(rare.variantAtlas)?" ／ アトラス "+rare.variantAtlas:"")+" ／ 素材読み込み中は再表示されます";
+ }
+ function open(){if(battle)return;panel.classList.add("show");ensureBattleAssets();refresh();}
+ function close(){panel.classList.remove("show");}
+ openBtn.addEventListener("click",open);
+ closeBtn.addEventListener("click",close);
+ picker.addEventListener("change",refresh);
+ variant.addEventListener("change",refresh);
+ // Image loading is asynchronous, so refresh once all sprites have had time to arrive.
+ let poll=0;const update=()=>{if(panel.classList.contains("show"))refresh();if(++poll<12)setTimeout(update,350);};
+ openBtn.addEventListener("click",()=>{poll=0;setTimeout(update,350);});
+ window.YKEnemyDebug={open,close,refresh};
+})();
 const debugMapBtn=document.getElementById("debugMap");
 if(debugMapBtn){debugMapBtn.addEventListener("click",(e)=>{e.preventDefault();e.stopPropagation();window.YKDebugField(true);});}
 
