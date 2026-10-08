@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Repair source rare enemy atlases in place with Pillow.
+"""Generate safe candidate atlases without changing original PNG files.
 
 Keep fully transparent background empty, convert visible body pixels to
 opaque using straight-alpha unmatting against local opaque neighbours,
 and normalize intact/worn visual bounds within every 128x128 cell.
-Run intentionally (not as part of deploying user gameplay code).
+Inspect comparison.png before deploying. Originals remain untouched.
 """
 from pathlib import Path
 from PIL import Image
@@ -76,11 +76,21 @@ def main():
             repaired = normalized_pair(*(im.crop((x, y, x+CELL, y+CELL)) for im in before))
             for out, tile in zip(outputs, repaired):
                 out.paste(tile, (x, y))
+    output_dir = ROOT / "reviewed-candidates"
+    output_dir.mkdir(parents=True, exist_ok=True)
     for path, image in zip(PATHS, outputs):
         arr = np.asarray(image.getchannel("A"))
         assert not np.any((arr > 0) & (arr < 255)), path
-        image.save(path, optimize=True)
-        print(f"{path.name}: {image.size}, alpha=0/255 only")
+        output_path = output_dir / path.name
+        assert output_path.resolve() != path.resolve()
+        image.save(output_path, optimize=True)
+        print(f"{output_path}: {image.size}, alpha=0/255 only")
+    preview = Image.new("RGBA", (w * 2, h * 2), (70, 90, 94, 255))
+    for row, (source, fixed) in enumerate(zip(before, outputs)):
+        preview.alpha_composite(source, (0, row * h))
+        preview.alpha_composite(fixed, (w, row * h))
+    preview.save(output_dir / "comparison.png", optimize=True)
+    print("Compare originals versus candidates before deployment.")
 
 
 if __name__ == "__main__":
