@@ -1,0 +1,17 @@
+name: Rare Enemy Sprite Repair
+on:
+  workflow_dispatch:
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow numpy
+      - run: python qa/repair-rare-enemy-atlases.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rare-enemy-repair-preview
+          path: assets/enemies/reviewed-candidates/
