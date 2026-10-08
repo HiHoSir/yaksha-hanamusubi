@@ -924,7 +924,7 @@ function renderRelics(){
 function menu(){if(busy)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu()}));$("menu").classList.add("show")}
 
 const CHEST_ART={};
-for(const state of ['closed','open']){const im=new Image();im.onload=assetLoaded;im.src=`assets/objects/tsuzura-${state}.png`;CHEST_ART[state]=im;}
+for(const state of ['closed','open']){const im=new Image();im.onload=assetLoaded;im.src=`assets/objects/tsuzura-${state}.png?v=15.56.1`;CHEST_ART[state]=im;}
 function drawChests(){
  for(const c of E.chests.filter(c=>c.area===S.area)){
   const im=CHEST_ART[S.chests[c.id]?'open':'closed'];
