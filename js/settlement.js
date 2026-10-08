@@ -229,10 +229,24 @@ window.YK_SETTLEMENT=(()=>{
    }
   }c.restore();
  }
- function bridgeObjects(sprite){
-  const ns=bridges[0],ew=bridges[1];
-  const posts=[];for(const x of [ns.x+8,ns.x+ns.width-8])for(const foot of [ns.y+8,ns.y+ns.height-8])posts.push({x:x-4,foot,width:8,height:28,draw:(c,l,t,w,h)=>c.drawImage(art.fence,9,0,14,art.fence.height,l,t,w,h)});
-  return [...posts,{...sprite('fence',ew.x+ew.width/2,ew.y+12,ew.width),height:28},{...sprite('fence',ew.x+ew.width/2,ew.y+ew.height-8,ew.width),height:28}];
+ function bridgeObjects(sprite,cam){
+  const ns=bridges[0],ew=bridges[1],parts=[];
+  // Short world-space sections keep the rail perspective and actor depth order aligned.
+  for(const x of [ns.x+8,ns.x+ns.width-8]){
+   const first=ns.y+8,last=ns.y+ns.height-8;
+   for(let y=first;y<last;y+=16){const end=Math.min(y+16,last);
+    parts.push({x:x-4,foot:(y+end)/2,width:8,height:28,draw:(c)=>{
+     const a=project(x,y,cam),b=project(x,end,cam);if(!a||!b)return;c.save();
+     for(const h of [12,24]){
+      const ay=a.y-(elevation(x,y)+h)*a.scale,by=b.y-(elevation(x,end)+h)*b.scale;
+      c.lineCap='round';c.strokeStyle='#594026';c.lineWidth=5*(a.scale+b.scale)/2;c.beginPath();c.moveTo(a.x,ay);c.lineTo(b.x,by);c.stroke();
+      c.strokeStyle='#bf9754';c.lineWidth=2*(a.scale+b.scale)/2;c.beginPath();c.moveTo(a.x-1,ay-1);c.lineTo(b.x-1,by-1);c.stroke();
+     }c.restore();
+    }});
+   }
+   for(const foot of [first,(first+last)/2,last])parts.push({x:x-4,foot,width:8,height:28,draw:(c,l,t,w,h)=>c.drawImage(art.fence,9,0,14,art.fence.height,l,t,w,h)});
+  }
+  return [...parts,{...sprite('fence',ew.x+ew.width/2,ew.y+12,ew.width),height:28},{...sprite('fence',ew.x+ew.width/2,ew.y+ew.height-8,ew.width),height:28}];
  }
  const wander=new WeakMap();let previousTick=0;
  function updateResidents(now,state,list,isBlocked,enabled,random=Math.random){
@@ -263,7 +277,7 @@ window.YK_SETTLEMENT=(()=>{
  function draw(c,state,actors,doorState,time=performance.now()){
   load();YK_LANDSCAPE.load();YK_AUTOTILE.load();if(!ready()||!YK_LANDSCAPE.ready()||!YK_AUTOTILE.ready())return false;
   const sprite=(key,x,y,width,draw)=>({kind:key,x:x-width/2,foot:y,width,height:width*art[key].height/art[key].width*(key==='fence'?.5:1),draw:draw||((q,l,t,w,h)=>q.drawImage(art[key],l,t,w,h))});
-  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map(t=>sprite('tree',t.x,t.y,t.w)),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite),sprite('well',well.x,well.y,well.w),
+  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map(t=>sprite('tree',t.x,t.y,t.w)),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite,camera(state.x,state.y)),sprite('well',well.x,well.y,well.w),
    ...buildings.map(b=>b.kind==='shrine'?{kind:'shrine',x:b.x-b.w/2,foot:b.y,width:b.w,height:b.w}:sprite(b.kind,b.x,b.y,b.w,(q,x,y,w,h)=>{q.drawImage(art[b.kind],x,y,w,h);drawDoor(q,b,x,y,w,h,doorState?.id===b.id?doorState.open:0);})),
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();

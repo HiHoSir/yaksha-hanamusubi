@@ -32,6 +32,9 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  assert.equal(await run('S.x'),1376,'east bridge crosses at raised elevation');assert.equal(await run('YK_SETTLEMENT.elevation(S.x,S.y)'),80);
  for(let i=0;i<6;i++){await run('move(-1,0,"l");');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));}assert.equal(await run('S.x'),1184,'east bridge returns');
  await run('S.x=768;S.y=976;fieldMotion=null;');for(let i=0;i<6;i++){await run('move(0,1,"d");');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));}assert.equal(await run('S.y'),1168,'south bridge crosses');
+ for(let i=0;i<6;i++){await run('move(0,-1,"u");');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));}assert.equal(await run('S.y'),976,'south bridge returns');
+ await run('S.x=768;S.y=1064;map();');await page.screenshot({path:path.join(out,'village-south-bridge.png')});
+ await run('S.x=1280;S.y=414;map();');await page.screenshot({path:path.join(out,'village-east-bridge-center.png')});
  await run('S.x=1190;S.y=414;map();');await page.screenshot({path:path.join(out,'village-bridge-fixed.png')});
  await run('S.x=1190;S.y=760;map();');await page.screenshot({path:path.join(out,'village-waterfall.png')});
  await run('S.x=1190;S.y=650;map();');await page.screenshot({path:path.join(out,'village-spray.png')});
