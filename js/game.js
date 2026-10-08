@@ -349,7 +349,7 @@ const VILLAGE_RENDER_POLICY={
 function villageLayersReady(){
  return VILLAGE_RENDER_POLICY.requiredLayers.every(k=>layerReady(VILLAGE_LAYERS[k]));
 }
-window.YKVillageRenderInfo=()=>({mode:"settlement",ready:YK_SETTLEMENT.ready(),size:YK_SETTLEMENT.size,residents:YK_SETTLEMENT.residents.length,doors:YK_SETTLEMENT.doors.length,errors:YK_SETTLEMENT.errors});
+window.YKVillageRenderInfo=()=>({mode:"settlement",ready:YK_SETTLEMENT.ready(),size:YK_SETTLEMENT.size,residents:YK_SETTLEMENT.residents.length+YK_SETTLEMENT.doors.flatMap(d=>YK_SETTLEMENT.insideResidents(d.id)).length,doors:YK_SETTLEMENT.doors.length,errors:YK_SETTLEMENT.errors});
 function drawVillageMap(c){
  // Production-safe policy:
  // - composite: current approved opaque map.
@@ -434,10 +434,10 @@ function interiorBlocked(x,y){
  // Keep the bottom-center doorway usable.
  return false;
 }
-function enterInterior(area){YK_INPUT.stopAll();S.area=area;S.x=384;S.y=625;S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
+function enterInterior(area){fieldMotion=null;YK_INPUT.stopAll();S.area=area;S.x=384;S.y=625;S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
 function leaveInterior(){
  if(villageDoorMotion)return;
- YK_INPUT.stopAll();S.area="village";
+ fieldMotion=null;YK_INPUT.stopAll();S.area="village";
  const door=YK_SETTLEMENT.doors.find(d=>d.id===S.lastInterior)||YK_SETTLEMENT.doors[0];
  S.x=door.x;S.y=door.y+18;S.dir="d";S.frame=1;
  villageDoorMotion={id:door.id,at:performance.now(),open:1,mode:"close"};busy=true;
@@ -473,7 +473,7 @@ function villageDoorAction(){
  if(S.area!=="village"||villageDoorMotion)return false;
  const door=YK_SETTLEMENT.doors.find(d=>nearVillageDoor(d,8));
  if(!door)return false;
- YK_INPUT.stopAll();S.lastInterior=door.id;S.dir="u";S.frame=1;
+ fieldMotion=null;YK_INPUT.stopAll();S.lastInterior=door.id;S.dir="u";S.frame=1;
  villageDoorMotion={id:door.id,at:performance.now(),open:0,mode:"open"};busy=true;map();return true;
 }
 
@@ -518,7 +518,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
    // Deliberately no old doll fallback: show a neutral loading marker instead of shipping mismatched art.
    c.save();c.fillStyle="rgba(20,18,28,.72)";c.beginPath();c.arc(x,y-18,8,0,Math.PI*2);c.fill();c.restore();
  }
- c.font="600 11px sans-serif";c.textAlign="center";c.fillStyle="#fff";c.strokeStyle="#07131f";c.lineWidth=3;c.strokeText(name,x,y+32);c.fillText(name,x,y+32);
+ // Names appear only in conversation, never above NPC sprites.
 }function drawVillageCollisionDebug(c){
  if(!window.__YK_COLLISION_DEBUG||S.area!=="village")return;
  c.save();
@@ -558,9 +558,11 @@ function map(){
   worldHint(k?"A："+YK_WORLD.places[k].name+"へ入る":"フィールドを進んで入口へ · 地図で目的地を確認");return;
  }
  if(S.area==="village"){
-  const actors=areaNPCs().map(n=>({x:n.x,y:n.y,draw:(x,y)=>npc(g,x,y,n.type,n.name,n.dir||"d",n.frame??1)}));
-  actors.push({x:S.x,y:S.y,draw:(x,y)=>hero(g,x,y,S.dir,S.frame,S.outfit,.68)});
-  if(!YK_SETTLEMENT.draw(g,S,actors,villageDoorMotion))worldHint("鬼灯の里を読込中…");
+  const t=fieldMotion?clamp((performance.now()-fieldMotion.at)/144,0,1):1;
+  const view={...S,x:fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y:fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y};
+  const actors=areaNPCs().map(n=>({x:n.x,y:n.y,draw:(x,y,z)=>{g.save();g.translate(x,y);g.scale(z,z);npc(g,0,0,n.type,n.name,n.dir||"d",n.frame??1);g.restore();}}));
+  actors.push({hero:true,x:view.x,y:view.y,draw:(x,y,z)=>hero(g,x,y-9*.56*z,S.dir,S.frame,S.outfit,.56*z)});
+  if(!YK_SETTLEMENT.draw(g,view,actors,villageDoorMotion))worldHint("鬼灯の里を読込中…");
   else worldHint("A：話す・入る ／ 南の橋・北の道からフィールドへ");
   return;
  }
@@ -591,7 +593,7 @@ function map(){
 };
 function areaNPCs(){
  if(S.area==="village")return YK_SETTLEMENT.residents;
- if(S.area==="villageRoom")return YK_SETTLEMENT.insideResidents(S.lastInterior);
+ if(["villageRoom","teahouse","osumiHome"].includes(S.area))return YK_SETTLEMENT.insideResidents(S.lastInterior||S.area);
  return NPCS[S.area]||[];
 }
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
@@ -600,7 +602,7 @@ function drawActorsOn(c){
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero")hero(c,S.x,S.y,S.dir,S.frame,S.outfit,S.area==="field"?.16:["village","teahouse","osumiHome","villageRoom"].includes(S.area)?.68:.92);
+   if(a.kind==="hero"){const t=fieldMotion?clamp((performance.now()-fieldMotion.at)/144,0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y,S.dir,S.frame,S.outfit,S.area==="field"?.16:["village","teahouse","osumiHome","villageRoom"].includes(S.area)?.68:.92);}
    else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
@@ -748,10 +750,11 @@ function exitArea(){
 function move(dx,dy,dir){
  if(busy)return;
  if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
- if(S.area==="field"&&(fieldMotion||dx&&dy))return;
+ const fieldStyle=["field","village","teahouse","osumiHome","villageRoom"].includes(S.area);
+ if(fieldStyle&&(fieldMotion||dx&&dy))return;
  S.dir=dir;
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
- const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(S.area==="field"?32:22);
+ const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(fieldStyle?32:22);
  const vx=dx/norm*sp,vy=dy/norm*sp,steps=Math.ceil(sp/2),startX=S.x,startY=S.y;
  for(let i=0;i<steps;i++){
   const nx=clamp(S.x+vx/steps,27,S.area==="field"?YK_WORLD.size-27:S.area==="village"?1504:741),ny=clamp(S.y+vy/steps,34,S.area==="field"?YK_WORLD.size-34:S.area==="village"?1248:736);
@@ -759,18 +762,18 @@ function move(dx,dy,dir){
   // On the open field, a blocked diagonal step must stop instead of sliding
   // along one axis. This keeps coast, river and mountain edges predictable
   // under sustained 8-direction touch input.
-  else if(vx&&vy&&S.area!=="field"){
+  else if(vx&&vy&&!fieldStyle){
     if(!collision(nx,S.y))S.x=nx;
     else if(!collision(S.x,ny))S.y=ny;
   }
  }
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
- if(S.area==="field")fieldMotion={x:startX,y:startY,at:performance.now()};
+ if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now()};
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  if(ex&&ex!==S.area){
-   S.area=ex;
+   fieldMotion=null;S.area=ex;
    if(ex==="field"){[S.x,S.y]=YK_WORLD.places[from]?.point||S.worldPosition||YK_WORLD.hub;S.dir="d";}
    else {S.x=70;S.y=430;}
    S.visitedAreas[ex]=true;

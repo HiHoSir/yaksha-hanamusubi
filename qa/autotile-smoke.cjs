@@ -390,7 +390,7 @@ function check(name,fn){fn();results.push(name)}
  });
 
  check('merchant action opens shop; purchase equips and persists without changing appearance',()=>{
-  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="village";S.x=660;S.y=912;S.dir="l";S.gold=1000;action()');
+  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=440;S.dir="u";S.gold=1000;action()');
   assert(el('shop').classList.contains('show'));dataTap('shopItem','short_blade');assert.equal(sandbox.gameState.gold,935);
   sandbox.__qaEval('close("shop");menu()');assert.equal(elements.filter(e=>e.dataset.outfit).length,2);
   const select=elements.find(e=>e.dataset.equipSlot==='weapon');assert(select);select.value='short_blade';select.fire('change');

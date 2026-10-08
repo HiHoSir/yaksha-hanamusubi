@@ -296,31 +296,32 @@ window.YK_LANDSCAPE=(()=>{
  }
  function drawQuarter(c,map,actor,zoom=1.4,settings={}){
   if(!ready())return false;
-  const camera={x:actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0},ground=groundLayer(map),strip=4,top=136;
+  const camera={x:actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;c.drawImage(art.horizon,0,0,640,top+8);
   const corners=[];for(let y=top;y<=544;y+=strip)for(const x of [0,640])corners.push(unproject(x,y,camera,zoom));
-  const left=Math.max(0,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
-  const upper=Math.max(0,Math.floor(Math.min(...corners.map(p=>p.y)))-4),lower=Math.min(ground.height,Math.ceil(Math.max(...corners.map(p=>p.y)))+4);
+  const left=Math.max(gx,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(gx+ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
+  const upper=Math.max(gy,Math.floor(Math.min(...corners.map(p=>p.y)))-4),lower=Math.min(gy+ground.height,Math.ceil(Math.max(...corners.map(p=>p.y)))+4);
   for(let sy=top;sy<544;sy+=strip){
    const a=lineAt(sy,zoom,camera.preset),b=lineAt(sy+strip,zoom,camera.preset);
-   c.fillStyle='#25869d';c.fillRect(0,sy,640,strip);
+   c.fillStyle=settings.edgeColor||'#25869d';c.fillRect(0,sy,640,strip);
    if(!camera.angle){
-    const sourceTop=Math.max(0,camera.y+a.offset),bottom=Math.min(ground.height,camera.y+b.offset);
-    if(bottom>sourceTop)c.drawImage(ground,left,sourceTop,right-left,bottom-sourceTop,320+(left-camera.x)*a.xScale,sy,(right-left)*a.xScale,strip+.5);
+    const sourceTop=Math.max(gy,camera.y+a.offset),bottom=Math.min(gy+ground.height,camera.y+b.offset);
+    if(bottom>sourceTop)c.drawImage(ground,left-gx,sourceTop-gy,right-left,bottom-sourceTop,320+(left-camera.x)*a.xScale,sy,(right-left)*a.xScale,strip+.5);
    }else if(right>left&&lower>upper){
     const cs=Math.cos(camera.angle),sn=Math.sin(camera.angle),ys=strip/(b.offset-a.offset);
     c.save();c.beginPath();c.rect(0,sy,640,strip);c.clip();
     c.transform(a.xScale*cs,-ys*sn,a.xScale*sn,ys*cs,320-a.xScale*(cs*camera.x+sn*camera.y),sy-ys*(-sn*camera.x+cs*camera.y+a.offset));
-    c.drawImage(ground,left,upper,right-left,lower-upper,left,upper,right-left,lower-upper);c.restore();
+    c.drawImage(ground,left-gx,upper-gy,right-left,lower-upper,left,upper,right-left,lower-upper);c.restore();
    }
   }
-  const projected=objects(map).map(o=>({o,p:project(o.x+o.width/2,o.foot,camera,zoom)})).filter(v=>v.p&&v.p.y>=top&&v.p.y<750).sort((a,b)=>a.p.y-b.p.y);
+  if(settings.afterGround)settings.afterGround(c,camera);
+  const projected=(settings.objects||objects(map)).map(o=>({o,p:project(o.x+o.width/2,o.foot,camera,zoom)})).filter(v=>v.p&&v.p.y>=top&&v.p.y<750).sort((a,b)=>a.p.y-b.p.y);
   const player=project(actor.x,actor.foot,camera,zoom);let drawn=false;
   for(const {o,p} of projected){
    if(!drawn&&player.y<p.y){actor.draw(player.x,player.y,player.scale);drawn=true;}
    const w=o.width*p.scale,h=o.height*p.scale,x=p.x-w/2,y=p.y-h;if(x+w<0||x>640)continue;
    c.globalAlpha=Math.min(1,Math.max(0,(p.y-top)/70));
-   if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
+   if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
   }
   if(!drawn)actor.draw(player.x,player.y,player.scale);
   const haze=c.createLinearGradient(0,top,0,top+120);haze.addColorStop(0,'rgba(202,225,214,.75)');haze.addColorStop(1,'rgba(202,225,214,0)');c.fillStyle=haze;c.fillRect(0,top,640,120);

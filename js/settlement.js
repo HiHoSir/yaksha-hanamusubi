@@ -31,8 +31,8 @@ window.YK_SETTLEMENT=(()=>{
  function resident(role,id,x,y,dir='d',extra={}){return {...roles[role],role,id,x,y,dir,frame:1,service:role==='merchant'?'shop':roles[role].service,...extra};}
  const residents=[
   resident('elder','chief',716,648,'d'),resident('child','child-square',842,728,'l'),
-  resident('woman','osumi',436,534,'r'),resident('teagirl','tea-host',1100,724,'l'),
-  resident('merchant','shop-front',600,912,'r'),resident('innkeeper','inn-host',350,924,'r'),
+
+
   resident('farmer','farmer',576,470,'l'),resident('weaver','weaver',984,390,'d'),
   resident('child','child-garden',530,620,'r'),resident('fisher','fisher',1140,974,'l'),
   resident('traveler','traveler',896,868,'u'),resident('elder','shrine-keeper',1406,350,'d',{name:'社の世話役',talk:['大きな社は里の北。ここは里を見守る小さなお社じゃ。']})
@@ -53,9 +53,9 @@ window.YK_SETTLEMENT=(()=>{
  const well={x:672,y:638,w:68};
  const gardens=[{x:548,y:416,w:150},{x:922,y:322,w:124},{x:458,y:624,w:144}];
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- function camera(x,y){return {x:clamp(x,384,size[0]-384),y:clamp(y,430, size[1]-420)};}
- const project=(x,y,cam)=>({x:384+x-cam.x,y:384+(y-cam.y)*.78});
- const unproject=(x,y,cam)=>({x:cam.x+x-384,y:cam.y+(y-384)/.78});
+ function camera(x,y){return {x,y};}
+ const project=(x,y,cam)=>YK_LANDSCAPE.project(x,y,cam,1.4);
+ const unproject=(x,y,cam)=>YK_LANDSCAPE.unproject(x,y,cam,1.4);
  function blocked(x,y){
   if(!YK_LANDSCAPE.walkable(mapData,x,y,9))return true;
   const hit=(l,t,r,b)=>Math.hypot(x-clamp(x,l,r),y-clamp(y,t,b))<8;
@@ -63,11 +63,10 @@ window.YK_SETTLEMENT=(()=>{
   if(hit(well.x-27,well.y-24,well.x+27,well.y+6))return true;
   return trees.some(t=>Math.hypot(x-t.x,y-t.y)<18);
  }
- function drawSprite(c,key,x,foot,w,cam){const im=art[key];if(!im?.naturalWidth)return;const p=project(x,foot,cam),h=w*im.height/im.width;c.drawImage(im,p.x-w/2,p.y-h,w,h);}
  const aperture={home:[.429,.66,.165,.273],inn:[.411,.714,.175,.212],shop:[.435,.62,.139,.314],tea:[.406,.616,.168,.319]};
- function doorRect(b,cam){const p=project(b.x,b.y,cam),im=art[b.kind],h=b.w*im.height/im.width,a=aperture[b.kind];return {x:p.x-b.w/2+b.w*a[0],y:p.y-h+h*a[1],w:b.w*a[2],h:h*a[3]};}
- function drawDoor(c,b,cam,openness=0){
-  const r=doorRect(b,cam),im=art.door,half=im.width/2;
+ function doorRect(b,cam){const p=project(b.x,b.y,cam);if(!p)return null;const im=art[b.kind],w=b.w*p.scale,h=w*im.height/im.width,a=aperture[b.kind];return {x:p.x-w/2+w*a[0],y:p.y-h+h*a[1],w:w*a[2],h:h*a[3]};}
+ function drawDoor(c,b,x,y,w,h,openness){
+  const a=aperture[b.kind],r={x:x+w*a[0],y:y+h*a[1],w:w*a[2],h:h*a[3]},im=art.door,half=im.width/2;
   c.save();c.beginPath();c.rect(r.x,r.y,r.w,r.h);c.clip();
   c.drawImage(im,0,0,half,im.height,r.x-r.w*.5*openness,r.y,r.w*.5,r.h);
   c.drawImage(im,half,0,half,im.height,r.x+r.w*.5+r.w*.5*openness,r.y,r.w*.5,r.h);c.restore();
@@ -79,30 +78,37 @@ window.YK_SETTLEMENT=(()=>{
    if(vertical){x=1264+(i%3)*24;y=(i*93+time*.035)%1030;}
    else{x=(i*91-time*.047)%1536;if(x<0)x+=1536;y=1042+(i%3)*24;}
    if(bridges.some(b=>x>b.x-12&&x<b.x+b.width+12&&y>b.y-8&&y<b.y+b.height+8))continue;
-   const p=project(x,y,cam);if(p.x<0||p.x>768||p.y<0||p.y>714)continue;
-   c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x+(vertical?4:12),p.y+(vertical?6:0));c.stroke();
+   const p=project(x,y,cam),q=project(x+(vertical?4:12),y+(vertical?8:0),cam);
+   if(!p||!q||p.x<0||p.x>640||p.y<136||p.y>544)continue;
+   c.beginPath();c.moveTo(p.x,p.y);c.lineTo(q.x,q.y);c.stroke();
   }c.restore();
+ }
+ let ground=null;
+ function groundLayer(){
+  if(ground)return ground;
+  ground=document.createElement('canvas');ground.width=size[0]+1024;ground.height=size[1]+1024;const c=ground.getContext('2d');c.imageSmoothingEnabled=false;
+  for(let y=0;y<ground.height;y+=256)for(let x=0;x<ground.width;x+=256)YK_LANDSCAPE.drawAsset(c,'grass',x,y,256,256);
+  c.translate(512,512);c.drawImage(YK_LANDSCAPE.groundLayer(mapData),0,0);
+  for(const [x,y] of [[242,966],[438,958],[632,974],[906,982],[1178,822],[1194,560],[1150,484],[876,626],[258,590],[584,354]])YK_LANDSCAPE.drawAsset(c,'flowers',x-24,y-16,48,28);
+  for(const a of gardens){const im=art.garden;c.drawImage(im,a.x-a.w/2,a.y-a.w*im.height/im.width,a.w,a.w*im.height/im.width);}
+  return ground;
  }
  function draw(c,state,actors,doorState,time=performance.now()){
   load();YK_LANDSCAPE.load();YK_AUTOTILE.load();if(!ready()||!YK_LANDSCAPE.ready()||!YK_AUTOTILE.ready())return false;
-  const cam=camera(state.x,state.y);c.save();c.beginPath();c.rect(0,0,768,714);c.clip();c.imageSmoothingEnabled=false;
-  c.save();c.translate(384-cam.x,384-cam.y*.78);c.scale(1,.78);
-  c.drawImage(YK_LANDSCAPE.floorLayer(mapData),0,0);c.drawImage(YK_LANDSCAPE.roadLayer(mapData),0,0);c.restore();
-  flow(c,cam,time);
-  for(const b of bridges){const p=project(b.x,b.y,cam);YK_LANDSCAPE.drawAsset(c,b.kind,p.x,p.y,b.width,b.height*.78);}
-  for(const [x,y] of [[242,966],[438,958],[632,974],[906,982],[1178,822],[1194,560],[1150,484],[876,626],[258,590],[584,354]]){
-   const p=project(x,y,cam);YK_LANDSCAPE.drawAsset(c,'flowers',p.x-24,p.y-16,48,28);
-  }
-  for(const a of gardens)drawSprite(c,'garden',a.x,a.y,a.w,cam);
-  const entries=[...YK_LANDSCAPE.objects(mapData).map(o=>({y:o.foot,draw:()=>{const p=project(o.x,o.foot,cam);if(p.x< -100||p.x>868||p.y< -80||p.y>850)return;if(o.kind==='forest')YK_AUTOTILE.drawCrown(c,p.x,p.y-o.height,o.width,o.height);}})),
-   ...trees.map(t=>({y:t.y,draw:()=>drawSprite(c,'tree',t.x,t.y,t.w,cam)})),{y:well.y,draw:()=>drawSprite(c,'well',well.x,well.y,well.w,cam)},
-   ...buildings.map(b=>({y:b.y,draw:()=>{if(b.kind==='shrine'){const p=project(b.x,b.y,cam);YK_LANDSCAPE.drawAsset(c,'shrine',p.x-b.w/2,p.y-b.w,b.w,b.w);return;}drawSprite(c,b.kind,b.x,b.y,b.w,cam);drawDoor(c,b,cam,doorState?.id===b.id?doorState.open:0);}})),
-   ...actors.map(a=>({y:a.y,draw:()=>{const p=project(a.x,a.y,cam);a.draw(p.x,p.y);}}))];
-  entries.sort((a,b)=>a.y-b.y);for(const e of entries)e.draw();
+  const sprite=(key,x,y,width,draw)=>({kind:key,x:x-width/2,foot:y,width,height:width*art[key].height/art[key].width,draw:draw||((q,l,t,w,h)=>q.drawImage(art[key],l,t,w,h))});
+  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map(t=>sprite('tree',t.x,t.y,t.w)),sprite('well',well.x,well.y,well.w),
+   ...buildings.map(b=>b.kind==='shrine'?{kind:'shrine',x:b.x-b.w/2,foot:b.y,width:b.w,height:b.w}:sprite(b.kind,b.x,b.y,b.w,(q,x,y,w,h)=>{q.drawImage(art[b.kind],x,y,w,h);drawDoor(q,b,x,y,w,h,doorState?.id===b.id?doorState.open:0);})),
+   ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
+  const hero=actors.find(a=>a.hero);
+  c.save();c.translate(0,32);c.scale(1.2,1.2);
+  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',afterGround:(q,cam)=>flow(q,cam,time)});
   const near=doors.find(d=>Math.abs(state.x-d.x)<58&&Math.abs(state.y-d.y)<64);
-  if(near){const p=project(near.x,near.y,cam);c.font='bold 16px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-92,p.y-110,184,28);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-90);}
+  if(near){const p=project(near.x,near.y,camera(state.x,state.y));if(p){c.font='bold 14px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-82,p.y-116,164,26);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-98);}}
   c.restore();return true;
  }
- function insideResidents(id){const b=buildings.find(b=>b.id===id);return b?.role?[resident(b.role,id+'-inside',384,390,'d')]:[];}
+ // One authoritative residence per person: these four live indoors; others stay outdoors.
+ const indoor={inn:['innkeeper','inn-host'],shop:['merchant','shopkeeper'],teahouse:['teagirl','tea-host'],osumiHome:['woman','osumi']};
+ const roomResidents=Object.fromEntries(Object.entries(indoor).map(([id,[role,person]])=>[id,[resident(role,person,384,id==='teahouse'?245:390,'d')]]));
+ function insideResidents(id){return roomResidents[id]||[];}
  return {size,revision,spawn,buildings,doors,roles,residents,resident,insideResidents,mapData,bridges,trees,well,gardens,load,ready,errors,blocked,camera,project,unproject,draw,doorRect};
 })();
