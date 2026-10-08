@@ -68,6 +68,23 @@ def normalized_pair(original, worn):
     return original, result
 
 
+def stabilize_oni_worn(intact, damaged):
+    """Retain the complete intact silhouette; transfer only reliable worn details.
+
+    The original damaged oni artwork has extensive partially transparent gaps.
+    Do not invent missing hair, limbs or body pixels from low-alpha fragments.
+    """
+    base = np.asarray(intact.convert("RGBA")).copy()
+    worn = np.asarray(damaged.convert("RGBA"))
+    source_alpha = base[:, :, 3] > 0
+    valid = (worn[:, :, 3] > 0) & source_alpha
+    # Pick the worn costume's confident interior colors only, not its
+    # ragged outer alpha boundary; anatomy stays aligned to intact art.
+    if valid.any():
+        base[valid, :3] = worn[valid, :3]
+    return Image.fromarray(base, "RGBA")
+
+
 def main():
     before = [Image.open(p).convert("RGBA") for p in PATHS]
     assert all(im.size == before[0].size for im in before)
@@ -79,6 +96,8 @@ def main():
         for x in range(0, w, CELL):
             original_cells = [im.crop((x, y, x+CELL, y+CELL)) for im in before]
             repaired = normalized_pair(*original_cells)
+            if x == 0 and y == 0:
+                repaired = (repaired[0], stabilize_oni_worn(repaired[0], repaired[1]))
             metrics.append({"index": (y // CELL) * (w // CELL) + x // CELL,
                             "before": [bounds(im) for im in original_cells],
                             "after": [bounds(im) for im in repaired]})
