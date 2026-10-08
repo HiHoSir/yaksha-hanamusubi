@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1020">
-<title>夜叉姫の花結び奇譚 β15.57.18</title>
-<link rel="stylesheet" href="css/game.css?v=15.57.18">
+<title>夜叉姫の花結び奇譚 β15.57.19</title>
+<link rel="stylesheet" href="css/game.css?v=15.57.19">
 </head>
 <body>
 <canvas id="worldTerrain" width="1536" height="1536" hidden aria-hidden="true"></canvas>
 <div id="app">
   <header>
-    <div class="brand">夜叉姫の花結び奇譚 <small>β15.57.18</small></div>
+    <div class="brand">夜叉姫の花結び奇譚 <small>β15.57.19</small></div>
     <div class="topBtns">
       <button id="worldBtn">地図</button><button id="bookBtn">行動</button><button id="saveBtn">記録</button><button id="settingsBtn">設定</button>
     </div>
@@ -64,8 +64,8 @@
     <button id="newGame" class="primary" type="button" onclick="window.__YK_BOOT_START&&window.__YK_BOOT_START()">はじめから</button>
     <button id="continueGame">つづきから</button>
     <button id="debugMap" type="button" style="font-size:14px;opacity:.82">DEBUG MAP</button>
-    <button id="enemyDebugBtn" type="button" style="font-size:14px;opacity:.82">ENEMY DEBUG</button>
-    <div class="version">BETA 15.57.18</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
+    <button id="enemyDebugBtn" type="button" style="font-size:14px;opacity:.82">BATTLE DEBUG</button>
+    <div class="version">BETA 15.57.19</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
   </div>
   <script>
   // Boot-safe title control. This deliberately does not depend on game.js/YK_INPUT.
@@ -90,15 +90,19 @@
 <button data-close="worldMap">閉じる</button></div></div>
 
 
-<div id="enemyDebugPanel" class="overlay" aria-label="敵グラフィック検査" style="z-index:55;overflow:auto;background:#091320;align-content:start;padding:calc(env(safe-area-inset-top) + 12px) 14px 24px">
+<div id="enemyDebugPanel" class="overlay" aria-label="戦闘グラフィック検査" style="z-index:55;overflow:auto;background:#091320;align-content:start;padding:calc(env(safe-area-inset-top) + 12px) 14px 24px">
  <div style="max-width:720px;margin:auto">
-  <h2 style="color:#f4da98;margin:6px 0 12px">ENEMY DEBUG</h2>
+  <h2 style="color:#f4da98;margin:6px 0 12px">BATTLE DEBUG</h2>
   <label for="enemyDebugEnemy">敵キャラクター</label>
   <select id="enemyDebugEnemy" style="display:block;width:100%;min-height:44px;margin:6px 0 12px;background:#152c48"></select>
   <label for="enemyDebugVariant">表示状態</label>
   <select id="enemyDebugVariant" style="display:block;width:100%;min-height:44px;margin:6px 0 12px;background:#152c48">
    <option value="normal">通常種</option><option value="rare">特異種（通常衣装）</option><option value="worn">特異種（衣装損傷）</option>
   </select>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">
+   <label>夜叉姫の衣装<select id="battleDebugOutfit" style="display:block;width:100%;min-height:44px;background:#152c48"><option value="normal">通常衣装</option><option value="stardust">星屑の姫君</option></select></label>
+   <label>夜叉姫の動作<select id="battleDebugPose" style="display:block;width:100%;min-height:44px;background:#152c48"><option value="idle">待機</option><option value="attack">攻撃</option><option value="hit">被弾</option><option value="guard">防御</option><option value="skill">術</option><option value="victory">勝利</option></select></label>
+  </div>
   <canvas id="enemyDebugCanvas" width="640" height="360" style="width:100%;aspect-ratio:16/9;image-rendering:pixelated;border:2px solid #cbb582;background:#304c4c"></canvas>
   <p id="enemyDebugInfo" style="font-size:13px;line-height:1.6;color:#f0deb7"></p>
   <p style="font-size:12px;color:#d0c4a3">表示専用です。戦闘・エンカウント・報酬・セーブデータは変更しません。</p>
@@ -135,16 +139,16 @@
 
 <div id="gameover" class="overlay"><div class="titlebox"><h2>力尽きた……</h2><p>最後の自動保存から再開できます。</p><button id="retryBtn" class="primary">再開する</button><button id="goTitleBtn">タイトルへ</button></div></div>
 
-<script src="js/data.js?v=15.57.18"></script>
-<script src="js/equipment.js?v=15.57.18"></script>
-<script src="js/world.js?v=15.57.18"></script>
-<script src="js/save.js?v=15.57.18"></script>
-<script src="js/audio.js?v=15.57.18"></script>
-<script src="js/input.js?v=15.57.18"></script>
-<script src="js/autotile.js?v=15.57.18"></script>
-<script src="js/landscape.js?v=15.57.18"></script>
-<script src="js/settlement.js?v=15.57.18"></script>
-<script src="js/game.js?v=15.57.18"></script>
+<script src="js/data.js?v=15.57.19"></script>
+<script src="js/equipment.js?v=15.57.19"></script>
+<script src="js/world.js?v=15.57.19"></script>
+<script src="js/save.js?v=15.57.19"></script>
+<script src="js/audio.js?v=15.57.19"></script>
+<script src="js/input.js?v=15.57.19"></script>
+<script src="js/autotile.js?v=15.57.19"></script>
+<script src="js/landscape.js?v=15.57.19"></script>
+<script src="js/settlement.js?v=15.57.19"></script>
+<script src="js/game.js?v=15.57.19"></script>
 
 
 
