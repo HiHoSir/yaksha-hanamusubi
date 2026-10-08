@@ -63,3 +63,11 @@ The Code Mode GitHub connector accepts base64 image content, but local files und
 - Do not ask the user to re-upload a file already available, or to manually commit/push it.
 - Reuse existing generated assets if verified in the current runtime; preserve originals and record accurate output paths.
 - Local binary availability, GitHub binary presence, integration and deployment are distinct milestones; verify each individually.
+
+## Lessons from actual repository history (2026-10-08)
+- Do not cite commit `406029c4` as evidence of binary upload: its GitHub commit file list changes only `index.html` (release/cache strings), not sprites.
+- Inspect the commit's **changed filenames**, not merely its message, before claiming a prior method transferred binary files.
+- GitHub Actions can commit files it generates or obtains in its runner, but it has no inherent access to conversation-local files such as `/mnt/data/enemy_hd512_batch.zip`.
+- Existing atlas sprites can be extracted or scaled inside GitHub Actions, but are **not equivalent** to the 20 newly prepared 512×512 original-derived PNGs. Never silently substitute upscaled atlas images for the requested HD deliverable.
+- The real completion criterion for this pending task is 20 separate GitHub PNG objects under `assets/enemies/hd512/`, matching the approved local ZIP, plus loader and visual checks. Record an actual upload/transfer route only after its success is confirmed.
+- If local-to-GitHub transfer is blocked, do not loop through code-only commits and call them an image fix. Acknowledge the limitation once, keep the source artifacts available, and prioritize obtaining a supported transfer bridge.
