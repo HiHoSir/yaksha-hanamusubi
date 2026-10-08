@@ -49,3 +49,17 @@ The user has repeatedly pointed out that the assistant should upload assets to G
 
 ## Current known limitation
 The Code Mode GitHub connector accepts base64 image content, but local files under `/mnt/data` are not automatically shared with that connector's JavaScript isolate. Before asking for a user upload, search for a file-transfer-capable connector or handoff. Reconfirm this limitation on every new runtime rather than treating it as permanent.
+
+## Direct-to-main operation (no PR assumption)
+- In this project, the authorized normal workflow is **commit directly to `main` and push**, not to create a pull request by default.
+- The GitHub connector's `create_file` and `update_file` actions targeting `branch:"main"` directly write commits to that branch. This is already a real remote commit/push; an extra pull-request or push step is neither required nor appropriate.
+- For multiple binary files, use `create_blob` (base64), `create_tree` (base tree from current HEAD), `create_commit`, and `update_ref` with HEAD verification when the binary bytes can be passed through the tool.
+- Do not say GitHub write actions are unavailable without querying tools in the current turn. Check the exact tool contract.
+- PRs are only used when the user requests review or branch-protection rules require them.
+- After each direct commit, confirm file contents on `main`, Actions and deploy state; do not conflate source commits with binary upload success.
+
+## Existing conversation upload handling
+- Treat uploaded ZIP/PNG files already available in the session as first-class inputs; inspect their real local paths before asking for another copy.
+- Do not ask the user to re-upload a file already available, or to manually commit/push it.
+- Reuse existing generated assets if verified in the current runtime; preserve originals and record accurate output paths.
+- Local binary availability, GitHub binary presence, integration and deployment are distinct milestones; verify each individually.
