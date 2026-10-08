@@ -28,3 +28,8 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 - GitHub `create_file` / `update_file` on main create actual remote commits. Verify the resulting SHA on main.
 - For asset changes, reuse conversation-uploaded or already-generated files before asking for uploads. Never repeatedly delegate GitHub commit/push to the user.
 - For binary PNG/ZIP integration, read [github-artifact-delivery](.agents/skills/github-artifact-delivery/SKILL.md) and verify actual remote bytes before claiming completion.
+
+## GitHub connection preference
+- Use the connected GitHub tools for repository operations and confirm changes on main.
+- Local DNS issues do not prove the GitHub connector is unavailable.
+- Verify binary files exist remotely before reporting successful asset deployment.
