@@ -1,0 +1,65 @@
+{
+  "version": "0.6.0",
+  "kind": "original_schematic_geography",
+  "geometryStatus": "provisional",
+  "coordinateSpace": {
+    "width": 960,
+    "height": 650
+  },
+  "legacyWorld": {
+    "worldId": "world.new_continent",
+    "source": "js/world.js",
+    "localTiles": [
+      80,
+      80
+    ],
+    "tilePixels": 32,
+    "preserveLegacySave": true
+  },
+  "chapterFlow": [
+    {
+      "chapter": 1,
+      "regionId": "region.new_continent",
+      "next": "region.flower_tree",
+      "transport": "ship"
+    },
+    {
+      "chapter": 2,
+      "regionId": "region.flower_tree",
+      "next": "region.winter_star",
+      "transport": "mountain_cave"
+    },
+    {
+      "chapter": 3,
+      "regionId": "region.winter_star",
+      "next": "region.smile",
+      "transport": "east_bridge"
+    },
+    {
+      "chapter": 4,
+      "regionId": "region.smile",
+      "next": "region.hope_despair",
+      "transport": "south_bridge"
+    },
+    {
+      "chapter": 5,
+      "regionId": "region.hope_despair",
+      "next": "region.love_courage",
+      "transport": "ship"
+    },
+    {
+      "chapter": 6,
+      "regionId": "region.love_courage",
+      "next": "region.onigashima",
+      "transport": "final_route"
+    },
+    {
+      "chapter": 7,
+      "regionId": "region.onigashima",
+      "next": null,
+      "transport": null
+    }
+  ],
+  "sourcePolicy": "Original schematic shapes only; never ship ROM imagery, pixels, extracted masks or copied coastline",
+  "implementationGate": "Debug only. Do not include in gameplay."
+}
