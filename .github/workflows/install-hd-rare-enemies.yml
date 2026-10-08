@@ -1,0 +1,46 @@
+name: Install HD Rare Enemy Assets
+on:
+  push:
+    paths:
+      - 'assets/enemies/hd512-batch.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack and validate independent battle sprites
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import struct
+          root=Path('assets/enemies')
+          archive=root/'hd512-batch.zip'
+          names=['oni','tanuki','lantern_fox','crab','jelly','tree','spider','snake','falls','ninefox']
+          out=root/'hd512'
+          out.mkdir(parents=True,exist_ok=True)
+          with ZipFile(archive) as z:
+              for stem in names:
+                  for state in ['intact','worn']:
+                      filename=f'{stem}-{state}-512.png'
+                      data=z.read(filename)
+                      if data[:8]!=bytes.fromhex('89504e470d0a1a0a') or struct.unpack('>II',data[16:24])!=(512,512):
+                          raise ValueError(f'invalid PNG dimensions: {filename}')
+                      # PNG color type 6 = RGBA. Reject flattened RGB sheets.
+                      if data[25]!=6:
+                          raise ValueError(f'not RGBA: {filename}')
+                      (out/filename).write_bytes(data)
+          print('Validated and installed',len(names)*2,'sprites')
+          PY
+      - name: Commit assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/enemies/hd512/
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: install 20 independent HD rare enemy sprites"
+            git push
+          fi
