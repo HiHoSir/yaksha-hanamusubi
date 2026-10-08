@@ -168,8 +168,8 @@ function ensureBattleAssets(){
 function rareReady(r){
  if(!r)return false;
  if(Number.isInteger(r.variantAtlas)){ensureImage(VARIANT_ATLAS);return layerReady(VARIANT_ATLAS);}
- ensureImage(RARE_ART[r.id]?.intact);ensureImage(RARE_ART[r.id]?.worn);
- return layerReady(RARE_ART[r.id]?.intact)&&layerReady(RARE_ART[r.id]?.worn);
+ ensureImage(RARE_ART[r.id]?.intact);
+ return layerReady(RARE_ART[r.id]?.intact);
 }
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0)+YK_EQUIPMENT.bonus(S,stat);}
 function enemyArt(c,x,y,debugSmoothing=null){
