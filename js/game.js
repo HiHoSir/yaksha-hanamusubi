@@ -174,9 +174,11 @@ function opaqueVariantSource(im){
   const pixels=ctx.getImageData(0,0,surface.width,surface.height);
   const data=pixels.data;
   for(let i=3;i<data.length;i+=4){
-   // Ignore near-invisible antialias fringes; body and clothing pixels
-   // should not reveal the battlefield through their interior.
-   data[i]=data[i]<32?0:255;
+   // Preserve fully transparent pixels and discard only nearly invisible
+   // fringes. The source atlases have pervasive fractional body opacity:
+   // treat every visible sprite pixel as solid rather than punching holes
+   // through hair, skin and clothing at the previous threshold of 32.
+   data[i]=data[i]<8?0:255;
   }
   ctx.putImageData(pixels,0,0);
   OPAQUE_VARIANT_CACHE.set(im,surface);
