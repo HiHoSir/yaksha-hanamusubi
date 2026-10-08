@@ -59,13 +59,24 @@ window.YK_SETTLEMENT=(()=>{
  ];
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  function camera(x,y){return {x,y};}
- const project=(x,y,cam)=>YK_LANDSCAPE.project(x,y,cam,1.4);
+ let projectionKey='',projectionRows=new Map();
+ function project(x,y,cam){
+  const key=cam.x+','+cam.y;if(key!==projectionKey){projectionKey=key;projectionRows.clear();}
+  let p=projectionRows.get(y);if(p===undefined){p=YK_LANDSCAPE.project(cam.x,y,cam,1.4);projectionRows.set(y,p);}
+  return p?{...p,x:320+(x-cam.x)*p.xScale}:null;
+ }
  const unproject=(x,y,cam)=>YK_LANDSCAPE.unproject(x,y,cam,1.4);
  const terrace={left:1360,right:1504,back:192,front:352,height:32,stairLeft:1392,stairRight:1456,stairBottom:432};
- function elevation(x,y){const t=terrace;if(x>=t.left&&x<=t.right&&y>=t.back&&y<=t.front)return t.height;if(x>=t.stairLeft&&x<=t.stairRight&&y>t.front&&y<t.stairBottom)return t.height*(t.stairBottom-y)/(t.stairBottom-t.front);return 0;}
+ const upland={front:560,height:56,bottom:688,ramps:[[704,832],[1136,1216]],river:[1248,1344]};
+ function northHeight(x,y){const n=upland;if(y<=n.front)return n.height;if(y<n.bottom&&n.ramps.some(([l,r])=>x>=l&&x<=r))return n.height*(n.bottom-y)/(n.bottom-n.front);return 0;}
+ function elevation(x,y){return northHeight(x,y)+shrineHeight(x,y);}
+ function shrineHeight(x,y){const t=terrace;if(x>=t.left&&x<=t.right&&y>=t.back&&y<=t.front)return t.height;if(x>=t.stairLeft&&x<=t.stairRight&&y>t.front&&y<t.stairBottom)return t.height*(t.stairBottom-y)/(t.stairBottom-t.front);return 0;}
  function blocked(x,y){
   if(!YK_LANDSCAPE.walkable(mapData,x,y,9))return true;
   const hit=(l,t,r,b)=>Math.hypot(x-clamp(x,l,r),y-clamp(y,t,b))<8;
+  const n=upland;
+  if(y>=n.front-12&&y<=n.front+12&&!n.ramps.some(([l,r])=>x>l+12&&x<r-12))return true;
+  if(y>n.front&&y<n.bottom-8&&n.ramps.some(([l,r])=>Math.abs(x-l)<12||Math.abs(x-r)<12))return true;
   const t=terrace;
   if(hit(t.left-4,t.back,t.left+4,t.front)||hit(t.right-4,t.back,t.right+4,t.front)||hit(t.left,t.back-4,t.right,t.back+4)||hit(t.left,t.front-4,t.stairLeft-4,t.front+4)||hit(t.stairRight+4,t.front-4,t.right,t.front+4)||hit(t.stairLeft-4,t.front,t.stairLeft,t.stairBottom-8)||hit(t.stairRight,t.front,t.stairRight+4,t.stairBottom-8))return true;
   if(buildings.some(b=>hit(b.x-b.w*.39,b.y-70,b.x+b.w*.39,b.y)))return true;
@@ -75,12 +86,26 @@ window.YK_SETTLEMENT=(()=>{
   return trees.some(t=>Math.hypot(x-t.x,y-t.y)<18);
  }
  const aperture={home:[.429,.66,.165,.273],inn:[.411,.714,.175,.212],shop:[.435,.62,.139,.314],tea:[.406,.616,.168,.319]};
- function doorRect(b,cam){const p=project(b.x,b.y,cam);if(!p)return null;const im=art[b.kind],w=b.w*p.scale,h=w*im.height/im.width,a=aperture[b.kind];return {x:p.x-w/2+w*a[0],y:p.y-h+h*a[1],w:w*a[2],h:h*a[3]};}
+ function doorRect(b,cam){const p=project(b.x,b.y,cam);if(p)p.y-=elevation(b.x,b.y)*p.scale;if(!p)return null;const im=art[b.kind],w=b.w*p.scale,h=w*im.height/im.width,a=aperture[b.kind];return {x:p.x-w/2+w*a[0],y:p.y-h+h*a[1],w:w*a[2],h:h*a[3]};}
  function drawDoor(c,b,x,y,w,h,openness){
   const a=aperture[b.kind],r={x:x+w*a[0],y:y+h*a[1],w:w*a[2],h:h*a[3]},im=art.door,half=im.width/2;
   c.save();c.beginPath();c.rect(r.x,r.y,r.w,r.h);c.clip();
   c.drawImage(im,0,0,half,im.height,r.x-r.w*.5*openness,r.y,r.w*.5,r.h);
   c.drawImage(im,half,0,half,im.height,r.x+r.w*.5+r.w*.5*openness,r.y,r.w*.5,r.h);c.restore();
+ }
+ const riverDepth=10;
+ function waterHeight(x,y){return northHeight(x,y)-riverDepth;}
+ function riverTerrain(c,cam){
+  const g=groundLayer(),bankPattern=c.createPattern(art.wall,'repeat'),at=(x,y,z)=>{const p=project(x,y,cam);return p?{...p,y:p.y-z*p.scale}:null;};
+  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
+  const wall=(x1,y1,x2,y2)=>{const z=northHeight((x1+x2)/2,(y1+y2)/2),a=at(x1,y1,z),b=at(x2,y2,z),d=at(x1,y1,z-riverDepth),e=at(x2,y2,z-riverDepth);if(!a||!b||!d||!e||Math.max(d.y,e.y)<136||Math.min(a.y,b.y)>544||Math.max(a.x,b.x)<0||Math.min(a.x,b.x)>640)return;const f=clamp((Math.min(a.y,b.y)-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.lineTo(e.x,e.y);c.lineTo(d.x,d.y);c.closePath();c.fillStyle=bankPattern;c.fill();};
+  const surface=(l,r,y)=>{const z=waterHeight((l+r)/2,y),a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,waterHeight((l+r)/2,y+3.99));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);};
+  // Banks descend to the water while bridge decks retain the ground elevation.
+  for(let y=0;y<1024;y+=4){if(y>=368&&y<460)continue;surface(1248,1344,y);if(y%16===0){wall(1248,y,1248,y+16);wall(1344,y,1344,y+16);}}
+  for(let y=1024;y<1120;y+=4){surface(0,704,y);surface(832,1536,y);}
+  for(const [l,r] of [[0,704],[832,1248],[1344,1536]])wall(l,1024,r,1024);
+  for(const [l,r] of [[0,704],[832,1536]])wall(l,1120,r,1120);
+  c.restore();
  }
  function flow(c,cam,time){
   c.save();c.strokeStyle='#c0f4ea';c.globalAlpha=.48;c.lineWidth=1.5;
@@ -89,7 +114,7 @@ window.YK_SETTLEMENT=(()=>{
    if(vertical){x=1264+(i%3)*24;y=(i*93+time*.035)%1030;}
    else{x=(i*91-time*.047)%1536;if(x<0)x+=1536;y=1042+(i%3)*24;}
    if(bridges.some(b=>x>b.x-12&&x<b.x+b.width+12&&y>b.y-8&&y<b.y+b.height+8))continue;
-   const p=project(x,y,cam),q=project(x+(vertical?4:12),y+(vertical?8:0),cam);
+   const p=project(x,y,cam),q=project(x+(vertical?4:12),y+(vertical?8:0),cam);if(p)p.y-=waterHeight(x,y)*p.scale;if(q)q.y-=waterHeight(x+(vertical?4:12),y+(vertical?8:0))*q.scale;
    if(!p||!q||p.x<0||p.x>640||p.y<136||p.y>544)continue;
    c.globalAlpha=.48*Math.min(1,(p.y-136)/72);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(q.x,q.y);c.stroke();
   }c.restore();
@@ -104,14 +129,37 @@ window.YK_SETTLEMENT=(()=>{
   for(const a of gardens){c.save();c.beginPath();c.rect(a.x-a.w/2,a.y-68,a.w,76);c.clip();for(let y=a.y-68;y<a.y+8;y+=64)for(let x=a.x-a.w/2;x<a.x+a.w/2;x+=64)YK_LANDSCAPE.drawAsset(c,'road',x,y,64,64);c.fillStyle='#4b301c88';c.fillRect(a.x-a.w/2,a.y-68,a.w,76);c.restore();}
   return ground;
  }
+ function northTerrain(c,cam,time){
+  const n=upland,g=groundLayer();c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
+  const at=(x,y,z)=>{const p=project(x,y,cam);return p?{...p,y:p.y-z*p.scale,depth:p.y}:null;};
+  const strip=(l,r,y,z,nextZ)=>{const a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,nextZ);if(!a||!b||!d||d.y<136||a.y>544||d.y<=a.y)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);};
+  for(let y=-512;y<n.front;y+=4)strip(-512,2048,y,n.height,n.height);
+  const spans=[[-512,704],[832,1136],[1216,1248],[1344,2048]];
+  for(const [l,r] of spans){const a=at(l,n.front,0),b=at(r,n.front,0);if(!a||!b)continue;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.save();c.beginPath();c.rect(a.x,a.y-n.height*a.scale,b.x-a.x,n.height*a.scale);c.clip();for(let x=l;x<r;x+=96){const u=at(x,n.front,0),v=at(Math.min(r,x+96),n.front,0);c.drawImage(art.wall,u.x,u.y-n.height*u.scale,v.x-u.x,n.height*u.scale);}c.restore();}
+  for(const [l,r] of n.ramps)for(let y=n.front;y<n.bottom;y+=4)strip(l,r,y,northHeight((l+r)/2,y),northHeight((l+r)/2,y+4));
+  c.restore();
+ }
+ function waterfall(c,cam,time){
+  const n=upland,g=groundLayer(),at=(x,y)=>{const p=project(x,y,cam);return p?{...p,depth:p.y,y:p.y+riverDepth*p.scale}:null;};
+  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
+  const a=at(n.river[0],n.front),b=at(n.river[1],n.front);
+  if(a&&b&&a.y>=136&&a.y-n.height*a.scale<544){
+   const w=b.x-a.x,h=n.height*a.scale,top=a.y-h,f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);
+   // Reuse the river texture for the falling sheet; moving highlights and foam give it flow.
+   c.drawImage(g,1248+512,480+512,96,48,a.x,top,w,h);
+   c.save();c.beginPath();c.rect(a.x,top,w,h+8*a.scale);c.clip();
+   c.fillStyle='#dcfff0';for(let i=0;i<19;i++){const x=a.x+(i+.5)*w/19,y=top+((time*.065+i*17)%56)*a.scale;c.globalAlpha=f*(.25+(i%3)*.12);c.fillRect(x,y,Math.max(1,2*a.scale),(8+i%5)*a.scale);}
+   c.globalAlpha=f*.8;for(let i=0;i<16;i++){const wave=Math.sin(time*.004+i*2);c.fillRect(a.x+i*w/16,a.y+(wave*2-2)*a.scale,w/18,(3+i%3)*a.scale);}c.restore();
+  }c.restore();
+ }
  function raisedTerrain(c,cam){
   const t=terrace,ground=groundLayer();c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
-  const at=(x,y,z=0)=>{const p=project(x,y,cam);return p?{x:p.x,y:p.y-z*p.scale,scale:p.scale}:null;};
+  const at=(x,y,z=0)=>{const p=project(x,y,cam);return p?{x:p.x,y:p.y-(z+northHeight(x,y))*p.scale,scale:p.scale}:null;};
   const side=(x)=>{const a=at(x,t.back),b=at(x,t.front),u=at(x,t.back,t.height),v=at(x,t.front,t.height);if(!a||!b||!u||!v)return;c.save();c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.lineTo(v.x,v.y);c.lineTo(u.x,u.y);c.closePath();c.fillStyle=c.createPattern(art.wall,'repeat');c.fill();c.restore();};
   side(t.left);side(t.right);
   for(const [l,r] of [[t.left,t.stairLeft],[t.stairRight,t.right]]){const a=at(l,t.front),b=at(r,t.front);if(a&&b)c.drawImage(art.wall,a.x,a.y-t.height*a.scale,b.x-a.x,t.height*a.scale);}
   for(let y=t.back;y<t.front;y+=2){const a=at(t.left,y,t.height),b=at(t.right,y,t.height),d=at(t.left,y+2,t.height);if(a&&b&&d&&d.y>a.y)c.drawImage(ground,t.left+512,y+512,t.right-t.left,2,a.x,a.y,b.x-a.x,d.y-a.y+.6);}
-  for(let y=t.front;y<t.stairBottom;y+=2){const a=at(t.stairLeft,y,elevation(1424,y)),b=at(t.stairRight,y,elevation(1424,y)),d=at(t.stairLeft,y+2,elevation(1424,y+2));if(a&&b&&d&&d.y>a.y)c.drawImage(art.stairs,0,(y-t.front)/(t.stairBottom-t.front)*art.stairs.height,art.stairs.width,2/(t.stairBottom-t.front)*art.stairs.height,a.x,a.y,b.x-a.x,d.y-a.y+.6);}
+  for(let y=t.front;y<t.stairBottom;y+=2){const a=at(t.stairLeft,y,shrineHeight(1424,y)),b=at(t.stairRight,y,shrineHeight(1424,y)),d=at(t.stairLeft,y+2,shrineHeight(1424,y+2));if(a&&b&&d&&d.y>a.y)c.drawImage(art.stairs,0,(y-t.front)/(t.stairBottom-t.front)*art.stairs.height,art.stairs.width,2/(t.stairBottom-t.front)*art.stairs.height,a.x,a.y,b.x-a.x,d.y-a.y+.6);}
   c.restore();
  }
  function bridgeObjects(sprite){
@@ -151,16 +199,16 @@ window.YK_SETTLEMENT=(()=>{
   const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map(t=>sprite('tree',t.x,t.y,t.w)),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite),sprite('well',well.x,well.y,well.w),
    ...buildings.map(b=>b.kind==='shrine'?{kind:'shrine',x:b.x-b.w/2,foot:b.y,width:b.w,height:b.w}:sprite(b.kind,b.x,b.y,b.w,(q,x,y,w,h)=>{q.drawImage(art[b.kind],x,y,w,h);drawDoor(q,b,x,y,w,h,doorState?.id===b.id?doorState.open:0);})),
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
-  const hero=actors.find(a=>a.hero);
+  const hero=actors.find(a=>a.hero);projectionRows.clear();
   c.save();c.translate(0,32);c.scale(1.2,1.2);
-  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{flow(q,cam,time);raisedTerrain(q,cam);}});
+  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);flow(q,cam,time);}});
   const near=doors.find(d=>Math.abs(state.x-d.x)<58&&Math.abs(state.y-d.y)<64);
-  if(near){const p=project(near.x,near.y,camera(state.x,state.y));if(p){c.font='bold 14px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-82,p.y-116,164,26);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-98);}}
+  if(near){const p=project(near.x,near.y,camera(state.x,state.y));if(p){p.y-=elevation(near.x,near.y)*p.scale;c.font='bold 14px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-82,p.y-116,164,26);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-98);}}
   c.restore();return true;
  }
  // One authoritative residence per person: these four live indoors; others stay outdoors.
  const indoor={inn:['innkeeper','inn-host'],shop:['merchant','shopkeeper'],teahouse:['teagirl','tea-host'],osumiHome:['woman','osumi']};
  const roomResidents=Object.fromEntries(Object.entries(indoor).map(([id,[role,person]])=>[id,[resident(role,person,384,id==='teahouse'?245:390,'d')]]));
  function insideResidents(id){return roomResidents[id]||[];}
- return {terrace,elevation,props,updateResidents,size,revision,spawn,buildings,doors,roles,residents,resident,insideResidents,mapData,bridges,trees,well,gardens,load,ready,errors,blocked,camera,project,unproject,draw,doorRect};
+ return {riverDepth,waterHeight,upland,northHeight,terrace,elevation,props,updateResidents,size,revision,spawn,buildings,doors,roles,residents,resident,insideResidents,mapData,bridges,trees,well,gardens,load,ready,errors,blocked,camera,project,unproject,draw,doorRect};
 })();

@@ -41,6 +41,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await run('S.area="village";S.x=768;S.y=760;map();');
  const labels=await run('(()=>{const text=[],fn=g.fillText;g.fillText=function(s,...args){text.push(s);return fn.call(this,s,...args)};try{map()}finally{g.fillText=fn}return text;})()');
  for(const name of ['里長','里の子','畑守り','織り手','旅人'])assert(!labels.includes(name),'no overhead NPC labels');await page.screenshot({path:path.join(out,'village-square-'+height+'.png')});
+ await run('S.x=1190;S.y=760;map();');
  const a=await run('(()=>{const c=document.createElement("canvas");c.width=c.height=768;YK_SETTLEMENT.draw(c.getContext("2d"),S,[],null,100);return c.toDataURL();})()');
  const b=await run('(()=>{const c=document.createElement("canvas");c.width=c.height=768;YK_SETTLEMENT.draw(c.getContext("2d"),S,[],null,900);return c.toDataURL();})()');assert.notEqual(a,b,'water changes while stationary');
  await run('S.x=768;S.y=1228;move(0,1,"d");');assert.equal(await run('S.area'),'field');

@@ -16,10 +16,16 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   const staff=['inn','shop','teahouse'].flatMap(id=>v.insideResidents(id)).map(n=>({...n})),staffBefore=staff.map(n=>[n.x,n.y]);for(let i=0;i<200;i++)v.updateResidents(t+=50,{area:'villageRoom',x:384,y:625},staff,()=>false,true,random);
   return {moved:[...moved],bad,frozen,staffFixed:JSON.stringify(staffBefore)===JSON.stringify(staff.map(n=>[n.x,n.y])),cliff:v.blocked(1376,352),stairs:!v.blocked(1424,368),height:[v.elevation(1424,432),v.elevation(1424,392),v.elevation(1424,336)]};
  });
- assert.equal(result.moved.length,8,JSON.stringify(result));assert.equal(result.bad,0);assert(result.frozen&&result.staffFixed&&result.cliff&&result.stairs);assert.deepEqual(result.height,[0,16,32]);
+ assert.equal(result.moved.length,8,JSON.stringify(result));assert.equal(result.bad,0);assert(result.frozen&&result.staffFixed&&result.cliff&&result.stairs);assert.deepEqual(result.height,[56,72,88]);
  await run('S.x=1440;S.y=464;fieldMotion=null;');
  for(let i=0;i<4;i++){await run('move(0,-1,"u");');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));}
- assert.equal(await run('YK_SETTLEMENT.elevation(S.x,S.y)'),32,'player climbs steps');
+ assert.equal(await run('YK_SETTLEMENT.elevation(S.x,S.y)'),88,'player climbs steps');
+ const terrain=await page.evaluate(()=>{const v=YK_SETTLEMENT;return {heights:[v.elevation(1000,400),v.elevation(768,624),v.elevation(768,688)],water:[v.waterHeight(1280,400),v.waterHeight(1280,800)],bridge:v.elevation(1280,414),cliff:v.blocked(1000,560),ramp:!v.blocked(768,560)};});
+ assert.deepEqual(terrain.heights,[56,28,0]);assert(terrain.cliff&&terrain.ramp);assert.deepEqual(terrain.water,[46,-10]);assert.equal(terrain.bridge,56);
+ await run('S.x=768;S.y=720;fieldMotion=null;');
+ for(let i=0;i<6;i++){await run('move(0,-1,"u");');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));}
+ assert.equal(await run('YK_SETTLEMENT.elevation(S.x,S.y)'),56,'player climbs north slope');
+ await run('S.x=1190;S.y=760;map();');await page.screenshot({path:path.join(out,'village-waterfall.png')});
  await run('S.x=1424;S.y=480;map();');await page.screenshot({path:path.join(out,'village-terrace.png')});
  await run('S.x=768;S.y=730;map();');await page.waitForTimeout(2500);await page.screenshot({path:path.join(out,'village-wandering.png')});
  assert.deepEqual(errors,[]);console.log('8 residents wander safely for simulated 120s; shops fixed; conversation freeze; terrace/stairs/cliff verified');

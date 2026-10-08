@@ -323,7 +323,7 @@ window.YK_LANDSCAPE=(()=>{
   for(const {o,p} of projected){
    if(!drawn&&player.depth<p.depth){actor.draw(player.x,player.y,player.scale);drawn=true;}
    const w=o.width*p.scale,h=o.height*p.scale,x=p.x-w/2,y=p.y-h;if(x+w<0||x>640)continue;
-   c.globalAlpha=Math.min(1,Math.max(0,(p.depth-top)/70));
+   c.globalAlpha=Math.min(1,Math.max(0,(p.y-top)/70));
    if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
   }
   if(!drawn)actor.draw(player.x,player.y,player.scale);
