@@ -1419,7 +1419,7 @@ window.YKDebugField=(enabled=true)=>{
     const sourceCanvas=document.createElement("canvas");sourceCanvas.width=128;sourceCanvas.height=128;
     const sourceContext=sourceCanvas.getContext("2d",{willReadFrequently:true});
     const cellIndex=debugHdReady?null:(isRare?rare.variantAtlas:D.enemyProfiles?.[name]?.atlas);
-    if(debugHdReady){sourceCanvas.drawImage?.(source,0,0);alphaReport=" / 高解像度スプライト "+source.naturalWidth+"×"+source.naturalHeight;}
+    if(debugHdReady){alphaReport=" / 高解像度スプライト "+source.naturalWidth+"×"+source.naturalHeight;}
     if(Number.isInteger(cellIndex)){
      sourceContext.drawImage(source,(cellIndex%4)*128,Math.floor(cellIndex/4)*128,128,128,0,0,128,128);
      const data=sourceContext.getImageData(0,0,128,128).data;
