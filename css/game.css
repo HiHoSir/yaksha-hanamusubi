@@ -267,3 +267,8 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 /* Fixed modal viewport bounds: scroll within the visible space above the pad. */
 #shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{top:max(12px,env(safe-area-inset-top));bottom:calc(184px + env(safe-area-inset-bottom) + 12px);max-height:none}
 @media(max-height:720px){#shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{bottom:calc(160px + env(safe-area-inset-bottom) + 12px);max-height:none}}
+
+/* Opening omen: a brief, accessible visual tremor using the existing map. */
+@keyframes opening-omen{0%,100%{filter:none;transform:none}20%{filter:brightness(.65) saturate(.5);transform:translateX(-2px)}45%{filter:brightness(1.25) saturate(.7);transform:translateX(2px)}70%{filter:brightness(.75);transform:translateX(-1px)}}
+#game.openingOmen{animation:opening-omen .85s ease-out 1}
+@media(prefers-reduced-motion:reduce){#game.openingOmen{animation:none}}
