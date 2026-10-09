@@ -20,7 +20,7 @@ jobs:
           node-version: 22
       - name: JavaScript syntax
         run: |
-          for f in js/*.js; do node --check "$f"; done
+          for f in js/*.js qa/*.cjs; do node --check "$f"; done
       - name: Boot dependency contract
         run: |
           node - <<'NODE'
