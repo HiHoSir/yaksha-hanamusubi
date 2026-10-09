@@ -1,0 +1,54 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>夜叉姫 世界地図 外形検証 v2.3</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0d1924;color:#edf1ee;font:15px system-ui,-apple-system,sans-serif;padding:12px;max-width:1100px;margin:auto}h1{font-size:21px;margin:9px 0}p{line-height:1.6;color:#c8d5d3}.panel{padding:12px;background:#172d39;border:1px solid #4f7580;border-radius:12px;margin:10px 0}svg{width:100%;height:auto;display:block;background:#1c5b78;border-radius:8px}.land{fill:#b5bc8b;stroke:#eff0c1;stroke-width:4;stroke-linejoin:round}.island{fill:#b5bc8b;stroke:#eff0c1;stroke-width:4}.draft{stroke:#efb870;stroke-width:4;stroke-dasharray:13 8;fill:none}.mark{fill:#fff0ad;stroke:#453f36;stroke-width:2}.txt{fill:#fff;font-weight:700;font-size:20px;paint-order:stroke;stroke:#143746;stroke-width:5;pointer-events:none}button{min-height:42px;background:#254f62;color:white;border:1px solid #85aab4;border-radius:7px;padding:9px}button[aria-pressed=true]{background:#8b692e}.controls{display:flex;gap:7px;flex-wrap:wrap}.info{min-height:66px}small{color:#b9c9cc}</style></head><body>
+<h1>夜叉姫の花結び奇譚｜世界地図 外形検証 v2.3</h1><p>海岸線・島・海峡だけを検討するためのオリジナル模式図。山・森・川・町は意図的に描きません。地理的な確度と、未解決の海岸線を見分けられる検証モードです。原作の正確な海岸線を複製したものではなく、最終外形でもありません。</p>
+<div class="panel"><div class="controls" id="buttons"></div><label><input type="checkbox" id="uncertainty" checked>未確定の外形を強調</label><label><input type="checkbox" id="routes" checked>仮の航路を表示</label><label><input type="checkbox" id="landmarks" checked>原作の相対ランドマーク</label><label>南方の接続仮説 <select id="topology"><option value="separate">A：海で分離</option><option value="connected">B：本土に接続</option></select></label><svg id="map" viewBox="0 0 1120 850" role="img" aria-label="世界地図の外形を検査するための海と陸の模式図"><defs><pattern id="water" width="56" height="40" patternUnits="userSpaceOnUse"><path d="M6 24Q19 16 32 24" fill="none" stroke="#8cc6c2" stroke-width="2" opacity=".2"/></pattern></defs><rect width="1120" height="850" fill="#1a607e"/><rect width="1120" height="850" fill="url(#water)"/><g id="shores">
+<path id="mainland" class="land" d="M104 471 Q83 439 100 396 Q116 351 149 332 L164 277 Q191 213 243 187 L268 147 Q308 130 352 151 L400 177 447 204 Q484 195 516 216 L565 175 Q608 156 659 175 L700 155 Q768 176 802 223 L837 269 Q866 249 895 228 L958 241 Q1017 283 1040 340 L1047 391 1079 433 1057 478 1076 536 Q1080 579 1046 617 L1000 677 940 654 Q901 626 885 576 Q868 517 840 469 L816 420 Q776 394 738 416 L706 443 657 437 615 459 Q570 440 531 412 L493 371 Q468 360 439 381 L408 412 357 401 Q337 427 344 460 L329 506 292 529 256 558 215 550 177 582 119 562 92 525Z"/>
+<path id="southern" class="land" d="M567 665 Q577 622 617 605 L670 608 708 594 754 618 790 648 808 690 796 740 763 778 710 802 662 787 624 801 588 767 556 715Z"/>
+<path id="oni" class="island" d="M635 557 Q618 539 626 507 Q637 486 665 482 L696 486 724 511 Q733 539 713 560 L685 572 654 569Z"/>
+<path id="new" class="island" d="M435 664 Q450 645 469 652 L490 668 496 692 474 707 449 701Z"/>
+<path id="hypothesis-bridge" d="M665 437 Q638 495 650 548 Q656 582 671 608 L714 595 Q685 556 699 517 Q707 471 738 416 Z" fill="#a7b78a" stroke="#f6c16e" stroke-width="3" stroke-dasharray="10 8" display="none" pointer-events="none"/></g><g id="markers"></g></svg><p><small>黄マーカー＝検討対象。橙の点線＝推定した位置関係の補助表示（実座標ではありません）。新大陸だけは原作外の追加島です。</small></p><div id="info" class="info" aria-live="polite"></div><div id="checklist" class="info"></div></div>
+<script>
+'use strict';
+const NS='http://www.w3.org/2000/svg', svg=document.querySelector('#map'),marks=document.querySelector('#markers');
+const definitions=[
+{id:'mainland',label:'北方・東方の本土（仮外形）',detail:'第2〜第5章が陸続きになるという設計案を一体の輪郭で表示。原作の地形接続・半島・湾の形は、まだ照合待ち。',point:[548,303]},
+{id:'southern',label:'愛と勇気の国（南方）',detail:'南方にあることは原作付属地図と整合。北側に勇気の岬が存在する関係を設計上維持。',point:[686,698]},
+{id:'oni',label:'鬼ヶ島（位置未確定）',detail:'勇気の岬から海を割って向かう。島の正確な座標・輪郭は未確定。「鬼面状の島」同定も保留。',point:[678,525]},
+{id:'new',label:'新大陸（追加島・仮）',detail:'旅立ちの村の東方沖に追加する本作独自の島。世界図では小さく表示し、既存80×80ローカルマップは維持。',point:[464,682]}];
+function elem(tag,attrs={},content){let n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(content!==undefined)n.textContent=content;return n}
+for(const d of definitions){const [x,y]=d.point;const g=elem('g',{'data-id':d.id});g.append(elem('circle',{cx:x,cy:y,r:9,class:'mark'}),elem('text',{x:x+18,y:y-13,class:'txt'},d.label));marks.append(g)}
+marks.append(elem('circle',{cx:657,cy:624,r:7,class:'mark'}));marks.append(elem('text',{x:665,y:617,class:'txt'},'勇気の岬（仮）'));
+marks.append(elem('circle',{cx:168,cy:531,r:7,class:'mark'}));marks.append(elem('text',{x:170,y:520,class:'txt'},'旅立ちの村（仮）'));
+const seaRoute=elem('path',{d:'M168 531Q311 615 464 682',class:'draft'});marks.append(seaRoute);
+const evidence=elem('g',{id:'evidence-landmarks'});marks.append(evidence);
+for(const [x,y,name] of [
+ [116,600,'人魚の村：旅立ちの村の西（海底）'],
+ [342,302,'冬と星の国の湖（位置は仮）'],
+ [706,703,'愛と勇気の国の湖（位置は仮）'],
+ [775,480,'奈落の洞窟：鬼ヶ島の北東（海底）']
+]){
+ evidence.append(elem('circle',{cx:x,cy:y,r:6,fill:'#9ee6e9',stroke:'#134554','stroke-width':2}));
+ const t=elem('text',{x:x+12,y:y+4,fill:'#e4faff','font-size':13,'font-weight':700},name);evidence.append(t)
+}
+const buttons=document.querySelector('#buttons');let chosen='mainland';
+definitions.forEach(d=>{let b=document.createElement('button');b.dataset.id=d.id;b.textContent=d.label.split('（')[0];b.onclick=()=>choose(d.id);buttons.append(b)});
+function choose(id){const d=definitions.find(x=>x.id===id);if(!d)return;chosen=id;document.querySelectorAll('#shores path').forEach(p=>{p.style.stroke=p.id===id?'#ffe28b':'#eff0c1';p.style.strokeWidth=p.id===id?'9':'4'});document.querySelectorAll('button[data-id]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===id));document.querySelector('#info').textContent=d.label+'｜'+d.detail}
+document.querySelectorAll('#shores path').forEach(p=>{p.style.cursor='pointer';p.onclick=()=>choose(p.id)});
+const topology=document.querySelector('#topology');const hypothetical=document.querySelector('#hypothesis-bridge');
+const topoInfo=document.createElement('p');topoInfo.className='info';document.querySelector('#checklist').before(topoInfo);
+function validateTopology(){
+ const separated=topology.value==='separate';
+ hypothetical.style.display=separated?'none':'';
+ topoInfo.textContent='外形仮説 '+(separated?'A（南方は海で分離：本土・南方・鬼ヶ島・新大陸の4陸塊）':'B（南方が本土へ接続：3陸塊）')+'。いずれも原作地図の確定結果ではありません。接続線は検討のための模式形状です。';
+}
+topology.onchange=validateTopology;validateTopology();
+const audits=[
+ ['本土の半島・湾・海峡','未確定：ROM/付属地図との地理照合が未完了'],
+ ['愛と勇気の国の陸続き関係','未確定：A・B仮説を切り替えて比較。海底洞窟の連絡だけでは地表の陸続きは証明できない'],
+ ['鬼ヶ島・勇気の岬','一部確認：岬から海割りで渡る。精密配置未確定'],
+ ['旅立ちの村東方沖の新大陸','本作固有の仮案：出航・入港位置未確定'],['原作の地下経路','奈落の洞窟は鬼ヶ島の北東の海底。北出口→冬と星の国の湖／南出口→愛と勇気の国の湖。描画座標は仮']
+];
+document.querySelector('#checklist').innerHTML='<strong>外形確定前の検査項目</strong><ul>'+audits.map(([k,v])=>'<li>'+k+'：'+v+'</li>').join('')+'</ul>';
+const updateLayers=()=>{const on=document.querySelector('#uncertainty').checked;document.querySelectorAll('#shores path').forEach(p=>{p.style.strokeDasharray=on?'13 7':'none'});seaRoute.style.display=document.querySelector('#routes').checked?'':'none';evidence.style.display=document.querySelector('#landmarks').checked?'':'none'};
+document.querySelector('#uncertainty').onchange=updateLayers;document.querySelector('#routes').onchange=updateLayers;document.querySelector('#landmarks').onchange=updateLayers;updateLayers();choose(chosen);
+</script></body></html>
