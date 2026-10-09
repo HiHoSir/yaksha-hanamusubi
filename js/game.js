@@ -1024,7 +1024,7 @@ function padModal(){
  return null;
 }
 function padCandidates(root){
- return [...root.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled])')].filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=="hidden");
+ return typeof root.querySelectorAll==='function'?[...root.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled])')].filter(el=>!el.disabled&&(!el.getClientRects||el.getClientRects().length>0)&&(typeof getComputedStyle!=='function'||getComputedStyle(el).visibility!=="hidden")):[];
 }
 function padNavigate(dir){
  const root=padModal();if(!root)return false;
