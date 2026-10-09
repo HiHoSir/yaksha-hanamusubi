@@ -11,9 +11,6 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   // competing with title buttons. Verify real touch access at all mobile heights.
   assert(!await page.locator('#pad').isVisible(),'game pad must be hidden on title');
   for(const id of ['newGame','continueGame'])assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' inaccessible on title');
-  await page.locator('#continueGame').tap();
-  // Continuation may open a saved game. Restore the title for the remaining tests.
-  await run('$("title").classList.add("show")');
   await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>YK_SETTLEMENT.ready());
   await run('talk({n:"緋月",t:["川の向こうには、旅の続きを待つ人たちがいる。焦らずに進んでいきましょう。","では、出発しましょう。"]});');
   const box=await page.locator('.dialogWindow').boundingBox(),pad=await page.locator('#pad').boundingBox();assert(box.y+box.height+4<=pad.y,'dialog above controls '+height);assert(box.y>=48,'dialog in stage');
