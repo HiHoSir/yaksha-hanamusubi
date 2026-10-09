@@ -390,31 +390,55 @@ function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
 // Shared perspective guide v1: invisible scene metadata, no extra canvas texture.
 // Reusable for other interiors: base foot-space maps to illustrated image-space.
 // Per-room artists can change the anchors without touching rendering logic.
+// Perspective control for painted interiors. All geometry refers to the SAME art.
+// Depth masks sample the approved base image, never a separately generated image.
 const INDOOR_PERSPECTIVE={
  tea:{
-  footBack:245,footFront:705,screenBack:370,screenFront:673,
-  scaleBack:.9,scaleFront:1.52,
+  footBack:245,footFront:705,screenBack:490,screenFront:698,
+  scaleBack:.92,scaleFront:1.45,
+  // Each polygon describes only the physical silhouette of an object in the painting.
   occluders:[
-   {id:"left-post",rect:[0,0,145,640],depth:575},
-   {id:"hanging-beams",rect:[145,0,278,377],depth:355},
-   {id:"center-post",rect:[423,0,75,690],depth:605},
-   {id:"counter",rect:[495,340,273,330],depth:550},
-   {id:"hearth-rim",rect:[75,495,370,200],depth:625},
-   {id:"near-left-furniture",rect:[0,660,390,108],depth:760},
-   {id:"near-right-furniture",rect:[510,625,258,143],depth:760}
+   {id:"left-post",depth:670,poly:[[89,0],[147,0],[147,600],[93,604]]},
+   {id:"center-post",depth:666,poly:[[447,0],[487,0],[489,647],[445,655]]},
+   {id:"hearth-front",depth:633,poly:[[175,601],[416,601],[424,649],[188,652]]},
+   {id:"front-left-furniture",depth:764,poly:[[0,668],[310,680],[358,768],[0,768]]},
+   {id:"front-right-furniture",depth:752,poly:[[583,647],[768,650],[768,768],[587,768]]}
+  ],
+  // Filled polygons in projected SCREEN coordinates. No old procedural tables.
+  solids:[
+   [[0,0],[768,0],[768,461],[0,461]],
+   [[0,461],[78,461],[78,768],[0,768]],
+   [[700,461],[768,461],[768,768],[700,768]],
+   [[485,480],[700,480],[700,574],[485,574]],
+   [[175,575],[427,575],[429,641],[174,642]],
+   [[0,690],[332,682],[365,768],[0,768]],
+   [[592,638],[768,640],[768,768],[600,768]]
   ]
  }
 };
 function indoorPerspective(guide,x,foot){
- const span=Math.max(1,guide.footFront-guide.footBack);
- const t=Math.max(0,Math.min(1,(foot-guide.footBack)/span));
+ const t=Math.max(0,Math.min(1,(foot-guide.footBack)/Math.max(1,guide.footFront-guide.footBack)));
  const y=guide.screenBack+(guide.screenFront-guide.screenBack)*t;
- const scale=guide.scaleBack+(guide.scaleFront-guide.scaleBack)*t;
- return {x,y,scale,depth:y};
+ return {x,y,scale:guide.scaleBack+(guide.scaleFront-guide.scaleBack)*t,depth:y};
+}
+function indoorPointInPolygon(x,y,poly){
+ let inside=false;
+ for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+  const a=poly[i],b=poly[j];
+  if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))inside=!inside;
+ }
+ return inside;
+}
+function indoorProjectedBlocked(guide,x,foot){
+ const p=indoorPerspective(guide,x,foot);
+ if(x<75||x>699||p.y<470||p.y>712)return true;
+ return guide.solids.some(poly=>indoorPointInPolygon(p.x,p.y,poly));
 }
 function drawIndoorOccluder(c,art,layer){
- const [x,y,w,h]=layer.rect;
- c.drawImage(art,x,y,w,h,x,y,w,h);
+ c.save();c.beginPath();
+ layer.poly.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));
+ c.closePath();c.clip();
+ c.drawImage(art,0,0,768,768);c.restore();
 }
 function drawLayeredIndoorActors(c,frameTime,guide,art){
  const actors=areaNPCs().map(n=>{
@@ -433,7 +457,7 @@ function drawLayeredIndoorActors(c,frameTime,guide,art){
  for(const item of ordered)item.draw();
 }
 function drawPaintedTeaActors(c,frameTime){
- drawLayeredIndoorActors(c,frameTime,INDOOR_PERSPECTIVE.tea,TEA_ART.front);
+ drawLayeredIndoorActors(c,frameTime,INDOOR_PERSPECTIVE.tea,TEA_ART.back);
 }
 function drawInterior(c,kind){
  // Purpose-built room renderer. Furniture coordinates intentionally match interiorBlocked().
@@ -477,6 +501,7 @@ function drawInterior(c,kind){
 function interiorBlocked(x,y){
  if(x<72||x>696||y<195||y>704)return true;
  // Counter/hearth/furniture collision uses the same rectangles as drawInterior().
+ if(S.area==="teahouse"&&paintedTeaReady())return indoorProjectedBlocked(INDOOR_PERSPECTIVE.tea,x,y);
  if(S.area==="teahouse"){
    const solids=[[245,145,523,210],[162,315,356,430],[412,315,606,430],[162,485,356,600],[412,485,606,600],[65,195,150,345],[615,195,703,345]];
    if(solids.some(r=>inRect(x,y,r)))return true;
