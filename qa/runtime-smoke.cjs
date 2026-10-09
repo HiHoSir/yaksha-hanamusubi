@@ -42,8 +42,8 @@ const results=[];function check(name,fn){fn();results.push({name,status:'passed'
 check('new game and A advances opening dialogue',()=>{tap('newGame');advance(240);assert(el('dialog').classList.contains('show'));tap('ok');tap('ok');assert(!el('dialog').classList.contains('show'))});
 sandbox.Math.random=()=>1;
 check('hold moves; release returns to neutral',()=>{Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterGrace:100});tap('right');assert.equal(sandbox.gameState.x,238);advance(220);assert.equal(sandbox.gameState.frame,1)});
-check('all 7 hero sets retain all four directions (28 checks)',()=>{
- for(const outfit of ['normal','stardust']){tap('bookBtn');dataTap('outfit',outfit);dataTap('close','menu');assert.equal(sandbox.gameState.outfit,outfit);
+check('public hero outfit retains all four directions',()=>{
+ for(const outfit of ['normal']){tap('bookBtn');dataTap('outfit',outfit);dataTap('close','menu');assert.equal(sandbox.gameState.outfit,outfit);
   for(const [button,dir] of [['left','l'],['right','r'],['up','u'],['down','d']]){Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterGrace:100});tap(button);assert.equal(sandbox.gameState.dir,dir);advance(220);shot(outfit+'-'+dir);}
  }
 });
@@ -62,15 +62,15 @@ check('keyboard battle cursor and item command',()=>{
 check('battle escape returns to movement',()=>{advance(400);dataTap('cmd','escape');advance(400);assert(!el('battle').classList.contains('show'));sandbox.Math.random=()=>1;Object.assign(sandbox.gameState,{area:'field',x:230,y:534});tap('left');assert.equal(sandbox.gameState.x,222)});
 check('battle victory awards and saves progress',()=>{Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterSteps:40,encounterGrace:0,atk:999});sandbox.Math.random=()=>0;const wins=sandbox.gameState.wins;tap('right');dataTap('cmd','attack');advance(700);assert.equal(sandbox.gameState.wins,wins+1);assert(!el('battle').classList.contains('show'));assert.equal(sandbox.YK_SAVE.loadAuto().wins,wins+1)});
 check('defeat does not overwrite autosave; retry restores it',()=>{Object.assign(sandbox.gameState,{area:'field',x:230,y:534,hp:100,maxhp:100,atk:1,def:0,encounterSteps:40,encounterGrace:0});sandbox.YK_SAVE.auto(sandbox.gameState);sandbox.gameState.hp=1;tap('right');dataTap('cmd','attack');advance(920);assert(el('gameover').classList.contains('show'));assert.equal(sandbox.YK_SAVE.loadAuto().hp,100);tap('retryBtn');assert.equal(sandbox.gameState.hp,100);assert(!el('gameover').classList.contains('show'))});
-check('all 6 costumes in dialogue, battle and hot spring',()=>{
- for(const outfit of ['normal','stardust']){
+check('public costume in dialogue, battle and hot spring',()=>{
+ for(const outfit of ['normal']){
   tap('newGame');sandbox.gameState.outfit=outfit;advance(240);shot('dialog-'+outfit,'dialogPortrait');tap('ok');tap('ok');
   Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterSteps:40,encounterGrace:0});sandbox.Math.random=()=>0;tap('right');assert(el('battle').classList.contains('show'));shot('battle-'+outfit,'battleCanvas');dataTap('cmd','escape');advance(400);
   Object.assign(sandbox.gameState,{area:'hotspring',x:384,y:500,dir:'d'});tap('ok');assert(el('hotSpring').classList.contains('show'));shot('hot-'+outfit,'hotSpringCanvas');dataTap('hot','bath');assert.equal(sandbox.gameState.outfit,outfit);assert.equal(sandbox.gameState.hp,sandbox.gameState.maxhp);shot('hot-bathing','hotSpringCanvas');dataTap('hot','leave');assert(!el('hotSpring').classList.contains('show'));
  }
 });
-check('six costumes show attack, hit and idle; repeated commands cannot stack damage',()=>{
- for(const outfit of ['normal','stardust']){
+check('public costume shows attack, hit and idle; repeated commands cannot stack damage',()=>{
+ for(const outfit of ['normal']){
   Object.assign(sandbox.gameState,{area:'field',x:230,y:534,encounterSteps:40,encounterGrace:0,outfit,atk:1,hp:1000,maxhp:1000,def:0});
   sandbox.Math.random=()=>0;tap('right');assert(el('battle').classList.contains('show'));
   dataTap('cmd','attack');assert.equal(sandbox.__qaEval('battlePose'),'attack');shot('attack-'+outfit,'battleCanvas');
