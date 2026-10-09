@@ -1485,8 +1485,7 @@ window.YKDebugField=(enabled=true)=>{
  openBtn.addEventListener("click",()=>{poll=0;setTimeout(update,350);});
  window.YKEnemyDebug={open,close,refresh};
 })();
-const debugMapBtn=document.getElementById("debugMap");
-if(debugMapBtn){debugMapBtn.addEventListener("click",(e)=>{e.preventDefault();e.stopPropagation();window.YKDebugField(true);});}
+// Field diagnostic entry points are intentionally absent from the public title screen.
 
 const villageTestWarpBtn=document.getElementById("villageTestWarp");
 if(villageTestWarpBtn){
