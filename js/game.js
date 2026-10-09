@@ -1014,8 +1014,40 @@ function battlePad(d){
  const next=d==='u'?battleCursor-2:d==='d'?battleCursor+2:row*2+(d==='l'?0:1);
  if(next>=0&&next<n)selectCmd(next);return true;
 }
-const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!fieldPad(dir)&&!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
-YK_INPUT.tap($("ok"),()=>battle?battleConfirm():$('commandMenu').classList.contains('show')?fieldConfirm():action());YK_INPUT.tap($("cancel"),()=>{if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
+// Virtual gamepad focus navigation for modal screens not covered by battle/field cursors.
+const PAD_MODAL_IDS=["gameover","hotSpring","shop","worldMap","menu","saveMenu","settings","enemyDebugPanel"];
+let padFocusIndex=0,padFocusId="";
+function padModal(){
+ if($("title").classList.contains("show"))return $("title");
+ if($("dialog").classList.contains("show"))return $("dialog");
+ for(const id of PAD_MODAL_IDS){const el=$(id);if(el?.classList.contains("show"))return el;}
+ return null;
+}
+function padCandidates(root){
+ return [...root.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled])')].filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=="hidden");
+}
+function padNavigate(dir){
+ const root=padModal();if(!root)return false;
+ if(root.id==="dialog")return true;
+ const choices=padCandidates(root);if(!choices.length)return true;
+ if(padFocusId!==root.id){padFocusId=root.id;padFocusIndex=0;}
+ const delta=(dir==="u"||dir==="l")?-1:1;
+ padFocusIndex=(padFocusIndex+delta+choices.length)%choices.length;
+ choices[padFocusIndex].focus({preventScroll:true});
+ return true;
+}
+function padActivate(){
+ const root=padModal();if(!root)return false;
+ if(root.id==="dialog"){nextDialog();return true;}
+ const choices=padCandidates(root);if(!choices.length)return true;
+ if(padFocusId!==root.id){padFocusId=root.id;padFocusIndex=0;}
+ const control=choices[Math.min(padFocusIndex,choices.length-1)];
+ if(control.tagName==="SELECT"){control.focus({preventScroll:true});return true;}
+ if(control.type==="checkbox"){control.click();return true;}
+ control.click();return true;
+}
+const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!padNavigate(dir)&&!fieldPad(dir)&&!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
+YK_INPUT.tap($("ok"),()=>padActivate()?undefined:battle?battleConfirm():$('commandMenu').classList.contains('show')?fieldConfirm():action());YK_INPUT.tap($("cancel"),()=>{if($("dialog").classList.contains("show")){nextDialog();return;}if($("title").classList.contains("show"))return;if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):openCommands());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{if(!battle||battleLocked)return;selectCmd(i);battleConfirm()}));
