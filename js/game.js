@@ -1054,7 +1054,7 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"緋月",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
+YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}S.area="village";S.x=768;S.y=760;S.dir="u";S.frame=1;S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"緋月",t:["……あれ？　今朝は、里の鈴が聞こえない。","いつもなら、ここまで音が届くのに。みんな、何だか変なことを言っているし……。","里長なら事情を知っているかも。まずは広場で話を聞いてみよう！"]}),200)});
 YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
