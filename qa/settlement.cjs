@@ -37,7 +37,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  assert.equal(await run('S.quest'),1,'chief story advances once');
  await run('S.x=716;S.y=704;S.dir="u";action();while($("dialog").classList.contains("show"))nextDialog();');assert.equal(await run('S.quest'),1);
  await run('busy=false;S.x=576;S.y=530;S.dir="u";action();');assert(!await page.locator('#shop').evaluate(el=>el.classList.contains('show')),'shared merchant art does not make farmer a shop');await run('while($("dialog").classList.contains("show"))nextDialog();');
- await run('busy=false;S.area="villageRoom"';S.lastInterior="inn";S.x=384;S.y=440;S.dir="u";S.hp=10;S.mp=0;action();nextDialog();nextDialog();');assert.equal(await run('S.hp'),100);assert.equal(await run('S.mp'),18);
+ await run('busy=false;S.area="villageRoom";S.lastInterior="inn";S.x=384;S.y=440;S.dir="u";S.hp=10;S.mp=0;action();while($("dialog").classList.contains("show"))nextDialog();');assert.equal(await run('S.hp'),100);assert.equal(await run('S.mp'),18);
  await run('S.area="village";S.x=768;S.y=760;map();');
  const labels=await run('(()=>{const text=[],fn=g.fillText;g.fillText=function(s,...args){text.push(s);return fn.call(this,s,...args)};try{map()}finally{g.fillText=fn}return text;})()');
  for(const name of ['里長','里の子','畑守り','織り手','旅人'])assert(!labels.includes(name),'no overhead NPC labels');await page.screenshot({path:path.join(out,'village-square-'+height+'.png')});
