@@ -7,8 +7,14 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  for(const height of [852,667,568]){
   const page=await browser.newPage({viewport:{width:393,height},isMobile:true,hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());
   const run=code=>page.evaluate(code=>window.__qaEval(code),code);
+  // Regression: a full-screen title must never intercept virtual D-pad/A/B touches.
+  for(const id of ['up','down','ok','cancel'])assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' inaccessible over title');
+  await page.locator('#down').tap();
+  assert(await page.locator('#continueGame').evaluate(e=>document.activeElement===e),'D-pad cannot focus continue on title');
+  await page.locator('#up').tap();
+  assert(await page.locator('#newGame').evaluate(e=>document.activeElement===e),'D-pad cannot focus new game');
   await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>YK_SETTLEMENT.ready());
-  await run('talk({n:"夜叉姫",t:["川の向こうには、旅の続きを待つ人たちがいる。焦らずに進んでいきましょう。","では、出発しましょう。"]});');
+  await run('talk({n:"緋月",t:["川の向こうには、旅の続きを待つ人たちがいる。焦らずに進んでいきましょう。","では、出発しましょう。"]});');
   const box=await page.locator('.dialogWindow').boundingBox(),pad=await page.locator('#pad').boundingBox();assert(box.y+box.height+4<=pad.y,'dialog above controls '+height);assert(box.y>=48,'dialog in stage');
   for(const id of ['ok','dialogNext'])assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' clickable');
   assert(await page.locator('#cancel').isDisabled());const position=await run('[S.x,S.y]');
