@@ -566,12 +566,12 @@ function map(frameTime=performance.now()){
 }const NPCS={
  village:YK_SETTLEMENT.residents,
  teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","店の中なら、ゆっくり休んでいけますよ。"]}],
- osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、緋角羅さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたところなんです。"]}],
+ osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、緋月さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたところなんです。"]}],
  shrine:[{x:515,y:370,type:"miko",name:"白妙",talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]},{x:210,y:530,type:"guard",name:"社守",talk:["この先は妖の気配が濃い。","刀を抜けるよう備えておけ。"]}],
  cove:[{x:585,y:570,type:"ferryman",name:"漁師・潮平",talk:["潮風の向こうに、不思議な花びらが舞っていたよ。"]},{x:190,y:450,type:"child",name:"浜の子",talk:["白い貝が光る夜は、森の道が開くんだって！"]}],
  forest:[{x:530,y:390,type:"traveler",name:"旅の薬師",talk:["この森は同じ道へ戻される。","花の灯りを追うんだ。"]}],
  waterfall:[{x:150,y:590,type:"child",name:"滝童",talk:["龍神さまの水鏡は、九尾の祠への道を映すよ。"]}],
- fox:[{x:535,y:650,type:"traveler",name:"白狐の使い",talk:["ようやく来たね、緋角羅。","忘れた約束を思い出す時だ。"]}],
+ fox:[{x:535,y:650,type:"traveler",name:"白狐の使い",talk:["ようやく来たね、緋月。","忘れた約束を思い出す時だ。"]}],
  hotspring:[{x:620,y:650,type:"hotkeeper",name:"湯守・お糸",talk:["月見の湯へようこそ。","今夜は花びらの香りがよく立っていますよ。"]}]
 };
 function areaNPCs(){
@@ -630,7 +630,7 @@ function nextDialog(){
 }
 function renderDialogPortrait(){
  const c=$("dialogPortrait");if(!c)return;
- c.style.display=$("speaker").textContent==="緋角羅"?"block":"none";
+ c.style.display=$("speaker").textContent==="緋月"?"block":"none";
  const q=c.getContext("2d");q.clearRect(0,0,c.width,c.height);
  if(c.style.display!=="none")hero(q,90,160,"d",1,S.outfit,1.3);
 }
@@ -863,7 +863,7 @@ function cmd(n){
  if(n==='bloom')n='skill';if(n==='herb')n='item';
  battleLocked=true;
  renderBattleCommands();
- if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋角羅は 身を守っている！';renderBattle();battleLater(foe,420);return;}
+ if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();battleLater(foe,420);return;}
  if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);renderBattle();battleLater(foe,480);return;}
  if(n==="attack"||n==="skill"){
   const d=n==="skill"?20+S.lv*3+relicBonus("skill")+Math.floor(Math.random()*12):S.atk+relicBonus("atk")+Math.floor(Math.random()*8);
@@ -922,7 +922,7 @@ function renderRelics(){
 const FIELD_COMMANDS=[['talk','はなす','近くの人や地蔵に話しかける'],['search','しらべる','足元のつづらや入口を調べる'],['skill','じゅつ','花癒し：技3で体を32回復'],['items','どうぐ','薬草やお守りを確かめる'],['equipment','そうび','武器や防具を身につける'],['status','つよさ','段・体・技と旅の目的を確かめる'],['map','ちず','目的地と街道を確かめる'],['save','きろく','旅の記録を残す'],['outfits','おまけ','衣装を選ぶ'],['exit','もどる','旅へ戻る']];
 let fieldCursor=0;
 function openCommands(){if(busy)return false;YK_INPUT.stopAll();fieldMotion=null;S.frame=1;busy=true;fieldCursor=0;$('commandMenu').classList.add('show');renderCommands();return true;}
-function renderCommands(){$('commandStatus').textContent=`緋角羅　${S.lv}段　${S.gold}両`;$('fieldCommands').innerHTML=FIELD_COMMANDS.map(([id,label],i)=>`<button data-field-command="${id}" class="${i===fieldCursor?'selected':''}">${i===fieldCursor?'▶ ':''}${label}</button>`).join('');document.querySelectorAll('[data-field-command]').forEach((b,i)=>YK_INPUT.tap(b,()=>{fieldCursor=i;fieldConfirm();}));$('commandHelp').textContent=FIELD_COMMANDS[fieldCursor][2]+' ／ A 決定・B 戻る';}
+function renderCommands(){$('commandStatus').textContent=`緋月　${S.lv}段　${S.gold}両`;$('fieldCommands').innerHTML=FIELD_COMMANDS.map(([id,label],i)=>`<button data-field-command="${id}" class="${i===fieldCursor?'selected':''}">${i===fieldCursor?'▶ ':''}${label}</button>`).join('');document.querySelectorAll('[data-field-command]').forEach((b,i)=>YK_INPUT.tap(b,()=>{fieldCursor=i;fieldConfirm();}));$('commandHelp').textContent=FIELD_COMMANDS[fieldCursor][2]+' ／ A 決定・B 戻る';}
 function fieldPad(dir){if(!$('commandMenu').classList.contains('show'))return false;const row=Math.floor(fieldCursor/2),next=dir==='u'?fieldCursor-2:dir==='d'?fieldCursor+2:row*2+(dir==='l'?0:1);if(next>=0&&next<FIELD_COMMANDS.length)fieldCursor=next;renderCommands();return true;}
 function fieldConfirm(){const id=FIELD_COMMANDS[fieldCursor][0];close('commandMenu');
  if(id==='exit')return;
@@ -947,7 +947,7 @@ function openNearbyChest(){
  if(!c)return false;const result=E.open(S,c.id);if(result.ok)YK_SAVE.auto(S);message(result.text,3500);map();return true;
 }
 function renderStatus(){
- $('statusPanel').innerHTML=`緋角羅　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus('atk')}　守備力 ${S.def+relicBonus('def')}<br>旅の目的：${D.story[S.quest]?.objective||"巡った土地を訪ねる"}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${E.items[S.equipment.weapon]?.name||'素手'}`;
+ $('statusPanel').innerHTML=`緋月　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus('atk')}　守備力 ${S.def+relicBonus('def')}<br>旅の目的：${D.story[S.quest]?.objective||"巡った土地を訪ねる"}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${E.items[S.equipment.weapon]?.name||'素手'}`;
 }
 function equipmentDelta(item,slot){
  const current=E.items[S.equipment[slot]]||{};
@@ -1022,7 +1022,7 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"緋角羅",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
+YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"緋月",t:["ふふっ……今日も面白いことが起きそうね。","鬼灯の里へ行ってみましょう。"]}),200)});
 YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
@@ -1253,10 +1253,10 @@ function drawDebugAutotile(c,page){
  }
  c.restore();
  c.fillStyle="#fff3c4";c.font="bold 24px sans-serif";c.fillText(page==="assets32"?"32×32 PNG / 実寸と3倍・透明確認":page==="connections"?"森：16接続パターン":("森のサイズ比較 / "+zoom+"倍"),48,45);
- c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(page==="connections"||page==="assets32"?"旧32px素材：接続構造の確認用":"移動マス32px / 樹冠80px / 緋角羅との比率を確認",48,75);
+ c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(page==="connections"||page==="assets32"?"旧32px素材：接続構造の確認用":"移動マス32px / 樹冠80px / 緋月との比率を確認",48,75);
  c.font="15px sans-serif";c.fillText("A：全体 → 2倍 → 接続 → PNG一覧 → 旧素材　B：戻る",48,690);
  c.fillStyle="#aec2c8";c.font="14px sans-serif";c.fillText("32px歩行・森に当たり判定あり / 旧素材の比較用",48,720);
- worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで緋角羅を移動 · 本編の記録は変更しません");
+ worldHint(page==="connections"?"森9素材で構成する16接続 / 斜め凹角は次工程":"十字キーで緋月を移動 · 本編の記録は変更しません");
 }
 
 const DEBUG_QUARTER=window.YK_LANDSCAPE?.quarterFixture();
@@ -1312,7 +1312,7 @@ function drawDebugLandscape(c,page){
  c.font="16px sans-serif";c.fillStyle="#d9d2b0";c.fillText(places?"村・町・仙人の庵・地蔵・洞窟・鳥居":"地形のつながり / 土の道・砂浜・橋・祠",48,75);
  c.font="15px sans-serif";c.fillText("A：地形 → 2倍 → 素材 → 集落と拠点 → 比較　B：戻る",48,690);
  c.font="14px sans-serif";c.fillStyle="#aec2c8";c.fillText("32px歩行・当たり判定あり / 水辺は橋で渡れます",48,720);
- worldHint("十字キーで緋角羅を移動 · 本編の記録は変更しません");
+ worldHint("十字キーで緋月を移動 · 本編の記録は変更しません");
 }
 
 function debugRotateView(){
