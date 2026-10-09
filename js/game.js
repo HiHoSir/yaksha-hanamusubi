@@ -387,28 +387,53 @@ function paintedTeaReady(){return TEA_ART.backReady&&TEA_ART.frontReady}
 function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
 // Independent picture-space occluders. Base already contains the complete composition;
 // these transparent cuts are redrawn only over actors behind each physical feature.
-const TEA_DEPTH_LAYERS=[
- {id:"left-post",rect:[0,0,145,640],depth:575},
- {id:"hanging-beams",rect:[145,0,278,377],depth:355},
- {id:"center-post",rect:[423,0,75,690],depth:605},
- {id:"counter",rect:[495,340,273,330],depth:550},
- {id:"hearth-rim",rect:[75,495,370,200],depth:625},
- {id:"near-left-furniture",rect:[0,660,390,108],depth:760},
- {id:"near-right-furniture",rect:[510,625,258,143],depth:760}
-];
-function teaScreenY(foot){return 370+(foot-245)*.66}
-function teaDepthScale(foot){return .9+Math.max(0,Math.min(1,(foot-245)/460))*.62}
-function drawTeaOccluder(c,layer){const [x,y,w,h]=layer.rect;c.drawImage(TEA_ART.front,x,y,w,h,x,y,w,h)}
-function drawPaintedTeaActors(c,frameTime){
- const actors=areaNPCs().map(n=>({depth:teaScreenY(n.y),draw:()=>{
-  const z=teaDepthScale(n.y),py=teaScreenY(n.y);c.save();c.translate(n.x,py);c.scale(z,z);npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();
- }}));
+// Shared perspective guide v1: invisible scene metadata, no extra canvas texture.
+// Reusable for other interiors: base foot-space maps to illustrated image-space.
+// Per-room artists can change the anchors without touching rendering logic.
+const INDOOR_PERSPECTIVE={
+ tea:{
+  footBack:245,footFront:705,screenBack:370,screenFront:673,
+  scaleBack:.9,scaleFront:1.52,
+  occluders:[
+   {id:"left-post",rect:[0,0,145,640],depth:575},
+   {id:"hanging-beams",rect:[145,0,278,377],depth:355},
+   {id:"center-post",rect:[423,0,75,690],depth:605},
+   {id:"counter",rect:[495,340,273,330],depth:550},
+   {id:"hearth-rim",rect:[75,495,370,200],depth:625},
+   {id:"near-left-furniture",rect:[0,660,390,108],depth:760},
+   {id:"near-right-furniture",rect:[510,625,258,143],depth:760}
+  ]
+ }
+};
+function indoorPerspective(guide,x,foot){
+ const span=Math.max(1,guide.footFront-guide.footBack);
+ const t=Math.max(0,Math.min(1,(foot-guide.footBack)/span));
+ const y=guide.screenBack+(guide.screenFront-guide.screenBack)*t;
+ const scale=guide.scaleBack+(guide.scaleFront-guide.scaleBack)*t;
+ return {x,y,scale,depth:y};
+}
+function drawIndoorOccluder(c,art,layer){
+ const [x,y,w,h]=layer.rect;
+ c.drawImage(art,x,y,w,h,x,y,w,h);
+}
+function drawLayeredIndoorActors(c,frameTime,guide,art){
+ const actors=areaNPCs().map(n=>{
+  const p=indoorPerspective(guide,n.x,n.y);
+  return {depth:p.depth,draw:()=>{
+   c.save();c.translate(p.x,p.y);c.scale(p.scale,p.scale);
+   npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();
+  }};
+ });
  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
  const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
  const y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
- actors.push({depth:teaScreenY(y),draw:()=>hero(c,x,teaScreenY(y),S.dir,S.frame,S.outfit,teaDepthScale(y))});
- const ordered=[...actors,...TEA_DEPTH_LAYERS.map(v=>({depth:v.depth,draw:()=>drawTeaOccluder(c,v)}))].sort((a,b)=>a.depth-b.depth);
+ const p=indoorPerspective(guide,x,y);
+ actors.push({depth:p.depth,draw:()=>hero(c,p.x,p.y,S.dir,S.frame,S.outfit,p.scale)});
+ const ordered=[...actors,...guide.occluders.map(v=>({depth:v.depth,draw:()=>drawIndoorOccluder(c,art,v)}))].sort((a,b)=>a.depth-b.depth);
  for(const item of ordered)item.draw();
+}
+function drawPaintedTeaActors(c,frameTime){
+ drawLayeredIndoorActors(c,frameTime,INDOOR_PERSPECTIVE.tea,TEA_ART.front);
 }
 function drawInterior(c,kind){
  // Purpose-built room renderer. Furniture coordinates intentionally match interiorBlocked().
