@@ -609,7 +609,7 @@ function talk(entry,after=null){
  if(!entry)return false;
  const speaker=entry.n||entry.name||"";
  const lines=Array.isArray(entry.t)?entry.t:(Array.isArray(entry.talk)?entry.talk:[String(entry.t||entry.talk||"")]);
- dialogQueue=lines.filter(Boolean).map(t=>({speaker,text:String(t)}));
+ dialogQueue=lines.filter(Boolean).map(t=>typeof t==="object"&&t!==null?{speaker:String(t.speaker||speaker),text:String(t.text||"")}:{speaker,text:String(t)});
  if(!dialogQueue.length)return false;
  dialogAfter=typeof after==="function"?after:null;
  YK_INPUT.stopAll();fieldMotion=null;busy=true;$("pad").classList.add("dialogActive");$("cancel").disabled=true;$("dialog").classList.add("show");
@@ -1054,7 +1054,17 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
-YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}S.area="village";S.x=768;S.y=760;S.dir="u";S.frame=1;S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;hud();setTimeout(()=>talk({n:"緋月",t:["……あれ？　今朝は、里の鈴が聞こえない。","いつもなら、ここまで音が届くのに。みんな、何だか変なことを言っているし……。","里長なら事情を知っているかも。まずは広場で話を聞いてみよう！"]}),200)});
+YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}S.area="village";S.x=768;S.y=760;S.dir="u";S.frame=1;S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;hud();setTimeout(()=>{if(S.area!=="village"||$("title").classList.contains("show"))return;
+ $("game").classList.add("openingOmen");setTimeout(()=>$("game").classList.remove("openingOmen"),950);
+ talk({n:"緋月",t:[
+ {speaker:"里の子",text:"緋月さま！　たいへん！　朝の鈴が……鳴らないの！"},
+ {speaker:"緋月",text:"鈴が壊れたの？　だったら見に行けば——"},
+ {speaker:"里の子",text:"ちがうの。お母さん、鈴なんて初めからないって……。"},
+ {speaker:"？？？",text:"……わすれるな。花が散る前に……。"},
+ {speaker:"緋月",text:"今の声……誰？　あれ、どうして胸が苦しいの……。"},
+ {speaker:"里の子",text:"ねえ、緋月さま。里長さまのところへ一緒に行こう？"}
+ ]},()=>message("鈴のない朝。里長を探そう。　十字キーで移動 ／ Aで話す",3700));
+},200)});
 YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
