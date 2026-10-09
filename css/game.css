@@ -263,3 +263,7 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 /* Keep controller at the top but ensure all modal action buttons sit clear of its footprint. */
 #shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{box-sizing:border-box;max-height:calc(100dvh - 210px - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding-bottom:20px}
 @media(max-height:720px){#shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{max-height:calc(100dvh - 185px - env(safe-area-inset-bottom))}}
+
+/* Fixed modal viewport bounds: scroll within the visible space above the pad. */
+#shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{top:max(12px,env(safe-area-inset-top));bottom:calc(184px + env(safe-area-inset-bottom) + 12px);max-height:none}
+@media(max-height:720px){#shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{bottom:calc(160px + env(safe-area-inset-bottom) + 12px);max-height:none}}
