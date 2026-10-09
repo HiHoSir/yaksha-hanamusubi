@@ -313,7 +313,7 @@ function check(name,fn){fn();results.push(name)}
  check('all eighteen debug pages render and cycle',()=>{for(let i=3;i<sandbox.__qaEval("DEBUG_PAGES.length");i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('New game still starts',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
+ check('New game starts in village',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'village');assert.equal(sandbox.gameState.x,768);assert.equal(sandbox.gameState.y,760);assert(!el('title').classList.contains('show'));});
  check('production field moves 32px, enters and exits every existing story area',()=>{
   sandbox.__qaEval('busy=false;S.encounterGrace=999;');
   const y=sandbox.gameState.y;tap('up');advance(160);assert.equal(sandbox.gameState.y,y-32);
