@@ -44,6 +44,52 @@ function directions(bindings,fn,timing=()=>({delay:260,repeat:105})){
  const keys={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
  document.addEventListener("keydown",e=>{if(!keys[e.key]||e.metaKey||e.ctrlKey||e.altKey||["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;e.preventDefault();if(!e.repeat)press(e.key,keys[e.key]);});
  document.addEventListener("keyup",e=>{if(keys[e.key])release(e.key);});
+ // Virtual stick: maintain the original step scheduler for tile-based scenes.
+ // Do not change direction near the 45-degree boundary until the new
+ // axis wins by a margin. The old keyboard mapping remains intact.
+ const stick=document.getElementById("virtualStick");
+ const knob=document.getElementById("virtualStickKnob");
+ let activePointer=null,stickDirection=null;
+ const stickStop=()=>{activePointer=null;stickDirection=null;release("virtual-stick");if(knob)knob.style.transform="translate(-50%,-50%)";};
+ directionStops.push(stickStop);
+ function stickUpdate(e){
+  if(!stick)return;
+  const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const reach=Math.max(1,Math.min(r.width,r.height)*.32);
+  let x=(e.clientX-cx)/reach,y=(e.clientY-cy)/reach;
+  const n=Math.hypot(x,y);
+  if(n>1){x/=n;y/=n;}
+  if(knob)knob.style.transform="translate(calc(-50% + "+(x*reach)+"px),calc(-50% + "+(y*reach)+"px))";
+  const mag=Math.hypot(x,y);
+  if(mag<.23){if(stickDirection){release("virtual-stick");stickDirection=null;}return;}
+  const ax=Math.abs(x),ay=Math.abs(y);
+  // 20% dominance margin prevents oscillation around diagonal input.
+  let dir=stickDirection;
+  if(!dir)dir=ax>=ay?(x>=0?"r":"l"):(y>=0?"d":"u");
+  else if(dir==="l"||dir==="r"){
+   if(ay>ax*1.2)dir=y>=0?"d":"u";
+   else if(ax>.2)dir=x>=0?"r":"l";
+  }else{
+   if(ax>ay*1.2)dir=x>=0?"r":"l";
+   else if(ay>.2)dir=y>=0?"d":"u";
+  }
+  if(dir!==stickDirection){
+   release("virtual-stick");stickDirection=dir;
+   const v={l:[-1,0],r:[1,0],u:[0,-1],d:[0,1]}[dir];
+   press("virtual-stick",v);
+  }
+ }
+ if(stick){
+  stick.addEventListener("pointerdown",e=>{
+   if(activePointer!==null)return;
+   e.preventDefault();activePointer=e.pointerId;
+   try{stick.setPointerCapture(e.pointerId)}catch(_){}
+   stickUpdate(e);
+  });
+  stick.addEventListener("pointermove",e=>{if(e.pointerId===activePointer){e.preventDefault();stickUpdate(e);}});
+  for(const name of ["pointerup","pointercancel","lostpointercapture"])
+   stick.addEventListener(name,e=>{if(e.pointerId===activePointer)stickStop();});
+ }
  return {vector};
 }
 return {hold,tap,stopAll,directions};
