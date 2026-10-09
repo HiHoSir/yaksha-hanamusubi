@@ -21,6 +21,15 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   await page.screenshot({path:path.join(out,'dialog-'+height+'.png')});
   await page.locator('#ok').tap();assert.equal(await page.locator('#dialogText').textContent(),'では、出発しましょう。');
   await page.locator('#dialogNext').tap();assert(!await page.locator('#dialog').evaluate(e=>e.classList.contains('show')));assert(!await page.locator('#cancel').isDisabled());assert.deepEqual(await run('[S.x,S.y]'),position);assert.deepEqual(errors,[]);
+  // Opening scene can change speaker and portrait without creating extra overlays.
+  await run('talk({n:"緋月",t:[{speaker:"里の子",text:"鈴はどこ？"},{speaker:"緋月",text:"確かめよう。"}]});');
+  assert.equal(await page.locator('#speaker').textContent(),'里の子');
+  assert.equal(await page.locator('#dialogPortrait').evaluate(e=>e.style.display),'none');
+  await page.locator('#ok').tap();
+  assert.equal(await page.locator('#speaker').textContent(),'緋月');
+  assert.equal(await page.locator('#dialogPortrait').evaluate(e=>e.style.display),'block');
+  await page.locator('#ok').tap();
+  assert(!await page.locator('#dialog').evaluate(e=>e.classList.contains('show')));
   console.log('dialog '+height+': no overlap, A advances once, Next closes, no movement');await page.close();
  }
  }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
