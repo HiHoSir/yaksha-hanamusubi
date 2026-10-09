@@ -1,7 +1,7 @@
 window.YK_DATA=(()=>{
 const outfits={
- normal:{name:"花守り装束",body:"#f0e1cf",trim:"#c13e67",skirt:"#7a294f"},
- stardust:{name:"星屑の姫君",body:"#f2c84b",trim:"#d92f3f",skirt:"#d92f3f"}
+ normal:{name:"花守り装束",body:"#f0e1cf",trim:"#c13e67",skirt:"#7a294f"}
+ // The stardust design is withheld from public builds; artwork retained outside runtime listings.
 };
 const areas={
  field:{name:"花霞野",ground:"#88a857",path:"#d6bf8a",water:"#4f93a8",encounter:.045,min:14,grace:9},
