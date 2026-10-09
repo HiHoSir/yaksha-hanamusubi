@@ -285,3 +285,11 @@ body:has(#title.show) #stage{min-height:0}
  #title.show .titlebox{bottom:max(8px,env(safe-area-inset-bottom));padding:7px}
  #title.show .titlebox button{min-height:40px;margin:3px auto}
 }
+
+/* Virtual stick overlay. Keep legacy direction buttons in DOM for keyboard support. */
+#pad .dpad{display:none}
+#pad .virtualStick{position:absolute;left:22px;top:15px;width:146px;height:146px;border-radius:50%;touch-action:none;user-select:none;-webkit-user-select:none;z-index:2}
+#pad .virtualStickTrack{position:absolute;inset:0;border-radius:50%;border:2px solid #b99a62;background:radial-gradient(circle,#294461bb,#102538ee);box-shadow:inset 0 3px 12px #0009}
+#pad .virtualStickKnob{position:absolute;left:50%;top:50%;width:58px;height:58px;transform:translate(-50%,-50%);border-radius:50%;border:2px solid #e4c990;background:linear-gradient(145deg,#6b7890,#304961);pointer-events:none;box-shadow:0 2px 8px #000a}
+#pad.dialogActive .virtualStick{opacity:.65}
+@media(max-height:720px){#pad .virtualStick{top:6px;width:128px;height:128px}}
