@@ -249,3 +249,8 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 #commandHelp{font-size:12px;line-height:1.5;margin:7px 0 0;color:#e1d5b6}
 
 #menu{position:absolute;inset:0;background:#06132166;padding:10px;z-index:36}#menu .window{top:10px;bottom:10px;max-height:calc(100% - 20px);left:10px;right:10px;padding:12px}#fieldCommands button{min-height:40px}
+
+/* Original text logotype: independent from pre-rename raster artwork. */
+#title .titleLogoText{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;white-space:nowrap;pointer-events:none;max-height:none;width:min(94vw,760px);padding:8px 4px;color:#f9e9bb;filter:drop-shadow(0 5px 4px #120912) drop-shadow(0 2px 12px #000a)}
+#title .titleLogoText .titleLogoRuby{font-family:serif;letter-spacing:.35em;font-size:clamp(10px,2.5vw,15px);color:#f8d38c;margin-bottom:5px;text-shadow:0 2px 3px #0b1019}
+#title .titleLogoText strong{font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-size:clamp(28px,8.8vw,68px);font-weight:900;letter-spacing:.035em;line-height:1.16;color:#fff0c2;-webkit-text-stroke:.4px #61371c;text-shadow:2px 3px 0 #7e372d,4px 6px 0 #261722,0 0 18px #b75b3f77}
