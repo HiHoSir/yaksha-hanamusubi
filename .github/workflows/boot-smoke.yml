@@ -1,8 +1,15 @@
-name: Boot Smoke Test
+name: Test, Build and Deploy
 on:
   push:
     branches: [main]
   pull_request:
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -114,3 +121,48 @@ jobs:
           node qa/residents.cjs
           node qa/guide-menu.cjs
           node qa/field-access.cjs
+
+  build:
+    name: Build website after smoke
+    needs: smoke
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Assemble static website
+        run: |
+          mkdir -p _site
+          # Static site: do not publish QA harness, CI configuration or git internals.
+          cp index.html _site/index.html
+          for directory in assets css js; do
+            if [ -d "$directory" ]; then cp -a "$directory" "_site/$directory"; fi
+          done
+          for f in favicon.ico manifest.json sw.js; do
+            if [ -f "$f" ]; then cp "$f" "_site/$f"; fi
+          done
+          test -s _site/index.html
+          test -s _site/js/game.js
+          test -s _site/js/data.js
+          test -s _site/assets/ui/kikoku-title-logo.png
+          printf 'Website built from %s\\n' "$GITHUB_SHA"
+      - name: Upload verified Pages build
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy only verified build
+    needs: [smoke, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
