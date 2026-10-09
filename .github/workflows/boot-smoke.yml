@@ -28,7 +28,7 @@ jobs:
           const game=fs.readFileSync('js/game.js','utf8');
           if(!game.includes('YK_INPUT.tap($("newGame")'))throw new Error('new game handler missing');
           if(!game.includes('YK_INPUT.tap($("continueGame")'))throw new Error('continue handler missing');
-          if(!html.includes('id="debugMap"'))throw new Error('debug map title entry missing');
+          if(html.includes('id="debugMap"')||html.includes('href="debug-world.html"'))throw new Error('field debug entry must be hidden from public title');
           if(!game.includes('const DEBUG_PAGES=["landscape","landscape2x","terrainAssets","landmarks","landmarks2x","placeAssets","autotile","autotile2x","connections","assets32","overview","shore","water","ground","road","quarter","quarterNear","quarterMap"]'))throw new Error('debug page contract missing');
           if(!game.includes('const DEBUG_ART={},DEBUG_FALLBACK={}')||!game.includes('const DEBUG_ASSETS='))throw new Error('debug asset loader missing');
           if(!game.includes('world-ortho-ground-v2.png')||!game.includes('world-ortho-road-v2.png'))throw new Error('debug assets missing');
