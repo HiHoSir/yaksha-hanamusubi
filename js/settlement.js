@@ -17,16 +17,16 @@ window.YK_SETTLEMENT=(()=>{
  ];
  const doors=buildings.filter(b=>b.target).map(b=>({id:b.id,target:b.target,name:b.name,x:b.x,y:b.y+18,halfW:27,halfH:20}));
  const roles={
-  child:{type:'child',name:'里の子',talk:['橋の下を見て！　水がきらきら流れてるよ。']},
+  child:{type:'child',name:'里の子',talk:['橋の下を見て！　水がきらきら流れてるよ。','あれ？　昨日は鈴が鳴っていたっけ？　ぼく、思い出せないや。']},
   merchant:{type:'merchant',name:'よろず屋',talk:['旅支度なら任せておくれ。']},
-  woman:{type:'woman',name:'里の女・お澄',talk:['お帰りなさい、夜叉姫さま。','鬼灯の実が色づいて、里もにぎやかになりましたね。']},
-  teagirl:{type:'teagirl',name:'茶屋娘',talk:['いらっしゃいませ。川を眺めながら一服どうぞ。']},
-  elder:{type:'elder',name:'里長',talk:['天妖の社へ向かいなされ。','旅の前には、店で装備を整えるとよい。']},
-  farmer:{type:'merchant',name:'畑守り',service:null,talk:['川から水を引いて、畑を育てとるんじゃ。']},
-  weaver:{type:'woman',name:'織り手',talk:['この里の糸は、草花で染めているんですよ。']},
-  fisher:{type:'elder',name:'川仕事の老人',talk:['川を渡るなら橋を使いなされ。岸は滑るからの。']},
+  woman:{type:'woman',name:'里の女・お澄',talk:['お帰りなさい、緋月さま。','朝、お地蔵さまに挨拶したはずなのに、誰もその場所を知らないの。','鬼灯の実まで、昨日と違う色に見えるわ。']},
+  teagirl:{type:'teagirl',name:'茶屋娘',talk:['いらっしゃいませ。川を眺めながら一服どうぞ。','同じお団子を二度注文するお客さまが増えて、ちょっと困っています。']},
+  elder:{type:'elder',name:'里長',talk:['里の鈴が沈黙した理由を、天妖の社で調べるのじゃ。','結び札は大切に持ちなされ。旅の前には、店で装備を整えるとよい。']},
+  farmer:{type:'merchant',name:'畑守り',service:null,talk:['川から水を引いて、畑を育てとるんじゃ。','去年の収穫を手伝ってくれた人の顔が、どうしても思い出せなくてのう。']},
+  weaver:{type:'woman',name:'織り手',talk:['この里の糸は、草花で染めているんですよ。','切れた糸を結ぶと、なぜか知らない景色が浮かぶことがあります。']},
+  fisher:{type:'elder',name:'川仕事の老人',talk:['川を渡るなら橋を使いなされ。岸は滑るからの。','橋の向こうにあったはずの道を、誰も覚えておらんのが気がかりじゃ。']},
   innkeeper:{type:'teagirl',name:'宿の女将',service:'rest',talk:['旅の疲れはためないこと。ゆっくり休んでおいで。']},
-  traveler:{type:'merchant',name:'旅人',service:null,talk:['この先にも集落があると聞いたよ。','里の小社へは、東の小橋を渡るんだって。']}
+  traveler:{type:'merchant',name:'旅人',service:null,talk:['この先にも集落があると聞いたよ。','昨日の約束を忘れた旅人がいるらしい。妙なことが続くな。','里の小社へは、東の小橋を渡るんだって。']}
  };
  function resident(role,id,x,y,dir='d',extra={}){return {...roles[role],role,id,x,y,dir,frame:1,service:role==='merchant'?'shop':roles[role].service,...extra};}
  const residents=[
@@ -35,7 +35,7 @@ window.YK_SETTLEMENT=(()=>{
 
   resident('farmer','farmer',576,470,'l'),resident('weaver','weaver',984,390,'d'),
   resident('child','child-garden',560,648,'r'),resident('fisher','fisher',1160,992,'l'),
-  resident('traveler','traveler',896,868,'u'),resident('elder','shrine-keeper',1406,350,'d',{name:'社の世話役',talk:['大きな社は里の北。ここは里を見守る小さなお社じゃ。']})
+  resident('traveler','traveler',896,868,'u'),resident('elder','shrine-keeper',1406,350,'d',{name:'社の世話役',talk:['大きな社は里の北。ここは里を見守る小さなお社じゃ。','このところ、お供えの数が一つ多い。誰が置いたか分からぬのじゃ。']})
  ];
  const mapData=Array.from({length:40},(_,y)=>Array.from({length:48},(_,x)=>x<3||x>45||y<3?'forest':'grass'));
  for(let y=0;y<34;y++)for(let x=39;x<=41;x++)mapData[y][x]='river';
