@@ -565,14 +565,14 @@ function map(frameTime=performance.now()){
  else if(typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.places&&YK_WORLD.places[S.area])worldHint("西の端からフィールドへ戻れます");
 }const NPCS={
  village:YK_SETTLEMENT.residents,
- teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","店の中なら、ゆっくり休んでいけますよ。"]}],
- osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、緋月さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたところなんです。"]}],
+ teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","このごろ、同じお団子を二度買うお客さまがいるんです。買った記憶がないんですって。","でも約束した相手は、ずっと覚えていたいものですね。"]}],
+ osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、緋月さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたら、見知らぬ地蔵の絵が出てきたのよ。","変ねえ。あの地蔵には毎朝挨拶している気がするのに、いつからあったのか思い出せないわ。"]}],
  shrine:[{x:515,y:370,type:"miko",name:"白妙",talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]},{x:210,y:530,type:"guard",name:"社守",talk:["この先は妖の気配が濃い。","刀を抜けるよう備えておけ。"]}],
  cove:[{x:585,y:570,type:"ferryman",name:"漁師・潮平",talk:["潮風の向こうに、不思議な花びらが舞っていたよ。"]},{x:190,y:450,type:"child",name:"浜の子",talk:["白い貝が光る夜は、森の道が開くんだって！"]}],
  forest:[{x:530,y:390,type:"traveler",name:"旅の薬師",talk:["この森は同じ道へ戻される。","花の灯りを追うんだ。"]}],
  waterfall:[{x:150,y:590,type:"child",name:"滝童",talk:["龍神さまの水鏡は、九尾の祠への道を映すよ。"]}],
  fox:[{x:535,y:650,type:"traveler",name:"白狐の使い",talk:["ようやく来たね、緋月。","忘れた約束を思い出す時だ。"]}],
- hotspring:[{x:620,y:650,type:"hotkeeper",name:"湯守・お糸",talk:["月見の湯へようこそ。","今夜は花びらの香りがよく立っていますよ。"]}]
+ hotspring:[{x:620,y:650,type:"hotkeeper",name:"湯守・お糸",talk:["月見の湯へようこそ。","今夜は花びらの香りがよく立っていますよ。","温泉では、忘れたことまでふっと思い出す人がいるの。不思議でしょう？"]}]
 };
 function areaNPCs(){
  if(S.area==="village")return YK_SETTLEMENT.residents;
@@ -1030,7 +1030,7 @@ function padNavigate(dir){
  const root=padModal();if(!root)return false;
  if(root.id==="dialog")return true;
  const choices=padCandidates(root);if(!choices.length)return true;
- if(padFocusId!==root.id){padFocusId=root.id;padFocusIndex=0;}
+ if(padFocusId!==root.id){padFocusId=root.id;padFocusIndex=dir==="u"||dir==="l"?0:-1;}
  const delta=(dir==="u"||dir==="l")?-1:1;
  padFocusIndex=(padFocusIndex+delta+choices.length)%choices.length;
  choices[padFocusIndex].focus({preventScroll:true});
@@ -1042,7 +1042,7 @@ function padActivate(){
  const choices=padCandidates(root);if(!choices.length)return true;
  if(padFocusId!==root.id){padFocusId=root.id;padFocusIndex=0;}
  const control=choices[Math.min(padFocusIndex,choices.length-1)];
- if(control.tagName==="SELECT"){control.focus({preventScroll:true});return true;}
+ if(control.tagName==="SELECT"){control.selectedIndex=(control.selectedIndex+1)%control.options.length;control.dispatchEvent(new Event("change",{bubbles:true}));control.focus({preventScroll:true});return true;}
  if(control.type==="checkbox"){control.click();return true;}
  control.click();return true;
 }
