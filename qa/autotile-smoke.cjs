@@ -267,11 +267,11 @@ function check(name,fn){fn();results.push(name)}
   fs.writeFileSync(path.join(output,'09-quarter-floor.png'),c.canvas.toBuffer('image/png'));
   const bytes=640*544*4;assert(c.getImageData(0,0,640,544).data.length===bytes);
  });
- function openLandscape(){el('debugMap').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,15);shot('10-quarter');for(let i=0;i<3;i++)el('ok').fire('click');sandbox.gameState.x=352;sandbox.gameState.y=612;sandbox.__qaEval('map()');}
+ function openLandscape(){sandbox.YKDebugField(true);assert.equal(sandbox.__YK_DEBUG_PAGE,15);shot('10-quarter');for(let i=0;i<3;i++)el('ok').fire('click');sandbox.gameState.x=352;sandbox.gameState.y=612;sandbox.__qaEval('map()');}
  const before=JSON.parse(JSON.stringify(sandbox.gameState));sandbox.YK_SAVE.auto(sandbox.gameState);
  const stateBefore=JSON.stringify(sandbox.gameState),saveBefore=[...storage];
  check('quarter-view touch movement crosses the vertical bridge and exits without changing saves',()=>{
-  el('debugMap').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,15);
+  sandbox.YKDebugField(true);assert.equal(sandbox.__YK_DEBUG_PAGE,15);
   sandbox.gameState.x=512;sandbox.gameState.y=1000;
   el('up').fire('pointerdown');advance(1000);el('up').fire('pointerup');advance(160);
   assert(sandbox.gameState.y-100<768,'crossed vertical bridge');
@@ -284,7 +284,7 @@ function check(name,fn){fn();results.push(name)}
   el('settingsBtn').fire('click');assert.equal(sandbox.__qaEval('debugPreset'),1);el('settingsBtn').fire('click');assert.equal(sandbox.__qaEval('debugPreset'),2);
   el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);
  });
- check('title DEBUG MAP opens new original terrain',()=>{openLandscape();assert.equal(sandbox.gameState.area,'debugField');assert.equal(sandbox.__YK_DEBUG_PAGE,0);assert(!el('title').classList.contains('show'));});
+ check('internal field diagnostic opens original terrain without public title entry',()=>{openLandscape();assert.equal(sandbox.gameState.area,'debugField');assert.equal(sandbox.__YK_DEBUG_PAGE,0);assert(!el('title').classList.contains('show'));});
  shot('01-landscape');
  check('movement uses real touch direction handlers',()=>{const x=sandbox.gameState.x;tap('right');assert.equal(sandbox.gameState.x-x,32);assert(sandbox.__qaEval('debugDrawPosition().x')<sandbox.gameState.x);advance(160);assert.equal(sandbox.__qaEval('debugDrawPosition().x'),sandbox.gameState.x);assert.equal(sandbox.gameState.walk,before.walk);});
  check('held movement stops at obstacles, cancellation restores state and map changes relocate safely',()=>{
