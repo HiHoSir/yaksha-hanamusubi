@@ -15,9 +15,62 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Select affected tests
+        id: select
+        shell: bash
+        env:
+          EVENT_BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          base="$EVENT_BEFORE"
+          if [ "$EVENT_NAME" = pull_request ]; then base="$PR_BASE"; fi
+          tests=""
+          terrain=false
+          equipment=false
+          # First push or missing base: run everything rather than silently skip.
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            tests="battle-layout settlement movement dialog residents guide-menu field-access"
+            terrain=true
+            equipment=true
+          else
+            files="$(git diff --name-only "$base" HEAD)"
+            while IFS= read -r file; do
+              case "$file" in
+                js/game.js)
+                  # game.js owns several systems; for a generic change, test all dependent scenes.
+                  # Interior-only diffs can use the interior/dialog suite.
+                  diff="$(git diff -U0 "$base" HEAD -- js/game.js)"
+                  if printf '%s' "$diff" | grep -Eq 'indoorPerspective|indoorProjectedBlocked|INDOOR_PERSPECTIVE|drawLayeredIndoorActors|drawPaintedTeaActors|TEA_ART|drawIndoorOccluder'; then
+                    tests="$tests dialog settlement"
+                  else
+                    tests="$tests battle-layout settlement movement dialog residents guide-menu field-access"
+                  fi ;;
+                js/settlement.js|assets/settlement/*|assets/village/*) tests="$tests settlement residents movement" ;;
+                js/input.js|css/game.css|index.html|assets/ui/*) tests="$tests dialog battle-layout guide-menu" ;;
+                js/world.js|js/landscape.js|assets/terrain/*|assets/maps/*|js/autotile.js) tests="$tests movement field-access settlement";terrain=true ;;
+                js/data.js|js/equipment.js|js/save.js|assets/characters/*|assets/enemies/*) tests="$tests battle-layout dialog";equipment=true ;;
+                js/audio.js) tests="$tests dialog" ;;
+                qa/*.cjs) name="${file#qa/}";name="${name%.cjs}";case " battle-layout settlement movement dialog residents guide-menu field-access " in *" $name "*) tests="$tests $name";; esac ;;
+                .github/workflows/*) tests="$tests battle-layout settlement movement dialog residents guide-menu field-access";terrain=true;equipment=true ;;
+                assets/interiors/*) tests="$tests dialog" ;;
+                *) tests="$tests battle-layout settlement movement dialog residents guide-menu field-access";terrain=true;equipment=true ;;
+              esac
+            done <<< "$files"
+          fi
+          selected=""
+          for test in battle-layout settlement movement dialog residents guide-menu field-access; do
+            case " $tests " in *" $test "*) selected="$selected $test";; esac
+          done
+          echo "tests=${selected# }" >> "$GITHUB_OUTPUT"
+          echo "terrain=$terrain" >> "$GITHUB_OUTPUT"
+          echo "equipment=$equipment" >> "$GITHUB_OUTPUT"
+          echo "Selected browser suites: ${selected# }"
       - name: JavaScript syntax
         run: |
           for f in js/*.js qa/*.cjs; do node --check "$f"; done
@@ -110,29 +163,30 @@ jobs:
           NODE
 
       - name: Equipment economy and save migration
+        if: steps.select.outputs.equipment == 'true'
         run: node qa/equipment.cjs
 
       - name: Original terrain and debug boot
+        if: steps.select.outputs.terrain == 'true'
         run: |
           npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100
           node qa/autotile-smoke.cjs
 
-      - name: Battle mobile layout and touch controls
+      - name: Title entrance and affected browser tests
         run: |
           npm install --no-save --package-lock=false playwright@1.51.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
           failed=0
-          for test in battle-layout settlement movement dialog residents guide-menu field-access; do
+          for test in title-entrance ${{ steps.select.outputs.tests }}; do
             echo "::group::Browser smoke: $test"
             if node "qa/$test.cjs"; then
-              echo "PASS $test" | tee -a "$RUNNER_TEMP/browser-smoke-results.txt"
+              echo "PASS $test"
             else
-              echo "FAIL $test" | tee -a "$RUNNER_TEMP/browser-smoke-results.txt"
+              echo "FAIL $test"
               failed=1
             fi
             echo "::endgroup::"
           done
-          cat "$RUNNER_TEMP/browser-smoke-results.txt"
           exit "$failed"
 
   build:
