@@ -23,7 +23,7 @@
     <div id="hud"></div>
     <div id="objective"></div>
     <div id="message"></div>
-<div id="dialog" class="overlay" role="dialog" aria-labelledby="speaker"><div class="dialogWindow"><canvas id="dialogPortrait" width="180" height="180" aria-label="夜叉姫" style="display:none"></canvas><div id="speaker"></div><div id="dialogText"></div><button id="dialogNext">次へ</button></div></div>
+<div id="dialog" class="overlay" role="dialog" aria-labelledby="speaker"><div class="dialogWindow"><canvas id="dialogPortrait" width="180" height="180" aria-label="緋角羅" style="display:none"></canvas><div id="speaker"></div><div id="dialogText"></div><button id="dialogNext">次へ</button></div></div>
     <div id="commandMenu" class="overlay" role="dialog" aria-label="行動"><div class="commandWindow"><div id="commandStatus"></div><div id="fieldCommands"></div><p id="commandHelp"></p></div></div>
 <div id="menu" class="overlay"><div class="window">
   <h2 id="detailTitle">つよさ</h2><section data-menu-section="status"><div id="statusPanel"></div></section>
@@ -56,7 +56,7 @@
 <div id="title" class="overlay show">
   <div class="titleArt" aria-hidden="true">
     <div class="titleBackdrop"></div>
-    <img class="titleLogo" src="assets/ui/title-logo.webp" alt="">
+    <div class="titleLogo titleLogoText" role="img" aria-label="鬼哭の花契り"><span class="titleLogoRuby">きこくのはなちぎり</span><strong>鬼哭の花契り</strong></div>
     <div class="titleShade"></div>
   </div>
   <div class="titlebox">
@@ -99,8 +99,8 @@
    <option value="normal">通常種</option><option value="rare">特異種（通常衣装）</option>
   </select>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px">
-   <label>夜叉姫の衣装<select id="battleDebugOutfit" style="display:block;width:100%;min-height:44px;background:#152c48"><option value="normal">通常衣装</option></select></label>
-   <label>夜叉姫の動作<select id="battleDebugPose" style="display:block;width:100%;min-height:44px;background:#152c48"><option value="idle">待機</option><option value="attack">攻撃</option><option value="hit">被弾</option><option value="guard">防御</option><option value="skill">術</option><option value="victory">勝利</option></select></label>
+   <label>緋角羅の衣装<select id="battleDebugOutfit" style="display:block;width:100%;min-height:44px;background:#152c48"><option value="normal">通常衣装</option></select></label>
+   <label>緋角羅の動作<select id="battleDebugPose" style="display:block;width:100%;min-height:44px;background:#152c48"><option value="idle">待機</option><option value="attack">攻撃</option><option value="hit">被弾</option><option value="guard">防御</option><option value="skill">術</option><option value="victory">勝利</option></select></label>
   </div>
   <canvas id="enemyDebugCanvas" width="640" height="360" style="width:100%;aspect-ratio:16/9;image-rendering:pixelated;border:2px solid #cbb582;background:#304c4c"></canvas>
   <p id="enemyDebugInfo" style="font-size:13px;line-height:1.6;color:#f0deb7"></p>
@@ -110,8 +110,8 @@
 </div>
 <div id="battle" class="overlay" aria-label="戦闘">
   <div class="battleTop"><span id="enemyName"></span><span>体 <b id="enemyHp"></b></span></div>
-  <canvas id="battleCanvas" width="768" height="430" aria-label="夜叉姫と敵の戦闘"></canvas>
-  <div class="battleVitals"><strong>夜叉姫 <span id="battleLevel"></span>段</strong><span>体 <b id="battleHp"></b></span><span>技 <b id="battleMp"></b></span></div>
+  <canvas id="battleCanvas" width="768" height="430" aria-label="緋角羅と敵の戦闘"></canvas>
+  <div class="battleVitals"><strong>緋角羅 <span id="battleLevel"></span>段</strong><span>体 <b id="battleHp"></b></span><span>技 <b id="battleMp"></b></span></div>
   <div class="battleMeters"><div><i id="battleHpBar"></i></div><div><i id="battleMpBar"></i></div></div>
   <div class="battleInfo"><span id="battleText" role="status" aria-live="polite">どうする？</span></div>
   <div id="battleCommands" class="battleCommands" aria-label="戦闘コマンド">
