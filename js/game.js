@@ -374,6 +374,18 @@ function floorTable(c,x,y){
  c.save();c.fillStyle="#5a3928";c.fillRect(x,y,158,54);c.fillStyle="#7b5033";c.fillRect(x+7,y+6,144,38);c.fillStyle="#d9c08d";c.fillRect(x+65,y+15,28,17);c.fillStyle="#6e8d72";c.beginPath();c.arc(x+79,y+18,7,0,7);c.fill();
  c.fillStyle="#9d3f49";c.fillRect(x-18,y+60,62,30);c.fillRect(x+114,y+60,62,30);c.restore();
 }
+// Optional painted tea room layers. Both assets are deliberately tied to one shared projection.
+// Without both files, the existing playable room remains as a safe fallback.
+const TEA_ART={back:new Image(),front:new Image(),backReady:false,frontReady:false};
+TEA_ART.back.onload=()=>{TEA_ART.backReady=true;assetLoaded()};
+TEA_ART.front.onload=()=>{TEA_ART.frontReady=true;assetLoaded()};
+TEA_ART.back.onerror=()=>{TEA_ART.backReady=false};
+TEA_ART.front.onerror=()=>{TEA_ART.frontReady=false};
+TEA_ART.back.src="assets/interiors/tea-interior-bg.webp";
+TEA_ART.front.src="assets/interiors/tea-interior-fg.png";
+function paintedTeaReady(){return TEA_ART.backReady&&TEA_ART.frontReady}
+function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
+function drawPaintedTeaFront(c){c.drawImage(TEA_ART.front,0,0,768,768)}
 function drawInterior(c,kind){
  // Purpose-built room renderer. Furniture coordinates intentionally match interiorBlocked().
  const tea=kind==="tea";
@@ -549,7 +561,7 @@ function map(frameTime=performance.now()){
   else worldHint(nearbyInspectable()?"A：話す・調べる ／ 行動からも選べます":"A：話す・入る ／ 行動：コマンド");
   return;
  }
- else if(S.area==="teahouse") drawInterior(g,"tea");
+ else if(S.area==="teahouse") {if(paintedTeaReady())drawPaintedTeaBase(g);else drawInterior(g,"tea");}
  else if(S.area==="osumiHome"||S.area==="villageRoom") drawInterior(g,"home");
  else {
   const art=S.area==="forest"?B9IMG.forest:null;
@@ -558,6 +570,8 @@ function map(frameTime=performance.now()){
  }
  if(S.area==="field")drawWorldPins(g,false);
  drawChests();drawActors(frameTime);
+ // Painted interior front plane: pillars and railings occlude characters, not their feet.
+ if(S.area==="teahouse"&&paintedTeaReady())drawPaintedTeaFront(g);
  // New village intentionally has no foreground canopy over actors.
  drawDoorHint();
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"フィールドを進んで入口へ · 地図で目的地を確認");}
