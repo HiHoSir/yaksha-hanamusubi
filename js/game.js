@@ -385,7 +385,31 @@ TEA_ART.back.src="assets/interiors/tea-interior-bg.webp";
 TEA_ART.front.src="assets/interiors/tea-interior-fg.webp";
 function paintedTeaReady(){return TEA_ART.backReady&&TEA_ART.frontReady}
 function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
-function drawPaintedTeaFront(c){c.drawImage(TEA_ART.front,0,0,768,768)}
+// Independent picture-space occluders. Base already contains the complete composition;
+// these transparent cuts are redrawn only over actors behind each physical feature.
+const TEA_DEPTH_LAYERS=[
+ {id:"left-post",rect:[0,0,145,640],depth:575},
+ {id:"hanging-beams",rect:[145,0,278,377],depth:355},
+ {id:"center-post",rect:[423,0,75,690],depth:605},
+ {id:"counter",rect:[495,340,273,330],depth:550},
+ {id:"hearth-rim",rect:[75,495,370,200],depth:625},
+ {id:"near-left-furniture",rect:[0,660,390,108],depth:760},
+ {id:"near-right-furniture",rect:[510,625,258,143],depth:760}
+];
+function teaScreenY(foot){return 370+(foot-245)*.66}
+function teaDepthScale(foot){return .9+Math.max(0,Math.min(1,(foot-245)/460))*.62}
+function drawTeaOccluder(c,layer){const [x,y,w,h]=layer.rect;c.drawImage(TEA_ART.front,x,y,w,h,x,y,w,h)}
+function drawPaintedTeaActors(c,frameTime){
+ const actors=areaNPCs().map(n=>({depth:teaScreenY(n.y),draw:()=>{
+  const z=teaDepthScale(n.y),py=teaScreenY(n.y);c.save();c.translate(n.x,py);c.scale(z,z);npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();
+ }}));
+ const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
+ const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
+ const y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
+ actors.push({depth:teaScreenY(y),draw:()=>hero(c,x,teaScreenY(y),S.dir,S.frame,S.outfit,teaDepthScale(y))});
+ const ordered=[...actors,...TEA_DEPTH_LAYERS.map(v=>({depth:v.depth,draw:()=>drawTeaOccluder(c,v)}))].sort((a,b)=>a.depth-b.depth);
+ for(const item of ordered)item.draw();
+}
 function drawInterior(c,kind){
  // Purpose-built room renderer. Furniture coordinates intentionally match interiorBlocked().
  const tea=kind==="tea";
@@ -569,9 +593,9 @@ function map(frameTime=performance.now()){
   else {const im=IMG[S.area]||IMG.field;if(im&&im.complete&&im.naturalWidth)g.drawImage(im,0,0,768,768);else{g.fillStyle="#274738";g.fillRect(0,0,768,768)}}
  }
  if(S.area==="field")drawWorldPins(g,false);
- drawChests();drawActors(frameTime);
- // Painted interior front plane: pillars and railings occlude characters, not their feet.
- if(S.area==="teahouse"&&paintedTeaReady())drawPaintedTeaFront(g);
+ drawChests();
+ if(S.area==="teahouse"&&paintedTeaReady())drawPaintedTeaActors(g,frameTime);
+ else drawActors(frameTime);
  // New village intentionally has no foreground canopy over actors.
  drawDoorHint();
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"フィールドを進んで入口へ · 地図で目的地を確認");}
