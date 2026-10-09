@@ -1030,7 +1030,7 @@ function padNavigate(dir){
  const root=padModal();if(!root)return false;
  if(root.id==="dialog")return true;
  const choices=padCandidates(root);if(!choices.length)return true;
- if(padFocusId!==root.id){padFocusId=root.id;padFocusIndex=dir==="u"||dir==="l"?0:-1;}
+ if(padFocusId!==root.id){padFocusId=root.id;padFocusIndex=dir==="u"||dir==="l"?1:0;}
  const delta=(dir==="u"||dir==="l")?-1:1;
  padFocusIndex=(padFocusIndex+delta+choices.length)%choices.length;
  choices[padFocusIndex].focus({preventScroll:true});
