@@ -272,3 +272,16 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 @keyframes opening-omen{0%,100%{filter:none;transform:none}20%{filter:brightness(.65) saturate(.5);transform:translateX(-2px)}45%{filter:brightness(1.25) saturate(.7);transform:translateX(2px)}70%{filter:brightness(.75);transform:translateX(-1px)}}
 #game.openingOmen{animation:opening-omen .85s ease-out 1}
 @media(prefers-reduced-motion:reduce){#game.openingOmen{animation:none}}
+
+
+/* Title is a full-screen overlay outside #app. Hide gameplay controls while visible
+   so the lower menu buttons remain unobstructed on iPhone Safari. */
+body:has(#title.show) #pad{display:none!important}
+body:has(#title.show) #stage{min-height:0}
+#title.show{position:fixed;inset:0;z-index:100;display:block;overflow:auto}
+#title.show .titlebox{bottom:max(24px,env(safe-area-inset-bottom));max-height:55dvh;overflow-y:auto;overscroll-behavior:contain}
+@media(max-height:640px){
+ #title.show .titleLogo{max-height:22dvh}
+ #title.show .titlebox{bottom:max(8px,env(safe-area-inset-bottom));padding:7px}
+ #title.show .titlebox button{min-height:40px;margin:3px auto}
+}
