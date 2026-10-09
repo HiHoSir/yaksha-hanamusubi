@@ -22,6 +22,13 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   // Painted teahouse assets are optional until installed: verify the same scene pipeline
   // stays safe with or without their files, and exposes two aligned depth planes.
   assert.equal(await run('typeof paintedTeaReady'), 'function');
+  // Shared perspective guide: finite positions, monotonic projected depth/scale,
+  // and independent occluder planes instead of a full-screen front mask.
+  assert.equal(await run('INDOOR_PERSPECTIVE.tea.occluders.length'),7);
+  assert(await run('indoorPerspective(INDOOR_PERSPECTIVE.tea,384,245).scale < indoorPerspective(INDOOR_PERSPECTIVE.tea,384,705).scale'));
+  assert(await run('indoorPerspective(INDOOR_PERSPECTIVE.tea,384,245).y < indoorPerspective(INDOOR_PERSPECTIVE.tea,384,705).y'));
+  assert(await run('Number.isFinite(indoorPerspective(INDOOR_PERSPECTIVE.tea,384,625).scale)'));
+
   await run('S.area="teahouse";map();');
   assert.equal(await run('S.area'), 'teahouse');
   await run('S.area="village";map();');
