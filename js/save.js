@@ -4,7 +4,7 @@ const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:3,vege
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
- if(!YK_DATA.outfits[s.outfit])s.outfit="normal";
+ if(!YK_DATA.outfits[s.outfit])s.outfit="normal"; // Legacy hidden costumes safely fall back to the original appearance.
  s.maxhp=Math.max(1,Number(s.maxhp)||100);
  s.hp=Math.max(1,Math.min(Number(s.hp)||100,s.maxhp));
  s.lv=Math.max(1,Math.floor(Number(s.lv)||1));
