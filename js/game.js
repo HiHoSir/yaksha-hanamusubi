@@ -382,7 +382,7 @@ TEA_ART.front.onload=()=>{TEA_ART.frontReady=true;assetLoaded()};
 TEA_ART.back.onerror=()=>{TEA_ART.backReady=false};
 TEA_ART.front.onerror=()=>{TEA_ART.frontReady=false};
 TEA_ART.back.src="assets/interiors/tea-interior-bg.webp";
-TEA_ART.front.src="assets/interiors/tea-interior-fg.png";
+TEA_ART.front.src="assets/interiors/tea-interior-fg.webp";
 function paintedTeaReady(){return TEA_ART.backReady&&TEA_ART.frontReady}
 function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
 function drawPaintedTeaFront(c){c.drawImage(TEA_ART.front,0,0,768,768)}
