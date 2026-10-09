@@ -376,16 +376,16 @@ function check(name,fn){fn();results.push(name)}
  battleSetup();
  // Inspect the actual hero pixels emitted by production renderBattle, excluding
  // background/enemy/shadow. This catches transparent-margin scale regressions.
- for(const outfit of ['normal','stardust']){
+ for(const outfit of ['normal']){
   sandbox.__qaEval(`S.outfit=${JSON.stringify(outfit)};ensureBattleAssets()`);
  }
  await Promise.all(loaded.map(im=>im.decode()));advance(1);
- check('all 12 battle outfit/pose combinations keep visible height and ground contact',()=>{
+ check('all 6 public battle pose combinations keep visible height and ground contact',()=>{
   const isolated=createCanvas(768,430),ic=isolated.getContext('2d'),context=el('battleCanvas').getContext(),draw=context.drawImage;
   const heroImages=sandbox.__qaEval('[...Object.values(BATTLE_SPRITES).flatMap(Object.values),...Object.values(LAYERED_SPRITES).flatMap(s=>Object.values(s).flat())]');
   const preview=createCanvas(1200,480),pc=preview.getContext('2d');pc.fillStyle='#849098';pc.fillRect(0,0,1200,480);
   context.drawImage=(im,...args)=>{if(heroImages.includes(im))ic.drawImage(im,...args);return draw(im,...args)};
-  try{for(const [oi,outfit] of ['normal','stardust'].entries()){
+  try{for(const [oi,outfit] of ['normal'].entries()){
    for(const [pi,pose] of ['idle','attack','hit','guard','victory','skill'].entries()){
     ic.clearRect(0,0,768,430);sandbox.__qaEval(`S.outfit=${JSON.stringify(outfit)};battlePose=${JSON.stringify(pose)};renderBattle()`);
     const pixels=ic.getImageData(0,0,768,430).data;let top=430,bottom=-1;
@@ -404,7 +404,7 @@ function check(name,fn){fn();results.push(name)}
  check('merchant action opens shop; purchase equips and persists without changing appearance',()=>{
   sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=440;S.dir="u";S.gold=1000;action()');
   assert(el('shop').classList.contains('show'));dataTap('shopItem','short_blade');assert.equal(sandbox.gameState.gold,935);
-  sandbox.__qaEval('close("shop");menu()');assert.equal(elements.filter(e=>e.dataset.outfit).length,2);
+  sandbox.__qaEval('close("shop");menu()');assert.equal(elements.filter(e=>e.dataset.outfit).length,1);
   const select=elements.find(e=>e.dataset.equipSlot==='weapon');assert(select);select.value='short_blade';select.fire('change');
   assert.equal(sandbox.gameState.equipment.weapon,'short_blade');assert.equal(sandbox.gameState.outfit,'normal');
   assert.equal(sandbox.YK_SAVE.loadAuto().equipment.weapon,'short_blade');
