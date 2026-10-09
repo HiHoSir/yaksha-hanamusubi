@@ -37,6 +37,24 @@ jobs:
           if(!game.includes('if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}'))throw new Error('debug movement isolation missing');
           console.log('boot contract OK');
           NODE
+      - name: Public costume privacy regression
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const data=fs.readFileSync('js/data.js','utf8');
+          const html=fs.readFileSync('index.html','utf8');
+          if(data.includes('stardust:{'))throw new Error('withheld outfit re-enabled');
+          if(html.includes('value="stardust"'))throw new Error('withheld outfit in debug UI');
+          for(const dir of ['front','back','left','right']){
+            for(const phase of ['neutral','left-leg-up','right-leg-up']){
+              if(fs.existsSync('assets/characters/yashahime/stardust-v1/'+dir+'-'+phase+'.png'))throw new Error('withheld walking image published');
+            }
+          }
+          for(const pose of ['idle','attack','hit','guard','victory','skill']){
+            if(fs.existsSync('assets/characters/yashahime/battle-v9/stardust-'+pose+'.png'))throw new Error('withheld battle image published');
+          }
+          console.log('public costume privacy contract OK');
+          NODE
       - name: Required production assets
         run: |
           test -s assets/terrain/world-ground-qv-32.png
