@@ -127,6 +127,9 @@ jobs:
     needs: smoke
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
@@ -135,6 +138,9 @@ jobs:
           mkdir -p _site
           # Static site: do not publish QA harness, CI configuration or git internals.
           cp index.html _site/index.html
+          for f in *.html; do
+            if [ "$f" != "index.html" ] && [ "$f" != "debug-world.html" ]; then cp "$f" "_site/$f"; fi
+          done
           for directory in assets css js; do
             if [ -d "$directory" ]; then cp -a "$directory" "_site/$directory"; fi
           done
