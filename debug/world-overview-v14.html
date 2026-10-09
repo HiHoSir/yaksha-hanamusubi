@@ -1,0 +1,66 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>夜叉姫 世界全図 v1.4 設計デバッグ</title><style>
+*{box-sizing:border-box}body{margin:0;background:#101b27;color:#edf1e8;font:15px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;padding:12px;max-width:1140px;margin-inline:auto}h1{font-size:21px;margin:8px 0}p{color:#c5d0ce;line-height:1.6}main{border:1px solid #608190;background:#142d3e;padding:10px;border-radius:12px}svg{width:100%;height:auto;display:block;border-radius:8px;background:#195a78;touch-action:manipulation}.region{cursor:pointer;outline:none}.region path{stroke:#d6dbab;stroke-width:3;stroke-linejoin:round}.region.active path,.region:focus path{stroke:#ffdc7b;stroke-width:8}.route{stroke:#f9d493;stroke-width:4;stroke-dasharray:10 9;fill:none;opacity:.7;pointer-events:none}.route.dim{opacity:.12}.town{fill:#fff5c9;stroke:#795d40;stroke-width:2}.label{font-size:20px;fill:#fff;paint-order:stroke;stroke:#16323b;stroke-width:5;font-weight:700;pointer-events:none}.num{font-size:15px;fill:#182d36;font-weight:800;pointer-events:none}.chapter-buttons{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}button{background:#244a60;color:#fff;border:1px solid #7598a7;border-radius:8px;padding:9px 12px;min-height:42px}button[aria-pressed=true]{background:#846328}#detail{margin-top:10px;padding:13px;background:#1b3544;border-radius:8px;min-height:70px}small{color:#b8c8c9}.note{font-size:12px}</style></head><body><h1>夜叉姫の花結び奇譚｜世界全図デバッグ v1.4</h1><p>世界全図は自由な輪郭・縮尺で描画。32pxセルは実際に歩く各地域のフィールドにのみ使用します。地形は全てオリジナルの仮形状です。原作の正確な輪郭・港座標ではありません。鬼ヶ島の位置も未確定です。勇気の岬はすゞめのお宿７の北西、岬には地蔵が二体という相対関係を反映。</p>
+<main><div id="buttons" class="chapter-buttons"></div><svg id="world" viewBox="0 0 1120 920" role="img" aria-label="自由形状の世界地図と7章の冒険ルート"><defs><pattern id="waves" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M3 29Q12 23 21 29M25 12Q34 6 42 12" stroke="#77b3ba" stroke-width="2" fill="none" opacity=".22"/></pattern><pattern id="forest" width="55" height="48" patternUnits="userSpaceOnUse"><circle cx="15" cy="20" r="8" fill="#337a50"/><circle cx="32" cy="31" r="10" fill="#498b52"/><circle cx="38" cy="11" r="6" fill="#286448"/></pattern><pattern id="peaks" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M4 52L25 15 48 52Z" fill="#798679"/><path d="M25 15L48 52H28Z" fill="#4a635d"/><path d="M18 27L25 15 32 27Z" fill="#e5e9d9"/></pattern></defs><rect width="1120" height="920" fill="#1b6282"/><rect width="1120" height="920" fill="url(#waves)"/><g id="lands"></g><g id="paths"></g><g id="markers"></g></svg><p class="note">点線は章進行。第2〜第5章の間に独自形状の陸路・橋を追加。鬼ヶ島の位置はROM復元画像と照合中。すゞめのお宿７の北西に勇気の岬を追加し、地蔵二体を表示。勇気の岬から海が割れる道は物語上の仮表示。実際の原作地理のゲート座標は未確定です。旅立ちの村・本土側の港も仮位置です。</p><div id="detail" aria-live="polite"></div></main>
+<script>
+'use strict';
+const regions=[["new","新大陸",1,"M514 724 C528 698 549 688 566 704 L584 722 577 747 551 762 523 749 Z","#84b66c",550,726,"船"],["flower","花と木の国",2,"M98 511 L111 449 149 394 211 365 260 382 289 429 324 440 343 482 324 523 284 547 251 578 218 568 178 615 125 599 90 553 Z","#7fba70",209,483,"山・洞窟"],["winter","冬と星の国",3,"M179 390 L155 335 174 283 209 244 246 188 307 168 375 193 408 230 453 226 499 258 490 313 451 355 400 372 347 354 292 382 260 382 211 365 Z","#d2e7e0",326,266,"東の橋"],["smile","ほほえみの大地",4,"M523 279 L547 225 603 208 646 229 687 206 757 243 797 287 788 349 754 375 705 377 674 419 623 406 582 434 542 397 507 347 Z","#99c879",658,309,"南の橋"],["hope","希望と絶望の大地",5,"M855 319 L902 276 962 283 1007 338 1018 396 1057 454 1036 517 1065 574 1038 652 994 703 933 679 911 622 884 576 902 510 864 463 838 393 Z","#ac9864",960,482,"海路"],["love","愛と勇気の国",6,"M585 647 L635 605 710 619 759 651 809 699 794 765 752 823 686 842 633 813 591 828 560 781 557 715 Z","#8ebd72",683,730,"最終航路"],["oni","鬼ヶ島",7,"M617 555 Q623 536 646 524 L669 529 681 510 706 520 723 548 719 573 695 588 663 587 640 575 Z","#856c79",670,548,"勇気の岬から海割り"]].map(([id,name,chapter,shape,color,x,y,transport])=>({id,name,chapter,shape,color,x,y,transport}));
+const labels=['鬼灯の里から九尾の祠へ。入り江へ戻り、本土に船出。','旅立ちの村に到着し、北方の山と洞窟へ。','雪原と山岳の物語。東側の橋を開く。','寝太郎の村とからくりの異変。南側の橋へ。','希望の都・五重の塔から船で南へ。','竹取の村と月の記憶を巡り鬼ヶ島への道を開く。','地獄深層で機巧カルラと決戦。'];
+const NS='http://www.w3.org/2000/svg';const e=(tag,attrs={},str)=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(str!==undefined)n.textContent=str;return n};
+const lands=document.querySelector('#lands'),paths=document.querySelector('#paths'),marks=document.querySelector('#markers');let selected=1;
+// Original illustrated terrain connectors, not traced ROM land contours.
+const terrain=e('g',{id:'terrain','pointer-events':'none'});lands.append(terrain);
+function curve(d,fill,stroke='#86a86e',w=3){terrain.append(e('path',{d,fill,stroke,'stroke-width':w,'stroke-linejoin':'round'}))}
+curve('M260 382 Q275 366 294 348 L310 327 327 342 306 378 289 429Z','#a5bd97');
+curve('M489 303 Q513 278 527 281 L537 313 507 347 488 334Z','#91b59a');
+curve('M760 344 Q804 332 846 360 L851 383 798 388 766 377Z','#8ab477');
+const relief=e('g',{id:'relief'});terrain.append(relief);
+for(const [x,y,k] of [[270,380,'mountain'],[292,359,'mountain'],[314,345,'mountain'],[388,329,'mountain'],[469,305,'forest'],[490,310,'forest'],[514,328,'forest'],[800,363,'forest'],[820,369,'forest'],[841,377,'forest'],[959,384,'mountain'],[973,416,'mountain'],[983,448,'mountain'],[994,496,'mountain'],[659,309,'forest'],[689,329,'forest'],[726,353,'forest'],[200,500,'forest'],[248,493,'forest']]){
+ if(k==='mountain'){relief.append(e('path',{d:`M${x-17} ${y+17} L${x} ${y-22} L${x+20} ${y+17}Z`,fill:'#637b71',stroke:'#3e6458','stroke-width':2}));relief.append(e('path',{d:`M${x-7} ${y-6} L${x} ${y-22} L${x+9} ${y-5}Z`,fill:'#d1dac6'}))}
+ else {relief.append(e('circle',{cx:x,cy:y,r:12,fill:'#2f7852',stroke:'#265c43','stroke-width':3}));relief.append(e('circle',{cx:x-4,cy:y-6,r:5,fill:'#5c9d64'}))}
+}
+// Dense original forest crowns and ridgeline clusters; not tile images from the ROM.
+const ornaments=e('g',{id:'terrain-ornaments','pointer-events':'none'});terrain.append(ornaments);
+for(const [cx,cy,count] of [[229,476,12],[700,343,11],[958,510,11],[379,293,9],[621,346,8]]) {
+ for(let i=0;i<count;i++){const x=cx+(i%4)*13-20+(i%2)*3,y=cy+Math.floor(i/4)*12-15;
+  ornaments.append(e('path',{d:`M${x-8} ${y+7} Q${x-11} ${y-1} ${x-3} ${y-6} Q${x} ${y-14} ${x+6} ${y-5} Q${x+14} ${y+1} ${x+8} ${y+7}Z`,fill:i%3?'#2f7047':'#488d55',stroke:'#1d5638','stroke-width':1.5}));
+  ornaments.append(e('path',{d:`M${x-4} ${y-4} Q${x+1} ${y-9} ${x+5} ${y-3}`,fill:'none',stroke:'#83b272','stroke-width':1.4}));
+ }
+}
+for(const [x,y] of [[328,304],[344,319],[360,333],[947,409],[963,427],[981,439],[751,741],[765,754]]) {
+ ornaments.append(e('path',{d:`M${x-19} ${y+16}L${x} ${y-19}L${x+19} ${y+16}Z`,fill:'#647b70',stroke:'#375b57','stroke-width':2}));
+ ornaments.append(e('path',{d:`M${x-8} ${y-3}L${x} ${y-19}L${x+10} ${y-2}L${x+3} ${y-5}Z`,fill:'#dbe1c8'}));
+}
+const rivers=e('g',{stroke:'#4b9cba','stroke-width':8,fill:'none','stroke-linecap':'round'});terrain.append(rivers);
+rivers.append(e('path',{d:'M618 227 Q602 270 626 319 Q640 359 671 408'}));
+rivers.append(e('path',{d:'M904 308 Q918 381 900 446 Q928 493 916 546'}));
+const gates=e('g',{id:'transition-gates'});terrain.append(gates);
+for(const [x,y,label] of [[292,362,'山・洞窟'],[501,320,'東の橋'],[825,371,'南の橋'],[790,685,'船着場']]){
+ gates.append(e('circle',{cx:x,cy:y,r:6,fill:'#ffd783',stroke:'#533f2b','stroke-width':2}));
+ gates.append(e('title',{},label+'（仮）'));
+}
+regions.forEach(r=>{const g=e('g',{class:'region',role:'button',tabindex:'0','aria-label':r.chapter+'章 '+r.name});g.dataset.chapter=r.chapter;g.append(e('path',{d:r.shape,fill:r.color}));g.addEventListener('click',()=>choose(r.chapter));g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();choose(r.chapter)}});lands.append(g);const t=e('text',{x:r.x,y:r.y+34,class:'label','text-anchor':'middle'},r.name);marks.append(t);marks.append(e('circle',{cx:r.x,cy:r.y-10,r:16,fill:'#f5d287',stroke:'#634d34','stroke-width':2}));marks.append(e('text',{x:r.x,y:r.y-4,class:'num','text-anchor':'middle'},String(r.chapter)))});
+// Provisional north-coast Cape of Courage and an event-only parted-sea path.
+const cape=[650,611],oni=regions[6];
+const positionWarning=e('g',{id:'oni-location-warning'});marks.append(positionWarning);
+positionWarning.append(e('text',{x:735,y:528,class:'label','font-size':12},'鬼ヶ島 位置検証中'));
+const parted=e('g',{id:'parted-sea',class:'parted-sea'});paths.append(parted);
+parted.append(e('path',{d:`M${cape[0]} ${cape[1]} Q654 590 ${oni.x} ${oni.y+25}`,stroke:'#ffedc2','stroke-width':12,'stroke-linecap':'round','stroke-dasharray':'8 7',fill:'none'}));
+parted.append(e('circle',{cx:cape[0],cy:cape[1],r:7,fill:'#f9d9a1',stroke:'#4f3b31','stroke-width':2}));
+parted.append(e('title',{},'勇気の岬 → 海が割れる道（仮）'));
+// Verified *relative* relationships from Shin Momotaro Densetsu walkthrough:
+ // すゞめのお宿7 -> NW -> 勇気の岬, marked by TWO jizo statues.
+ // Cape -> sword opens a sea crossing -> Onigashima.
+ // This schematic does not claim original-game pixel coordinates.
+ const inn=[708,691];
+ marks.append(e('circle',{cx:inn[0],cy:inn[1],r:6,fill:'#fee8b8',stroke:'#51443e','stroke-width':2}));
+ marks.append(e('text',{x:inn[0]+12,y:inn[1]+4,class:'label','font-size':12},'すゞめのお宿7(仮)'));
+ marks.append(e('text',{x:cape[0]-33,y:cape[1]-12,class:'label','font-size':12},'勇気の岬'));
+ for(const dx of [-10,10]){
+  marks.append(e('circle',{cx:cape[0]+dx,cy:cape[1]+8,r:4,fill:'#d7dfd2',stroke:'#4f5d57','stroke-width':1.5}));
+  marks.append(e('path',{d:`M${cape[0]+dx-5} ${cape[1]+20} L${cape[0]+dx+5} ${cape[1]+20} L${cape[0]+dx+3} ${cape[1]+10} L${cape[0]+dx-3} ${cape[1]+10}Z`,fill:'#b0b5a9',stroke:'#4f5d57','stroke-width':1}));
+ }
+ const flour=regions[1];marks.append(e('circle',{cx:165,cy:556,r:7,class:'town'}));marks.append(e('text',{x:164,y:590,class:'label','text-anchor':'middle','font-size':12},'旅立ちの村（仮）'));
+const list=[[0,1],[1,2],[2,3],[3,4],[4,5]];list.forEach(([a,b],i)=>{const p=regions[a],q=regions[b];const curve=e('path',{class:'route',d:`M${p.x} ${p.y} Q${(p.x+q.x)/2} ${(p.y+q.y)/2-55} ${q.x} ${q.y}`});curve.dataset.route=i+1;paths.append(curve)});
+function choose(n){selected=n;document.querySelectorAll('.region').forEach(g=>g.classList.toggle('active',+g.dataset.chapter===n));document.querySelectorAll('.route').forEach(g=>g.classList.toggle('dim',+g.dataset.route!==n&&+g.dataset.route!==n-1));document.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.chapter===n));let r=regions[n-1];document.querySelector('#detail').textContent='第'+n+'章｜'+r.name+'：'+labels[n-1]+'　次への移動：'+r.transport+'（位置未確定）'}
+const controls=document.querySelector('#buttons');regions.forEach(r=>{let b=document.createElement('button');b.dataset.chapter=r.chapter;b.textContent=r.chapter+'章 '+r.name;b.onclick=()=>choose(r.chapter);controls.append(b)});choose(1);
+</script></body></html>
