@@ -416,6 +416,21 @@ const INDOOR_PERSPECTIVE={
   ]
  }
 };
+// Scene-authoring pipeline: perspective/walk/occlusion share one manifest.
+// Preserve built-in data if asset JSON is missing or fails validation.
+function applyIndoorSceneManifest(scene){
+ if(!scene||scene.version!==1||scene.scene!=="teahouse"||!Array.isArray(scene.canvas)||scene.canvas[0]!==768||scene.canvas[1]!==768)return false;
+ const p=scene.projection,w=scene.walk;
+ const validPoly=poly=>Array.isArray(poly)&&poly.length>=3&&poly.every(pt=>Array.isArray(pt)&&pt.length===2&&pt.every(Number.isFinite));
+ if(!p||!w||!Array.isArray(w.bounds)||w.bounds.length!==4||!w.bounds.every(Number.isFinite)||!Array.isArray(w.solids)||!w.solids.every(validPoly)||!Array.isArray(scene.occluders)||!scene.occluders.every(o=>o&&Number.isFinite(o.depth)&&validPoly(o.poly)))return false;
+ const keys=["footBack","footFront","screenBack","screenFront","scaleBack","scaleFront"];
+ if(!keys.every(k=>Number.isFinite(p[k]))||p.footFront<=p.footBack||p.scaleBack<=0||p.scaleFront<=0)return false;
+ Object.assign(INDOOR_PERSPECTIVE.tea,p,{bounds:w.bounds,solids:w.solids,occluders:scene.occluders});
+ return true;
+}
+fetch("assets/interiors/tea-scene.v1.json").then(r=>{if(!r.ok)throw Error("scene manifest unavailable");return r.json()}).then(scene=>{
+ if(applyIndoorSceneManifest(scene)&&S.area==="teahouse")assetLoaded();
+}).catch(()=>{/* legacy validated control map remains active */});
 function indoorPerspective(guide,x,foot){
  const t=Math.max(0,Math.min(1,(foot-guide.footBack)/Math.max(1,guide.footFront-guide.footBack)));
  const y=guide.screenBack+(guide.screenFront-guide.screenBack)*t;
@@ -431,7 +446,8 @@ function indoorPointInPolygon(x,y,poly){
 }
 function indoorProjectedBlocked(guide,x,foot){
  const p=indoorPerspective(guide,x,foot);
- if(x<75||x>699||p.y<470||p.y>712)return true;
+ const [minX,minY,maxX,maxY]=guide.bounds||[75,470,699,712];
+ if(p.x<minX||p.x>maxX||p.y<minY||p.y>maxY)return true;
  return guide.solids.some(poly=>indoorPointInPolygon(p.x,p.y,poly));
 }
 function drawIndoorOccluder(c,art,layer){
