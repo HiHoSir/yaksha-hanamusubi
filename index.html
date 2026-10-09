@@ -48,6 +48,7 @@
       <button id="right" class="dir">▶</button>
       <button id="down" class="dir">▼</button>
     </div>
+    <div id="virtualStick" class="virtualStick" role="group" aria-label="仮想移動スティック"><div class="virtualStickTrack"></div><div id="virtualStickKnob" class="virtualStickKnob"></div></div>
     <button id="cancel" class="round sub" aria-label="B 戻る">B<small>戻る</small></button>
     <button id="ok" class="round main" aria-label="A 決定 話す 調べる">A<small>決定</small></button>
   </section>
@@ -119,7 +120,7 @@
     <button data-cmd="item">道具</button><button data-cmd="guard">守る</button>
     <button data-cmd="escape">逃げる</button><button data-cmd="back">戻る</button>
   </div>
-  <p id="battleHelp" class="battleHelp">十字キー：選択 ／ A：決定 ／ B：戻る</p>
+  <p id="battleHelp" class="battleHelp">スティック：選択 ／ A：決定 ／ B：戻る</p>
 </div>
 
 <div id="shop" class="overlay"><div class="window"><h2>鬼灯の里・兵具屋</h2><p id="shopGold"></p><p id="shopNotice" role="status" aria-live="polite"></p><div id="shopTabs" class="choices"><button data-shop-tab="buy">買う</button><button data-shop-tab="sell">売る</button></div><div id="shopItems"></div><button data-close="shop">店を出る</button></div></div>
