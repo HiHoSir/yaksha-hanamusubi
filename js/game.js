@@ -102,10 +102,7 @@ BATTLE_SPRITES.normal={};
 for(const pose of ["idle","attack","hit","guard","victory","skill"]){
  const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/normal-v10/battle-${pose}.png`;BATTLE_SPRITES.normal[pose]=im;
 }
-BATTLE_SPRITES.stardust={};
-for(const pose of ["idle","attack","hit","guard","victory","skill"]){
- const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/battle-v9/stardust-${pose}.png?v=15.55.50`;BATTLE_SPRITES.stardust[pose]=im;
-}
+// The withheld stardust artwork is intentionally not loaded in public builds.
 const LAYERED_SPRITES={};
 for(const [outfit,folder] of Object.entries(HERO_FOLDERS)){
  const set=LAYERED_SPRITES[outfit]={};
