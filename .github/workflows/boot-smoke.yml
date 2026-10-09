@@ -121,13 +121,19 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.51.1
           npx playwright install --with-deps chromium
-          node qa/battle-layout.cjs
-          node qa/settlement.cjs
-          node qa/movement.cjs
-          node qa/dialog.cjs
-          node qa/residents.cjs
-          node qa/guide-menu.cjs
-          node qa/field-access.cjs
+          failed=0
+          for test in battle-layout settlement movement dialog residents guide-menu field-access; do
+            echo "::group::Browser smoke: $test"
+            if node "qa/$test.cjs"; then
+              echo "PASS $test" | tee -a "$RUNNER_TEMP/browser-smoke-results.txt"
+            else
+              echo "FAIL $test" | tee -a "$RUNNER_TEMP/browser-smoke-results.txt"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          cat "$RUNNER_TEMP/browser-smoke-results.txt"
+          exit "$failed"
 
   build:
     name: Build website after smoke
