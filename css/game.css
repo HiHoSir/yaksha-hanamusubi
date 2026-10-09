@@ -259,3 +259,7 @@ button,.pad,.controls{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 #pad{z-index:60;isolation:isolate}
 #pad.dialogActive .dpad{pointer-events:auto;opacity:1}
 #pad.dialogActive #cancel{opacity:1}
+
+/* Keep controller at the top but ensure all modal action buttons sit clear of its footprint. */
+#shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{box-sizing:border-box;max-height:calc(100dvh - 210px - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;padding-bottom:20px}
+@media(max-height:720px){#shop .window,#saveMenu .window,#settings .window,#worldMap .window,#hotSpring .window{max-height:calc(100dvh - 185px - env(safe-area-inset-bottom))}}
