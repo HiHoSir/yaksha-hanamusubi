@@ -315,7 +315,7 @@ function check(name,fn){fn();results.push(name)}
  check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
  check('New game starts in village',()=>{el('newGame').fire('click');assert.equal(sandbox.gameState.area,'village');assert.equal(sandbox.gameState.x,768);assert.equal(sandbox.gameState.y,760);assert(!el('title').classList.contains('show'));});
  check('production field moves 32px, enters and exits every existing story area',()=>{
-  sandbox.__qaEval('busy=false;S.encounterGrace=999;');
+  sandbox.__qaEval('S.area="field";[S.x,S.y]=YK_WORLD.start.slice();busy=false;S.encounterGrace=999;');
   const y=sandbox.gameState.y;tap('up');advance(160);assert.equal(sandbox.gameState.y,y-32);
   assert(!sandbox.__qaEval('collision(S.x,S.y)'));shot('15-production-field');
   const pixel=el('game').canvas.getContext('2d').getImageData(200,570,1,1).data;assert(pixel[1]>pixel[2]*1.2,'production grass is actually rendered');
