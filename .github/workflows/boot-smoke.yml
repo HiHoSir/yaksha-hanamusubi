@@ -42,6 +42,13 @@ jobs:
           if(!game.includes('DEBUG_FALLBACK')||!game.includes('naturalWidth!==spec.size[0]'))throw new Error('debug asset validation/fallback missing');
           if(!game.includes('drawDebugOverview')||!game.includes('drawDebugSheet'))throw new Error('debug inspection pages missing');
           if(!game.includes('if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}'))throw new Error('debug movement isolation missing');
+          const settlement=fs.readFileSync('js/settlement.js','utf8');
+          const save=fs.readFileSync('js/save.js','utf8');
+          if(!game.includes('S.area="village";S.x=768;S.y=760'))throw new Error('new game must start in village');
+          if(!game.includes('S.visitedAreas.village=true'))throw new Error('new game village visit missing');
+          if(!settlement.includes('お帰りなさい、緋月さま'))throw new Error('village dialogue still references old protagonist');
+          if(!save.includes('area:"field"'))throw new Error('save test fixture must remain compatible');
+          console.log('opening and village story contract OK');
           console.log('boot contract OK');
           NODE
       - name: Public costume privacy regression
