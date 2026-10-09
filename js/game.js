@@ -77,8 +77,8 @@ function loadNpcAssetSet(){
 let npcAssetsLoaded=false;
 function ensureNpcAssets(){if(npcAssetsLoaded)return;npcAssetsLoaded=true;loadNpcAssetSet();}
 for(const [k,v] of Object.entries(B9)){const im=new Image();im.onload=assetLoaded;im.src=v;B9IMG[k]=im}
-const OUTFIT_READY={normal:true,stardust:true};
-const HERO_FOLDERS={normal:"normal-v10",stardust:"stardust-v1"};
+const OUTFIT_READY={normal:true};
+const HERO_FOLDERS={normal:"normal-v10"};
 const BATTLE_SPRITES={};
 // Source artwork includes different transparent margins. Match the visible
 // character height and foot line to the walking sprite used for idle poses.
@@ -934,7 +934,7 @@ function fieldConfirm(){const id=FIELD_COMMANDS[fieldCursor][0];close('commandMe
  if(id==='skill'){if(S.hp>=S.maxhp)return message('体は満ちている。',1400);if(S.mp<3)return message('技が足りない。',1400);S.mp-=3;S.hp=Math.min(S.maxhp,S.hp+32+relicBonus('heal'));YK_SAVE.auto(S);hud();message('花癒しの術で体が回復した。',1800);return;}
  if(id==='map')return worldMap();if(id==='save'){busy=true;slots();$('saveMenu').classList.add('show');return;}menu(id);
 }
-function menu(section=null){if(busy)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=b.dataset.outfit;YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu("outfits")}));$("menu").classList.add("show");$('detailTitle').textContent=FIELD_COMMANDS.find(c=>c[0]===section)?.[1]||'つよさ';document.querySelectorAll('[data-menu-section]').forEach(el=>el.style.display=!section||el.dataset.menuSection===section?'':'none');}
+function menu(section=null){if(busy)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=D.outfits[b.dataset.outfit]?b.dataset.outfit:"normal";YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu("outfits")}));$("menu").classList.add("show");$('detailTitle').textContent=FIELD_COMMANDS.find(c=>c[0]===section)?.[1]||'つよさ';document.querySelectorAll('[data-menu-section]').forEach(el=>el.style.display=!section||el.dataset.menuSection===section?'':'none');}
 
 const CHEST_ART={};
 for(const state of ['closed','open']){const im=new Image();im.onload=assetLoaded;im.src=`assets/objects/tsuzura-${state}.png?v=15.56.1`;CHEST_ART[state]=im;}
