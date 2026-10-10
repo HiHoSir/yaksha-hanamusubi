@@ -14,8 +14,8 @@ const server=http.createServer((req,res)=>{
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());
  await page.evaluate(()=>{window.__qaEval('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;S.encounterGrace=0;S.encounterSteps=100;Math.random=()=>0;beginEncounter();battle.hp=battle.max=999;');});
  await page.waitForFunction(()=>window.__qaEval('layerReady(B9EN.redoni)'));await page.evaluate(()=>window.__qaEval('renderBattle()'));
- for(const id of ['up','down','left','right','ok','cancel']){assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' occluded '+height);}
- await page.locator('#right').tap();await page.locator('#ok').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'skill');await page.locator('#cancel').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'root');
+ for(const id of ['virtualStick','ok','cancel']){assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' occluded '+height);}
+ await page.locator('#virtualStick').tap({position:{x:125,y:73}});await page.locator('#ok').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'skill');await page.locator('#cancel').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'root');
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
  await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});
  await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=440;S.dir="u";S.gold=1000;action();'));
