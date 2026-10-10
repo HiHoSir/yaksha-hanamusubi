@@ -29,8 +29,18 @@ el('speedSelect').value='1';
 class LocalImage extends NativeImage{
  set src(v){const f=path.join(root,String(v).split("?")[0]);if(!fs.existsSync(f)){missing.push(v);return;}this.onerror=e=>{console.error("IMAGE",v,e)};try{super.src=fs.readFileSync(f)}catch(e){throw new Error(v+': '+e.message)}loaded.push(this);schedule(()=>this.onload?.(),0)}
 }
+// Mirror browser fetch for local JSON manifests in this sandboxed smoke harness.
+// Never permit network access or traversal outside the checked-out repo.
+const fetchLocal=async url=>{
+ const rel=String(url).split('?')[0];
+ const file=path.resolve(root,rel);
+ if(!file.startsWith(root+path.sep)||!rel.endsWith('.json'))
+  return {ok:false,status:403,json:async()=>{throw Error('forbidden fixture')}};
+ if(!fs.existsSync(file))return {ok:false,status:404,json:async()=>{throw Error('missing fixture')}};
+ return {ok:true,status:200,json:async()=>JSON.parse(fs.readFileSync(file,'utf8'))};
+};
 const storage=new Map(),windowEvents={};
-const sandbox={document:doc,Image:LocalImage,console,Math:Object.create(Math),Date,performance:{now:()=>now},setTimeout:(f,m)=>schedule(f,m),clearTimeout:id=>timers.delete(id),setInterval:(f,m)=>schedule(f,m,m),clearInterval:id=>timers.delete(id),requestAnimationFrame:f=>schedule(f,16),confirm:()=>false,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener:(n,f)=>(windowEvents[n]??=[]).push(f),YK_AUDIO:{beep(){},syncBgm(){},unlock(){}},setPointerCapture(){}};
+const sandbox={document:doc,Image:LocalImage,fetch:fetchLocal,console,Math:Object.create(Math),Date,performance:{now:()=>now},setTimeout:(f,m)=>schedule(f,m),clearTimeout:id=>timers.delete(id),setInterval:(f,m)=>schedule(f,m,m),clearInterval:id=>timers.delete(id),requestAnimationFrame:f=>schedule(f,16),confirm:()=>false,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener:(n,f)=>(windowEvents[n]??=[]).push(f),YK_AUDIO:{beep(){},syncBgm(){},unlock(){}},setPointerCapture(){}};
 sandbox.window=sandbox;vm.createContext(sandbox);
 for(const file of ['data.js','equipment.js','world.js','save.js','input.js','autotile.js','landscape.js','settlement.js','game.js']){let source=fs.readFileSync(path.join(root,'js',file),'utf8');if(file==='game.js')source=source.replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();');vm.runInContext(source,sandbox,{filename:file});}
 function tap(id){assert(el(id),id);el(id).fire('pointerdown');el(id).fire('pointerup')}
