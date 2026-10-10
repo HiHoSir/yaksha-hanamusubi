@@ -402,14 +402,6 @@ const INDOOR_PERSPECTIVE={
  tea:{
   footBack:245,footFront:705,screenBack:490,screenFront:698,
   scaleBack:.92,scaleFront:1.45,
-  // Each polygon describes only the physical silhouette of an object in the painting.
-  occluders:[
-   {id:"left-post",depth:670,poly:[[89,0],[147,0],[147,600],[93,604]]},
-   {id:"center-post",depth:666,poly:[[447,0],[487,0],[489,647],[445,655]]},
-   {id:"hearth-front",depth:633,poly:[[175,601],[416,601],[424,649],[188,652]]},
-   {id:"front-left-furniture",depth:764,poly:[[0,668],[310,680],[358,768],[0,768]]},
-   {id:"front-right-furniture",depth:752,poly:[[583,647],[768,650],[768,768],[587,768]]}
-  ],
   // Filled polygons in projected SCREEN coordinates. No old procedural tables.
   solids:[
    [[0,0],[768,0],[768,461],[0,461]],
@@ -428,10 +420,10 @@ function applyIndoorSceneManifest(scene){
  if(!scene||scene.version!==1||scene.scene!=="teahouse"||!Array.isArray(scene.canvas)||scene.canvas[0]!==768||scene.canvas[1]!==768)return false;
  const p=scene.projection,w=scene.walk;
  const validPoly=poly=>Array.isArray(poly)&&poly.length>=3&&poly.every(pt=>Array.isArray(pt)&&pt.length===2&&pt.every(Number.isFinite));
- if(!p||!w||!Array.isArray(w.bounds)||w.bounds.length!==4||!w.bounds.every(Number.isFinite)||!Array.isArray(w.solids)||!w.solids.every(validPoly)||!Array.isArray(scene.occluders)||!scene.occluders.every(o=>o&&Number.isFinite(o.depth)&&validPoly(o.poly)))return false;
+ if(!p||!w||!Array.isArray(w.bounds)||w.bounds.length!==4||!w.bounds.every(Number.isFinite)||!Array.isArray(w.solids)||!w.solids.every(validPoly))return false;
  const keys=["footBack","footFront","screenBack","screenFront","scaleBack","scaleFront"];
  if(!keys.every(k=>Number.isFinite(p[k]))||p.footFront<=p.footBack||p.scaleBack<=0||p.scaleFront<=0)return false;
- Object.assign(INDOOR_PERSPECTIVE.tea,p,{bounds:w.bounds,solids:w.solids,occluders:scene.occluders});
+ Object.assign(INDOOR_PERSPECTIVE.tea,p,{bounds:w.bounds,solids:w.solids});
  return true;
 }
 fetch("assets/interiors/tea-scene.v1.json").then(r=>{if(!r.ok)throw Error("scene manifest unavailable");return r.json()}).then(scene=>{
