@@ -103,6 +103,13 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
  const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/yashahime/normal-v10/battle-${pose}.png`;BATTLE_SPRITES.normal[pose]=im;
 }
 // The withheld stardust artwork is intentionally not loaded in public builds.
+// Optional new eight-direction atlas; legacy directional images remain a fallback.
+const HIZUKI_8DIR=new Image();
+HIZUKI_8DIR.onload=assetLoaded;
+HIZUKI_8DIR.onerror=()=>{HIZUKI_8DIR.datasetFailed="1";};
+HIZUKI_8DIR.src="assets/characters/hizuki/shortbob-8dir/walk-atlas-128.png";
+const HIZUKI_ATLAS_DIR={d:0,dr:1,r:2,ur:3,u:4,ul:5,l:6,dl:7};
+let hizukiFacing8=null;
 const LAYERED_SPRITES={};
 for(const [outfit,folder] of Object.entries(HERO_FOLDERS)){
  const set=LAYERED_SPRITES[outfit]={};
@@ -573,6 +580,17 @@ function villageDoorAction(){
 
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
+ if(outfit==="normal"&&layerReady(HIZUKI_8DIR)){
+  const facing=(dir===S.dir?hizukiFacing8:null)||dir;
+  const col=HIZUKI_ATLAS_DIR[facing];
+  if(col!==undefined){
+   const row=Math.max(0,Math.min(2,Number(frame)||0)),scale=(104*z/312)*4;
+   c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality="high";
+   shadow(c,x,y+9*z,31*z,10*z,.32);
+   c.drawImage(HIZUKI_8DIR,col*128,row*128,128,128,x-64*scale,y+9*z-120*scale,128*scale,128*scale);
+   c.restore();return;
+  }
+ }
  const layered=LAYERED_SPRITES[outfit]||LAYERED_SPRITES.normal;
  const frameIndex=Math.max(0,Math.min(2,Number(frame)||0));
  const requested=layered?.[dir]?.[frameIndex];
