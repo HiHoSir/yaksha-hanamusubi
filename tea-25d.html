@@ -74,7 +74,7 @@ function room(){
 }
 room();
 const trimMat=new THREE.MeshStandardMaterial({color:0x4e3125,roughness:1});
-const objects=[];
+const objects=[]; const teaRoomRevision='2026-10-10-v2';
 function pillar(name,x,z,height,width){
  const root=new THREE.Group();
  const wood=new THREE.Mesh(new THREE.BoxGeometry(width,height,width),pillarMat);
@@ -89,7 +89,7 @@ let grid=new THREE.GridHelper(12,12,0x9fc9c5,0x6d807c);grid.position.y=.018;grid
 const hero=new THREE.Sprite(new THREE.SpriteMaterial({color:0xffffff,transparent:true,depthTest:true,depthWrite:true,alphaTest:.18}));
 hero.scale.set(1.25,1.85,1);
 let pos={x:1.1,z:2.3};scene.add(hero);
-function setHero(){hero.position.set(pos.x,.92,pos.z);status.textContent='X '+pos.x.toFixed(2)+' / Z '+pos.z.toFixed(2)+' ／ 奥行き判定：WebGL';}
+function setHero(){hero.position.set(pos.x,.92,pos.z);status.textContent='v2 X '+pos.x.toFixed(2)+' / Z '+pos.z.toFixed(2)+' ／ WebGL';}
 setHero();
 const im=new Image();im.onload=()=>{
  const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
