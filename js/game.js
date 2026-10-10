@@ -392,8 +392,7 @@ TEA_ART.back.src="assets/interiors/tea-interior-bg.webp";
 TEA_ART.front.src="assets/interiors/tea-interior-fg.webp";
 function paintedTeaReady(){return TEA_ART.backReady&&TEA_ART.frontReady}
 function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
-// Independent picture-space occluders. Base already contains the complete composition;
-// these transparent cuts are redrawn only over actors behind each physical feature.
+// Foreground artwork is a genuine independent transparent image layer above actors.
 // Shared perspective guide v1: invisible scene metadata, no extra canvas texture.
 // Reusable for other interiors: base foot-space maps to illustrated image-space.
 // Per-room artists can change the anchors without touching rendering logic.
@@ -423,7 +422,7 @@ const INDOOR_PERSPECTIVE={
   ]
  }
 };
-// Scene-authoring pipeline: perspective/walk/occlusion share one manifest.
+// Legacy v1 scene metadata still supplies fallback projection/collision; v2 splits these controls.
 // Preserve built-in data if asset JSON is missing or fails validation.
 function applyIndoorSceneManifest(scene){
  if(!scene||scene.version!==1||scene.scene!=="teahouse"||!Array.isArray(scene.canvas)||scene.canvas[0]!==768||scene.canvas[1]!==768)return false;
@@ -476,12 +475,6 @@ function indoorProjectedBlocked(guide,x,foot){
  if(p.x<minX||p.x>maxX||p.y<minY||p.y>maxY)return true;
  return (control?.solids||guide.solids).some(poly=>indoorPointInPolygon(p.x,p.y,poly));
 }
-function drawIndoorOccluder(c,art,layer){
- c.save();c.beginPath();
- layer.poly.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));
- c.closePath();c.clip();
- c.drawImage(art,0,0,768,768);c.restore();
-}
 function drawLayeredIndoorActors(c,frameTime,guide,art){
  const actors=areaNPCs().map(n=>{
   const p=indoorPerspective(guide,n.x,n.y);
@@ -495,7 +488,8 @@ function drawLayeredIndoorActors(c,frameTime,guide,art){
  const y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
  const p=indoorPerspective(guide,x,y);
  actors.push({depth:p.depth,draw:()=>hero(c,p.x,p.y,S.dir,S.frame,S.outfit,p.scale)});
- const ordered=[...actors,...guide.occluders.map(v=>({depth:v.depth,draw:()=>drawIndoorOccluder(c,art,v)}))].sort((a,b)=>a.depth-b.depth);
+ // Depth controls only actor-to-actor order. Foreground is a real transparent art layer.
+ const ordered=actors.sort((a,b)=>a.depth-b.depth);
  for(const item of ordered)item.draw();
 }
 function drawPaintedTeaActors(c,frameTime){
@@ -698,8 +692,12 @@ function map(frameTime=performance.now()){
  }
  if(S.area==="field")drawWorldPins(g,false);
  drawChests();
- if(S.area==="teahouse"&&paintedTeaReady())drawPaintedTeaActors(g,frameTime);
- else drawActors(frameTime);
+ if(S.area==="teahouse"&&paintedTeaReady()){
+  drawPaintedTeaActors(g,frameTime);
+  // Explicit image-stack compositing: background/floor -> actors -> foreground props.
+  // No polygon clipping, source-image sampling, or duplicated occluder draws.
+  g.drawImage(TEA_ART.front,0,0,768,768);
+ }else drawActors(frameTime);
  // New village intentionally has no foreground canopy over actors.
  drawDoorHint();
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);worldHint(k?("A："+YK_WORLD.places[k].name+"へ入る"):"フィールドを進んで入口へ · 地図で目的地を確認");}
