@@ -400,7 +400,7 @@ function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
 // Reusable for other interiors: base foot-space maps to illustrated image-space.
 // Per-room artists can change the anchors without touching rendering logic.
 // Perspective control for painted interiors. All geometry refers to the SAME art.
-// Depth masks sample the approved base image, never a separately generated image.
+// Image layers have actual alpha; no occlusion polygons or runtime cutout masks.
 const INDOOR_PERSPECTIVE={
  tea:{
   footBack:245,footFront:705,screenBack:490,screenFront:698,
@@ -470,6 +470,12 @@ function indoorProjectedBlocked(guide,x,foot){
  if(p.x<minX||p.x>maxX||p.y<minY||p.y>maxY)return true;
  return (control?.solids||guide.solids).some(poly=>indoorPointInPolygon(p.x,p.y,poly));
 }
+// Individually depth-sorted transparent image regions, not masking or clipping.
+// The independent post art was prepared with these non-overlapping source regions.
+const TEA_DEPTH_OBJECTS=[
+ {id:"left-post",source:[35,0,66,516],depth:604},
+ {id:"center-post",source:[420,0,45,516],depth:650}
+];
 function drawLayeredIndoorActors(c,frameTime,guide,art){
  const actors=areaNPCs().map(n=>{
   const p=indoorPerspective(guide,n.x,n.y);
@@ -486,14 +492,13 @@ function drawLayeredIndoorActors(c,frameTime,guide,art){
  // Depth controls only actor-to-actor order. Foreground is a real transparent art layer.
  // A separately authored pillar image joins the same depth queue as the actors.
  // Actors behind its foot-depth are drawn first; actors in front are drawn afterward.
- actors.push({depth:510,draw:()=>c.drawImage(TEA_ART.posts,0,0,768,768)});
- const ordered=actors.sort((a,b)=>a.depth-b.depth);
+ const ordered=actors.concat(TEA_DEPTH_OBJECTS.map(o=>({depth:o.depth,draw:()=>c.drawImage(TEA_ART.posts,o.source[0],o.source[1],o.source[2],o.source[3],o.source[0],o.source[1],o.source[2],o.source[3])}))).sort((a,b)=>a.depth-b.depth);
  for(const item of ordered)item.draw();
 }
 function drawPaintedTeaActors(c,frameTime){
  drawLayeredIndoorActors(c,frameTime,INDOOR_PERSPECTIVE.tea,TEA_ART.back);
 }
-window.YKIndoorControlDebug=()=>({scene:"teahouse",depthLoaded:!!INDOOR_CONTROLS.tea.depth,collisionLoaded:!!INDOOR_CONTROLS.tea.collision,backdropReady:paintedTeaReady(),back:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,245),front:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,705),postsReady:TEA_ART.postsReady});
+window.YKIndoorControlDebug=()=>({scene:"teahouse",depthLoaded:!!INDOOR_CONTROLS.tea.depth,collisionLoaded:!!INDOOR_CONTROLS.tea.collision,backdropReady:paintedTeaReady(),back:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,245),front:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,705),postsReady:TEA_ART.postsReady,depthProps:TEA_DEPTH_OBJECTS.map(v=>({id:v.id,depth:v.depth}))});
 function drawInterior(c,kind){
  // Purpose-built room renderer. Furniture coordinates intentionally match interiorBlocked().
  const tea=kind==="tea";
