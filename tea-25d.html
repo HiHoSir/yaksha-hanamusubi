@@ -13,7 +13,7 @@ button{touch-action:none;border:1px solid #c9a86c;color:#fff2d8;background:#2440
 p{max-width:690px;margin:10px auto;line-height:1.6;padding:0 12px;font-size:13px;color:#d5cbb6}
 #status{font-family:monospace;color:#e8c482}
 </style></head><body>
-<header><strong>茶屋 2.5D 実験版</strong><a href="./">本編へ戻る</a></header>
+<header><strong>茶屋 2.5D 実験版 β15.57.34</strong><a href="./">本編へ戻る</a></header>
 <div id="stage"><div id="screen"></div>
 <div id="notice">3D室内＋2D緋月。柱の前後を移動して深度テスト<br><span id="status">読み込み中…</span></div></div>
 <div class="controls"><div class="dpad"><button data-move="up">↑</button><button data-move="left">←</button><button data-move="down">↓</button><button data-move="right">→</button></div>
@@ -102,7 +102,7 @@ const im=new Image();im.onload=()=>{
  hero.material.map=texture;hero.material.needsUpdate=true;
 };
 im.onerror=()=>status.textContent='スプライト読み込み失敗';
-im.src='assets/characters/hizuki/shortbob-8dir/walk-atlas-128.png';
+im.src='assets/characters/hizuki/shortbob-8dir/walk-atlas-128.png?v=15.57.34';
 const pressed=new Set();let last=performance.now();
 for(const btn of document.querySelectorAll('[data-move]')){
  const key=btn.dataset.move;btn.addEventListener('pointerdown',ev=>{ev.preventDefault();pressed.add(key);btn.setPointerCapture(ev.pointerId)});
