@@ -390,9 +390,9 @@ TEA_ART.posts.onload=()=>{TEA_ART.postsReady=true;assetLoaded()};
 TEA_ART.back.onerror=()=>{TEA_ART.backReady=false};
 TEA_ART.front.onerror=()=>{TEA_ART.frontReady=false};
 TEA_ART.posts.onerror=()=>{TEA_ART.postsReady=false};
-TEA_ART.back.src="assets/interiors/tea-interior-bg.webp";
-TEA_ART.front.src="assets/interiors/tea-front-static.webp";
-TEA_ART.posts.src="assets/interiors/tea-posts-depth.webp";
+TEA_ART.back.src="assets/interiors/tea-interior-bg.webp?v=15.57.32";
+TEA_ART.front.src="assets/interiors/tea-front-static.webp?v=15.57.32";
+TEA_ART.posts.src="assets/interiors/tea-posts-depth.webp?v=15.57.32";
 function paintedTeaReady(){return TEA_ART.backReady&&TEA_ART.frontReady&&TEA_ART.postsReady}
 function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
 // Foreground artwork is a genuine independent transparent image layer above actors.
@@ -429,7 +429,7 @@ function applyIndoorSceneManifest(scene){
  Object.assign(INDOOR_PERSPECTIVE.tea,p,{bounds:w.bounds,solids:w.solids});
  return true;
 }
-fetch("assets/interiors/tea-scene.v1.json").then(r=>{if(!r.ok)throw Error("scene manifest unavailable");return r.json()}).then(scene=>{
+fetch("assets/interiors/tea-scene.v1.json?v=15.57.32").then(r=>{if(!r.ok)throw Error("scene manifest unavailable");return r.json()}).then(scene=>{
  if(applyIndoorSceneManifest(scene)&&S.area==="teahouse")assetLoaded();
 }).catch(()=>{/* legacy validated control map remains active */});
 // Reusable indoor depth/scale control: sampled at the actor's FOOT position.
@@ -437,7 +437,7 @@ fetch("assets/interiors/tea-scene.v1.json").then(r=>{if(!r.ok)throw Error("scene
 const INDOOR_CONTROLS={tea:{depth:null,collision:null}};
 function validateIndoorDepth(v){return v&&v.version===2&&v.kind==="depth-scale"&&Array.isArray(v.anchors)&&v.anchors.length>=2&&v.anchors.every(a=>Array.isArray(a)&&a.length===3&&a.every(Number.isFinite)&&a[2]>0)&&v.anchors.every((a,i)=>!i||a[0]>v.anchors[i-1][0]);}
 function validateIndoorCollision(v){const good=p=>Array.isArray(p)&&p.length>=3&&p.every(q=>Array.isArray(q)&&q.length===2&&q.every(Number.isFinite));return v&&v.version===2&&v.kind==="collision"&&Array.isArray(v.bounds)&&v.bounds.length===4&&v.bounds.every(Number.isFinite)&&Array.isArray(v.solids)&&v.solids.every(good);}
-Promise.all([fetch("assets/interiors/tea-depth.v2.json").then(r=>{if(!r.ok)throw Error("depth");return r.json()}),fetch("assets/interiors/tea-collision.v2.json").then(r=>{if(!r.ok)throw Error("collision");return r.json()})]).then(([depth,collision])=>{
+Promise.all([fetch("assets/interiors/tea-depth.v2.json?v=15.57.32").then(r=>{if(!r.ok)throw Error("depth");return r.json()}),fetch("assets/interiors/tea-collision.v2.json?v=15.57.32").then(r=>{if(!r.ok)throw Error("collision");return r.json()})]).then(([depth,collision])=>{
  if(!validateIndoorDepth(depth)||!validateIndoorCollision(collision))throw Error("invalid indoor control");
  INDOOR_CONTROLS.tea.depth=depth;
  INDOOR_CONTROLS.tea.collision=collision;
