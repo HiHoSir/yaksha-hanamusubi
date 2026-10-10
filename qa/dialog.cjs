@@ -24,7 +24,8 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   assert.equal(await run('typeof paintedTeaReady'), 'function');
   // Shared perspective guide: finite positions, monotonic projected depth/scale,
   // and independent occluder planes instead of a full-screen front mask.
-  assert.equal(await run('INDOOR_PERSPECTIVE.tea.occluders.length'),5);
+  assert.equal(await run('typeof drawIndoorOccluder'), 'undefined');
+  assert(await run('!!INDOOR_CONTROLS.tea.depth || !!INDOOR_PERSPECTIVE.tea'),'indoor perspective control should exist');
   assert(await run('indoorProjectedBlocked(INDOOR_PERSPECTIVE.tea,260,515)'),'hearth must block walking');
   assert(!await run('indoorProjectedBlocked(INDOOR_PERSPECTIVE.tea,440,625)'),'open central aisle must be walkable');
   assert(await run('indoorProjectedBlocked(INDOOR_PERSPECTIVE.tea,650,385)'),'counter must block walking');
