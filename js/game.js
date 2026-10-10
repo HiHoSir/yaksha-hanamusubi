@@ -438,7 +438,25 @@ function applyIndoorSceneManifest(scene){
 fetch("assets/interiors/tea-scene.v1.json").then(r=>{if(!r.ok)throw Error("scene manifest unavailable");return r.json()}).then(scene=>{
  if(applyIndoorSceneManifest(scene)&&S.area==="teahouse")assetLoaded();
 }).catch(()=>{/* legacy validated control map remains active */});
+// Reusable indoor depth/scale control: sampled at the actor's FOOT position.
+// Collision is a distinct control plane and must never inherit display scale.
+const INDOOR_CONTROLS={tea:{depth:null,collision:null}};
+function validateIndoorDepth(v){return v&&v.version===2&&v.kind==="depth-scale"&&Array.isArray(v.anchors)&&v.anchors.length>=2&&v.anchors.every(a=>Array.isArray(a)&&a.length===3&&a.every(Number.isFinite)&&a[2]>0)&&v.anchors.every((a,i)=>!i||a[0]>v.anchors[i-1][0]);}
+function validateIndoorCollision(v){const good=p=>Array.isArray(p)&&p.length>=3&&p.every(q=>Array.isArray(q)&&q.length===2&&q.every(Number.isFinite));return v&&v.version===2&&v.kind==="collision"&&Array.isArray(v.bounds)&&v.bounds.length===4&&v.bounds.every(Number.isFinite)&&Array.isArray(v.solids)&&v.solids.every(good);}
+Promise.all([fetch("assets/interiors/tea-depth.v2.json").then(r=>{if(!r.ok)throw Error("depth");return r.json()}),fetch("assets/interiors/tea-collision.v2.json").then(r=>{if(!r.ok)throw Error("collision");return r.json()})]).then(([depth,collision])=>{
+ if(!validateIndoorDepth(depth)||!validateIndoorCollision(collision))throw Error("invalid indoor control");
+ INDOOR_CONTROLS.tea.depth=depth;
+ INDOOR_CONTROLS.tea.collision=collision;
+ if(S.area==="teahouse")assetLoaded();
+}).catch(()=>{/* retain v1 scene compatibility */});
 function indoorPerspective(guide,x,foot){
+ const control=INDOOR_CONTROLS.tea.depth;
+ if(control){
+  const a=control.anchors;
+  let i=1;while(i<a.length-1&&foot>a[i][0])i++;
+  const l=a[i-1],r=a[i],t=Math.max(0,Math.min(1,(foot-l[0])/(r[0]-l[0])));
+  return {x,y:l[1]+(r[1]-l[1])*t,scale:l[2]+(r[2]-l[2])*t,depth:l[1]+(r[1]-l[1])*t};
+ }
  const t=Math.max(0,Math.min(1,(foot-guide.footBack)/Math.max(1,guide.footFront-guide.footBack)));
  const y=guide.screenBack+(guide.screenFront-guide.screenBack)*t;
  return {x,y,scale:guide.scaleBack+(guide.scaleFront-guide.scaleBack)*t,depth:y};
@@ -453,9 +471,10 @@ function indoorPointInPolygon(x,y,poly){
 }
 function indoorProjectedBlocked(guide,x,foot){
  const p=indoorPerspective(guide,x,foot);
- const [minX,minY,maxX,maxY]=guide.bounds||[75,470,699,712];
+ const control=INDOOR_CONTROLS.tea.collision;
+ const [minX,minY,maxX,maxY]=(control?.bounds||guide.bounds||[75,470,699,712]);
  if(p.x<minX||p.x>maxX||p.y<minY||p.y>maxY)return true;
- return guide.solids.some(poly=>indoorPointInPolygon(p.x,p.y,poly));
+ return (control?.solids||guide.solids).some(poly=>indoorPointInPolygon(p.x,p.y,poly));
 }
 function drawIndoorOccluder(c,art,layer){
  c.save();c.beginPath();
@@ -482,6 +501,7 @@ function drawLayeredIndoorActors(c,frameTime,guide,art){
 function drawPaintedTeaActors(c,frameTime){
  drawLayeredIndoorActors(c,frameTime,INDOOR_PERSPECTIVE.tea,TEA_ART.back);
 }
+window.YKIndoorControlDebug=()=>({scene:"teahouse",depthLoaded:!!INDOOR_CONTROLS.tea.depth,collisionLoaded:!!INDOOR_CONTROLS.tea.collision,backdropReady:paintedTeaReady(),back:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,245),front:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,705)});
 function drawInterior(c,kind){
  // Purpose-built room renderer. Furniture coordinates intentionally match interiorBlocked().
  const tea=kind==="tea";

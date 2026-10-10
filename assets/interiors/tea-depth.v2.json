@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "kind": "depth-scale",
+  "scene": "teahouse",
+  "description": "Foot-space Y -> screen-space foot Y and sprite scale. Independent of collision/occlusion and of sprite head proportions.",
+  "anchors": [
+    [
+      195,
+      465,
+      1.3
+    ],
+    [
+      245,
+      490,
+      1.45
+    ],
+    [
+      390,
+      555,
+      1.65
+    ],
+    [
+      540,
+      628,
+      1.9
+    ],
+    [
+      625,
+      665,
+      2.08
+    ],
+    [
+      705,
+      700,
+      2.25
+    ]
+  ]
+}
