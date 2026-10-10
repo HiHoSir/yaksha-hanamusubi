@@ -108,7 +108,7 @@ const HIZUKI_8DIR=new Image();
 HIZUKI_8DIR.onload=assetLoaded;
 HIZUKI_8DIR.onerror=()=>{HIZUKI_8DIR.datasetFailed="1";};
 HIZUKI_8DIR.src="assets/characters/hizuki/shortbob-8dir/walk-atlas-128.png";
-const HIZUKI_ATLAS_DIR={d:0,dr:1,r:2,ur:3,u:4,ul:5,l:6,dl:7};
+const HIZUKI_ATLAS_DIR={d:0,dl:1,l:2,ul:3,u:4,ur:5,r:6,dr:7};
 let hizukiFacing8=null;
 const LAYERED_SPRITES={};
 for(const [outfit,folder] of Object.entries(HERO_FOLDERS)){
