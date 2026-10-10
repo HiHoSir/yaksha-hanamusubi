@@ -392,7 +392,7 @@ TEA_ART.front.onerror=()=>{TEA_ART.frontReady=false};
 TEA_ART.posts.onerror=()=>{TEA_ART.postsReady=false};
 TEA_ART.back.src="assets/interiors/tea-interior-bg.webp?v=15.57.32";
 TEA_ART.front.src="assets/interiors/tea-front-static.webp?v=15.57.32";
-TEA_ART.posts.src="assets/interiors/tea-posts-depth.webp?v=15.57.32";
+TEA_ART.posts.src="assets/interiors/tea-posts-isolated.webp?v=15.57.33";
 function paintedTeaReady(){return TEA_ART.backReady&&TEA_ART.frontReady&&TEA_ART.postsReady}
 function drawPaintedTeaBase(c){c.drawImage(TEA_ART.back,0,0,768,768)}
 // Foreground artwork is a genuine independent transparent image layer above actors.
@@ -473,8 +473,8 @@ function indoorProjectedBlocked(guide,x,foot){
 // Individually depth-sorted transparent image regions, not masking or clipping.
 // The independent post art was prepared with these non-overlapping source regions.
 const TEA_DEPTH_OBJECTS=[
- {id:"left-post",source:[35,0,66,516],depth:604},
- {id:"center-post",source:[420,0,45,516],depth:650}
+ {id:"left-post",source:[42,0,41,505],depth:604},
+ {id:"center-post",source:[464,0,33,483],depth:649}
 ];
 function drawLayeredIndoorActors(c,frameTime,guide,art){
  const actors=areaNPCs().map(n=>{
