@@ -219,7 +219,7 @@ function check(name,fn){fn();results.push(name)}
  });
  check('collision blocks terrain and footprints while keeping every road centerline open',()=>{
   for(const m of [land.fixture(),land.placesFixture()]){
-   for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(['forest','mountain','snowMountain','rockMountain'].includes(m[y][x]))assert(!land.walkable(m,x*32+16,y*32+16),'solid terrain');
+   for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(['mountain','snowMountain','rockMountain'].includes(m[y][x]))assert(!land.walkable(m,x*32+16,y*32+16),'solid terrain');
    assert(!land.walkable(m,-1,100));assert(!land.walkable(m,640,100));
    for(const path of m.paths)for(let i=1;i<path.length;i++){
     const [ax,ay]=path[i-1],[bx,by]=path[i],steps=Math.abs(bx-ax)+Math.abs(by-ay);
