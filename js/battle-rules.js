@@ -196,5 +196,27 @@ window.YK_BATTLE_RULES=(()=>{
   }
   return events;
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction,createTurn,advanceTurn,selectEnemyTarget,battleOutcome,resolveEnemyPhase,processPartyStatuses};
+ // One speed-weighted initiative roll per participant, per round.
+ function initiativeOrder(members,enemies,random=Math.random){
+  const entries=[
+   ...eligibleActors(members).filter(m=>m.action).map(m=>({side:'ally',id:m.id,speed:m.speed??10})),
+   ...enemies.filter(e=>e.hp>0).map(e=>({side:'enemy',id:e.id,speed:e.speed??10}))
+  ];
+  return entries.map((e,i)=>({...e,initiative:e.speed+(random()-.5)*12,position:i}))
+   .sort((a,b)=>b.initiative-a.initiative||a.position-b.position);
+ }
+ function executeEnemyAction(enemy,members,random=Math.random){
+  if(!enemy||enemy.hp<=0)return {ok:false,reason:'enemy-unavailable'};
+  const target=selectEnemyTarget(members,random);
+  if(!target)return {ok:false,reason:'target-unavailable'};
+  const special=enemy.special,triggered=!!(special&&random()<(special.chance??0));
+  const foxfire=triggered&&special.type==='foxfire';
+  const damage=foeDamage(enemy.atk??1,target.def??0,enemy.variance??0,foxfire,target.guarding,random);
+  target.hp=Math.max(0,target.hp-damage);target.active=target.hp>0;target.guarding=false;
+  if(triggered&&special.type==='poison'&&target.hp>0){
+   target.statuses=target.statuses||{};target.statuses.poison=true;
+  }
+  return {ok:true,enemyId:enemy.id,targetId:target.id,damage,remainingHp:target.hp,special:triggered?special.type:null};
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction,createTurn,advanceTurn,selectEnemyTarget,battleOutcome,resolveEnemyPhase,processPartyStatuses,initiativeOrder,executeEnemyAction};
 })();
