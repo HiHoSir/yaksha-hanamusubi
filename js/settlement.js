@@ -262,7 +262,7 @@ window.YK_SETTLEMENT=(()=>{
     (state.area!=='village'||y>90&&y<1170&&!doors.some(d=>Math.abs(x-d.x)<52&&Math.abs(y-d.y)<38))&&
     (!['teahouse','osumiHome','villageRoom'].includes(state.area)||y<580);
    if(m.left<=0){n.frame=1;m.wait-=dt;if(m.wait>0)continue;
-    let chosen=false;for(let a=0;a<8;a++){const dirs=[[0,-1,'u'],[0,1,'d'],[-1,0,'l'],[1,0,'r']],v=dirs[Math.floor(random()*4)],distance=24+Math.floor(random()*3)*8;
+    let chosen=false;for(let a=0;a<8;a++){const dirs=[[0,-1,'u'],[0,1,'d'],[-1,0,'l'],[1,0,'r']],v=dirs[Math.floor(random()*4)],distance=32;
      let valid=true;for(let d=4;d<=distance;d+=4)if(!allowed(n.x+v[0]*d,n.y+v[1]*d)){valid=false;break;}
      if(valid){m.dx=v[0];m.dy=v[1];m.dir=v[2];m.left=distance;chosen=true;break;}
     }if(!chosen){m.wait=.6+random();continue;}
