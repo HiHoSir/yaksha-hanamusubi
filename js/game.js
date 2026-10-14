@@ -779,6 +779,8 @@ function nextDialog(){
   $("speaker").textContent=d.speaker;
   $("dialogText").textContent="";
   const chars=Array.from(d.text);
+  // Category metadata reserved for future per-character dialogue voice effects.
+  const voice=YK_DIALOGUE.voiceKind(d.voice);
   dialogTyping={chars,index:0};
   $("dialogNext").textContent="全文表示";
   renderDialogPortrait();

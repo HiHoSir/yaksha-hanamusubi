@@ -21,7 +21,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   const fired=target?.name==='井戸'&&facing===null?action():false;
   const speaker=$('speaker').textContent;
   const open=$('dialog').classList.contains('show');
-  if(open)nextDialog();
+  for(let i=0;i<12&&$('dialog').classList.contains('show');i++)nextDialog();
   Object.assign(npc,original);Object.assign(S,previous);
   return {target:target?.name,facing:facing?.name||null,fired,speaker,open};
  })()`);

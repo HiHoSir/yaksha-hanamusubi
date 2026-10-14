@@ -17,7 +17,8 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   for(const id of ['ok','dialogNext'])assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' clickable');
   assert(await page.locator('#cancel').isDisabled());const position=await run('[S.x,S.y]');
   await page.screenshot({path:path.join(out,'dialog-'+height+'.png')});
-  await page.locator('#ok').tap();assert.equal(await page.locator('#dialogText').textContent(),'では、出発しましょう。');
+  await page.locator('#ok').tap();assert.equal(await page.locator('#dialogText').textContent(),'川の向こうには、旅の続きを待つ人たちがいる。焦らずに進んでいきましょう。');
+  await page.locator('#ok').tap();await run('revealDialogLine()');assert.equal(await page.locator('#dialogText').textContent(),'では、出発しましょう。');
   await page.locator('#dialogNext').tap();assert(!await page.locator('#dialog').evaluate(e=>e.classList.contains('show')));assert(!await page.locator('#cancel').isDisabled());assert.deepEqual(await run('[S.x,S.y]'),position);assert.deepEqual(errors,[]);
   // Painted teahouse assets are optional until installed: verify the same scene pipeline
   // stays safe with or without their files, and exposes two aligned depth planes.
@@ -40,10 +41,10 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   await run('talk({n:"緋月",t:[{speaker:"里の子",text:"鈴はどこ？"},{speaker:"緋月",text:"確かめよう。"}]});');
   assert.equal(await page.locator('#speaker').textContent(),'里の子');
   assert.equal(await page.locator('#dialogPortrait').evaluate(e=>e.style.display),'none');
-  await page.locator('#ok').tap();
+  await page.locator('#ok').tap();await page.locator('#ok').tap();
   assert.equal(await page.locator('#speaker').textContent(),'緋月');
   assert.equal(await page.locator('#dialogPortrait').evaluate(e=>e.style.display),'block');
-  await page.locator('#ok').tap();
+  await page.locator('#ok').tap();await page.locator('#ok').tap();
   assert(!await page.locator('#dialog').evaluate(e=>e.classList.contains('show')));
   console.log('dialog '+height+': no overlap, A advances once, Next closes, no movement');await page.close();
  }
