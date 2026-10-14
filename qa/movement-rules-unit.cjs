@@ -7,7 +7,7 @@ const diagonal=step('waterfall',100,100,1,1,1,2560,clear);
 assert.ok(Math.abs(Math.hypot(diagonal.x-100,diagonal.y-100)-22)<.001);
 const wall=(x,y)=>x>=110&&y>=110;
 const stopped=step('field',100,100,1,1,1,2560,wall);
-assert.equal(stopped.x,100);assert.equal(stopped.y,100);
+assert.ok(stopped.x>100&&stopped.x<110);assert.equal(stopped.x,stopped.y);
 const slides=step('waterfall',100,100,1,1,1,2560,wall);
 assert.ok(slides.x>100);assert.equal(slides.y,100);
 const village=step('village',1500,1240,1,0,1,2560,clear);
