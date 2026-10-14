@@ -97,6 +97,8 @@ jobs:
           }
           console.log('HTML and VM harness module order OK');
           NODE
+      - name: Save compatibility contract
+        run: node qa/save-compat-unit.cjs
       - name: Dialogue normalization contract
         run: node qa/dialogue-unit.cjs
       - name: NPC interaction geometry contract
