@@ -8,7 +8,8 @@ window.YK_INTERACTION=(()=>{
    if(d>=bd)continue;
    const f=facing[player.dir]||facing.d;
    const dot=(dx*f[0]+dy*f[1])/(d||1);
-   if(dot<-.15)continue;
+   // Require a forward-facing cone; lateral NPCs must not steal object inspection.
+   if(dot<.75)continue;
    best=n;bd=d;
   }
   return best;
