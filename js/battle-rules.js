@@ -124,5 +124,16 @@ window.YK_BATTLE_RULES=(()=>{
   actor.guarding=true;
   return {...intent,amount:0};
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction};
+ // Run one planned ally step at a time; enemy actions remain owned by a later engine.
+ function createTurn(members){return {phase:'allies',queue:turnQueue(members),results:[]};}
+ function advanceTurn(turn,members,targets=[],optionsForActor=()=>({})){
+  if(turn.phase!=='allies')return {phase:turn.phase,finished:true};
+  const step=nextPlannedAction(turn.queue);
+  if(!step){turn.phase='enemies';return {phase:'enemies',finished:true};}
+  const result=executeAction(step,members,targets,optionsForActor(step.id,step.action));
+  turn.results.push(result);
+  if(remainingActions(turn.queue)===0)turn.phase='enemies';
+  return {phase:turn.phase,finished:turn.phase==='enemies',result};
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction,createTurn,advanceTurn};
 })();
