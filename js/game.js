@@ -902,19 +902,9 @@ function move(dx,dy,dir){
  if(fieldStyle&&(fieldMotion||dx&&dy))return;
  S.dir=dir;
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
- const norm=Math.hypot(dx,dy)||1,sp=(Number($("speedSelect").value)||1)*(fieldStyle?32:22);
- const vx=dx/norm*sp,vy=dy/norm*sp,steps=Math.ceil(sp/2),startX=S.x,startY=S.y;
- for(let i=0;i<steps;i++){
-  const nx=clamp(S.x+vx/steps,27,S.area==="field"?YK_WORLD.size-27:S.area==="village"?1504:741),ny=clamp(S.y+vy/steps,34,S.area==="field"?YK_WORLD.size-34:S.area==="village"?1248:736);
-  if(!collision(nx,ny)){S.x=nx;S.y=ny;}
-  // On the open field, a blocked diagonal step must stop instead of sliding
-  // along one axis. This keeps coast, river and mountain edges predictable
-  // under sustained 8-direction touch input.
-  else if(vx&&vy&&!fieldStyle){
-    if(!collision(nx,S.y))S.x=nx;
-    else if(!collision(S.x,ny))S.y=ny;
-  }
- }
+ const startX=S.x,startY=S.y;
+ const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,Number($("speedSelect").value)||1,YK_WORLD.size,collision);
+ S.x=destination.x;S.y=destination.y;
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now()};
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();

@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ctx={};ctx.window=ctx;vm.runInNewContext(fs.readFileSync('js/movement-rules.js','utf8'),ctx);
+const step=ctx.YK_MOVEMENT.step,clear=()=>false;
+const east=step('field',100,100,1,0,1,2560,clear);
+assert.equal(east.x,132);assert.equal(east.y,100);
+const diagonal=step('waterfall',100,100,1,1,1,2560,clear);
+assert.ok(Math.abs(Math.hypot(diagonal.x-100,diagonal.y-100)-22)<.001);
+const wall=(x,y)=>x>=110&&y>=110;
+const stopped=step('field',100,100,1,1,1,2560,wall);
+assert.equal(stopped.x,100);assert.equal(stopped.y,100);
+const slides=step('waterfall',100,100,1,1,1,2560,wall);
+assert.ok(slides.x>100);assert.equal(slides.y,100);
+const village=step('village',1500,1240,1,0,1,2560,clear);
+assert.equal(village.x,1504);
+assert.equal(step('field',100,100,0,0,1,2560,clear).x,100);
+console.log('Movement speed, diagonal normalization, collision and bounds contracts OK');
