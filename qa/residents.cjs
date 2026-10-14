@@ -8,6 +8,26 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>YK_LANDSCAPE.ready());const run=code=>page.evaluate(code=>window.__qaEval(code),code);
  await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>YK_SETTLEMENT.ready()&&YK_AUTOTILE.ready());
  await page.waitForFunction(()=>window.__qaEval('Object.values(NPC_ASSETS).length===5&&Object.values(NPC_ASSETS).every(s=>layerReady(s.atlas))'));
+ // Real action() path: a lateral NPC must not override the village well inspection.
+ const overlap=await run(`(()=>{
+  const npc=YK_SETTLEMENT.residents.find(n=>!n.stationary&&!['shop','rest'].includes(n.service));
+  const well=YK_SETTLEMENT.well;
+  const original={x:npc.x,y:npc.y,frame:npc.frame,dir:npc.dir};
+  const previous={x:S.x,y:S.y,dir:S.dir};
+  S.x=well.x;S.y=well.y+42;S.dir='u';fieldMotion=null;
+  npc.x=S.x+24;npc.y=S.y;
+  const target=nearbyInspectable();
+  const facing=nearestNPC(100);
+  const fired=target?.name==='井戸'&&facing===null?action():false;
+  const speaker=$('speaker').textContent;
+  const open=$('dialog').classList.contains('show');
+  if(open)nextDialog();
+  Object.assign(npc,original);Object.assign(S,previous);
+  return {target:target?.name,facing:facing?.name||null,fired,speaker,open};
+ })()`);
+ assert.equal(overlap.target,'井戸','well must be available to inspect from the test point');
+ assert.equal(overlap.facing,null,'lateral NPC must not be selected');
+ assert(overlap.fired&&overlap.open&&overlap.speaker==='井戸','A button must inspect the well rather than talk to lateral NPC: '+JSON.stringify(overlap));
  const atlasSizes=await run('Object.values(NPC_ASSETS).map(s=>[s.atlas.naturalWidth,s.atlas.naturalHeight])');assert(atlasSizes.every(([w,h])=>w===576&&h===896),'all five NPC atlases loaded');
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0,maxNpcFrameStep=0;
