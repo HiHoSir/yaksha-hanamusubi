@@ -165,11 +165,18 @@ window.YK_BATTLE_RULES=(()=>{
    if(enemy.hp<=0)continue;
    const target=selectEnemyTarget(members,random);
    if(!target)break;
-   const damage=foeDamage(enemy.atk??1,target.def??0,enemy.variance??0,false,target.guarding,random);
+   const special=enemy.special;
+   const triggered=!!(special&&random()<(special.chance??0));
+   const foxfire=triggered&&special.type==='foxfire';
+   const damage=foeDamage(enemy.atk??1,target.def??0,enemy.variance??0,foxfire,target.guarding,random);
    target.hp=Math.max(0,target.hp-damage);
    target.active=target.hp>0;
    target.guarding=false;
-   events.push({enemyId:enemy.id,targetId:target.id,damage,remainingHp:target.hp});
+   if(triggered&&special.type==='poison'&&target.hp>0){
+    target.statuses=target.statuses||{};
+    target.statuses.poison=true;
+   }
+   events.push({enemyId:enemy.id,targetId:target.id,damage,remainingHp:target.hp,special:triggered?special.type:null});
    if(!eligibleActors(members).length)break;
   }
   const outcome=battleOutcome(members,enemies);
@@ -177,5 +184,17 @@ window.YK_BATTLE_RULES=(()=>{
   if(outcome)turn.outcome=outcome;
   return {ok:true,phase:turn.phase,outcome,events};
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction,createTurn,advanceTurn,selectEnemyTarget,battleOutcome,resolveEnemyPhase};
+ // Separate beginning-of-turn status processing; not wired into the live single-hero battle.
+ function processPartyStatuses(members){
+  const events=[];
+  for(const member of members){
+   if(member.hp<=0||!member.statuses?.poison)continue;
+   const damage=Math.min(member.hp,Math.max(1,Math.floor(member.maxhp/16)));
+   member.hp-=damage;
+   member.active=member.hp>0;
+   events.push({actorId:member.id,status:'poison',damage,remainingHp:member.hp});
+  }
+  return events;
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction,createTurn,advanceTurn,selectEnemyTarget,battleOutcome,resolveEnemyPhase,processPartyStatuses};
 })();
