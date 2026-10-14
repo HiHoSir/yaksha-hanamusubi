@@ -2,67 +2,91 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>4人戦闘 UI 検証｜鬼哭の花契り</title>
 <style>
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101627;color:#fff3e0}*{box-sizing:border-box}body{margin:0;padding:12px 12px 26px}main{max-width:1100px;margin:auto}h1{font-size:17px;margin:4px 0 8px}.note{font-size:12px;color:#d9d2cb;margin:0 0 10px}.battle{position:relative;min-height:280px;aspect-ratio:16/8;background:radial-gradient(circle at 78% 20%,#8a7d9b 0,#363958 24%,#1a2939 72%);border:3px solid #a88750;border-radius:10px;overflow:hidden}.moon{position:absolute;right:16%;top:7%;width:70px;aspect-ratio:1;border-radius:50%;background:#f3e5c5;box-shadow:0 0 45px #d7c19d80}.land{position:absolute;inset:auto 0 0;height:31%;background:linear-gradient(#384b40,#1e252d)}.hero{position:absolute;left:2%;bottom:8%;height:85%;width:32%;object-fit:contain;object-position:bottom;filter:drop-shadow(3px 8px 4px #0009);transition:transform .22s}.hero.attack{transform:translateX(22px) rotate(7deg)}.hero.hit{transform:translateX(-15px) rotate(-8deg);filter:brightness(1.8)}.hero.heal{filter:drop-shadow(0 0 15px #76f4a1)}.enemies{position:absolute;left:35%;right:3%;bottom:20%;display:flex;align-items:end;justify-content:space-around;gap:8px}.enemy{position:relative;min-width:0;background:transparent;border:2px solid transparent;color:white;border-radius:10px;padding:8px 3px;flex:1;max-width:160px}.enemy img{width:100%;height:115px;object-fit:contain;filter:drop-shadow(0 6px 5px #000a)}.enemy.selected{border-color:#ffe39a;background:#fff2}.enemyName{display:none;position:absolute;top:-31px;left:50%;transform:translateX(-50%);background:#172235;border:1px solid #e3bd79;border-radius:4px;padding:4px 8px;white-space:nowrap;font-size:12px}.targeting .enemy.selected .enemyName{display:block}.panel{border:2px solid #bda073;border-radius:8px;background:#1c2940;padding:8px;margin-top:8px}.party{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.member{padding:6px;min-width:0;border:1px solid #9b8866;background:#24344d;border-radius:7px}.member.current{outline:2px solid #f6d178}.portrait{display:block;width:min(100%,74px);aspect-ratio:1;object-fit:cover;object-position:top;margin:auto;border:2px solid #ceb18b;background:#162037}.name{text-align:center;font-size:12px;font-weight:700;padding:5px 0;white-space:nowrap}.stat{font-size:11px;font-variant-numeric:tabular-nums}.bar{height:5px;background:#0b1720;border-radius:3px;overflow:hidden;margin:2px 0 4px}.bar>i{display:block;height:100%;background:#65be78}.bar.mp>i{background:#6c9ede}.controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}button{touch-action:manipulation;cursor:pointer}.controls button{background:#34435b;color:#fff;border:1px solid #a38d67;border-radius:7px;padding:10px 12px;font-size:14px}.controls button:disabled{opacity:.4}.message{min-height:42px;line-height:1.6;font-size:13px}.foot{font-size:12px;color:#d4d9e2;margin-top:10px}@media(max-width:540px){.battle{min-height:215px;aspect-ratio:16/9}.enemy img{height:65px}.moon{width:40px}.name,.stat{font-size:10px}.member{padding:4px}.controls button{padding:9px;font-size:12px}}
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101627;color:#fff3e0}*{box-sizing:border-box}body{margin:0;padding:12px 12px 26px}main{max-width:1100px;margin:auto}h1{font-size:17px;margin:4px 0 8px}.note{font-size:12px;color:#d9d2cb;margin:0 0 10px}.battle{position:relative;min-height:280px;aspect-ratio:16/8;background:radial-gradient(circle at 78% 20%,#8a7d9b 0,#363958 24%,#1a2939 72%);border:3px solid #a88750;border-radius:10px;overflow:hidden}.moon{position:absolute;right:16%;top:7%;width:70px;aspect-ratio:1;border-radius:50%;background:#f3e5c5;box-shadow:0 0 45px #d7c19d80}.land{position:absolute;inset:auto 0 0;height:31%;background:linear-gradient(#384b40,#1e252d)}.hero{position:absolute;left:2%;bottom:8%;height:85%;width:32%;object-fit:contain;object-position:bottom;filter:drop-shadow(3px 8px 4px #0009);transition:transform .22s}.hero.attack{transform:translateX(22px) rotate(7deg)}.hero.hit{transform:translateX(-15px) rotate(-8deg);filter:brightness(1.8)}.hero.heal{filter:drop-shadow(0 0 15px #76f4a1)}.enemies{position:absolute;left:35%;right:3%;bottom:20%;display:flex;align-items:end;justify-content:space-around;gap:8px}.enemy{position:relative;min-width:0;background:transparent;border:2px solid transparent;color:white;border-radius:10px;padding:8px 3px;flex:1;max-width:160px}.enemy img{width:100%;height:115px;object-fit:contain;filter:drop-shadow(0 6px 5px #000a)}.enemy.selected{border-color:#ffe39a;background:#fff2}.enemyName{display:none;position:absolute;top:-31px;left:50%;transform:translateX(-50%);background:#172235;border:1px solid #e3bd79;border-radius:4px;padding:4px 8px;white-space:nowrap;font-size:12px}.targeting .enemy.selected .enemyName{display:block}.panel{border:2px solid #bda073;border-radius:8px;background:#1c2940;padding:8px;margin-top:8px}.party{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.member{padding:6px;min-width:0;border:1px solid #9b8866;background:#24344d;border-radius:7px}.member.current{outline:2px solid #f6d178}.portrait{display:block;width:min(100%,74px);aspect-ratio:1;object-fit:cover;object-position:top;margin:auto;border:2px solid #ceb18b;background:#162037}.name{text-align:center;font-size:12px;font-weight:700;padding:5px 0;white-space:nowrap}.stat{font-size:11px;font-variant-numeric:tabular-nums}.bar{height:5px;background:#0b1720;border-radius:3px;overflow:hidden;margin:2px 0 4px}.bar>i{display:block;height:100%;background:#65be78}.bar.mp>i{background:#6c9ede}.controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}button{touch-action:manipulation;cursor:pointer}.controls button{background:#34435b;color:#fff;border:1px solid #a38d67;border-radius:7px;padding:10px 12px;font-size:14px}.controls button:disabled{opacity:.4}.enemy:disabled{opacity:.5}.member{position:relative}.member.current{background:#38506c}.member.queued:after{content:"✓";position:absolute;right:5px;top:3px;color:#a9e7b1}.controls{justify-content:center}.controls button{flex:1;min-width:70px;max-width:190px}.battle{touch-action:manipulation}.message{min-height:42px;line-height:1.6;font-size:13px}.foot{font-size:12px;color:#d4d9e2;margin-top:10px}@media(max-width:540px){.battle{min-height:215px;aspect-ratio:16/9}.enemy img{height:65px}.moon{width:40px}.name,.stat{font-size:10px}.member{padding:4px}.controls button{padding:9px;font-size:12px}}
 </style></head><body><main><h1>4人パーティ戦闘・独立検証</h1><p class="note">本編には未接続の試作。仲間の画像は一時的な既存素材です。敵名はターゲット選択中だけ表示します。</p>
 <section class="battle" id="battle"><div class="moon"></div><div class="land"></div><img class="hero" id="hero" src="assets/characters/yashahime/normal-v10/back-neutral.png" alt="主人公の背面画像"><div class="enemies" id="enemies"></div></section>
 <div class="panel party" id="party"></div>
 <div class="panel message" id="message" aria-live="polite">「たたかう」で対象を選択してください。</div>
-<div class="controls"><button id="attack">たたかう</button><button id="skill">わざ</button><button id="heal">かいふく</button><button id="guard">まもる</button><button id="left">◀ 対象</button><button id="right">対象 ▶</button><button id="confirm">決定</button><button id="next">次の行動</button><button id="reset">やりなおす</button></div>
-<p class="foot">操作：4人分の行動を予約し「次の行動」で順番に解決。敵の攻撃後は次ターンへ。主人公背面素材は試作用であり、正式なバストアップ絵ではありません。</p></main>
+<div class="controls" id="commands"><button id="attack">たたかう</button><button id="skill">わざ</button><button id="heal">かいふく</button><button id="guard">まもる</button></div><div class="controls"><button id="cancel" hidden>もどる</button><button id="reset">やりなおす</button></div>
+<p class="foot">操作：行動を選択し、攻撃・技は敵を直接タップ。4人分の予約後は自動進行します。主人公背面素材は試作用であり、正式なバストアップ絵ではありません。</p></main>
 <script src="js/battle-rules.js"></script><script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),rules=window.YK_BATTLE_RULES;
 const artwork='assets/characters/yashahime/normal-v10/';
 const faces=[artwork+'front-neutral.png','assets/characters/npc/satoko/front-0.png','assets/characters/npc/osumi/front-0.png','assets/characters/npc/elder/front-0.png'];
 const enemyImages=['assets/enemies/hd512/crab-intact-512.png','assets/enemies/crowtengu.png'];
-let members,enemies,cursor,choice,targeting,turn;
-function fresh(){members=rules.partyView({name:'緋月',hp:88,maxhp:88,mp:22,maxmp:22},[{id:'a',name:'仲間A',hp:70,maxhp:70,mp:12,maxmp:12},{id:'b',name:'仲間B',hp:60,maxhp:60,mp:16,maxmp:16},{id:'c',name:'仲間C',hp:76,maxhp:76,mp:10,maxmp:10}]);enemies=[{id:'e0',name:'甲殻の妖',hp:95,maxhp:95,atk:5,variance:1},{id:'e1',name:'烏天狗',hp:85,maxhp:85,atk:6,variance:1}];cursor=0;choice=null;targeting=false;turn=null;notice('「たたかう」で対象を選択してください。');render();}
+let members,enemies,choice,targeting,turn,locked,epoch=0;
+const labels={attack:'たたかう',skill:'わざ',heal:'かいふく',guard:'まもる'};
 function notice(s){$('message').textContent=s;}
+function living(){return rules.eligibleActors(members);}
+function pending(){return living().find(m=>!m.action);}
+function fresh(){
+ epoch++;locked=false;members=rules.partyView({name:'緋月',hp:88,maxhp:88,mp:22,maxmp:22},[{id:'a',name:'仲間A',hp:70,maxhp:70,mp:12,maxmp:12},{id:'b',name:'仲間B',hp:60,maxhp:60,mp:16,maxmp:16},{id:'c',name:'仲間C',hp:76,maxhp:76,mp:10,maxmp:10}]);
+ enemies=[{id:'e0',name:'甲殻の妖',hp:95,maxhp:95,atk:5,variance:1},{id:'e1',name:'烏天狗',hp:85,maxhp:85,atk:6,variance:1}];
+ choice=null;targeting=false;turn=null;notice('緋月の行動を選んでください。');render();
+}
 function render(){
  $('battle').classList.toggle('targeting',targeting);
- $('enemies').innerHTML=enemies.map((e,i)=>'<button class="enemy '+(targeting&&i===cursor?'selected':'')+'" data-i="'+i+'"><span class="enemyName">'+e.name+'</span><img src="'+enemyImages[i]+'" alt=""><span aria-label="残りHP">'+(e.hp>0?'': '討伐')+'</span></button>').join('');
- document.querySelectorAll('.enemy').forEach(b=>b.addEventListener('click',()=>{cursor=Number(b.dataset.i);if(targeting)confirm();else render();}));
- $('party').innerHTML=members.map((m,i)=>'<div class="member '+((turn?'':rules.eligibleActors(members).filter(x=>!x.action)[0]?.id===m.id)?'current':'')+'"><img class="portrait" src="'+faces[i]+'" alt=""><div class="name">'+m.name+'</div><div class="stat">HP '+m.hp+'/'+m.maxhp+'</div><div class="bar"><i style="width:'+Math.max(0,100*m.hp/m.maxhp)+'%"></i></div><div class="stat">MP '+m.mp+'/'+m.maxmp+'</div><div class="bar mp"><i style="width:'+Math.max(0,100*m.mp/m.maxmp)+'%"></i></div></div>').join('');
- $('next').disabled=!!targeting||(!turn&&!rules.eligibleActors(members).every(m=>m.action!==null))||turn?.phase==='result';['attack','skill','heal','guard'].forEach(id=>$(id).disabled=!!turn||!rules.eligibleActors(members).some(x=>!x.action));
- $('left').disabled=$('right').disabled=!targeting;$('confirm').disabled=!targeting;
+ $('enemies').innerHTML=enemies.map((e,i)=>'<button class="enemy '+(targeting&&e.hp>0?'selected':'')+'" data-i="'+i+'" '+(e.hp<=0?'disabled':'')+'><span class="enemyName">'+e.name+'</span><img src="'+enemyImages[i]+'" alt=""><span>'+(e.hp>0?'': '討伐')+'</span></button>').join('');
+ document.querySelectorAll('.enemy').forEach(b=>b.addEventListener('click',()=>{if(targeting)selectEnemy(Number(b.dataset.i));}));
+ const current=!locked?pending():null;
+ $('party').innerHTML=members.map((m,i)=>'<div class="member '+(current?.id===m.id?'current ':'')+(m.action?'queued':'')+'"><img class="portrait" src="'+faces[i]+'" alt=""><div class="name">'+m.name+'</div><div class="stat">HP '+m.hp+'/'+m.maxhp+'</div><div class="bar"><i style="width:'+Math.max(0,100*m.hp/m.maxhp)+'%"></i></div><div class="stat">MP '+m.mp+'/'+m.maxmp+'</div><div class="bar mp"><i style="width:'+Math.max(0,100*m.mp/m.maxmp)+'%"></i></div></div>').join('');
+ ['attack','skill','heal','guard'].forEach(id=>$(id).disabled=locked||targeting||!current);
+ $('cancel').hidden=!targeting;
 }
-function choose(type){if(turn)return;const actor=rules.eligibleActors(members).find(x=>!x.action);if(!actor)return notice('全員予約済み。「次の行動」で実行します。');choice=type;if(type==='attack'||type==='skill'){targeting=true;cursor=enemies.findIndex(e=>e.hp>0);if(cursor<0)return notice('勝利しました。');notice(actor.name+'の'+(type==='skill'?'技':'攻撃')+'：敵を選んで「決定」');render();return;}reserve({type,target:type==='heal'?actor.id:null});}
-function reserve(action){const actor=rules.eligibleActors(members).find(x=>!x.action);if(!actor)return;rules.reserveAction(members,actor.id,action);targeting=false;choice=null;notice(actor.name+'の行動を予約しました。');render();}
-function confirm(){if(!targeting)return;const e=enemies[cursor];if(!e||e.hp<=0)return notice('攻撃できない対象です。');reserve({type:choice,target:e.id});}
-function animate(type){const h=$('hero');h.className='hero '+(type==='attack'||type==='skill'?'attack':type==='heal'?'heal':type==='hit'?'hit':'');setTimeout(()=>h.className='hero',260);}
-function advance(){
- if(targeting||turn?.phase==='result')return;
- if(!turn){
-  const available=rules.eligibleActors(members);
-  if(!available.length)return notice('戦闘不能です。「やりなおす」で再開してください。');
-  if(available.some(m=>m.action===null))return notice('先に味方全員の行動を選んでください。');
-  turn=rules.createTurn(members);
+function choose(type){
+ const actor=pending();if(locked||targeting||!actor)return;
+ if(type==='skill'&&actor.mp<3)return notice(actor.name+'は技が足りません。');
+ if(type==='attack'||type==='skill'){
+  if(!enemies.some(e=>e.hp>0))return finish('victory');
+  choice=type;targeting=true;notice(actor.name+'：攻撃する敵をタップしてください。');render();return;
  }
- if(turn.phase==='allies'){
-  const result=rules.advanceTurn(turn,members,enemies,()=>({level:2,attack:12,bonus:1,random:()=>.1,healAmount:18,mpCost:3}));
-  if(result.result){
-   if(result.result.ok){animate(result.result.type);notice(result.result.actorId+'：'+result.result.type+' '+(result.result.amount??0));}
-   else notice('行動失敗：'+result.result.reason);
-  }
-  if(turn.phase==='enemies')notice($('message').textContent+' ／ 次は敵の行動');
-  // Never run the enemy phase on the same button press as the last ally.
- }else if(turn.phase==='enemies'){
-  const outcome=rules.battleOutcome(members,enemies);
-  if(outcome==='victory'){
-   notice('勝利！ 「やりなおす」で再戦できます。');turn.phase='result';
-  }else{
-   const response=rules.resolveEnemyPhase(turn,members,enemies,{random:()=>.1});
-   animate('hit');
-   notice(response.outcome==='defeat'?'全滅しました。': '敵の行動：'+response.events.map(e=>e.targetId+'へ'+e.damage+'ダメージ').join('／'));
-   if(turn.phase==='planning'){
-    rules.clearActions(members);turn=null;
-    notice($('message').textContent+' ／ 味方の行動を予約してください。');
-   }
-  }
- }
- render();
+ reserve({type,target:type==='heal'?actor.id:null});
 }
-$('attack').onclick=()=>choose('attack');$('skill').onclick=()=>choose('skill');$('heal').onclick=()=>choose('heal');$('guard').onclick=()=>choose('guard');$('confirm').onclick=confirm;
-$('left').onclick=()=>{cursor=(cursor+enemies.length-1)%enemies.length;render();};$('right').onclick=()=>{cursor=(cursor+1)%enemies.length;render();};$('next').onclick=advance;$('reset').onclick=fresh;fresh();
+function selectEnemy(i){
+ if(!targeting||locked||!enemies[i]||enemies[i].hp<=0)return;
+ reserve({type:choice,target:enemies[i].id});
+}
+function cancel(){if(!targeting)return;targeting=false;choice=null;notice((pending()?.name||'味方')+'の行動を選んでください。');render();}
+function reserve(action){
+ const actor=pending();if(!actor||!rules.reserveAction(members,actor.id,action))return;
+ choice=null;targeting=false;
+ if(pending()){notice(pending().name+'の行動を選んでください。');render();}
+ else{locked=true;notice('味方の行動を実行します。');render();runTurn();}
+}
+function animate(type){
+ const h=$('hero');h.className='hero '+(type==='attack'||type==='skill'?'attack':type==='heal'?'heal':type==='hit'?'hit':'');
+ setTimeout(()=>{h.className='hero';},260);
+}
+function finish(outcome){
+ locked=true;targeting=false;choice=null;turn={phase:'result',outcome};
+ notice(outcome==='victory'?'勝利！「やりなおす」で再戦できます。':'全滅しました。「やりなおす」で再戦できます。');render();
+}
+function runTurn(){
+ const token=epoch;
+ turn=rules.createTurn(members);
+ function step(){
+  if(token!==epoch||turn?.phase==='result')return;
+  if(turn.phase==='allies'){
+   const response=rules.advanceTurn(turn,members,enemies,()=>({level:2,attack:12,bonus:1,random:()=>.1,healAmount:18,mpCost:3}));
+   const result=response.result;
+   if(result){if(result.ok){animate(result.type);notice(result.actorId+'：'+labels[result.type]+' '+(result.amount??0));}else notice('行動できません：'+result.reason);}
+   render();
+   if(rules.battleOutcome(members,enemies)==='victory'){finish('victory');return;}
+   setTimeout(step,480);return;
+  }
+  if(turn.phase==='enemies'){
+   const response=rules.resolveEnemyPhase(turn,members,enemies,{random:()=>.2});
+   if(response.events?.length)animate('hit');
+   if(response.outcome){finish(response.outcome);return;}
+   const status=rules.processPartyStatuses(members);
+   if(!living().length){finish('defeat');return;}
+   rules.clearActions(members);turn=null;locked=false;
+   notice('敵の攻撃'+(response.events?.length?'：'+response.events.map(e=>e.damage+'ダメージ').join('／'):'')+(status.length?'／毒のダメージ':'')+'。'+pending().name+'の行動を選んでください。');render();
+  }
+ }
+ setTimeout(step,300);
+}
+$('attack').onclick=()=>choose('attack');$('skill').onclick=()=>choose('skill');$('heal').onclick=()=>choose('heal');$('guard').onclick=()=>choose('guard');$('cancel').onclick=cancel;$('reset').onclick=fresh;fresh();
 })();
 </script></body></html>
