@@ -72,4 +72,14 @@ assert.equal(r.describeAction({id:'b',action:{type:'heal'}},partySnapshot,foes).
 assert.equal(r.describeAction({id:'a',action:{type:'guard'}},partySnapshot,foes).type,'guard');
 assert.equal(r.describeAction({id:'a',action:{type:'unknown'}},partySnapshot,foes).reason,'unsupported-action');
 assert.equal(foes[0].hp,10);assert.equal(partySnapshot[0].hp,30);
-console.log('Battle arithmetic, party queue and action intent contracts OK');
+const executionParty=r.partyView({name:'緋月',hp:20,maxhp:30,mp:5,maxmp:8},[{id:'support',hp:4,maxhp:20,mp:1,maxmp:5}]);
+const enemies=[{id:'e1',hp:15}];
+const dealt=r.executeAction({id:'leader',action:{type:'attack',target:'e1'}},executionParty,enemies,{attack:7,random:()=>0});
+assert.equal(dealt.amount,7);assert.equal(enemies[0].hp,8);
+const healed=r.executeAction({id:'support',action:{type:'heal',target:'leader'}},executionParty,enemies,{healAmount:50});
+assert.equal(healed.amount,10);assert.equal(executionParty[0].hp,30);
+const defended=r.executeAction({id:'support',action:{type:'guard'}},executionParty,enemies);
+assert.equal(defended.ok,true);assert.equal(executionParty[1].guarding,true);
+assert.equal(r.executeAction({id:'leader',action:{type:'attack',target:'missing'}},executionParty,enemies).reason,'target-unavailable');
+assert.equal(enemies[0].hp,8);
+console.log('Battle arithmetic, action execution and intent contracts OK');

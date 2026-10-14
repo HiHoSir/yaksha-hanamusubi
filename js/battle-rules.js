@@ -102,5 +102,27 @@ window.YK_BATTLE_RULES=(()=>{
   }
   return {ok:true,actorId:actor.id,type,targetId:targetId??null};
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction};
+ // Isolated executor for future party battles; caller owns timing, rendering, and persistence.
+ function executeAction(step,members,targets=[],options={}){
+  const intent=describeAction(step,members,targets);
+  if(!intent.ok)return intent;
+  const actor=members.find(m=>m.id===intent.actorId);
+  const target=targets.find(t=>t.id===intent.targetId);
+  if(intent.type==='attack'||intent.type==='skill'){
+   const amount=allyDamage(intent.type,options.level??1,options.attack??0,options.bonus??0,options.random??Math.random);
+   target.hp=Math.max(0,target.hp-amount);
+   return {...intent,amount,remainingHp:target.hp};
+  }
+  if(intent.type==='heal'||intent.type==='item'){
+   const recipient=members.find(m=>m.id===(intent.targetId??intent.actorId));
+   if(!recipient)return {ok:false,reason:'target-unavailable'};
+   const amount=Math.min(Math.max(0,recipient.maxhp-recipient.hp),Math.max(0,options.healAmount??0));
+   recipient.hp+=amount;
+   recipient.active=recipient.hp>0;
+   return {...intent,targetId:recipient.id,amount,remainingHp:recipient.hp};
+  }
+  actor.guarding=true;
+  return {...intent,amount:0};
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction};
 })();
