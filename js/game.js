@@ -733,7 +733,7 @@ function drawActorsOn(c,frameTime=performance.now()){
  }
 }
 function drawActors(frameTime){drawActorsOn(g,frameTime)}
-function nearestNPC(max=92){let best=null,bd=max;for(const n of areaNPCs()){const dx=n.x-S.x,dy=n.y-S.y,d=Math.hypot(dx,dy);if(d>=bd)continue;const facing={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[S.dir]||[0,1],dot=(dx*facing[0]+dy*facing[1])/(d||1);if(dot<-.15)continue;best=n;bd=d}return best}
+function nearestNPC(max=92){return YK_INTERACTION.nearestFacingNPC(S,areaNPCs(),max)}
 function npcBlocked(x,y){
  const list=areaNPCs();
  // Artwork can be wide; collision only uses the character's foot/body core.

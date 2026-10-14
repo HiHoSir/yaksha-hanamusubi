@@ -86,16 +86,19 @@ jobs:
           assert(scripts.indexOf('js/save.js')<scripts.indexOf('js/game-state.js'));
           assert(scripts.indexOf('js/game-state.js')<scripts.indexOf('js/game.js'));
           assert(scripts.indexOf('js/dialogue.js')<scripts.indexOf('js/game.js'));
+          assert(scripts.indexOf('js/interaction.js')<scripts.indexOf('js/game.js'));
           for(const path of scripts)assert(fs.existsSync(path),'missing script: '+path);
           for(const path of ['qa/runtime-smoke.cjs','qa/autotile-smoke.cjs']){
             const source=fs.readFileSync(path,'utf8');
-            const i=source.indexOf("'game-state.js'"),d=source.indexOf("'dialogue.js'"),j=source.indexOf("'game.js'");
-            assert(i>=0&&d>i&&j>d,'QA loader mismatch: '+path);
+            const i=source.indexOf("'game-state.js'"),d=source.indexOf("'dialogue.js'"),e=source.indexOf("'interaction.js'"),j=source.indexOf("'game.js'");
+            assert(i>=0&&d>i&&e>d&&j>e,'QA loader mismatch: '+path);
           }
           console.log('HTML and VM harness module order OK');
           NODE
       - name: Dialogue normalization contract
         run: node qa/dialogue-unit.cjs
+      - name: NPC interaction geometry contract
+        run: node qa/interaction-unit.cjs
       - name: Architecture baseline guard
         run: node qa/architecture-guard.cjs
       - name: Runtime state module contract
