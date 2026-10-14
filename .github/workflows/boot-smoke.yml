@@ -91,6 +91,7 @@ jobs:
           assert(scripts.indexOf('js/battle-rules.js')<scripts.indexOf('js/game.js'));
           assert(scripts.indexOf('js/collision.js')<scripts.indexOf('js/game.js'));
           assert(scripts.indexOf('js/movement-rules.js')<scripts.indexOf('js/game.js'));
+          assert(scripts.indexOf('js/area-transitions.js')<scripts.indexOf('js/game.js'));
           for(const path of scripts)assert(fs.existsSync(path),'missing script: '+path);
           for(const path of ['qa/runtime-smoke.cjs','qa/autotile-smoke.cjs']){
             const source=fs.readFileSync(path,'utf8');
@@ -99,6 +100,8 @@ jobs:
           }
           console.log('HTML and VM harness module order OK');
           NODE
+      - name: Area transitions contract
+        run: node qa/area-transitions-unit.cjs
       - name: Movement geometry contract
         run: node qa/movement-rules-unit.cjs
       - name: Collision geometry contract

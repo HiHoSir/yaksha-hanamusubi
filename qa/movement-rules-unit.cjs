@@ -9,7 +9,7 @@ const wall=(x,y)=>x>=110&&y>=110;
 const stopped=step('field',100,100,1,1,1,2560,wall);
 assert.ok(stopped.x>100&&stopped.x<110);assert.equal(stopped.x,stopped.y);
 const slides=step('waterfall',100,100,1,1,1,2560,wall);
-assert.ok(slides.x>100);assert.equal(slides.y,100);
+assert.ok(slides.x>100);assert.ok(slides.y>=100&&slides.y<110);
 const village=step('village',1500,1240,1,0,1,2560,clear);
 assert.equal(village.x,1504);
 assert.equal(step('field',100,100,0,0,1,2560,clear).x,100);

@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ctx={};ctx.window=ctx;vm.runInNewContext(fs.readFileSync('js/area-transitions.js','utf8'),ctx);
+const exit=ctx.YK_AREA_TRANSITIONS.exit;
+const village={exit:{rect:[10,10,50,50],to:'field'},northExit:{rect:[100,100,200,200],to:'shrine'}};
+const world={places:{shrine:{},village:{}}};
+assert.equal(exit('village',20,20,village,world),'field');
+assert.equal(exit('village',150,150,village,world),'shrine');
+assert.equal(exit('village',10,20,village,world),null);
+assert.equal(exit('shrine',41,100,village,world),'field');
+assert.equal(exit('shrine',42,100,village,world),null);
+assert.equal(exit('teahouse',5,5,village,world),null);
+assert.equal(exit('villageRoom',5,5,village,world),null);
+assert.equal(exit('field',5,5,village,world),null);
+console.log('Area exit rules and boundary contracts OK');
