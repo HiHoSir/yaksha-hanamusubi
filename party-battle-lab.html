@@ -15,7 +15,7 @@ const $=id=>document.getElementById(id),rules=window.YK_BATTLE_RULES;
 const artwork='assets/characters/yashahime/normal-v10/';
 const faces=[artwork+'front-neutral.png','assets/characters/npc/satoko/front-0.png','assets/characters/npc/osumi/front-0.png','assets/characters/npc/elder/front-0.png'];
 const enemyImages=['assets/enemies/hd512/crab-intact-512.png','assets/enemies/crowtengu.png'];
-let members,enemies,choice,targeting,turn,locked,epoch=0,spotlight=null,order=[];
+let members,enemies,choice,targeting,turn,locked,epoch=0,spotlight=null,order=[],targetIndex=0;
 const labels={attack:'たたかう',skill:'わざ',heal:'かいふく',guard:'まもる'};
 function notice(s){$('message').textContent=s;}
 function living(){return rules.eligibleActors(members);}
@@ -23,11 +23,13 @@ function pending(){return living().find(m=>!m.action);}
 function fresh(){
  epoch++;locked=false;members=rules.partyView({name:'緋月',hp:88,maxhp:88,mp:22,maxmp:22},[{id:'a',name:'仲間A',hp:70,maxhp:70,mp:12,maxmp:12},{id:'b',name:'仲間B',hp:60,maxhp:60,mp:16,maxmp:16},{id:'c',name:'仲間C',hp:76,maxhp:76,mp:10,maxmp:10}]);
  enemies=[{id:'e0',name:'甲殻の妖',hp:95,maxhp:95,atk:5,variance:1},{id:'e1',name:'烏天狗',hp:85,maxhp:85,atk:6,variance:1}];
- choice=null;targeting=false;turn=null;spotlight=null;order=[];notice('緋月の行動を選んでください。');render();
+ members.forEach((m,i)=>{m.speed=[15,9,18,12][i];});
+ enemies.forEach((e,i)=>{e.speed=[8,16][i];});
+ choice=null;targeting=false;turn=null;spotlight=null;order=[];targetIndex=0;notice('緋月の行動を選んでください。');render();
 }
 function render(){
  $('battle').classList.toggle('targeting',targeting);
- $('enemies').innerHTML=enemies.map((e,i)=>'<button class="enemy '+(targeting&&e.hp>0?'selected':spotlight?.side==='enemy'&&spotlight.id===e.id?'striking':'')+'" data-i="'+i+'" '+(e.hp<=0?'disabled':'')+'><span class="enemyName">'+e.name+'</span><img src="'+enemyImages[i]+'" alt=""><span>'+(e.hp>0?'': '討伐')+'</span></button>').join('');
+ $('enemies').innerHTML=enemies.map((e,i)=>'<button class="enemy '+(targeting&&e.hp>0&&i===targetIndex?'selected':spotlight?.side==='enemy'&&spotlight.id===e.id?'striking':'')+'" data-i="'+i+'" '+(e.hp<=0?'disabled':'')+'><span class="enemyName">'+e.name+'</span><img src="'+enemyImages[i]+'" alt=""><span>'+(e.hp>0?'': '討伐')+'</span></button>').join('');
  document.querySelectorAll('.enemy').forEach(b=>b.addEventListener('click',()=>{if(targeting)selectEnemy(Number(b.dataset.i));}));
  const current=!locked?pending():null;
  $('party').innerHTML=members.map((m,i)=>'<div class="member '+(current?.id===m.id?'current ':'')+(m.action?'queued ':'')+(spotlight?.side==='ally'&&spotlight.id===m.id?'acting':spotlight?.side==='damage'&&spotlight.id===m.id?'damaged':'')+'"><img class="portrait" src="'+faces[i]+'" alt=""><div class="name">'+m.name+'</div><div class="stat">HP '+m.hp+'/'+m.maxhp+'</div><div class="bar"><i style="width:'+Math.max(0,100*m.hp/m.maxhp)+'%"></i></div><div class="stat">MP '+m.mp+'/'+m.maxmp+'</div><div class="bar mp"><i style="width:'+Math.max(0,100*m.mp/m.maxmp)+'%"></i></div></div>').join('');
@@ -39,12 +41,13 @@ function choose(type){
  if(type==='skill'&&actor.mp<3)return notice(actor.name+'は技が足りません。');
  if(type==='attack'||type==='skill'){
   if(!enemies.some(e=>e.hp>0))return finish('victory');
-  choice=type;targeting=true;notice(actor.name+'：攻撃する敵をタップしてください。');render();return;
+  choice=type;targeting=true;targetIndex=Math.max(0,enemies.findIndex(e=>e.hp>0));notice(actor.name+'：攻撃する敵をタップしてください。');render();return;
  }
  reserve({type,target:type==='heal'?actor.id:null});
 }
 function selectEnemy(i){
  if(!targeting||locked||!enemies[i]||enemies[i].hp<=0)return;
+ targetIndex=i;
  reserve({type:choice,target:enemies[i].id});
 }
 function cancel(){if(!targeting)return;targeting=false;choice=null;notice((pending()?.name||'味方')+'の行動を選んでください。');render();}
@@ -56,7 +59,7 @@ function reserve(action){
 }
 function animate(type){
  const h=$('hero');h.className='hero '+(type==='attack'||type==='skill'?'attack':type==='heal'?'heal':type==='hit'?'hit':'');
- setTimeout(()=>{h.className='hero';},260);
+ const token=epoch;setTimeout(()=>{if(token===epoch)h.className='hero';},260);
 }
 function finish(outcome){
  locked=true;targeting=false;choice=null;turn={phase:'result',outcome};
@@ -71,6 +74,7 @@ function runTurn(){
   const outcome=rules.battleOutcome(members,enemies);
   if(outcome){finish(outcome);return;}
   if(index>=order.length){
+   spotlight=null;
    const effects=rules.processPartyStatuses(members);
    const ended=rules.battleOutcome(members,enemies);
    if(ended){finish(ended);return;}
@@ -81,8 +85,13 @@ function runTurn(){
   spotlight=next;
   if(next.side==='ally'){
    const actor=members.find(m=>m.id===next.id);
-   if(!actor||actor.hp<=0||!actor.action){setTimeout(step,180);return;}
+   if(!actor||actor.hp<=0||!actor.action){spotlight=null;setTimeout(step,180);return;}
    const action={id:actor.id,action:{...actor.action}};
+   // A target may have fallen before a slower ally acts. Retarget a living enemy.
+   if(['attack','skill'].includes(action.action.type)&&!enemies.some(e=>e.id===action.action.target&&e.hp>0)){
+    const alternative=enemies.find(e=>e.hp>0);
+    if(alternative)action.action.target=alternative.id;
+   }
    const result=rules.executeAction(action,members,enemies,{level:2,attack:12,bonus:1,random:Math.random,healAmount:18,mpCost:3});
    if(result.ok){
     animate(result.type);
@@ -90,7 +99,7 @@ function runTurn(){
    }else notice(actor.name+'は行動できなかった（'+result.reason+'）');
   }else{
    const enemy=enemies.find(e=>e.id===next.id);
-   if(!enemy||enemy.hp<=0){setTimeout(step,180);return;}
+   if(!enemy||enemy.hp<=0){spotlight=null;setTimeout(step,180);return;}
    // Show the attacker before applying damage, so each enemy action is visible.
    notice(enemy.name+'が攻撃！');render();
    setTimeout(()=>{

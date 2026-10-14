@@ -151,4 +151,7 @@ const randomRanked=r.initiativeOrder(initiativeParty,[{id:'slow',hp:5,speed:4}],
 assert.equal(randomRanked.length,3);
 const attacked=r.executeEnemyAction({id:'slow',hp:5,atk:3,variance:0},initiativeParty,()=>0);
 assert.equal(attacked.targetId,'leader');assert.equal(initiativeParty[0].hp,17);
-console.log('Battle specials, independent enemy actions and speed initiative OK');
+const varying=r.initiativeOrder(initiativeParty,[{id:'mid',hp:5,speed:15}],()=>.5);
+assert.deepEqual(Array.from(varying,x=>x.id),['quick','mid','leader']);
+assert.equal(r.initiativeOrder(initiativeParty,[{id:'mid',hp:0,speed:100}],()=>.5).some(x=>x.id==='mid'),false);
+console.log('Battle specials, individual enemy turns and speed initiative OK');
