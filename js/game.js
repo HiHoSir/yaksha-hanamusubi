@@ -902,11 +902,9 @@ function move(dx,dy,dir){
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  if(ex&&ex!==S.area){
-   fieldMotion=null;S.area=ex;
-   if(ex==="field"){[S.x,S.y]=YK_WORLD.places[from]?.point||S.worldPosition||YK_WORLD.hub;S.dir="d";}
-   else {S.x=70;S.y=430;}
-   S.visitedAreas[ex]=true;
-   S.frame=1;walkPhase=0;S.encounterSteps=0;S.encounterGrace=D.areas[ex]?.grace||0;YK_INPUT.stopAll();message(D.areas[ex].name);YK_SAVE.auto(S)
+   fieldMotion=null;
+   YK_AREA_TRANSITIONS.apply(S,ex,YK_WORLD,D.areas);
+   walkPhase=0;YK_INPUT.stopAll();message(D.areas[ex].name);YK_SAVE.auto(S)
  }else encounter();
  hud(!fieldStyle);if(S.walk%10===0)YK_SAVE.auto(S)
 }function renderBattle(){

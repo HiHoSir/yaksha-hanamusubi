@@ -10,5 +10,18 @@ window.YK_AREA_TRANSITIONS=(()=>{
   if(world?.places?.[area]&&area!=='village'&&x<42)return 'field';
   return null;
  }
- return {exit};
+ // Apply location-specific runtime state only. Caller handles input, messages and saves.
+ function apply(state,destination,world,areas){
+  const previous=state.area;
+  state.area=destination;
+  if(destination==='field'){
+   const point=world.places[previous]?.point||state.worldPosition||world.hub;
+   [state.x,state.y]=point;
+   state.dir='d';
+  }else{state.x=70;state.y=430;}
+  state.visitedAreas[destination]=true;
+  state.frame=1;state.encounterSteps=0;state.encounterGrace=areas[destination]?.grace||0;
+  return state;
+ }
+ return {exit,apply};
 })();
