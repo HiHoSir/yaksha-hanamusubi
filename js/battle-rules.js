@@ -67,5 +67,17 @@ window.YK_BATTLE_RULES=(()=>{
   return members;
  }
  function eligibleActors(members){return members.filter(member=>member.active&&member.hp>0);}
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors};
+ // Deterministic planning only; the existing single-hero turn loop is unchanged.
+ function reserveAction(members,actorId,action){
+  const actor=members.find(m=>m.id===actorId);
+  if(!actor||!actor.active||actor.hp<=0)return false;
+  actor.action={...action};
+  return true;
+ }
+ function actionOrder(members){
+  // Stable party-position order until speed/initiative is defined.
+  return eligibleActors(members).filter(m=>m.action!==null).map(m=>({id:m.id,action:{...m.action}}));
+ }
+ function clearActions(members){for(const member of members)member.action=null;}
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions};
 })();
