@@ -46,6 +46,25 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  })()`);
  assert(facingNPC.fired&&facingNPC.open&&facingNPC.speaker===facingNPC.expected,
    'A button must speak to directly faced NPC: '+JSON.stringify(facingNPC));
+ // Rear NPC must not intercept A-button inspection of the well.
+ const rearNPC=await run(`(()=>{
+  const npc=YK_SETTLEMENT.residents.find(n=>!n.stationary&&!['shop','rest'].includes(n.service));
+  const well=YK_SETTLEMENT.well;
+  const original={x:npc.x,y:npc.y,frame:npc.frame,dir:npc.dir};
+  const previous={x:S.x,y:S.y,dir:S.dir};
+  S.x=well.x;S.y=well.y+42;S.dir='u';fieldMotion=null;
+  npc.x=S.x;npc.y=S.y+24;
+  const selected=nearestNPC(100);
+  const target=nearbyInspectable();
+  const fired=action();
+  const speaker=$('speaker').textContent;
+  const open=$('dialog').classList.contains('show');
+  for(let i=0;i<12&&$('dialog').classList.contains('show');i++)nextDialog();
+  Object.assign(npc,original);Object.assign(S,previous);
+  return {selected:selected?.name||null,target:target?.name||null,fired,speaker,open};
+ })()`);
+ assert(rearNPC.selected===null&&rearNPC.target==='井戸'&&rearNPC.fired&&rearNPC.open&&rearNPC.speaker==='井戸',
+   'A button must inspect well with NPC behind: '+JSON.stringify(rearNPC));
  const atlasSizes=await run('Object.values(NPC_ASSETS).map(s=>[s.atlas.naturalWidth,s.atlas.naturalHeight])');assert(atlasSizes.every(([w,h])=>w===576&&h===896),'all five NPC atlases loaded');
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0,maxNpcFrameStep=0;
