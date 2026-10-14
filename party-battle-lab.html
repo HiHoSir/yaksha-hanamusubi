@@ -23,7 +23,7 @@ function render(){
  $('enemies').innerHTML=enemies.map((e,i)=>'<button class="enemy '+(targeting&&i===cursor?'selected':'')+'" data-i="'+i+'"><span class="enemyName">'+e.name+'</span><img src="'+enemyImages[i]+'" alt=""><span aria-label="残りHP">'+(e.hp>0?'': '討伐')+'</span></button>').join('');
  document.querySelectorAll('.enemy').forEach(b=>b.addEventListener('click',()=>{cursor=Number(b.dataset.i);if(targeting)confirm();else render();}));
  $('party').innerHTML=members.map((m,i)=>'<div class="member '+((turn?'':rules.eligibleActors(members).filter(x=>!x.action)[0]?.id===m.id)?'current':'')+'"><img class="portrait" src="'+faces[i]+'" alt=""><div class="name">'+m.name+'</div><div class="stat">HP '+m.hp+'/'+m.maxhp+'</div><div class="bar"><i style="width:'+Math.max(0,100*m.hp/m.maxhp)+'%"></i></div><div class="stat">MP '+m.mp+'/'+m.maxmp+'</div><div class="bar mp"><i style="width:'+Math.max(0,100*m.mp/m.maxmp)+'%"></i></div></div>').join('');
- $('next').disabled=!!targeting;['attack','skill','heal','guard'].forEach(id=>$(id).disabled=!!turn||!rules.eligibleActors(members).some(x=>!x.action));
+ $('next').disabled=!!targeting||(!turn&&!rules.eligibleActors(members).every(m=>m.action!==null))||turn?.phase==='result';['attack','skill','heal','guard'].forEach(id=>$(id).disabled=!!turn||!rules.eligibleActors(members).some(x=>!x.action));
  $('left').disabled=$('right').disabled=!targeting;$('confirm').disabled=!targeting;
 }
 function choose(type){if(turn)return;const actor=rules.eligibleActors(members).find(x=>!x.action);if(!actor)return notice('全員予約済み。「次の行動」で実行します。');choice=type;if(type==='attack'||type==='skill'){targeting=true;cursor=enemies.findIndex(e=>e.hp>0);if(cursor<0)return notice('勝利しました。');notice(actor.name+'の'+(type==='skill'?'技':'攻撃')+'：敵を選んで「決定」');render();return;}reserve({type,target:type==='heal'?actor.id:null});}
@@ -31,16 +31,34 @@ function reserve(action){const actor=rules.eligibleActors(members).find(x=>!x.ac
 function confirm(){if(!targeting)return;const e=enemies[cursor];if(!e||e.hp<=0)return notice('攻撃できない対象です。');reserve({type:choice,target:e.id});}
 function animate(type){const h=$('hero');h.className='hero '+(type==='attack'||type==='skill'?'attack':type==='heal'?'heal':type==='hit'?'hit':'');setTimeout(()=>h.className='hero',260);}
 function advance(){
- if(targeting)return;
- if(!turn){turn=rules.createTurn(members);}
+ if(targeting||turn?.phase==='result')return;
+ if(!turn){
+  const available=rules.eligibleActors(members);
+  if(!available.length)return notice('戦闘不能です。「やりなおす」で再開してください。');
+  if(available.some(m=>m.action===null))return notice('先に味方全員の行動を選んでください。');
+  turn=rules.createTurn(members);
+ }
  if(turn.phase==='allies'){
   const result=rules.advanceTurn(turn,members,enemies,()=>({level:2,attack:12,bonus:1,random:()=>.1,healAmount:18,mpCost:3}));
-  if(result.result){if(result.result.ok){animate(result.result.type);notice(result.result.actorId+'：'+result.result.type+' '+(result.result.amount??0));}else notice('行動失敗：'+result.result.reason);}
- }
- if(turn.phase==='enemies'){
+  if(result.result){
+   if(result.result.ok){animate(result.result.type);notice(result.result.actorId+'：'+result.result.type+' '+(result.result.amount??0));}
+   else notice('行動失敗：'+result.result.reason);
+  }
+  if(turn.phase==='enemies')notice($('message').textContent+' ／ 次は敵の行動');
+  // Never run the enemy phase on the same button press as the last ally.
+ }else if(turn.phase==='enemies'){
   const outcome=rules.battleOutcome(members,enemies);
-  if(outcome==='victory'){notice('勝利！ 「やりなおす」で再戦できます。');turn.phase='result';}
-  else{const response=rules.resolveEnemyPhase(turn,members,enemies,{random:()=>.1});animate('hit');notice(response.outcome==='defeat'?'全滅しました。': '敵の行動：'+response.events.map(e=>e.targetId+'へ'+e.damage+'ダメージ').join('／'));if(turn.phase==='planning'){rules.clearActions(members);turn=null;}}
+  if(outcome==='victory'){
+   notice('勝利！ 「やりなおす」で再戦できます。');turn.phase='result';
+  }else{
+   const response=rules.resolveEnemyPhase(turn,members,enemies,{random:()=>.1});
+   animate('hit');
+   notice(response.outcome==='defeat'?'全滅しました。': '敵の行動：'+response.events.map(e=>e.targetId+'へ'+e.damage+'ダメージ').join('／'));
+   if(turn.phase==='planning'){
+    rules.clearActions(members);turn=null;
+    notice($('message').textContent+' ／ 味方の行動を予約してください。');
+   }
+  }
  }
  render();
 }
