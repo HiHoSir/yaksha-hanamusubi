@@ -28,6 +28,24 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  assert.equal(overlap.target,'井戸','well must be available to inspect from the test point');
  assert.equal(overlap.facing,null,'lateral NPC must not be selected');
  assert(overlap.fired&&overlap.open&&overlap.speaker==='井戸','A button must inspect the well rather than talk to lateral NPC: '+JSON.stringify(overlap));
+ // Opposite case: facing the NPC must start that NPC's conversation, not inspect the well.
+ const facingNPC=await run(`(()=>{
+  const npc=YK_SETTLEMENT.residents.find(n=>!n.stationary&&!['shop','rest'].includes(n.service));
+  const well=YK_SETTLEMENT.well;
+  const original={x:npc.x,y:npc.y,frame:npc.frame,dir:npc.dir};
+  const previous={x:S.x,y:S.y,dir:S.dir};
+  S.x=well.x;S.y=well.y+42;S.dir='u';fieldMotion=null;
+  npc.x=S.x;npc.y=S.y-24;
+  const selected=nearestNPC(100);
+  const fired=selected===npc?action():false;
+  const speaker=$('speaker').textContent;
+  const open=$('dialog').classList.contains('show');
+  for(let i=0;i<12&&$('dialog').classList.contains('show');i++)nextDialog();
+  Object.assign(npc,original);Object.assign(S,previous);
+  return {selected:selected?.name||null,expected:npc.name,fired,speaker,open};
+ })()`);
+ assert(facingNPC.fired&&facingNPC.open&&facingNPC.speaker===facingNPC.expected,
+   'A button must speak to directly faced NPC: '+JSON.stringify(facingNPC));
  const atlasSizes=await run('Object.values(NPC_ASSETS).map(s=>[s.atlas.naturalWidth,s.atlas.naturalHeight])');assert(atlasSizes.every(([w,h])=>w===576&&h===896),'all five NPC atlases loaded');
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0,maxNpcFrameStep=0;
