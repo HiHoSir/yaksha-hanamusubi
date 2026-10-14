@@ -666,9 +666,7 @@ function map(frameTime=performance.now()){
  if(S.area==="debugField"){drawDebugField(g);return;}
  if(S.area==="field"){
   YK_LANDSCAPE.load(assetLoaded);YK_AUTOTILE.load(assetLoaded);
-  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
-  const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
-  const y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
+  const {x,y}=YK_CAMERA.position(S,fieldMotion,frameTime);
   g.save();g.translate(0,32);g.scale(1.2,1.2);
   const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4);
   g.restore();
@@ -678,8 +676,7 @@ function map(frameTime=performance.now()){
   worldHint(nearbyGuide()?"A：地蔵に道を聞く":k?"A："+YK_WORLD.places[k].name+"へ入る":"A：行動 ／ 地図で目的地を確認");return;
  }
  if(S.area==="village"){
-  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
-  const view={...S,x:fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y:fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y};
+  const view={...S,...YK_CAMERA.position(S,fieldMotion,frameTime)};
   const actors=areaNPCs().map(n=>({x:n.x,y:n.y,draw:(x,y,z)=>{g.save();g.translate(x,y);g.scale(z,z);npc(g,0,0,n.type,n.name,n.dir||"d",n.frame??1);g.restore();}}));
   actors.push({hero:true,x:view.x,y:view.y,draw:(x,y,z)=>hero(g,x,y-9*.56*z,S.dir,S.frame,S.outfit,.56*z)});
   if(!YK_SETTLEMENT.draw(g,view,actors,villageDoorMotion))worldHint("鬼灯の里を読込中…");

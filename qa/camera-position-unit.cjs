@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ctx={};ctx.window=ctx;vm.runInNewContext(fs.readFileSync('js/camera-position.js','utf8'),ctx);
+const position=ctx.YK_CAMERA.position;
+const state={x:140,y:250},motion={x:100,y:200,at:1000};
+const at=t=>position(state,motion,t);
+assert.equal(at(1000).x,100);assert.equal(at(1000).y,200);
+assert.equal(at(1072).x,120);assert.equal(at(1072).y,225);
+assert.equal(at(1144).x,140);assert.equal(at(1144).y,250);
+assert.equal(at(999).x,100);assert.equal(at(1300).x,140);
+assert.equal(position(state,null,1000).x,140);
+assert.equal(state.x,140);assert.equal(motion.x,100);
+console.log('Field/village render interpolation contracts OK');
