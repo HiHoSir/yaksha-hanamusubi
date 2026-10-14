@@ -6,6 +6,7 @@ const world={places:{shrine:{},village:{}}};
 assert.equal(exit('village',20,20,village,world),'field');
 assert.equal(exit('village',150,150,village,world),'shrine');
 assert.equal(exit('village',10,20,village,world),null);
+assert.equal(exit('village',100,150,village,world),'shrine');
 assert.equal(exit('shrine',41,100,village,world),'field');
 assert.equal(exit('shrine',42,100,village,world),null);
 assert.equal(exit('teahouse',5,5,village,world),null);
