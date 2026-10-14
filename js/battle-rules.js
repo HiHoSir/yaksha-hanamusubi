@@ -48,5 +48,24 @@ window.YK_BATTLE_RULES=(()=>{
   }
   return '';
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot};
+ // Runtime-only party projection. Never writes to legacy save/player state.
+ function partyMember(source,id){
+  return {id:String(id),name:String(source.name||id),hp:source.hp,maxhp:source.maxhp,
+   mp:source.mp,maxmp:source.maxmp,action:null,guarding:false,active:source.hp>0};
+ }
+ function partyView(leader,companions=[]){
+  const members=[partyMember(leader,'leader')];
+  const seen=new Set(['leader']);
+  for(const companion of companions){
+   if(members.length>=4)break;
+   if(!companion||companion.id==null)continue;
+   const id=String(companion.id);
+   if(seen.has(id))continue;
+   seen.add(id);
+   members.push(partyMember(companion,id));
+  }
+  return members;
+ }
+ function eligibleActors(members){return members.filter(member=>member.active&&member.hp>0);}
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors};
 })();

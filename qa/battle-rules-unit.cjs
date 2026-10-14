@@ -37,4 +37,13 @@ assert.equal(r.grantRareLoot(rare,rareBattle,{repeatDropChance:.5},{snow:{name:'
 assert.equal(rare.rareWins.snow,2);assert.equal(rare.relics.snow,1);
 assert.equal(r.grantRareLoot(rare,rareBattle,{repeatDropChance:.5},{snow:{name:'雪のお守り'}},()=>.1),' ／ 雪のお守りを入手！');
 assert.equal(rare.relics.snow,2);
-console.log('Battle arithmetic, commands, phases, rewards and rare loot OK');
+const leader={name:'緋月',hp:30,maxhp:40,mp:8,maxmp:10};
+const companions=[{id:'a',name:'仲間A',hp:20,maxhp:20,mp:3,maxmp:3},{id:'b',hp:0,maxhp:20,mp:2,maxmp:2},{id:'c',hp:4,maxhp:8,mp:1,maxmp:1},{id:'d',hp:10,maxhp:10,mp:0,maxmp:0}];
+const party=r.partyView(leader,companions);
+assert.equal(party.length,4);
+assert.equal(party[0].name,'緋月');assert.equal(party[0].action,null);
+assert.equal(r.eligibleActors(party).length,3);
+party[0].hp=0;assert.equal(leader.hp,30);
+assert.equal(r.partyView(leader,[companions[0],companions[0]]).length,2);
+assert.equal(r.partyView(leader,[]).length,1);
+console.log('Battle arithmetic, rewards and four-member party projection OK');
