@@ -88,11 +88,12 @@ jobs:
           assert(scripts.indexOf('js/dialogue.js')<scripts.indexOf('js/game.js'));
           assert(scripts.indexOf('js/interaction.js')<scripts.indexOf('js/game.js'));
           assert(scripts.indexOf('js/story-events.js')<scripts.indexOf('js/game.js'));
+          assert(scripts.indexOf('js/battle-rules.js')<scripts.indexOf('js/game.js'));
           for(const path of scripts)assert(fs.existsSync(path),'missing script: '+path);
           for(const path of ['qa/runtime-smoke.cjs','qa/autotile-smoke.cjs']){
             const source=fs.readFileSync(path,'utf8');
-            const i=source.indexOf("'game-state.js'"),d=source.indexOf("'dialogue.js'"),e=source.indexOf("'interaction.js'"),k=source.indexOf("'story-events.js'"),j=source.indexOf("'game.js'");
-            assert(i>=0&&d>i&&e>d&&k>e&&j>k,'QA loader mismatch: '+path);
+            const i=source.indexOf("'game-state.js'"),d=source.indexOf("'dialogue.js'"),e=source.indexOf("'interaction.js'"),k=source.indexOf("'story-events.js'"),b=source.indexOf("'battle-rules.js'"),j=source.indexOf("'game.js'");
+            assert(i>=0&&d>i&&e>d&&k>e&&b>k&&j>b,'QA loader mismatch: '+path);
           }
           console.log('HTML and VM harness module order OK');
           NODE
@@ -102,6 +103,8 @@ jobs:
         run: node qa/interaction-unit.cjs
       - name: Story event progression contract
         run: node qa/story-events-unit.cjs
+      - name: Battle arithmetic contract
+        run: node qa/battle-rules-unit.cjs
       - name: Architecture baseline guard
         run: node qa/architecture-guard.cjs
       - name: Runtime state module contract

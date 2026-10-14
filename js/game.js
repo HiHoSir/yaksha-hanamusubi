@@ -1007,9 +1007,9 @@ function cmd(n){
  if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();battleLater(foe,420);return;}
  if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);renderBattle();battleLater(foe,480);return;}
  if(n==="attack"||n==="skill"){
-  const d=n==="skill"?20+S.lv*3+relicBonus("skill")+Math.floor(Math.random()*12):S.atk+relicBonus("atk")+Math.floor(Math.random()*8);
+  const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random);
   if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,420);return;}
-  if(battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance){const guarded=Math.max(1,Math.ceil(d*.35));battle.hp-=guarded;battlePose="attack";$("battleText").textContent=`${battle.name}は大鋏で防いだ！ ${guarded}ダメージ`;startBattleFx("impact","enemy",guarded);renderBattle();battleLater(()=>{battlePose="idle";if(battle.hp<=0)return win();battleLater(foe,260)},320);return;}
+  if(battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance){const guarded=YK_BATTLE_RULES.shellDamage(d);battle.hp-=guarded;battlePose="attack";$("battleText").textContent=`${battle.name}は大鋏で防いだ！ ${guarded}ダメージ`;startBattleFx("impact","enemy",guarded);renderBattle();battleLater(()=>{battlePose="idle";if(battle.hp<=0)return win();battleLater(foe,260)},320);return;}
   battle.hp-=d;battlePose=n==="skill"?"skill":"attack";
   // Rare enemy damage no longer changes outfit sprites.
   $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
@@ -1030,8 +1030,7 @@ function foe(){
  battleLocked=true;battlePose="hit";
  const profile=D.enemyProfiles?.[battle.baseName],variance=profile?.variance??5;
  const foxfire=battle.rareTrait==="foxfire"&&Math.random()<battle.rareTraitChance;
- const base=Math.max(1,battle.atk-Math.floor((S.def+relicBonus("def"))/2)+Math.floor(Math.random()*variance));
- const raw=foxfire?Math.ceil(base*1.35):base;const d=battle.guarding?Math.max(1,Math.ceil(raw/2)):raw;battle.guarding=false;
+ const d=YK_BATTLE_RULES.foeDamage(battle.atk,S.def+relicBonus("def"),variance,foxfire,battle.guarding,Math.random);battle.guarding=false;
  S.hp=Math.max(0,S.hp-d);$("battleText").textContent=foxfire?`${battle.name}の妖火！ ${d}ダメージ`:`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
  startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.beep(foxfire?520:(profile?.style==="trickster"?180:110),.08);
  battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;battle.turn++;renderBattle()},600);

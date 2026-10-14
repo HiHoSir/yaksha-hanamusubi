@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const ctx={};ctx.window=ctx;vm.runInNewContext(fs.readFileSync('js/battle-rules.js','utf8'),ctx);
+const r=ctx.YK_BATTLE_RULES;
+assert.equal(r.allyDamage('attack',1,20,2,()=>0),22);
+assert.equal(r.allyDamage('skill',3,20,2,()=>.999),42);
+assert.equal(r.shellDamage(1),1);
+assert.equal(r.shellDamage(20),7);
+assert.equal(r.foeDamage(22,10,5,false,false,()=>0),17);
+assert.equal(r.foeDamage(22,10,5,true,true,()=>0),12);
+assert.equal(r.foeDamage(1,30,0,false,true,()=>0),1);
+console.log('Battle arithmetic contract OK');
