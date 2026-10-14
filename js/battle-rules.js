@@ -38,5 +38,15 @@ window.YK_BATTLE_RULES=(()=>{
   }
   return state.lv>previous;
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps};
+ function grantRareLoot(state,battle,rareRules,relics,random=Math.random){
+  if(!battle.rareId)return '';
+  const id=battle.rareId,first=!state.rareWins[id];
+  state.rareWins[id]=(state.rareWins[id]||0)+1;
+  if(first||random()<rareRules.repeatDropChance){
+   state.relics[id]=(state.relics[id]||0)+1;
+   return ' ／ '+relics[id].name+'を入手！';
+  }
+  return '';
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot};
 })();
