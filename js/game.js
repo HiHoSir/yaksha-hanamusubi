@@ -673,7 +673,7 @@ function map(frameTime=performance.now()){
   if(!ready){g.fillStyle='#102635';g.fillRect(0,0,768,768);}
 
   const k=YK_WORLD.near(S.x,S.y);
-  worldHint(nearbyGuide()?"A：地蔵に道を聞く":k?"A："+YK_WORLD.places[k].name+"へ入る":"A：行動 ／ 地図で目的地を確認");return;
+  worldHint(YK_FIELD_HINT.entry(k,YK_WORLD.places,!!nearbyGuide()));return;
  }
  if(S.area==="village"){
   const view={...S,...YK_CAMERA.position(S,fieldMotion,frameTime)};
