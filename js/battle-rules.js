@@ -9,5 +9,12 @@ window.YK_BATTLE_RULES=(()=>{
   const raw=foxfire?Math.ceil(base*1.35):base;
   return guarding?Math.max(1,Math.ceil(raw/2)):raw;
  }
- return {allyDamage,shellDamage,foeDamage};
+ function validateCommand(command,state){
+  const cost=command==='bloom'?4:command==='heal'?3:0;
+  if(state.mp<cost)return {ok:false,cost,message:'技が足りない！'};
+  if((command==='heal'||command==='herb')&&state.hp>=state.maxhp)return {ok:false,cost,message:'体は満ちている。'};
+  if(command==='herb'&&state.potions<=0)return {ok:false,cost,message:'薬草を持っていない。'};
+  return {ok:true,cost,action:command==='bloom'?'skill':command==='herb'?'item':command};
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand};
 })();

@@ -996,12 +996,10 @@ function cmd(n){
  if(n==='back'){battleBack();return;}
  if(n==='skill'||n==='item'){battle.menu=n;battleCursor=0;renderBattleCommands();return;}
  if(!['attack','bloom','heal','herb','guard','escape'].includes(n))return;
- const cost=n==='bloom'?4:n==='heal'?3:0;
- if(S.mp<cost){$('battleText').textContent='技が足りない！';return;}
- if((n==='heal'||n==='herb')&&S.hp>=S.maxhp){$('battleText').textContent='体は満ちている。';return;}
- if(n==='herb'&&S.potions<=0){$('battleText').textContent='薬草を持っていない。';return;}
- S.mp-=cost;battle.menu='root';battleCursor=0;
- if(n==='bloom')n='skill';if(n==='herb')n='item';
+ const check=YK_BATTLE_RULES.validateCommand(n,S);
+ if(!check.ok){$('battleText').textContent=check.message;return;}
+ S.mp-=check.cost;battle.menu='root';battleCursor=0;
+ n=check.action;
  battleLocked=true;
  renderBattleCommands();
  if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();battleLater(foe,420);return;}
