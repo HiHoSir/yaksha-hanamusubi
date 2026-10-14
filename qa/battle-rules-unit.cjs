@@ -16,4 +16,10 @@ assert.equal(r.validateCommand('herb',{...party,hp:100}).message,'体は満ち�
 assert.equal(r.validateCommand('herb',{...party,potions:0}).message,'薬草を持っていない。');
 assert.equal(r.validateCommand('herb',party).action,'item');
 assert.equal(r.validateCommand('guard',party).cost,0);
-console.log('Battle arithmetic and command rules contract OK');
+const battle={turn:1,phase:'active'};
+assert.equal(r.nextTurn(battle),2);
+assert.equal(battle.turn,2);
+assert.equal(r.enterResult(battle,1000,400),1400);
+assert.equal(battle.phase,'result');
+assert.equal(battle.readyAt,1400);
+console.log('Battle arithmetic, commands and phase transitions OK');

@@ -16,5 +16,14 @@ window.YK_BATTLE_RULES=(()=>{
   if(command==='herb'&&state.potions<=0)return {ok:false,cost,message:'薬草を持っていない。'};
   return {ok:true,cost,action:command==='bloom'?'skill':command==='herb'?'item':command};
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand};
+ function nextTurn(battle){
+  battle.turn++;
+  return battle.turn;
+ }
+ function enterResult(battle,now,delay=400){
+  battle.phase='result';
+  battle.readyAt=now+delay;
+  return battle.readyAt;
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult};
 })();

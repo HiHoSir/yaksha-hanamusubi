@@ -1019,7 +1019,7 @@ function cmd(n){
   if(S.potions<=0){battleLocked=false;return $("battleText").textContent="薬草がない！"}
   S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;$("battleText").textContent=`体を${healed}回復！`;renderBattle();battleLater(foe,300);
  }else{
-  if(Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";battle.phase="result";battle.readyAt=performance.now()+400;battleLocked=false;renderBattle()}
+  if(Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;renderBattle()}
   else{$("battleText").textContent="逃げられない！";battleLater(foe,300)}
  }
 }
@@ -1031,7 +1031,7 @@ function foe(){
  const d=YK_BATTLE_RULES.foeDamage(battle.atk,S.def+relicBonus("def"),variance,foxfire,battle.guarding,Math.random);battle.guarding=false;
  S.hp=Math.max(0,S.hp-d);$("battleText").textContent=foxfire?`${battle.name}の妖火！ ${d}ダメージ`:`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
  startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.beep(foxfire?520:(profile?.style==="trickster"?180:110),.08);
- battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;battle.turn++;renderBattle()},600);
+ battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;YK_BATTLE_RULES.nextTurn(battle);renderBattle()},600);
 }
 function win(){
  if(!battle||battle.rewarded)return;
@@ -1045,7 +1045,7 @@ function win(){
  const previousLevel=S.lv;
  while(S.xp>=S.lv*40){S.xp-=S.lv*40;S.lv++;S.maxhp+=12;S.hp=S.maxhp;S.maxmp+=2;S.mp=S.maxmp;S.atk+=3;S.def++}
  if(S.lv>previousLevel)battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
- $('battleText').textContent=battle.rewardText;battle.phase='result';battle.readyAt=performance.now()+400;battleLocked=false;battlePose='victory';battleCursor=0;
+ $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;battlePose='victory';battleCursor=0;
  YK_SAVE.auto(S);renderBattle();
 }
 function endBattle(){$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(reward)message(reward,4500)}
