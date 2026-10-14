@@ -76,6 +76,23 @@ jobs:
           for f in js/*.js qa/*.cjs; do node --check "$f"; done
       - name: Architecture baseline guard
         run: node qa/architecture-guard.cjs
+      - name: Runtime state module contract
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('node:assert/strict'),vm=require('node:vm');
+          const source=fs.readFileSync('js/game-state.js','utf8');
+          const env={YK_SAVE:{fresh:()=>({value:1}),migrate:x=>({...x,normalized:true})}};
+          env.window=env;vm.runInNewContext(source,env);
+          assert.equal(env.YK_GAME_STATE.fresh(),env.gameState);
+          const original={value:2};
+          assert.equal(env.YK_GAME_STATE.restore(original).normalized,true);
+          assert.equal(env.gameState.value,2);
+          const copy=env.YK_GAME_STATE.copy(original);
+          assert.notEqual(copy,original);
+          assert.deepEqual(JSON.parse(JSON.stringify(copy)),original);
+          assert.equal(copy,env.gameState);
+          console.log('Runtime state contract OK');
+          NODE
       - name: Boot dependency contract
         run: |
           node - <<'NODE'

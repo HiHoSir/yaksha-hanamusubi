@@ -2,7 +2,7 @@
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
-window.gameState=YK_SAVE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
+window.gameState=YK_GAME_STATE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
 let fieldMotion=null;
 let debugMotion=null,debugAngle=0,debugTargetAngle=0,debugPreset=0,debugCameraTime=0;
 let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
@@ -216,7 +216,7 @@ const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
 function state(v){
  villageDoorMotion=null;fieldMotion=null;$("pad").classList.remove("dialogActive");$("cancel").disabled=false;$("pad").classList.remove("battleActive");
  resetBattleAnimation();
- S=window.gameState=YK_SAVE.migrate(v);
+ S=YK_GAME_STATE.restore(v);
  battle=null;battleLocked=false;dialogQueue=[];dialogAfter=null;
  YK_INPUT.stopAll();
  document.querySelectorAll(".overlay.show").forEach(el=>el.classList.remove("show"));
@@ -1558,7 +1558,7 @@ window.YKDebugField=(enabled=true)=>{
   $("title")?.classList.remove("show");map();return true;
  }
  const r=window.__YK_DEBUG_RETURN||{area:"field",x:YK_WORLD?.start?.[0]||230,y:YK_WORLD?.start?.[1]||534,dir:"d"};
- S=window.gameState=JSON.parse(JSON.stringify(r));$("title")?.classList.add("show");busy=true;map();return false;
+ S=YK_GAME_STATE.copy(r);$("title")?.classList.add("show");busy=true;map();return false;
 };
 // Read-only enemy sprite inspector: never starts combat or mutates saved state.
 (function setupEnemyDebug(){
