@@ -87,5 +87,20 @@ window.YK_BATTLE_RULES=(()=>{
   return {id:step.id,action:{...step.action}};
  }
  function remainingActions(queue){return Math.max(0,queue.steps.length-queue.index);}
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions};
+ // Action intent: a UI-independent command that an executor can interpret later.
+ // Does not apply damage, heal, consume MP, or mutate actors.
+ function describeAction(step,members,targets=[]){
+  if(!step||!step.action)return {ok:false,reason:'missing-action'};
+  const actor=members.find(m=>m.id===step.id);
+  if(!actor||!actor.active||actor.hp<=0)return {ok:false,reason:'actor-unavailable'};
+  const type=step.action.type;
+  if(!['attack','skill','heal','item','guard'].includes(type))return {ok:false,reason:'unsupported-action'};
+  const targetId=step.action.target;
+  if(type==='attack'||type==='skill'){
+   const target=targets.find(t=>t.id===targetId&&t.hp>0);
+   if(!target)return {ok:false,reason:'target-unavailable'};
+  }
+  return {ok:true,actorId:actor.id,type,targetId:targetId??null};
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction};
 })();
