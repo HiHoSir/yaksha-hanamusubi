@@ -108,10 +108,16 @@ window.YK_BATTLE_RULES=(()=>{
   if(!intent.ok)return intent;
   const actor=members.find(m=>m.id===intent.actorId);
   const target=targets.find(t=>t.id===intent.targetId);
+  const cost=intent.type==='skill'||intent.type==='heal'?Math.max(0,options.mpCost??0):0;
+  if(actor.mp<cost)return {ok:false,reason:'insufficient-mp'};
+  const stock=options.inventory;
+  const itemId=options.itemId;
+  if(intent.type==='item'&&stock&&itemId&&!(stock[itemId]>0))return {ok:false,reason:'item-unavailable'};
   if(intent.type==='attack'||intent.type==='skill'){
    const amount=allyDamage(intent.type,options.level??1,options.attack??0,options.bonus??0,options.random??Math.random);
    target.hp=Math.max(0,target.hp-amount);
-   return {...intent,amount,remainingHp:target.hp};
+   actor.mp-=cost;
+   return {...intent,amount,remainingHp:target.hp,mpSpent:cost};
   }
   if(intent.type==='heal'||intent.type==='item'){
    const recipient=members.find(m=>m.id===(intent.targetId??intent.actorId));
@@ -119,7 +125,9 @@ window.YK_BATTLE_RULES=(()=>{
    const amount=Math.min(Math.max(0,recipient.maxhp-recipient.hp),Math.max(0,options.healAmount??0));
    recipient.hp+=amount;
    recipient.active=recipient.hp>0;
-   return {...intent,targetId:recipient.id,amount,remainingHp:recipient.hp};
+   actor.mp-=cost;
+   if(intent.type==='item'&&stock&&itemId)stock[itemId]--;
+   return {...intent,targetId:recipient.id,amount,remainingHp:recipient.hp,mpSpent:cost,itemSpent:intent.type==='item'&&stock&&itemId?itemId:null};
   }
   actor.guarding=true;
   return {...intent,amount:0};
