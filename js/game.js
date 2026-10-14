@@ -3,6 +3,24 @@
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
 window.gameState=YK_GAME_STATE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
+let dialogTyping=null,dialogTypingTimer=null;
+function stopDialogTyping(){clearTimeout(dialogTypingTimer);dialogTypingTimer=null;dialogTyping=null;}
+function revealDialogLine(){
+ if(!dialogTyping)return;
+ clearTimeout(dialogTypingTimer);dialogTypingTimer=null;
+ dialogTyping.index=dialogTyping.chars.length;
+ $("dialogText").textContent=dialogTyping.chars.join('');
+ $("dialogNext").textContent=dialogQueue.length?"次へ":"閉じる";
+}
+function typeDialogTick(){
+ if(!dialogTyping)return;
+ const d=dialogTyping;
+ if(d.index>=d.chars.length){dialogTypingTimer=null;return;}
+ $("dialogText").textContent+=d.chars[d.index++];
+ // Future dialogue SE can hook into each visible character here.
+ if(d.index<d.chars.length)dialogTypingTimer=setTimeout(typeDialogTick,36);
+ else dialogTypingTimer=null;
+}
 let fieldMotion=null;
 let debugMotion=null,debugAngle=0,debugTargetAngle=0,debugPreset=0,debugCameraTime=0;
 let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
@@ -217,7 +235,7 @@ function state(v){
  villageDoorMotion=null;fieldMotion=null;$("pad").classList.remove("dialogActive");$("cancel").disabled=false;$("pad").classList.remove("battleActive");
  resetBattleAnimation();
  S=YK_GAME_STATE.restore(v);
- battle=null;battleLocked=false;dialogQueue=[];dialogAfter=null;
+ battle=null;battleLocked=false;stopDialogTyping();dialogQueue=[];dialogAfter=null;
  YK_INPUT.stopAll();
  document.querySelectorAll(".overlay.show").forEach(el=>el.classList.remove("show"));
  return S;
@@ -754,12 +772,18 @@ function talk(entry,after=null){
  nextDialog();return true;
 }
 function nextDialog(){
+ if(dialogTyping&&dialogTyping.index<dialogTyping.chars.length){revealDialogLine();return;}
+ stopDialogTyping();
  if(dialogQueue.length){
   const d=dialogQueue.shift();
   $("speaker").textContent=d.speaker;
-  $("dialogText").textContent=d.text;
-  $("dialogNext").textContent=dialogQueue.length?"次へ":"閉じる";
+  $("dialogText").textContent="";
+  const chars=Array.from(d.text);
+  dialogTyping={chars,index:0};
+  $("dialogNext").textContent="全文表示";
   renderDialogPortrait();
+  typeDialogTick();
+  if(!chars.length)$("dialogNext").textContent=dialogQueue.length?"次へ":"閉じる";
   return;
  }
  $("dialog").classList.remove("show");$("pad").classList.remove("dialogActive");$("cancel").disabled=false;YK_INPUT.stopAll();

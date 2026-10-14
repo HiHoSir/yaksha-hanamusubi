@@ -50,7 +50,7 @@ assert.equal(save.loadSlot(3).gold,333);
 assert.equal(ctx.YK_GAME_STATE.restore(legacy).quest,2);
 store.set('yaksha_beta_auto','{broken');
 assert.equal(save.loadAuto(),null);
-assert.equal(save.loadSlot(1),null);
+assert.equal(save.loadSlot(1).gold,111,'corrupt autosave must not damage manual slot');
 save.reset();
 assert.equal(save.loadSlot(2),null);
 assert.equal(store.has('yaksha_beta'),false);
