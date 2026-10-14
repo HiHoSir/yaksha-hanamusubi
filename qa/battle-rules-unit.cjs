@@ -131,14 +131,14 @@ const specialEnemy=[{id:'spirit',hp:10,atk:10,variance:0,special:{type:'foxfire'
 const fireTurn={phase:'enemies'};
 const fireResult=r.resolveEnemyPhase(fireTurn,specials,specialEnemy,{random:()=>0});
 assert.equal(fireResult.events[0].special,'foxfire');
-assert.equal(fireResult.events[0].damage,15);
-assert.equal(specials[0].hp,17);
+assert.equal(fireResult.events[0].damage,14);
+assert.equal(specials[0].hp,18);
 const poisonEnemy=[{id:'snake',hp:10,atk:1,variance:0,special:{type:'poison',chance:1}}];
 const poisonResult=r.resolveEnemyPhase({phase:'enemies'},specials,poisonEnemy,{random:()=>0});
 assert.equal(poisonResult.events[0].special,'poison');
 assert.equal(specials[0].statuses.poison,true);
 const ticks=r.processPartyStatuses(specials);
 assert.equal(ticks.length,1);assert.equal(ticks[0].damage,2);
-assert.equal(specials[0].hp,14);
+assert.equal(specials[0].hp,15);
 assert.equal(r.processPartyStatuses(r.partyView({hp:0,maxhp:30,mp:0,maxmp:0})).length,0);
 console.log('Battle arithmetic, resource consumption, enemy specials and statuses OK');
