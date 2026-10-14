@@ -135,5 +135,39 @@ window.YK_BATTLE_RULES=(()=>{
   if(remainingActions(turn.queue)===0)turn.phase='enemies';
   return {phase:turn.phase,finished:turn.phase==='enemies',result};
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction,createTurn,advanceTurn};
+ // Enemy phase prototype, isolated from live battle. A living enemy acts once.
+ function selectEnemyTarget(members,random=Math.random){
+  const candidates=eligibleActors(members);
+  if(!candidates.length)return null;
+  const index=Math.min(candidates.length-1,Math.max(0,Math.floor(random()*candidates.length)));
+  return candidates[index];
+ }
+ function battleOutcome(members,enemies){
+  if(!eligibleActors(members).length)return 'defeat';
+  if(!enemies.some(enemy=>enemy.hp>0))return 'victory';
+  return null;
+ }
+ function resolveEnemyPhase(turn,members,enemies,options={}){
+  if(turn.phase!=='enemies')return {ok:false,reason:'wrong-phase',phase:turn.phase};
+  const initial=battleOutcome(members,enemies);
+  if(initial){turn.phase='result';turn.outcome=initial;return {ok:true,phase:'result',outcome:initial,events:[]};}
+  const events=[];
+  const random=options.random??Math.random;
+  for(const enemy of enemies){
+   if(enemy.hp<=0)continue;
+   const target=selectEnemyTarget(members,random);
+   if(!target)break;
+   const damage=foeDamage(enemy.atk??1,target.def??0,enemy.variance??0,false,target.guarding,random);
+   target.hp=Math.max(0,target.hp-damage);
+   target.active=target.hp>0;
+   target.guarding=false;
+   events.push({enemyId:enemy.id,targetId:target.id,damage,remainingHp:target.hp});
+   if(!eligibleActors(members).length)break;
+  }
+  const outcome=battleOutcome(members,enemies);
+  turn.phase=outcome?'result':'planning';
+  if(outcome)turn.outcome=outcome;
+  return {ok:true,phase:turn.phase,outcome,events};
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions,describeAction,executeAction,createTurn,advanceTurn,selectEnemyTarget,battleOutcome,resolveEnemyPhase};
 })();
