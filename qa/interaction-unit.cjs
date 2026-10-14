@@ -13,4 +13,15 @@ assert.equal(find({...p,dir:'r'},[side]),side,'turning toward NPC should allow d
 assert.equal(find({...p,dir:'d'},[front]),null,'NPC behind must not trigger dialogue');
 assert.equal(find({...p,dir:'r'},[front,side]),side,'facing must win over unrelated nearby NPC');
 assert.ok(find({...p,dir:'u'},[{x:3,y:-20}]),'slightly offset forward NPC should remain selectable');
+// Object inspection regression: facing an object must not select lateral NPCs.
+const objectAhead={x:0,y:-24};
+const flankNPC={x:18,y:0},rearNPC={x:0,y:20};
+assert.equal(find(p,[flankNPC,rearNPC]),null,'inspection target must not be intercepted from side or rear');
+assert.equal(find({...p,dir:'r'},[flankNPC,rearNPC]),flankNPC,'conversation requires facing the NPC');
+assert.equal(find(p,[{x:0,y:-30},flankNPC]).y,-30,'valid forward NPC remains interactable');
+assert.equal(find(p,[{x:0,y:-50},{x:0,y:-20}]).y,-20,'nearest forward NPC takes precedence');
+assert.equal(find({...p,dir:'u'},[{x:25,y:-12}]),null,'oblique NPC outside facing cone remains excluded');
+assert.equal(find(p,[{x:0,y:-100}],100),null,'range boundary excludes NPC');
+assert.equal(find(p,[{x:0,y:-99}],100).y,-99,'just-inside range is accepted');
+assert.deepEqual(objectAhead,{x:0,y:-24});
 console.log('NPC-facing selection contract OK');
