@@ -79,5 +79,13 @@ window.YK_BATTLE_RULES=(()=>{
   return eligibleActors(members).filter(m=>m.action!==null).map(m=>({id:m.id,action:{...m.action}}));
  }
  function clearActions(members){for(const member of members)member.action=null;}
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions};
+ // Immutable action queue snapshot: executing a turn never mutates the plan.
+ function turnQueue(members){return {steps:actionOrder(members),index:0};}
+ function nextPlannedAction(queue){
+  if(queue.index>=queue.steps.length)return null;
+  const step=queue.steps[queue.index++];
+  return {id:step.id,action:{...step.action}};
+ }
+ function remainingActions(queue){return Math.max(0,queue.steps.length-queue.index);}
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps,grantRareLoot,partyView,eligibleActors,reserveAction,actionOrder,clearActions,turnQueue,nextPlannedAction,remainingActions};
 })();
