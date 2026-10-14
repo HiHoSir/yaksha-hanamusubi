@@ -76,6 +76,20 @@ jobs:
       - name: JavaScript syntax
         run: |
           for f in js/*.js qa/*.cjs; do node --check "$f"; done
+      - name: Visible build and cache consistency
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const html=fs.readFileSync('index.html','utf8');
+          const title=html.match(/<title>[^<]*β(\\d+\\.\\d+\\.\\d+)/)?.[1];
+          const brand=html.match(/class="brand"[^>]*>[^<]*<small>β(\\d+\\.\\d+\\.\\d+)/)?.[1];
+          assert.ok(title,'missing visible version');
+          assert.equal(brand,title,'header and document title version mismatch');
+          const sources=[...html.matchAll(/(?:src|href)="(?:js\\/[^"]+\\.js|css\\/[^"]+\\.css)\\?v=([^"]+)"/g)].map(m=>m[1]);
+          assert.ok(sources.length>=15,'missing static resource versions');
+          assert.ok(sources.every(v=>v===title),'stale asset cache tag differs from build version');
+          console.log('Visible build version and asset cache tags match:',title);
+          NODE
       - name: Module load consistency
         run: |
           node - <<'NODE'
