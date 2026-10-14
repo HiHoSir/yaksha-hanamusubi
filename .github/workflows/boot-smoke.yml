@@ -85,7 +85,7 @@ jobs:
           const brand=html.match(/class="brand"[^>]*>[^<]*<small>β([0-9.]+)/)?.[1];
           assert.ok(title,'missing visible version');
           assert.equal(brand,title,'header and document title version mismatch');
-          const sources=[...html.matchAll(/[?]v=([0-9.]+)/g)].map(m=>m[1]);
+          const sources=html.split('\n').filter(line=>line.includes('src="js/')||line.includes('href="css/')).map(line=>line.match(/[?]v=([0-9.]+)/)?.[1]);
           assert.ok(sources.length>=15,'missing static resource versions');
           assert.ok(sources.every(v=>v===title),'stale asset cache tag differs from build version');
           console.log('Visible build version and asset cache tags match:',title);
