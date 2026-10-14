@@ -836,9 +836,9 @@ function action(){
  if(n){faceNPC(n);n.frame=1;
   if(n.service==="shop"||(n.type==="merchant"&&n.service===undefined)){openShop();return true;}
   if(n.service==="rest")return talk({n:n.name,t:["旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();});
-  const event=D.story[S.quest];
-  if(event&&event.area===S.area&&event.speaker===n.name){const stage=S.quest;
-   return talk({n:n.name,t:event.lines},()=>{if(S.quest!==stage)return;S.quest=stage+1;if(event.petal)S.petals++;S.destination=event.target;YK_SAVE.auto(S);message(event.unlock,4200);});
+  const event=YK_STORY_EVENTS.match(S,D.story,n.name);
+  if(event){const stage=S.quest;
+   return talk({n:n.name,t:event.lines},()=>{if(!YK_STORY_EVENTS.complete(S,event,stage))return;YK_SAVE.auto(S);message(event.unlock,4200);});
   }
   return talk({n:n.name,t:n.talk});
  }

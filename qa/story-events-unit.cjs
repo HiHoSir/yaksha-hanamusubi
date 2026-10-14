@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ctx={};ctx.window=ctx;vm.runInNewContext(fs.readFileSync('js/story-events.js','utf8'),ctx);
+const rules=ctx.YK_STORY_EVENTS;
+const entry={area:'village',speaker:'長老',petal:true,target:'shrine'};
+const s={area:'village',quest:2,petals:1,destination:'village'};
+assert.equal(rules.match(s,{2:entry},'長老'),entry);
+assert.equal(rules.match(s,{2:entry},'別人'),null);
+assert.equal(rules.complete(s,entry,1),false);
+assert.equal(s.quest,2);
+assert.equal(rules.complete(s,entry,2),true);
+assert.equal(s.quest,3);assert.equal(s.petals,2);assert.equal(s.destination,'shrine');
+assert.equal(rules.complete(s,entry,2),false);
+console.log('Story event progression contract OK');
