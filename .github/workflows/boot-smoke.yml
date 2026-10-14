@@ -81,11 +81,11 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs'),assert=require('node:assert/strict');
           const html=fs.readFileSync('index.html','utf8');
-          const title=html.match(/<title>[^<]*β(\\d+\\.\\d+\\.\\d+)/)?.[1];
-          const brand=html.match(/class="brand"[^>]*>[^<]*<small>β(\\d+\\.\\d+\\.\\d+)/)?.[1];
+          const title=html.match(/<title>[^<]*β([0-9.]+)/)?.[1];
+          const brand=html.match(/class="brand"[^>]*>[^<]*<small>β([0-9.]+)/)?.[1];
           assert.ok(title,'missing visible version');
           assert.equal(brand,title,'header and document title version mismatch');
-          const sources=[...html.matchAll(/(?:src|href)="(?:js\\/[^"]+\\.js|css\\/[^"]+\\.css)\\?v=([^"]+)"/g)].map(m=>m[1]);
+          const sources=[...html.matchAll(/[?]v=([0-9.]+)/g)].map(m=>m[1]);
           assert.ok(sources.length>=15,'missing static resource versions');
           assert.ok(sources.every(v=>v===title),'stale asset cache tag differs from build version');
           console.log('Visible build version and asset cache tags match:',title);
