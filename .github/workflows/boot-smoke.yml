@@ -51,6 +51,8 @@ jobs:
                   else
                     tests="$tests battle-layout settlement movement dialog residents guide-menu field-access"
                   fi ;;
+                js/game-state.js) tests="$tests title-entrance" ;;
+                docs/*|art-source/*) : ;;
                 js/settlement.js|assets/settlement/*|assets/village/*) tests="$tests settlement residents movement" ;;
                 js/input.js|css/game.css|index.html|assets/ui/*) tests="$tests dialog battle-layout guide-menu" ;;
                 js/world.js|js/landscape.js|assets/terrain/*|assets/maps/*|js/autotile.js) tests="$tests movement field-access settlement";terrain=true ;;
@@ -74,6 +76,23 @@ jobs:
       - name: JavaScript syntax
         run: |
           for f in js/*.js qa/*.cjs; do node --check "$f"; done
+      - name: Module load consistency
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('node:assert/strict');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script src="(js\/[^"?]+)(?:\?[^"]*)?"\s*><\/script>/g)].map(x=>x[1]);
+          assert(scripts.includes('js/game-state.js'));
+          assert(scripts.indexOf('js/save.js')<scripts.indexOf('js/game-state.js'));
+          assert(scripts.indexOf('js/game-state.js')<scripts.indexOf('js/game.js'));
+          for(const path of scripts)assert(fs.existsSync(path),'missing script: '+path);
+          for(const path of ['qa/runtime-smoke.cjs','qa/autotile-smoke.cjs']){
+            const source=fs.readFileSync(path,'utf8');
+            const i=source.indexOf("'game-state.js'"),j=source.indexOf("'game.js'");
+            assert(i>=0&&j>i,'QA loader mismatch: '+path);
+          }
+          console.log('HTML and VM harness module order OK');
+          NODE
       - name: Architecture baseline guard
         run: node qa/architecture-guard.cjs
       - name: Runtime state module contract
