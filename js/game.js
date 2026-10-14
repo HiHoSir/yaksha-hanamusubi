@@ -1035,16 +1035,14 @@ function foe(){
 }
 function win(){
  if(!battle||battle.rewarded)return;
- battle.rewarded=true;S.wins++;S.xp+=battle.xp;S.gold+=battle.gold;
+ battle.rewarded=true;YK_BATTLE_RULES.grantVictoryBase(S,battle);
  let loot="";
  if(battle.rareId){const id=battle.rareId,first=!S.rareWins[id];S.rareWins[id]=(S.rareWins[id]||0)+1;
   if(first||Math.random()<D.rareRules.repeatDropChance){S.relics[id]=(S.relics[id]||0)+1;loot=` ／ ${D.relics[id].name}を入手！`;}
  }
  const equipmentDrop=E.drop(S,battle.baseName);if(equipmentDrop)loot+=` ／ ${E.items[equipmentDrop].name}を入手！`;
  battle.rewardText=`${battle.name}を こらしめた！ 心の数 ${battle.xp} ／ ${battle.gold}両${loot}`;
- const previousLevel=S.lv;
- while(S.xp>=S.lv*40){S.xp-=S.lv*40;S.lv++;S.maxhp+=12;S.hp=S.maxhp;S.maxmp+=2;S.mp=S.maxmp;S.atk+=3;S.def++}
- if(S.lv>previousLevel)battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
+ if(YK_BATTLE_RULES.applyLevelUps(S))battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
  $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;battlePose='victory';battleCursor=0;
  YK_SAVE.auto(S);renderBattle();
 }

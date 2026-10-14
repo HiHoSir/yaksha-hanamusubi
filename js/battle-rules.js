@@ -25,5 +25,18 @@ window.YK_BATTLE_RULES=(()=>{
   battle.readyAt=now+delay;
   return battle.readyAt;
  }
- return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult};
+ function grantVictoryBase(state,battle){
+  state.wins++;
+  state.xp+=battle.xp;
+  state.gold+=battle.gold;
+ }
+ function applyLevelUps(state){
+  const previous=state.lv;
+  while(state.xp>=state.lv*40){
+   state.xp-=state.lv*40;state.lv++;state.maxhp+=12;state.hp=state.maxhp;
+   state.maxmp+=2;state.mp=state.maxmp;state.atk+=3;state.def++;
+  }
+  return state.lv>previous;
+ }
+ return {allyDamage,shellDamage,foeDamage,validateCommand,nextTurn,enterResult,grantVictoryBase,applyLevelUps};
 })();
