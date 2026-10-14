@@ -91,7 +91,7 @@ jobs:
           for(const path of scripts)assert(fs.existsSync(path),'missing script: '+path);
           for(const path of ['qa/runtime-smoke.cjs','qa/autotile-smoke.cjs']){
             const source=fs.readFileSync(path,'utf8');
-            const i=source.indexOf("'game-state.js'"),d=source.indexOf("'dialogue.js'"),e=source.indexOf("'interaction.js'"),j=source.indexOf("'game.js'");
+            const i=source.indexOf("'game-state.js'"),d=source.indexOf("'dialogue.js'"),e=source.indexOf("'interaction.js'"),k=source.indexOf("'story-events.js'"),j=source.indexOf("'game.js'");
             assert(i>=0&&d>i&&e>d&&k>e&&j>k,'QA loader mismatch: '+path);
           }
           console.log('HTML and VM harness module order OK');
