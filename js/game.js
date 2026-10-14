@@ -750,9 +750,7 @@ function message(t,ms=1300){clearTimeout(msgTimer);$("message").textContent=t;$(
 
 function talk(entry,after=null){
  if(!entry)return false;
- const speaker=entry.n||entry.name||"";
- const lines=Array.isArray(entry.t)?entry.t:(Array.isArray(entry.talk)?entry.talk:[String(entry.t||entry.talk||"")]);
- dialogQueue=lines.filter(Boolean).map(t=>typeof t==="object"&&t!==null?{speaker:String(t.speaker||speaker),text:String(t.text||"")}:{speaker,text:String(t)});
+ dialogQueue=YK_DIALOGUE.normalize(entry);
  if(!dialogQueue.length)return false;
  dialogAfter=typeof after==="function"?after:null;
  YK_INPUT.stopAll();fieldMotion=null;busy=true;$("pad").classList.add("dialogActive");$("cancel").disabled=true;$("dialog").classList.add("show");
