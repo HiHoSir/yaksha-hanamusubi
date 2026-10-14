@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const scope={};scope.window=scope;vm.runInNewContext(fs.readFileSync('js/collision.js','utf8'),scope);
+const rule=scope.YK_COLLISION.blocked;
+const env={world:{walkable:(x,y)=>x>=100&&y>=100},villageBlocked:(x,y)=>x===55,npcBlocked:(x,y)=>x===77,interiorBlocked:(x,y)=>x===88,debugMap:()=>null,landscape:{walkable:()=>true}};
+assert.equal(rule('field',99,150,false,env),true);
+assert.equal(rule('field',150,150,false,env),false);
+assert.equal(rule('village',55,300,true,env),true);
+assert.equal(rule('village',77,300,false,env),true);
+assert.equal(rule('village',77,300,true,env),false);
+assert.equal(rule('teahouse',88,300,false,env),true);
+assert.equal(rule('teahouse',88,300,true,env),true);
+assert.equal(rule('waterfall',300,300,false,env),true);
+assert.equal(rule('debugField',52,300,false,env),true);
+assert.equal(rule('debugField',100,300,false,{...env,debugMap:()=>({})}),false);
+console.log('Area collision boundaries and NPC ignore contracts OK');

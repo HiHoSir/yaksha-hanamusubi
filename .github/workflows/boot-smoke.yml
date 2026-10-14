@@ -89,6 +89,7 @@ jobs:
           assert(scripts.indexOf('js/interaction.js')<scripts.indexOf('js/game.js'));
           assert(scripts.indexOf('js/story-events.js')<scripts.indexOf('js/game.js'));
           assert(scripts.indexOf('js/battle-rules.js')<scripts.indexOf('js/game.js'));
+          assert(scripts.indexOf('js/collision.js')<scripts.indexOf('js/game.js'));
           for(const path of scripts)assert(fs.existsSync(path),'missing script: '+path);
           for(const path of ['qa/runtime-smoke.cjs','qa/autotile-smoke.cjs']){
             const source=fs.readFileSync(path,'utf8');
@@ -97,6 +98,8 @@ jobs:
           }
           console.log('HTML and VM harness module order OK');
           NODE
+      - name: Collision geometry contract
+        run: node qa/collision-unit.cjs
       - name: Save compatibility contract
         run: node qa/save-compat-unit.cjs
       - name: Dialogue normalization contract

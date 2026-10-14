@@ -884,7 +884,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
  exit:{to:"field",rect:[720,1230,816,1280]},northExit:{to:"field",rect:[710,0,830,58]}};
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
-function collision(x,y,ignoreNPC=false){if(S.area==="debugField"){const m=debugCollisionMap();return m?!YK_LANDSCAPE.walkable(m,x-48,y-100):x<53||x>683||y<105||y>639;}if(S.area==="field")return !window.YK_WORLD?.walkable(x,y);if(S.area==="village")return villageBlocked(x,y)||!ignoreNPC&&npcBlocked(x,y);if(x<27||x>741||y<34||y>736)return true;if(!ignoreNPC&&npcBlocked(x,y))return true;if((S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom")&&interiorBlocked(x,y))return true;if(S.area==="waterfall"&&x>200&&x<565&&y<500)return true;return false}
+function collision(x,y,ignoreNPC=false){return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
 function exitArea(){
  if(S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom")return null;
  if(S.area==="village"){
