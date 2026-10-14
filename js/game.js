@@ -680,7 +680,7 @@ function map(frameTime=performance.now()){
   const actors=areaNPCs().map(n=>({x:n.x,y:n.y,draw:(x,y,z)=>{g.save();g.translate(x,y);g.scale(z,z);npc(g,0,0,n.type,n.name,n.dir||"d",n.frame??1);g.restore();}}));
   actors.push({hero:true,x:view.x,y:view.y,draw:(x,y,z)=>hero(g,x,y-9*.56*z,S.dir,S.frame,S.outfit,.56*z)});
   if(!YK_SETTLEMENT.draw(g,view,actors,villageDoorMotion))worldHint("鬼灯の里を読込中…");
-  else worldHint(nearbyInspectable()?"A：話す・調べる ／ 行動からも選べます":"A：話す・入る ／ 行動：コマンド");
+  else worldHint(YK_FIELD_HINT.village(!!nearbyInspectable()));
   return;
  }
  else if(S.area==="teahouse") {if(paintedTeaReady())drawPaintedTeaBase(g);else drawInterior(g,"tea");}

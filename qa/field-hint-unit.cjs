@@ -6,4 +6,6 @@ assert.equal(entry('shrine',places,false),'A：天妖の社へ入る');
 assert.equal(entry('shrine',places,true),'A：地蔵に道を聞く');
 assert.equal(entry(null,places,true),'A：地蔵に道を聞く');
 assert.equal(entry(null,places,false),'A：行動 ／ 地図で目的地を確認');
-console.log('Field interaction message priority contracts OK');
+assert.equal(scope.YK_FIELD_HINT.village(true),'A：話す・調べる ／ 行動からも選べます');
+assert.equal(scope.YK_FIELD_HINT.village(false),'A：話す・入る ／ 行動：コマンド');
+console.log('Field and village interaction message priority contracts OK');

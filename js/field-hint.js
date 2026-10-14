@@ -5,5 +5,8 @@ window.YK_FIELD_HINT=(()=>{
   if(nearby)return 'A：'+places[nearby].name+'へ入る';
   return 'A：行動 ／ 地図で目的地を確認';
  }
- return {entry};
+ function village(inspectable){
+  return inspectable?'A：話す・調べる ／ 行動からも選べます':'A：話す・入る ／ 行動：コマンド';
+ }
+ return {entry,village};
 })();
