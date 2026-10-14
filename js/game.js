@@ -10,7 +10,7 @@ function revealDialogLine(){
  clearTimeout(dialogTypingTimer);dialogTypingTimer=null;
  dialogTyping.index=dialogTyping.chars.length;
  $("dialogText").textContent=dialogTyping.chars.join('');
- $("dialogNext").textContent=dialogQueue.length?"次へ":"閉じる";
+ $("dialogNext").textContent="▼";
 }
 function typeDialogTick(){
  if(!dialogTyping)return;
@@ -782,10 +782,10 @@ function nextDialog(){
   // Category metadata reserved for future per-character dialogue voice effects.
   const voice=YK_DIALOGUE.voiceKind(d.voice);
   dialogTyping={chars,index:0};
-  $("dialogNext").textContent="全文表示";
+  $("dialogNext").textContent="▼";
   renderDialogPortrait();
   typeDialogTick();
-  if(!chars.length)$("dialogNext").textContent=dialogQueue.length?"次へ":"閉じる";
+  if(!chars.length)$("dialogNext").textContent="▼";
   return;
  }
  $("dialog").classList.remove("show");$("pad").classList.remove("dialogActive");$("cancel").disabled=false;YK_INPUT.stopAll();
