@@ -51,7 +51,7 @@ window.YK_AUDIO=(()=>{
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
    o.type=type;o.frequency.setValueAtTime(Math.max(55,freq),now);o.frequency.exponentialRampToValueAtTime(Math.max(50,freq*.89),now+dur);
    f.type="lowpass";f.frequency.value=cutoff;
-   g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(gainLevel,now+.012);g.gain.setTargetAtTime(.00001,now+dur*.43,Math.max(.012,dur*.16));
+   g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(Math.min(.12,gainLevel*1.75),now+.012);g.gain.setTargetAtTime(.00001,now+dur*.43,Math.max(.012,dur*.16));
    o.connect(f).connect(g).connect(ctx.destination);o.start(now);o.stop(now+dur+.09);
   }catch{}
  }
