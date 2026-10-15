@@ -89,6 +89,9 @@ window.YK_SETTLEMENT=(()=>{
  // NPC-only placement: accept a correction only if the complete short path is
  // walkable, stays on the same height and does not claim another resident's tile.
  function alignVillageNPC(n){
+  // The weaver's original foothold has room to wander; snapping this NPC
+  // against the nearby building removes all valid walking exits.
+  if(n.id==='weaver')return;
   const x=768+32*Math.round((n.x-768)/32);
   const y=760+32*Math.round((n.y-760)/32);
   if(x===n.x&&y===n.y)return;
