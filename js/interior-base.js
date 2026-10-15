@@ -5,7 +5,7 @@ window.YK_INTERIOR_BASE=(()=>{
  const images={};
  // Opt-in structural tea-room pilot. The approved artwork remains the default.
  // Activate with ?interiorStructure=1; no save-state or other room changes.
- const teaStructureEnabled=()=>new URLSearchParams(location.search).get('interiorStructure')==='1';
+ const teaStructureEnabled=()=>false; // Deprecated flat-color prototype: never display as game art.
  const teaTables=[
   {id:'tea-table-back-left',x:234,y:376,w:116,h:48},
   {id:'tea-table-back-right',x:532,y:376,w:116,h:48},
