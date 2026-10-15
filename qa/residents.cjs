@@ -119,7 +119,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   return {npc,slope:slope.slice(0,24)};
  });
  console.log('GEOMETRY_DIAG '+JSON.stringify(geometry));
- assert.deepEqual(geometry.npc.find(n=>n.id==='chief').at,[736,664],'village chief must use verified 32px hero-aligned foothold');
+ assert.deepEqual(geometry.npc.find(n=>n.id==='chief').at,[736,720],'village chief must stand on central flat road, off the elevated ramp');
  assert(geometry.npc.every(n=>n.available>=2),'NPC placements must retain navigable exits: '+JSON.stringify(geometry.npc));
  const movementGeometry=await run(`(()=>{
   const starts=[[768,1190],[768,1158],[768,760],[768,688],[768,624],[768,560],[1176,688],[1176,624]];
