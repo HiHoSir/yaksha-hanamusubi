@@ -919,6 +919,13 @@ function move(dx,dy,dir){
  const fieldStyle=["field","village","teahouse","osumiHome","villageRoom"].includes(S.area);
  if(fieldStyle&&(fieldMotion||dx&&dy))return;
  S.dir=dir;
+ // NPC-only destination guard: reject the entire intended village step when
+ // its destination cell is occupied. Preserve all terrain movement rules.
+ if(S.area==="village"&&areaNPCs().length){
+  const speed=Number($("speedSelect").value)||1;
+  const stepX=dx*32*speed,stepY=dy*32*speed;
+  if(npcBlocked(S.x+stepX,S.y+stepY)){S.frame=1;map();return;}
+ }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
  const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,Number($("speedSelect").value)||1,YK_WORLD.size,collision);
