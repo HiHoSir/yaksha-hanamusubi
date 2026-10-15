@@ -767,6 +767,9 @@ function talk(entry,after=null,turnDelay=0){
  dialogQueue=YK_DIALOGUE.normalize(entry);
  if(!dialogQueue.length)return false;
  dialogAfter=typeof after==="function"?after:null;
+ stopDialogTyping();
+ $("speaker").textContent="";$("dialogText").textContent="";
+ $("dialogNext").classList.remove("hasNextLine");$("dialogNext").textContent="▼";
  YK_INPUT.stopAll();fieldMotion=null;busy=true;$("pad").classList.add("dialogActive");$("cancel").disabled=true;$("dialog").classList.add("show");
  if(turnDelay)setTimeout(()=>{if($("dialog").classList.contains("show"))nextDialog();},turnDelay);
  else nextDialog();return true;

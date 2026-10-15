@@ -12,6 +12,13 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   assert(!await page.locator('#pad').isVisible(),'game pad must be hidden on title');
   for(const id of ['newGame','continueGame'])assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' inaccessible on title');
   await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>YK_SETTLEMENT.ready());
+  // Delayed conversations must not flash the preceding conversation's last line.
+  await run('talk({n:"前の人",t:["前回の最後の文章"]});revealDialogLine();nextDialog();');
+  await run('talk({n:"新しい人",t:["今から話します"]},null,120);');
+  assert.equal(await page.locator('#dialogText').textContent(),'','old dialogue text must be cleared immediately');
+  assert.equal(await page.locator('#speaker').textContent(),'','old speaker must be cleared immediately');
+  await page.waitForFunction(()=>document.getElementById('speaker').textContent==='新しい人');
+  await run('while($("dialog").classList.contains("show"))nextDialog();');
   await run('talk({n:"緋月",t:["川の向こうには、旅の続きを待つ人たちがいる。焦らずに進んでいきましょう。","では、出発しましょう。"]});');
   const box=await page.locator('.dialogWindow').boundingBox(),pad=await page.locator('#pad').boundingBox();assert(box.y+box.height+4<=pad.y,'dialog above controls '+height);assert(box.y>=48,'dialog in stage');
   for(const id of ['ok','dialogNext'])assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' clickable');
