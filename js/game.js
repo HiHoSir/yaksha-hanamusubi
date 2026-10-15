@@ -26,6 +26,32 @@ function typeDialogTick(){
  if(d.index<d.chars.length)dialogTypingTimer=setTimeout(typeDialogTick,36);
  else {dialogTypingTimer=null;updateDialogIndicator();}
 }
+// Opt-in visual sizing audit. Only image scale changes; grid movement and collision stay untouched.
+const charSizeParams=new URLSearchParams(location.search);
+const charSizeReview=['52','58','64'].includes(charSizeParams.get('charSize'));
+let charSizePx=charSizeReview?Number(charSizeParams.get('charSize')):58;
+const characterScale=()=>charSizePx/58;
+function installCharacterSizeReview(){
+ if(!charSizeReview)return;
+ const panel=document.createElement('div');
+ panel.id='characterSizeReview';
+ Object.assign(panel.style,{position:'fixed',right:'8px',top:'calc(env(safe-area-inset-top) + 58px)',zIndex:'60',background:'rgba(10,24,31,.94)',color:'#f7eccb',padding:'8px',border:'1px solid #c3a66a',borderRadius:'10px',font:'13px sans-serif',display:'flex',gap:'5px',alignItems:'center'});
+ const label=document.createElement('span');label.textContent='身長';panel.append(label);
+ for(const px of [52,58,64]){
+  const button=document.createElement('button');button.type='button';button.textContent=px+'px';
+  button.style.cssText='min-width:43px;min-height:36px;color:#fff;background:#455b61;border:1px solid #aab6aa;border-radius:6px';
+  button.addEventListener('click',()=>{
+   charSizePx=px;history.replaceState(null,'',(()=>{const url=new URL(location.href);url.searchParams.set('charSize',String(px));return url.pathname+url.search+url.hash})());
+   for(const child of panel.querySelectorAll('button'))child.style.background=child===button?'#a15a39':'#455b61';
+   map();
+  });
+  if(px===charSizePx)button.style.background='#a15a39';
+  panel.append(button);
+ }
+ const hint=document.createElement('span');hint.textContent='表示のみ';hint.style.fontSize='10px';panel.append(hint);
+ document.body.append(panel);
+}
+installCharacterSizeReview();
 let fieldMotion=null;
 let debugMotion=null,debugAngle=0,debugTargetAngle=0,debugPreset=0,debugCameraTime=0;
 let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
@@ -633,6 +659,7 @@ function villageDoorAction(){
 
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
+ z*=characterScale();
  if(outfit==="normal"&&layerReady(HIZUKI_8DIR)){
   const facing=(dir===S.dir?hizukiFacing8:null)||dir;
   const col=HIZUKI_ATLAS_DIR[facing];
@@ -702,7 +729,7 @@ function npc(c,x,y,type,name,dir="d",frame=1){
    // Settlement projection already scales every actor by depth. Match the
    // heroine's 104*.56 nominal height without changing collision occupancy.
    const row=({d:0,u:1,l:2,r:3})[dir]??0;
-   const h=village?villageNpcAtlasHeight(atlas,idx,row,child):(child?67:79),w=h*192/224;
+   const h=(village?villageNpcAtlasHeight(atlas,idx,row,child):(child?67:79))*characterScale(),w=h*192/224;
    // Hero rendering cancels its vertical sprite offset before projection.
    const footY=village?y:y+7;
    shadow(c,x,footY,w*.27,6,.17);
