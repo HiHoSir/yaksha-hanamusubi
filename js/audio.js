@@ -33,7 +33,7 @@ window.YK_AUDIO=(()=>{
  if(enabledByGesture&&(phase==="off"||phase==="loading"&&!pending[key]&&!decoded[key]))begin(key);
  if(phase.startsWith("media")&&current)mediaPlay(current[mediaPhase],false);
  attenuate()}
- function unlock(){enabledByGesture=true;ensureCtx();if(currentArea&&(!sourceIntro&&!sourceLoop)&&!phase.startsWith("media"))begin(currentArea);
+ function unlock(){enabledByGesture=true;ensureCtx();if(currentArea&&(!sourceIntro&&!sourceLoop)&&phase!=="loading"&&!phase.startsWith("media"))begin(currentArea);
  else if(phase.startsWith("media")&&current)mediaPlay(current[mediaPhase],true)}
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  document.addEventListener("visibilitychange",()=>{if(!document.hidden){ensureCtx();if(currentArea&&enabledByGesture){if(phase.startsWith("media"))mediaPlay(current?.[mediaPhase],true);else if(!sourceLoop)begin(currentArea)}}});
