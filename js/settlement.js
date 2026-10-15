@@ -30,7 +30,7 @@ window.YK_SETTLEMENT=(()=>{
  };
  function resident(role,id,x,y,dir='d',extra={}){return {...roles[role],role,id,x,y,dir,frame:1,service:role==='merchant'?'shop':roles[role].service,...extra};}
  const residents=[
-  resident('elder','chief',736,664,'d'),resident('child','child-square',842,728,'l'),
+  resident('elder','chief',736,720,'d',{stationary:true}),resident('child','child-square',842,728,'l'),
 
 
   resident('farmer','farmer',576,470,'l'),resident('weaver','weaver',984,390,'d'),
