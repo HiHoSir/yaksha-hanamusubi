@@ -85,22 +85,6 @@ window.YK_SETTLEMENT=(()=>{
   if(gardens.some(a=>hit(a.x-a.w/2,a.y-68,a.x+a.w/2,a.y+8)))return true;
   return trees.some(t=>Math.hypot(x-t.x,y-t.y)<18);
  }
- // Snap only within the original occupied tile. Never move an NPC onto blocked
- // terrain, across a height discontinuity, or through another resident's tile.
- function alignResidentSpawn(n){
-  // Match the player's village starting lattice (768,760) at 32px increments.
-  const x=Math.round(n.x/32)*32,y=Math.round((n.y-24)/32)*32+24;
-  if(x===n.x&&y===n.y)return;
-  if(Math.abs(elevation(x,y)-elevation(n.x,n.y))>8)return;
-  const steps=Math.ceil(Math.hypot(x-n.x,y-n.y)/2);
-  for(let k=1;k<=steps;k++){
-   const xx=n.x+(x-n.x)*k/steps,yy=n.y+(y-n.y)*k/steps;
-   if(blocked(xx,yy))return;
-  }
-  if(residents.some(other=>other!==n&&Math.floor(other.x/32)===Math.floor(x/32)&&Math.floor(other.y/32)===Math.floor(y/32)))return;
-  n.x=x;n.y=y;
- }
- residents.forEach(alignResidentSpawn);
  const aperture={home:[.429,.66,.165,.273],inn:[.411,.714,.175,.212],shop:[.435,.62,.139,.314],tea:[.406,.616,.168,.319]};
  function doorRect(b,cam){const p=project(b.x,b.y,cam);if(p)p.y-=elevation(b.x,b.y)*p.scale;if(!p)return null;const im=art[b.kind],w=b.w*p.scale,h=w*im.height/im.width,a=aperture[b.kind];return {x:p.x-w/2+w*a[0],y:p.y-h+h*a[1],w:w*a[2],h:h*a[3]};}
  function drawDoor(c,b,x,y,w,h,openness){
@@ -283,14 +267,9 @@ window.YK_SETTLEMENT=(()=>{
      if(valid){m.dx=v[0];m.dy=v[1];m.dir=v[2];m.left=distance;chosen=true;break;}
     }if(!chosen){m.wait=.6+random();continue;}
    }
-   const requested=Math.min(m.left,dt*(n.type==='child'?46:n.type==='elder'?30:38));
-   // Use the same sub-step movement and terrain/collision function as the hero.
-   // NPC pace and wandering decisions remain independent of player controls.
-   const destination=YK_MOVEMENT.step(state.area,n.x,n.y,m.dx,m.dy,requested/32,Math.max(...size),allowed);
-   const traveled=Math.hypot(destination.x-n.x,destination.y-n.y);
-   if(traveled<.001){m.left=0;m.wait=.8+random();n.frame=1;changed=true;continue;}
-   n.x=destination.x;n.y=destination.y;m.left=Math.max(0,m.left-traveled);
-   m.phase+=dt;n.dir=m.dir;n.frame=[1,0,1,2][Math.floor(m.phase/.14)%4];changed=true;
+   const step=Math.min(m.left,dt*(n.type==='child'?46:n.type==='elder'?30:38));
+   if(!allowed(n.x+m.dx*step,n.y+m.dy*step)){m.left=0;m.wait=.8+random();n.frame=1;changed=true;continue;}
+   n.x+=m.dx*step;n.y+=m.dy*step;m.left-=step;m.phase+=dt;n.dir=m.dir;n.frame=[1,0,1,2][Math.floor(m.phase/.14)%4];changed=true;
    if(m.left<.01){m.left=0;m.wait=.9+random()*2;n.frame=1;}
   }
   return changed;
