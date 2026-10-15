@@ -88,7 +88,8 @@ window.YK_SETTLEMENT=(()=>{
  // Snap only within the original occupied tile. Never move an NPC onto blocked
  // terrain, across a height discontinuity, or through another resident's tile.
  function alignResidentSpawn(n){
-  const x=Math.floor(n.x/32)*32+16,y=Math.floor(n.y/32)*32+16;
+  // Match the player's village starting lattice (768,760) at 32px increments.
+  const x=Math.round(n.x/32)*32,y=Math.round((n.y-24)/32)*32+24;
   if(x===n.x&&y===n.y)return;
   if(Math.abs(elevation(x,y)-elevation(n.x,n.y))>8)return;
   const steps=Math.ceil(Math.hypot(x-n.x,y-n.y)/2);
@@ -285,7 +286,7 @@ window.YK_SETTLEMENT=(()=>{
    const requested=Math.min(m.left,dt*(n.type==='child'?46:n.type==='elder'?30:38));
    // Use the same sub-step movement and terrain/collision function as the hero.
    // NPC pace and wandering decisions remain independent of player controls.
-   const destination=YK_MOVEMENT.step(state.area,n.x,n.y,m.dx,m.dy,requested/32,size,allowed);
+   const destination=YK_MOVEMENT.step(state.area,n.x,n.y,m.dx,m.dy,requested/32,Math.max(...size),allowed);
    const traveled=Math.hypot(destination.x-n.x,destination.y-n.y);
    if(traveled<.001){m.left=0;m.wait=.8+random();n.frame=1;changed=true;continue;}
    n.x=destination.x;n.y=destination.y;m.left=Math.max(0,m.left-traveled);
