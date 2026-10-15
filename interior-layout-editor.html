@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>間取りタイル指示エディタ</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#13191b;color:#f3f5f4;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif}main{max-width:1060px;margin:auto;padding:12px 12px 35px}h1{font-size:21px;margin:8px 0}h2{font-size:16px;margin:12px 0 8px}p,small{color:#c7d0d0;line-height:1.5}header{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}button,select,input,textarea{font:inherit;color:inherit}button,select,input{background:#303c40;border:1px solid #64777a;border-radius:8px;padding:9px}button{cursor:pointer;touch-action:manipulation}button[aria-pressed=true]{outline:3px solid #e8d18e;background:#495a54}button:disabled{opacity:.4}.tools{display:flex;flex-wrap:wrap;gap:7px}.tool{display:inline-flex;align-items:center;gap:6px;font-size:14px}.sw{height:17px;width:17px;display:inline-block;border:1px solid #c6c6c6;border-radius:3px}.actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}section{border:1px solid #475456;background:#1e282a;border-radius:12px;padding:11px;margin-top:12px}.wrap{overflow:auto;width:100%;background:#101516;border:1px solid #546365;border-radius:8px;padding:8px;touch-action:pan-x pan-y}canvas{display:block;image-rendering:pixelated;touch-action:none;max-width:none}textarea{width:100%;min-height:180px;background:#0d1517;border:1px solid #64777a;border-radius:8px;padding:10px;font-size:13px;line-height:1.5}label{display:inline-flex;gap:5px;align-items:center}.muted{color:#afc4c5}.summary{margin:7px 0;font-size:13px;white-space:pre-wrap}.hide{display:none}
+</style></head><body><main>
+<header><div><h1>間取りタイル指示エディタ</h1><small>施設ごとに独立した間取り／1マス32px／タップ・なぞり塗り</small></div><a href="teahouse-ground-test.html" style="color:#bde6c6">地面のみ確認</a></header>
+<section><h2>施設と初期配置案</h2><label>施設を切り替える <select id="room"><option value="teahouse">茶屋</option><option value="inn">宿屋</option><option value="armory">兵具屋</option><option value="home">住宅</option></select></label> <button id="template">この施設の初期配置案を適用</button><p id="roomNotes"></p><small>施設ごとに自動保存します。初期配置はコンセプト絵の構成に基づく推定案で、実測済みの確定寸法ではありません。</small></section><section><h2>1. 塗る種類を選ぶ</h2><div id="tools" class="tools"></div><p>「選択」→「マップ上をタップ／なぞる」で配置します。矩形表示は<strong>配置指定用</strong>で、ゲーム素材を代用するものではありません。</p>
+<div class="actions"><label><input type="checkbox" id="showGrid" checked>マス目</label><label><input type="checkbox" id="roadImage" checked>既存の道タイルを背景に表示</label><label>表示倍率<select id="zoom"><option value="1">等倍</option><option value="1.5" selected>1.5倍</option><option value="2">2倍</option></select></label></div>
+<div class="wrap"><canvas id="map" width="640" height="448" aria-label="20列14行の間取りマップ"></canvas></div><div id="info" class="summary"></div></section>
+<section><h2>2. 操作・保存</h2><div class="actions">
+<button id="undo">元に戻す</button><button id="redo">やり直し</button><button id="fillRoad">全面を土・道に戻す</button>
+<button id="export">JSON書き出し</button><label style="background:#303c40;border:1px solid #64777a;border-radius:8px;padding:9px">JSON読み込み<input type="file" id="import" accept=".json,application/json" style="display:none"></label>
+</div><p>ブラウザ内に自動保存します。別の端末やチャットへの引き継ぎにはJSONファイルを書き出してください。</p>
+<label>制作メモ <input id="notes" placeholder="例：入口中央4マス、奥は板の間" style="width:min(80vw,480px)"></label></section>
+<section><h2>3. 新規タイル制作リクエスト</h2><p>必要な種類・数量と、現在の配置を含む文章を自動生成します。ボタンでコピーできます。</p><div class="actions"><button id="makeRequest">依頼文を更新</button><button id="copyRequest">依頼文をコピー</button><button id="copyJson">JSONをコピー</button></div><textarea id="request" spellcheck="false"></textarea></section>
+</main><script>
+(()=>{'use strict';
+const S=32,rooms={
+teahouse:{name:'茶屋',w:20,h:14,description:'板の間に4卓、入口土間・踏み石・上がり框。窓・カウンター・調理設備なし。'},
+inn:{name:'宿屋',w:24,h:18,description:'独立した畳客室2室、各2組の布団。山水・梅の掛け軸、小さな帳場、入口土間・踏み石。'},
+armory:{name:'兵具屋',w:22,h:16,description:'客用土間、壁際の武具、帳場背後の店員用板床と側面アクセス。'},
+home:{name:'住宅',w:18,h:14,description:'左は板の間、右は土間。畳なし、家具少数とかまど。'}
+};
+let room='teahouse',W=20,H=14,N=W*H;
+const storageKey=id=>'yaksha.roomEditor.multi.v1.'+id;
+const types=[
+{id:'road',name:'土・道（既存）',color:'#a87f51',newArt:false,walk:true},
+{id:'wall',name:'木壁',color:'#674529',newArt:true,walk:false},
+{id:'raised',name:'上がり框',color:'#d4b376',newArt:true,walk:true},
+{id:'wood',name:'板の間',color:'#c39157',newArt:true,walk:true},
+{id:'stone',name:'踏み石',color:'#9fa5a0',newArt:true,walk:true},
+{id:'entrance',name:'出入口',color:'#78aabf',newArt:true,walk:true},
+{id:'pillar',name:'柱',color:'#66452f',newArt:true,walk:false},
+{id:'table',name:'卓（位置指示）',color:'#975546',newArt:true,walk:false},
+{id:'cushion',name:'座布団（位置指示）',color:'#9a4b6a',newArt:true,walk:true},
+{id:'npc',name:'NPC配置',color:'#b2a2ef',newArt:false,walk:true},
+{id:'tatami',name:'畳',color:'#a9a46d',newArt:true,walk:true},
+{id:'futon',name:'布団',color:'#ded2b7',newArt:true,walk:true},
+{id:'counter',name:'帳場',color:'#825038',newArt:true,walk:false},
+{id:'hearth',name:'かまど',color:'#696c68',newArt:true,walk:false},
+{id:'weapon',name:'武具置場',color:'#75848c',newArt:true,walk:false}
+];
+const byId=Object.fromEntries(types.map(t=>[t.id,t]));const $=id=>document.getElementById(id);
+let cells=Array(N).fill('road'),selected='wall',undo=[],redo=[],painting=false,last=-1;
+const c=$('map'),ctx=c.getContext('2d'),road=new Image();let roadReady=false;const encode=()=>JSON.stringify({version:1,project:'yaksha-hanamusubi',room,tileSize:32,width:W,height:H,notes:$('notes').value,legend:types.map(t=>({id:t.id,name:t.name,walkable:t.walk,needsArt:t.newArt})),tiles:Array.from({length:H},(_,y)=>cells.slice(y*W,(y+1)*W))},null,2);
+const save=()=>{try{localStorage.setItem(storageKey(room),encode())}catch(e){}};
+function push(){undo.push([...cells]);if(undo.length>80)undo.shift();redo=[];}
+function draw(){
+ const z=Number($('zoom').value);c.style.width=W*S*z+'px';c.style.height=H*S*z+'px';
+ ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,W*S,H*S);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  let t=byId[cells[y*W+x]]||types[0],px=x*S,py=y*S;
+  if(roadReady&&$('roadImage').checked){ctx.drawImage(road,(x%2)*32,(y%2)*32,32,32,px,py,32,32)}
+  else{ctx.fillStyle=byId.road.color;ctx.fillRect(px,py,S,S)}
+  if(t.id!=='road'){ctx.fillStyle=t.color+'d9';ctx.fillRect(px,py,S,S);if(t.id==='wall'||t.id==='raised'){ctx.fillStyle='#f9dc9c';ctx.fillRect(px+3,py+12,26,7)}else if(t.id==='npc'){ctx.fillStyle='#222';ctx.beginPath();ctx.arc(px+16,py+16,8,0,Math.PI*2);ctx.fill()}}
+  if($('showGrid').checked){ctx.strokeStyle='#eef8ef55';ctx.lineWidth=.7;ctx.strokeRect(px+.35,py+.35,31.3,31.3)}
+ }
+ const counts=Object.fromEntries(types.map(t=>[t.name,cells.filter(v=>v===t.id).length]));$('info').textContent='配置数：'+Object.entries(counts).filter(([,n])=>n>0).map(([name,n])=>name+' '+n+'マス').join(' ／ ');
+}
+function paint(evt){const r=c.getBoundingClientRect(),x=Math.floor((evt.clientX-r.left)*W*S/r.width),y=Math.floor((evt.clientY-r.top)*H*S/r.height),idx=y*W+x;if(x<0||x>=W||y<0||y>=H||idx===last)return;if(cells[idx]===selected)return;cells[idx]=selected;last=idx;draw();save();}
+c.addEventListener('pointerdown',e=>{e.preventDefault();painting=true;last=-1;push();c.setPointerCapture(e.pointerId);paint(e)});
+c.addEventListener('pointermove',e=>{if(painting){e.preventDefault();paint(e)}});
+for(const n of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(n,()=>{painting=false;last=-1});
+const tools=$('tools');for(const t of types){let b=document.createElement('button');b.className='tool';b.type='button';b.innerHTML='<span class="sw" style="background:'+t.color+'"></span>'+t.name;b.onclick=()=>{selected=t.id;for(const a of tools.children)a.setAttribute('aria-pressed',String(a===b))};b.setAttribute('aria-pressed',String(t.id===selected));tools.appendChild(b)}
+$('undo').onclick=()=>{if(!undo.length)return;redo.push([...cells]);cells=undo.pop();draw();save()};
+$('redo').onclick=()=>{if(!redo.length)return;undo.push([...cells]);cells=redo.pop();draw();save()};
+$('fillRoad').onclick=()=>{if(!confirm('全マスを土・道に戻しますか？'))return;push();cells.fill('road');draw();save()};
+for(const id of ['showGrid','roadImage','zoom'])$(id).onchange=draw;
+$('notes').oninput=save;
+function download(name,text){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+$('export').onclick=()=>download(room+'-layout-'+W+'x'+H+'.json',encode());
+function importData(v){if(v.width!==W||v.height!==H||v.tileSize!==S||!Array.isArray(v.tiles)||v.tiles.length!==H||!v.tiles.every(r=>Array.isArray(r)&&r.length===W&&r.every(t=>byId[t])))throw Error('20×14・32px・既知の種類である必要があります');push();cells=v.tiles.flat();$('notes').value=typeof v.notes==='string'?v.notes:'';draw();save()}
+$('import').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{importData(JSON.parse(await f.text()));alert('読み込みました')}catch(err){alert('読み込み失敗：'+err.message)}e.target.value=''};
+function prompt(){const counts=types.filter(t=>cells.includes(t.id));const missing=counts.filter(t=>t.newArt);
+const pos=id=>cells.flatMap((v,i)=>v===id?['('+i%W+','+Math.floor(i/W)+')']:[]);
+return '【茶屋内装マップタイル制作・実装依頼】\n対象：yaksha-hanamusubi／'+rooms[room].name+'／'+W+'列×'+H+'行、1マス32×32px、合計'+(W*32)+'×'+(H*32)+'px。\n視点：真上の正投影。カメラの遠近・斜め見下ろしは禁止。\n既存地面：assets/terrain/landscape-v3/road.png を流用。地面を再生成しない。\n\n【新規アートが必要な種類】\n'+(missing.length?missing.map(t=>'・'+t.name+'：'+pos(t.id).length+'マス'+(pos(t.id).length?'（座標 '+pos(t.id).join(' ')+'）':'')).join('\n'):'新規アート指定なし')+'\n\n【配置（0始まり、左上がx=0,y=0）】\n'+counts.map(t=>'・'+t.name+'：'+pos(t.id).join(' ')).join('\n')+'\n\n【制作仕様】\n・各タイルは32×32px。接続方向と角・端部を考慮する。\n・壁/柱は接地セルを衝突判定に利用。上がり框/踏み石は原則通行可能。\n・床・壁・家具・前景は別レイヤーに分け、地面の32pxグリッドと同一原点で重ねる。\n・矩形塗りつぶしを完成素材に使わず、AGENTS.mdの内装スキルに従う。\n・承認済みキャラクター表示スケール・セーブ・村内移動を維持する。\n\n【補足】\n'+($('notes').value||'なし')+'\n\n【完全データ】別途JSONを添付/貼り付け。';}
+$('makeRequest').onclick=()=>{$('request').value=prompt()};
+async function copy(text){try{await navigator.clipboard.writeText(text);alert('コピーしました')}catch(e){const ta=$('request');ta.value=text;ta.focus();ta.select();alert('コピー許可がない場合は選択した文章を手動コピーしてください')}}
+$('copyRequest').onclick=()=>copy($('request').value||prompt());$('copyJson').onclick=()=>copy(encode());
+
+function template(id){
+ const spec=rooms[id],w=spec.w,h=spec.h,a=Array(w*h).fill('road');
+ const put=(x,y,t)=>{if(x>=0&&x<w&&y>=0&&y<h)a[y*w+x]=t;};
+ const rect=(x1,y1,x2,y2,t)=>{for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++)put(x,y,t)};
+ for(let x=0;x<w;x++)put(x,0,'wall');
+ for(let y=0;y<h;y++){put(0,y,'wall');put(w-1,y,'wall')}
+ const mid=Math.floor(w/2);
+ for(let x=1;x<w-1;x++)if(x<mid-2||x>mid+1)put(x,h-1,'wall');
+ rect(mid-1,h-1,mid,h-1,'entrance');
+ if(id==='teahouse'){
+  rect(1,1,w-2,h-5,'wood');rect(1,h-5,w-2,h-5,'raised');
+  put(mid,h-3,'stone');
+  for(const [cx,cy] of [[5,4],[w-6,4],[5,8],[w-6,8]]){put(cx,cy,'table');for(const dx of [-1,1])put(cx+dx,cy,'cushion');}
+ }else if(id==='inn'){
+  rect(1,1,w-2,h-5,'wood');
+  rect(2,2,mid-3,8,'tatami');rect(mid+3,2,w-3,8,'tatami');
+  for(const cx of [Math.floor(mid/2),mid+Math.floor(mid/2)]){put(cx,4,'futon');put(cx,7,'futon')}
+  rect(mid-1,1,mid,9,'wall');put(mid,10,'counter');put(mid-2,h-3,'stone');
+  rect(1,h-5,w-2,h-5,'raised');
+ }else if(id==='armory'){
+  rect(1,1,w-2,4,'wood');rect(2,1,4,2,'weapon');rect(w-5,1,w-3,2,'weapon');
+  rect(7,5,w-7,5,'counter');put(6,4,'npc');put(6,5,'wood');
+  put(mid,h-3,'stone');
+ }else{
+  rect(1,1,mid-1,h-2,'wood');rect(mid,1,mid,h-2,'raised');
+  put(4,4,'table');put(w-4,4,'hearth');put(mid,h-3,'stone');
+ }
+ return a;
+}
+function switchRoom(id){
+ save();room=id;W=rooms[id].w;H=rooms[id].h;N=W*H;undo=[];redo=[];
+ c.width=W*S;c.height=H*S;
+ const saved=(()=>{try{return JSON.parse(localStorage.getItem(storageKey(room)))}catch(e){return null}})();
+ cells=saved?.width===W&&saved?.height===H&&saved.tiles?.length===H&&saved.tiles.every(r=>r.length===W&&r.every(v=>byId[v]))?saved.tiles.flat():template(id);
+ $('notes').value=saved?.notes||'';
+ $('roomNotes').textContent=rooms[id].name+'：'+W+'×'+H+'マス（'+W*32+'×'+H*32+'px）。'+rooms[id].description;
+ draw();$('request').value=prompt();save();
+}
+$('room').onchange=e=>switchRoom(e.target.value);
+$('template').onclick=()=>{if(!confirm('現在の施設の間取りを推定初期案に戻しますか？'))return;push();cells=template(room);draw();save();$('request').value=prompt()};
+
+try{const saved=JSON.parse(localStorage.getItem(storageKey(room)));if(saved?.width===W&&saved?.height===H&&saved.tiles?.length===H&&saved.tiles.every(r=>r.length===W&&r.every(v=>byId[v]))){cells=saved.tiles.flat();$('notes').value=saved.notes||''}}catch(e){}
+road.onload=()=>{roadReady=road.naturalWidth===64&&road.naturalHeight===64;draw()};road.onerror=()=>{roadReady=false;draw()};road.src='assets/terrain/landscape-v3/road.png';switchRoom('teahouse');
+})();
+</script></body></html>
