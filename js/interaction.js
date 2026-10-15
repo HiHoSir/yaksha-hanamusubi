@@ -7,17 +7,16 @@ window.YK_INTERACTION=(()=>{
   let best=null,bd=max;
   for(const n of npcs){
    const dx=n.x-player.x,dy=n.y-player.y,d=Math.hypot(dx,dy);
-   const adjacent=Math.abs(tile(n.x)-tile(player.x))+Math.abs(tile(n.y)-tile(player.y))===1;
-   const levelGap=elevation?Math.abs(elevation(n.x,n.y)-elevation(player.x,player.y)):0;
    if(d>=bd)continue;
    const f=facing[player.dir]||facing.d;
    const dot=(dx*f[0]+dy*f[1])/(d||1);
    // Require a forward-facing cone; lateral NPCs must not steal object inspection.
-   if(dot<.75)continue;
-   if(elevation&&levelGap>48)continue;
+   const fdx=tile(n.x)-tile(player.x),fdy=tile(n.y)-tile(player.y);
+   const forwardCell=fdx===f[0]&&fdy===f[1];
+   if(dot<.75&&!forwardCell)continue;
    best=n;bd=d;
   }
   return best;
  }
- return {nearestFacingNPC};
+ return {nearestFacingNPC,sameTile};
 })();
