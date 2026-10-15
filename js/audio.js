@@ -1,9 +1,9 @@
-// beta15.57.102: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.103: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.mp3?v=15.57.102",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.mp3?v=15.57.102",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.103",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.103",loopStart:4.8}
  };
  // Silent-switch A/B mode: default stays on the proven Safari playback path.
  const audioParams=new URLSearchParams(location.search);
@@ -26,7 +26,7 @@ window.YK_AUDIO=(()=>{
  let seeking=false,playPending=false,playError="",requestId=0,backgroundPaused=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
  function zone(area){return area==="field"?"field":"village"}
- let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0;
+ let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
  const decodedBuffers={};
  async function playBuffer(key){
   if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn())return;
@@ -45,7 +45,8 @@ window.YK_AUDIO=(()=>{
    const source=ctx.createBufferSource();source.buffer=buffer;source.loop=true;
    source.loopStart=tracks[key].loopStart;source.loopEnd=buffer.duration;
    source.connect(bufferGain);bufferGain.gain.value=performance.now()<duckUntil?.23:.4;
-   source.start();bufferSource=source;bufferKey=key;bufferError="";
+   const offset=Math.max(0,Math.min(bufferOffset,buffer.duration-.01));
+   source.start(0,offset);bufferStartedAt=ctx.currentTime;bufferSource=source;bufferKey=key;bufferError="";
   }catch(e){bufferError=String(e?.message||e)}
   finally{if(gen===bufferGeneration)bufferLoading=""}
  }
@@ -61,14 +62,14 @@ window.YK_AUDIO=(()=>{
  function setTrack(key){
   if(key===currentArea)return;
   requestId++;playPending=false;player.pause();
-  if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";currentArea=key;play();return}
+  if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0;currentArea=key;play();return}
   currentArea=key;seeking=false;player.src=tracks[key].url;player.load();
   // Do not seek before metadata exists; Safari may otherwise cancel the queued playback.
   attenuate();play();
  }
  function syncBgm(area){
   const key=zone(area);if(key!==currentArea)setTrack(key);
-  if(!soundOn()){player.pause();if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey=""}return}
+  if(!soundOn()){player.pause();if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0}return}
   attenuate();play()
  }
  function reloop(){
@@ -86,7 +87,23 @@ window.YK_AUDIO=(()=>{
  }
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  function pauseForBackground(){
+  if(backgroundPaused)return;
   backgroundPaused=true;player.pause();
+  if(bufferTest){
+   bufferGeneration++;bufferLoading="";
+   if(bufferSource){
+    const duration=decodedBuffers[bufferKey]?.duration||0;
+    if(duration&&ctx){
+     const elapsed=Math.max(0,ctx.currentTime-bufferStartedAt);
+     const loop=tracks[bufferKey]?.loopStart||0;
+     const total=bufferOffset+elapsed;
+     bufferOffset=total<duration?total:loop+(total-loop)%(duration-loop);
+    }
+    try{bufferSource.stop()}catch{}
+    bufferSource.disconnect();bufferSource=null;
+   }
+   bufferKey="";
+  }
   // Suspending SE's WebAudio context prevents lingering synthesized notes.
   try{if(ctx?.state==="running")ctx.suspend().catch(()=>{})}catch{}
  }
@@ -100,7 +117,7 @@ window.YK_AUDIO=(()=>{
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
