@@ -174,9 +174,9 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   const before=npcs.map(n=>[n.x,n.y]);for(let i=0;i<40;i++)v.updateResidents(t+=50,{area:'village',x:768,y:1190},npcs,v.blocked,false,random);
   const frozen=JSON.stringify(before)===JSON.stringify(npcs.map(n=>[n.x,n.y]));
   const staff=['inn','shop','teahouse'].flatMap(id=>v.insideResidents(id)).map(n=>({...n})),staffBefore=staff.map(n=>[n.x,n.y]);for(let i=0;i<200;i++)v.updateResidents(t+=50,{area:'villageRoom',x:384,y:625},staff,()=>false,true,random);
-  return {moved:[...moved],bad,maxNpcFrameStep,frozen,staffFixed:JSON.stringify(staffBefore)===JSON.stringify(staff.map(n=>[n.x,n.y])),cliff:v.blocked(1376,352),stairs:!v.blocked(1424,368),height:[v.elevation(1424,432),v.elevation(1424,392),v.elevation(1424,336)]};
+  return {mobile:npcs.filter(n=>!n.stationary).length,chiefFixed:!moved.has("chief"),moved:[...moved],bad,maxNpcFrameStep,frozen,staffFixed:JSON.stringify(staffBefore)===JSON.stringify(staff.map(n=>[n.x,n.y])),cliff:v.blocked(1376,352),stairs:!v.blocked(1424,368),height:[v.elevation(1424,432),v.elevation(1424,392),v.elevation(1424,336)]};
  });
- assert.equal(result.moved.length,8,JSON.stringify(result));assert(result.maxNpcFrameStep>0&&result.maxNpcFrameStep<=2.300001,'NPC per-frame movement must stay at or below the child speed cap (46px/s)');assert.equal(result.bad,0);assert(result.frozen&&result.staffFixed&&result.cliff&&result.stairs);assert.deepEqual(result.height,[80,96,112]);
+ assert.equal(result.moved.length,result.mobile,JSON.stringify(result));assert(result.chiefFixed,"stationary chief stays fixed");assert(result.maxNpcFrameStep>0&&result.maxNpcFrameStep<=2.300001,'NPC per-frame movement must stay at or below the child speed cap (46px/s)');assert.equal(result.bad,0);assert(result.frozen&&result.staffFixed&&result.cliff&&result.stairs);assert.deepEqual(result.height,[80,96,112]);
  await run('S.x=1440;S.y=464;fieldMotion=null;');
  for(let i=0;i<4;i++){await run('move(0,-1,"u");');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));}
  assert.equal(await run('YK_SETTLEMENT.elevation(S.x,S.y)'),112,'player climbs steps');
