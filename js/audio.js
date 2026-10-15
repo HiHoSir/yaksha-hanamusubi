@@ -92,7 +92,7 @@ window.YK_AUDIO=(()=>{
  }
  function dialogEnd(){clearTimeout(duckTimer);duckUntil=0;attenuate()}
  // Enable an explicit on-screen audio test only when ?audioDebug=1 is supplied.
- if(new URLSearchParams(location.search).(new URLSearchParams(location.search).get("audioDebug")==="1"||silentTest)){
+ if(new URLSearchParams(location.search).get("audioDebug")==="1"||silentTest){
   const panel=document.createElement("div");
   panel.style.cssText="position:fixed;top:70px;right:8px;z-index:99999;background:#141e23ee;color:white;border:1px solid #fff;padding:8px;font:12px monospace;max-width:85vw";
   const out=document.createElement("pre");out.style.cssText="white-space:pre-wrap;margin:5px 0";
