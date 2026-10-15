@@ -919,36 +919,6 @@ function move(dx,dy,dir){
  const fieldStyle=["field","village","teahouse","osumiHome","villageRoom"].includes(S.area);
  if(fieldStyle&&(fieldMotion||dx&&dy))return;
  S.dir=dir;
- // NPC-only destination guard: reject the entire intended village step when
- // its destination cell is occupied. Preserve all terrain movement rules.
- if(S.area==="village"&&areaNPCs().length){
-  const speed=Number($("speedSelect").value)||1;
-  const stepX=dx*32*speed,stepY=dy*32*speed;
-  const segments=Math.ceil(Math.hypot(stepX,stepY)/2);
-  const occupiedStart=npcBlocked(S.x,S.y);
-  let npcInPath=false;
-  for(let i=1;i<=segments;i++){
-   const px=S.x+stepX*i/segments,py=S.y+stepY*i/segments;
-   // Permit leaving an occupied spawn tile, never entering a new NPC tile.
-   if(npcBlocked(px,py)&&(!occupiedStart||!YK_INTERACTION.sameTile({x:px,y:py},{x:S.x,y:S.y}))){npcInPath=true;break;}
-  }
-  if(npcInPath){S.frame=1;map();return;}
- }
- // Village terrain only: inspect the complete proposed 32px move before
- // committing any position. Keep the existing hero step algorithm unchanged.
- if(S.area==="village"){
-  const speed=Number($("speedSelect").value)||1;
-  const distance=32*speed, norm=Math.hypot(dx,dy)||1;
-  const vx=dx/norm*distance,vy=dy/norm*distance;
-  const segments=Math.ceil(distance/2);
-  let fullyWalkable=true;
-  for(let i=1;i<=segments;i++){
-   const px=Math.max(27,Math.min(1504,S.x+vx*i/segments));
-   const py=Math.max(34,Math.min(1248,S.y+vy*i/segments));
-   if(collision(px,py,true)){fullyWalkable=false;break;}
-  }
-  if(!fullyWalkable){S.frame=1;map();return;}
- }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
  const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,Number($("speedSelect").value)||1,YK_WORLD.size,collision);
