@@ -92,6 +92,7 @@ window.YK_SETTLEMENT=(()=>{
   ).length;
  }
  function alignNpcToWalkableSlot(n){
+  if(n.id==='weaver')return; // preserve verified wandering near the building
   const originalX=n.x,originalY=n.y;
   const exits=npcOpenExits(originalX,originalY);
   const centerX=768+32*Math.round((originalX-768)/32);
