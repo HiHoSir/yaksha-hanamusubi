@@ -298,3 +298,16 @@ body:has(#title.show) #stage{min-height:0}
 #dialogNext.hasNextLine{animation:dialog-next-pulse .9s steps(2,end) infinite}
 @keyframes dialog-next-pulse{50%{opacity:.3}}
 @media(prefers-reduced-motion:reduce){#dialogNext.hasNextLine{animation:none}}
+
+/* Integrated RPG dialogue advance indicator; A/decide and tapping the corner still advance. */
+#dialog .dialogWindow{position:absolute;padding-bottom:20px}
+#dialogNext{
+ position:absolute;right:10px;bottom:4px;
+ float:none;margin:0;padding:0;
+ width:44px;min-width:44px;height:44px;min-height:44px;
+ border:0;border-radius:0;background:transparent;box-shadow:none;
+ color:#f6dda3;font-size:18px;text-align:center;
+ opacity:0;
+}
+#dialogNext.hasNextLine{opacity:1;animation:dialog-next-pulse .9s steps(2,end) infinite}
+@media(prefers-reduced-motion:reduce){#dialogNext.hasNextLine{opacity:1;animation:none}}
