@@ -58,7 +58,7 @@ window.YK_SETTLEMENT=(()=>{
   {kind:'crates',x:718,y:864,w:56,r:20},{kind:'basket',x:436,y:552,w:36,r:12},{kind:'hozuki',x:890,y:624,w:42,r:11}
  ];
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- function camera(x,y){return {x,y};}
+ function camera(x,y){return {x,y,preset:3};}
  let projectionKey='',projectionRows=new Map();
  function project(x,y,cam){
   const key=cam.x+','+cam.y;if(key!==projectionKey){projectionKey=key;projectionRows.clear();}
@@ -340,7 +340,7 @@ window.YK_SETTLEMENT=(()=>{
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();
   c.save();c.translate(0,32);c.scale(1.2,1.2);
-  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);q.save();clipRiverWater(q,cam);riverLife(q,cam,time);flow(q,cam,time);q.restore();bridgeDecks(q,cam);}});
+  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{preset:3,ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);q.save();clipRiverWater(q,cam);riverLife(q,cam,time);flow(q,cam,time);q.restore();bridgeDecks(q,cam);}});
   const near=doors.find(d=>Math.abs(state.x-d.x)<58&&Math.abs(state.y-d.y)<64);
   if(near){const p=project(near.x,near.y,camera(state.x,state.y));if(p){p.y-=elevation(near.x,near.y)*p.scale;c.font='bold 14px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-82,p.y-116,164,26);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-98);}}
   c.restore();return true;
