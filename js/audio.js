@@ -1,14 +1,15 @@
-// beta15.57.101: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.102: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.mp3?v=15.57.101",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.mp3?v=15.57.101",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.102",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.102",loopStart:4.8}
  };
  // Silent-switch A/B mode: default stays on the proven Safari playback path.
  const audioParams=new URLSearchParams(location.search);
  const audioSessionTest=audioParams.get("audioSessionTest")||(
   audioParams.get("audioSilentTest")==="1"?"ambient":"auto");
+ const bufferTest=audioParams.get("audioRouteTest")==="buffer";
  const silentTest=audioSessionTest!=="auto";
  let audioSessionResult="unchanged";
  function applySessionTest(){
@@ -25,8 +26,32 @@ window.YK_AUDIO=(()=>{
  let seeking=false,playPending=false,playError="",requestId=0,backgroundPaused=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
  function zone(area){return area==="field"?"field":"village"}
- function attenuate(){player.volume=performance.now()<duckUntil?.23:.4}
+ let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0;
+ const decodedBuffers={};
+ async function playBuffer(key){
+  if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn())return;
+  if(bufferKey===key&&bufferSource)return;
+  if(bufferLoading===key)return;
+  const gen=++bufferGeneration;bufferLoading=key;
+  try{
+   ctx??=new(window.AudioContext||window.webkitAudioContext)();
+   if(ctx.state==="suspended")await ctx.resume();
+   let buffer=decodedBuffers[key];
+   if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
+    buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
+   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key)return;
+   if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null;}
+   bufferGain??=ctx.createGain();bufferGain.connect(ctx.destination);
+   const source=ctx.createBufferSource();source.buffer=buffer;source.loop=true;
+   source.loopStart=tracks[key].loopStart;source.loopEnd=buffer.duration;
+   source.connect(bufferGain);bufferGain.gain.value=performance.now()<duckUntil?.23:.4;
+   source.start();bufferSource=source;bufferKey=key;bufferError="";
+  }catch(e){bufferError=String(e?.message||e)}
+  finally{if(gen===bufferGeneration)bufferLoading=""}
+ }
+ function attenuate(){if(bufferTest){if(bufferGain)bufferGain.gain.value=performance.now()<duckUntil?.23:.4;}else player.volume=performance.now()<duckUntil?.23:.4}
  function play(){
+  if(bufferTest){if(currentArea)void playBuffer(currentArea);return}
   if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused||!currentArea||!player.paused||playPending)return;
   const id=requestId;playPending=true;
   try{const p=player.play();if(p?.then)p.then(()=>{if(id===requestId){playPending=false;playError="";if(document.hidden||backgroundPaused)player.pause()}},e=>{if(id===requestId){playPending=false;playError=String(e?.name||e);lastError="play "+playError}});
@@ -36,13 +61,14 @@ window.YK_AUDIO=(()=>{
  function setTrack(key){
   if(key===currentArea)return;
   requestId++;playPending=false;player.pause();
+  if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";currentArea=key;play();return}
   currentArea=key;seeking=false;player.src=tracks[key].url;player.load();
   // Do not seek before metadata exists; Safari may otherwise cancel the queued playback.
   attenuate();play();
  }
  function syncBgm(area){
   const key=zone(area);if(key!==currentArea)setTrack(key);
-  if(!soundOn()){player.pause();return}
+  if(!soundOn()){player.pause();if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey=""}return}
   attenuate();play()
  }
  function reloop(){
@@ -74,7 +100,7 @@ window.YK_AUDIO=(()=>{
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
