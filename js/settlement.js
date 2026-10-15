@@ -79,6 +79,12 @@ window.YK_SETTLEMENT=(()=>{
   if(y>n.front&&y<n.bottom-8&&n.ramps.some(([l,r])=>Math.abs(x-l)<12||Math.abs(x-r)<12))return true;
   const t=terrace;
   if(hit(t.left-4,t.back,t.left+4,t.front)||hit(t.right-4,t.back,t.right+4,t.front)||hit(t.left,t.back-4,t.right,t.back+4)||hit(t.left,t.front-4,t.stairLeft-4,t.front+4)||hit(t.stairRight+4,t.front-4,t.right,t.front+4)||hit(t.stairLeft-4,t.front,t.stairLeft,t.stairBottom-8)||hit(t.stairRight,t.front,t.stairRight+4,t.stairBottom-8))return true;
+  return objectBlocked(x,y);
+ }
+ // Every solid prop uses its actual world-space foot position, not its illustrated
+ // canopy or the containing tile's origin. The weaver is an NPC, not a prop.
+ function objectBlocked(x,y){
+  const hit=(l,t,r,b)=>Math.hypot(x-clamp(x,l,r),y-clamp(y,t,b))<8;
   if(buildings.some(b=>hit(b.x-b.w*.39,b.y-70,b.x+b.w*.39,b.y)))return true;
   if(hit(well.x-27,well.y-24,well.x+27,well.y+6))return true;
   if(props.some(p=>p.kind==='fence'?hit(p.x-p.w*.45,p.y-8,p.x+p.w*.45,p.y+2):Math.hypot(x-p.x,y-p.y)<p.r+8))return true;
@@ -318,5 +324,5 @@ window.YK_SETTLEMENT=(()=>{
  const indoor={inn:['innkeeper','inn-host'],shop:['merchant','shopkeeper'],teahouse:['teagirl','tea-host'],osumiHome:['woman','osumi']};
  const roomResidents=Object.fromEntries(Object.entries(indoor).map(([id,[role,person]])=>[id,[resident(role,person,384,id==='teahouse'?245:390,'d')]]));
  function insideResidents(id){return roomResidents[id]||[];}
- return {riverDepth,waterHeight,upland,northHeight,terrace,elevation,props,updateResidents,size,revision,spawn,buildings,doors,roles,residents,resident,insideResidents,mapData,bridges,trees,well,gardens,load,ready,errors,blocked,camera,project,unproject,draw,doorRect};
+ return {riverDepth,waterHeight,upland,northHeight,terrace,elevation,props,updateResidents,size,revision,spawn,buildings,doors,roles,residents,resident,insideResidents,mapData,bridges,trees,well,gardens,load,ready,errors,blocked,objectBlocked,camera,project,unproject,draw,doorRect};
 })();
