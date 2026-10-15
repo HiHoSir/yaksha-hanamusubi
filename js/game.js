@@ -1291,7 +1291,7 @@ function publishProbe(t){
  p.element.textContent='FPS '+(p.frames*1000/(t-p.last)).toFixed(0)+'  '+S.area+'  busy:'+busy+'\n描画 '+avg(p.draw,p.drawCount)+'ms 最大'+p.drawPeak.toFixed(0)+'ms\nNPC '+avg(p.npc,p.npcCount)+'ms 最大'+p.npcPeak.toFixed(0)+'ms\n描画回数 '+p.drawCount+' /秒  移動:'+!!fieldMotion;
  p.draw=p.npc=p.drawPeak=p.npcPeak=p.drawCount=p.npcCount=p.frames=0;p.last=t;
 }
-function loop(t){publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>50;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
+function loop(t){publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>125;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
  const deadline=fieldMotion.at+144;fieldMotion=null;
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
