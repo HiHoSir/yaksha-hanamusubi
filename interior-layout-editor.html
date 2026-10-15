@@ -7,7 +7,7 @@
 <header><div><h1>間取りタイル指示エディタ</h1><small>施設ごとに独立した間取り／1マス32px／タップ・なぞり塗り</small></div><a href="teahouse-ground-test.html" style="color:#bde6c6">地面のみ確認</a></header>
 <section><h2>施設と初期配置案</h2><label>施設を切り替える <select id="room"><option value="teahouse">茶屋</option><option value="inn">宿屋</option><option value="armory">兵具屋</option><option value="home">住宅</option></select></label> <button id="template">この施設の初期配置案を適用</button><p id="roomNotes"></p><small>施設ごとに自動保存します。初期配置はコンセプト絵の構成に基づく推定案で、実測済みの確定寸法ではありません。</small></section><section><h2>1. 塗る種類を選ぶ</h2><div id="tools" class="tools"></div><p>「選択」→「マップ上をタップ／なぞる」で配置します。矩形表示は<strong>配置指定用</strong>で、ゲーム素材を代用するものではありません。</p>
 <div class="actions"><label><input type="checkbox" id="showGrid" checked>マス目</label><label><input type="checkbox" id="roadImage" checked>既存の道タイルを背景に表示</label><label>表示倍率<select id="zoom"><option value="1">等倍</option><option value="1.5" selected>1.5倍</option><option value="2">2倍</option></select></label></div>
-<div class="wrap"><canvas id="map" width="640" height="448" aria-label="20列14行の間取りマップ"></canvas></div><div id="info" class="summary"></div></section>
+<div class="wrap"><canvas id="map" width="640" height="448" aria-label="施設別間取りマップ"></canvas></div><div id="info" class="summary"></div></section>
 <section><h2>2. 操作・保存</h2><div class="actions">
 <button id="undo">元に戻す</button><button id="redo">やり直し</button><button id="fillRoad">全面を土・道に戻す</button>
 <button id="export">JSON書き出し</button><label style="background:#303c40;border:1px solid #64777a;border-radius:8px;padding:9px">JSON読み込み<input type="file" id="import" accept=".json,application/json" style="display:none"></label>
@@ -70,7 +70,7 @@ for(const id of ['showGrid','roadImage','zoom'])$(id).onchange=draw;
 $('notes').oninput=save;
 function download(name,text){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 $('export').onclick=()=>download(room+'-layout-'+W+'x'+H+'.json',encode());
-function importData(v){if(v.width!==W||v.height!==H||v.tileSize!==S||!Array.isArray(v.tiles)||v.tiles.length!==H||!v.tiles.every(r=>Array.isArray(r)&&r.length===W&&r.every(t=>byId[t])))throw Error('20×14・32px・既知の種類である必要があります');push();cells=v.tiles.flat();$('notes').value=typeof v.notes==='string'?v.notes:'';draw();save()}
+function importData(v){if(v.width!==W||v.height!==H||v.tileSize!==S||!Array.isArray(v.tiles)||v.tiles.length!==H||!v.tiles.every(r=>Array.isArray(r)&&r.length===W&&r.every(t=>byId[t])))throw Error('施設の寸法・32px・既知の種類を確認してください');push();cells=v.tiles.flat();$('notes').value=typeof v.notes==='string'?v.notes:'';draw();save()}
 $('import').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{importData(JSON.parse(await f.text()));alert('読み込みました')}catch(err){alert('読み込み失敗：'+err.message)}e.target.value=''};
 function prompt(){const counts=types.filter(t=>cells.includes(t.id));const missing=counts.filter(t=>t.newArt);
 const pos=id=>cells.flatMap((v,i)=>v===id?['('+i%W+','+Math.floor(i/W)+')']:[]);
@@ -108,8 +108,8 @@ function template(id){
  }
  return a;
 }
-function switchRoom(id){
- save();room=id;W=rooms[id].w;H=rooms[id].h;N=W*H;undo=[];redo=[];
+function switchRoom(id,initial=false){
+ if(!initial)save();room=id;W=rooms[id].w;H=rooms[id].h;N=W*H;undo=[];redo=[];
  c.width=W*S;c.height=H*S;
  const saved=(()=>{try{return JSON.parse(localStorage.getItem(storageKey(room)))}catch(e){return null}})();
  cells=saved?.width===W&&saved?.height===H&&saved.tiles?.length===H&&saved.tiles.every(r=>r.length===W&&r.every(v=>byId[v]))?saved.tiles.flat():template(id);
@@ -121,6 +121,6 @@ $('room').onchange=e=>switchRoom(e.target.value);
 $('template').onclick=()=>{if(!confirm('現在の施設の間取りを推定初期案に戻しますか？'))return;push();cells=template(room);draw();save();$('request').value=prompt()};
 
 try{const saved=JSON.parse(localStorage.getItem(storageKey(room)));if(saved?.width===W&&saved?.height===H&&saved.tiles?.length===H&&saved.tiles.every(r=>r.length===W&&r.every(v=>byId[v]))){cells=saved.tiles.flat();$('notes').value=saved.notes||''}}catch(e){}
-road.onload=()=>{roadReady=road.naturalWidth===64&&road.naturalHeight===64;draw()};road.onerror=()=>{roadReady=false;draw()};road.src='assets/terrain/landscape-v3/road.png';switchRoom('teahouse');
+road.onload=()=>{roadReady=road.naturalWidth===64&&road.naturalHeight===64;draw()};road.onerror=()=>{roadReady=false;draw()};road.src='assets/terrain/landscape-v3/road.png';switchRoom('teahouse',true);
 })();
 </script></body></html>
