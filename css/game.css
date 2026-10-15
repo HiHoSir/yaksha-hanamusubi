@@ -293,3 +293,8 @@ body:has(#title.show) #stage{min-height:0}
 #pad .virtualStickKnob{position:absolute;left:50%;top:50%;width:58px;height:58px;transform:translate(-50%,-50%);border-radius:50%;border:2px solid #e4c990;background:linear-gradient(145deg,#6b7890,#304961);pointer-events:none;box-shadow:0 2px 8px #000a}
 #pad.dialogActive .virtualStick{opacity:.65}
 @media(max-height:720px){#pad .virtualStick{top:6px;width:128px;height:128px}}
+
+/* Blink only after the full line appears when another line follows. */
+#dialogNext.hasNextLine{animation:dialog-next-pulse .9s steps(2,end) infinite}
+@keyframes dialog-next-pulse{50%{opacity:.3}}
+@media(prefers-reduced-motion:reduce){#dialogNext.hasNextLine{animation:none}}

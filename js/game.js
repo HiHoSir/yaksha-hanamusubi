@@ -5,12 +5,17 @@ const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("b
 window.gameState=YK_GAME_STATE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
 let dialogTyping=null,dialogTypingTimer=null;
 function stopDialogTyping(){clearTimeout(dialogTypingTimer);dialogTypingTimer=null;dialogTyping=null;}
+function updateDialogIndicator(){
+ const button=$("dialogNext");
+ button.classList.toggle("hasNextLine",!!dialogTyping&&dialogTyping.index>=dialogTyping.chars.length&&dialogQueue.length>0);
+ button.setAttribute("aria-label",dialogQueue.length?"次のセリフへ":"会話を閉じる");
+}
 function revealDialogLine(){
  if(!dialogTyping)return;
  clearTimeout(dialogTypingTimer);dialogTypingTimer=null;
  dialogTyping.index=dialogTyping.chars.length;
  $("dialogText").textContent=dialogTyping.chars.join('');
- $("dialogNext").textContent="▼";
+ $("dialogNext").textContent="▼";updateDialogIndicator();
 }
 function typeDialogTick(){
  if(!dialogTyping)return;
@@ -19,7 +24,7 @@ function typeDialogTick(){
  $("dialogText").textContent+=d.chars[d.index++];
  // Future dialogue SE can hook into each visible character here.
  if(d.index<d.chars.length)dialogTypingTimer=setTimeout(typeDialogTick,36);
- else dialogTypingTimer=null;
+ else {dialogTypingTimer=null;updateDialogIndicator();}
 }
 let fieldMotion=null;
 let debugMotion=null,debugAngle=0,debugTargetAngle=0,debugPreset=0,debugCameraTime=0;
@@ -774,6 +779,7 @@ function talk(entry,after=null){
 function nextDialog(){
  if(dialogTyping&&dialogTyping.index<dialogTyping.chars.length){revealDialogLine();return;}
  stopDialogTyping();
+ $("dialogNext").classList.remove("hasNextLine");
  if(dialogQueue.length){
   const d=dialogQueue.shift();
   $("speaker").textContent=d.speaker;
@@ -782,10 +788,10 @@ function nextDialog(){
   // Category metadata reserved for future per-character dialogue voice effects.
   const voice=YK_DIALOGUE.voiceKind(d.voice);
   dialogTyping={chars,index:0};
-  $("dialogNext").textContent="▼";
+  $("dialogNext").textContent="▼";updateDialogIndicator();
   renderDialogPortrait();
   typeDialogTick();
-  if(!chars.length)$("dialogNext").textContent="▼";
+  if(!chars.length)updateDialogIndicator();
   return;
  }
  $("dialog").classList.remove("show");$("pad").classList.remove("dialogActive");$("cancel").disabled=false;YK_INPUT.stopAll();
