@@ -1,21 +1,26 @@
-// beta15.57.99: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.101: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.mp3?v=15.57.99",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.mp3?v=15.57.99",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.101",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.101",loopStart:4.8}
  };
- // Opt-in experiment only. Default audio routing stays unchanged and proven.
- const silentTest=new URLSearchParams(location.search).get("audioSilentTest")==="1";
+ // Silent-switch A/B mode: default stays on the proven Safari playback path.
+ const audioParams=new URLSearchParams(location.search);
+ const audioSessionTest=audioParams.get("audioSessionTest")||(
+  audioParams.get("audioSilentTest")==="1"?"ambient":"auto");
+ const silentTest=audioSessionTest!=="auto";
  let audioSessionResult="unchanged";
- if(silentTest){
+ function applySessionTest(){
+  if(!silentTest)return;
   try{
    if(navigator.audioSession&&"type" in navigator.audioSession){
-    navigator.audioSession.type="ambient";
-    audioSessionResult="ambient ("+navigator.audioSession.type+")";
+    navigator.audioSession.type=audioSessionTest;
+    audioSessionResult=audioSessionTest+" (readback: "+navigator.audioSession.type+")";
    }else audioSessionResult="unsupported";
   }catch(e){audioSessionResult="error "+String(e?.name||e)}
  }
+ applySessionTest();
  const player=new Audio();player.preload="auto";player.playsInline=true;player.loop=false;
  let seeking=false,playPending=false,playError="",requestId=0,backgroundPaused=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
@@ -49,7 +54,7 @@ window.YK_AUDIO=(()=>{
  player.addEventListener("timeupdate",()=>{if(!seeking&&currentArea&&Number.isFinite(player.duration)&&player.duration>0&&player.currentTime>=player.duration-.085)reloop()});
  player.addEventListener("error",()=>{lastError="media error "+(player.error?.code||"unknown")+" "+currentArea});
  player.addEventListener("canplay",()=>{if(player.paused)play()});
- function unlock(){if(document.hidden||backgroundPaused)return;enabledByGesture=true;
+ function unlock(){if(document.hidden||backgroundPaused)return;applySessionTest();enabledByGesture=true;
   try{ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume().catch(()=>{})}catch{}
   play()
  }
@@ -62,13 +67,14 @@ window.YK_AUDIO=(()=>{
  function resumeFromBackground(){
   if(document.hidden)return;
   backgroundPaused=false;
+  applySessionTest();
   try{if(enabledByGesture&&ctx?.state==="suspended")ctx.resume().catch(()=>{})}catch{}
   play();
  }
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,audioSessionResult}}
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
