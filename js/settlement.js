@@ -1,6 +1,6 @@
 // Shared settlement kit: world coordinates, separate ground/objects/actors and reusable roles.
 window.YK_SETTLEMENT=(()=>{
- const size=[1536,1280],revision=3,spawn=[768,1190],art={},errors={};
+ const size=[1536,1280],revision=4,spawn=[768,1176],art={},errors={};
  const paths={home:'home',inn:'inn',shop:'shop',tea:'tea',tree:'tree',well:'well',door:'door',rocks:'rocks',fence:'fence',crates:'crates',basket:'basket',crops:'crops',hozuki:'hozuki',wall:'wall',stairs:'stairs'};
  let started=false;
  function load(change=()=>{}){if(started)return;started=true;for(const [k,file] of Object.entries(paths)){const im=art[k]=new Image();im.onload=change;im.onerror=()=>{errors[k]=true;change();};im.src=`assets/settlements/common-v1/${file}.png`;}}
