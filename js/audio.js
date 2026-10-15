@@ -1,44 +1,51 @@
-// Beta 15.57.89: gapless AudioBuffer BGM with media fallback for Safari.
+// beta15.57.91: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
- let ctx=null,enabledByGesture=false,currentArea="",current=null,phase="intro",duckUntil=0,duckTimer=null;
- let master=null,sourceIntro=null,sourceLoop=null,epoch=0,lastError="",mediaPhase="intro",mediaPending=false,lastMediaAttempt=0;
+ let ctx=null,enabledByGesture=false,currentArea="",player=null,duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{intro:"audio/field-v10.ogg?v=15.57.89",loop:"audio/field-v10-loop.ogg?v=15.57.89"},
-  village:{intro:"audio/hoozuki-v13.ogg?v=15.57.89",loop:"audio/hoozuki-v13-loop.ogg?v=15.57.89"}
+  field:{url:"audio/field-v10.ogg?v=15.57.91",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.ogg?v=15.57.91",loopStart:4.8}
  };
- const decoded={},pending={},fallback={};
+ const players={};let seeking=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
- function zone(a){return a==="field"?"field":"village"}
- function ensureCtx(){try{ctx??=new(window.AudioContext||window.webkitAudioContext)();if(!master){master=ctx.createGain();master.gain.value=.4;master.connect(ctx.destination)}if(ctx.state==="suspended")ctx.resume().catch(e=>{lastError=String(e?.name||e)});return true}catch(e){lastError=String(e);return false}}
- function setupMedia(key){if(fallback[key])return fallback[key];const p=tracks[key],intro=new Audio(p.intro),loop=new Audio(p.loop);for(const a of [intro,loop]){a.preload="auto";a.playsInline=true;a.addEventListener("error",()=>lastError="media error "+(a.error?.code||0))}loop.loop=true;return fallback[key]={intro,loop}}
- async function load(key){if(decoded[key])return decoded[key];if(pending[key])return pending[key];if(!ensureCtx())throw Error("WebAudio unavailable");const p=tracks[key];
- pending[key]=Promise.all([p.intro,p.loop].map(async url=>{const response=await fetch(url);if(!response.ok)throw Error("BGM HTTP "+response.status);return ctx.decodeAudioData(await response.arrayBuffer())})).then(([intro,loop])=>decoded[key]={intro,loop}).catch(e=>{lastError="decode: "+String(e);throw e}).finally(()=>{pending[key]=null});return pending[key]}
- function stopSources(){for(const s of [sourceIntro,sourceLoop]){try{s?.stop()}catch{}try{s?.disconnect()}catch{}}sourceIntro=sourceLoop=null;for(const m of Object.values(fallback)){m.intro.pause();m.loop.pause()}}
- function attenuate(){let volume=performance.now()<duckUntil?.23:.40;if(master)master.gain.setTargetAtTime(volume,ctx.currentTime,.035);for(const m of Object.values(fallback)){m.intro.volume=volume;m.loop.volume=volume}}
- function startBuffer(key,token){if(token!==epoch||!soundOn()||document.hidden||!enabledByGesture)return;const d=decoded[key];if(!d||!ensureCtx())return;stopSources();
- const intro=ctx.createBufferSource(),loop=ctx.createBufferSource();intro.buffer=d.intro;loop.buffer=d.loop;loop.loop=true;intro.connect(master);loop.connect(master);
- const time=ctx.currentTime+.035;sourceIntro=intro;sourceLoop=loop;phase="intro";
- try{intro.start(time);loop.start(time+intro.buffer.duration);intro.onended=()=>{if(epoch===token)phase="loop"};attenuate()}catch(e){lastError=String(e);startMedia(key,token)}
+ function zone(area){return area==="field"?"field":"village"}
+ function setup(key){
+  if(players[key])return players[key];
+  const a=new Audio(tracks[key].url);a.preload="auto";a.playsInline=true;a.loop=false;
+  a.addEventListener("ended",()=>{if(player!==a||!soundOn())return;reloop(a,key)});
+  a.addEventListener("error",()=>{lastError="media error "+(a.error?.code||0)});
+  // Seek just before the end, avoiding a second media player and its playback permission.
+  a.addEventListener("timeupdate",()=>{if(a!==player||seeking||!Number.isFinite(a.duration))return;
+    if(a.currentTime>=a.duration-.075)reloop(a,key)});
+  return players[key]=a;
  }
- function startMedia(key,token){if(token!==epoch||!enabledByGesture||!soundOn()||document.hidden)return;let m=setupMedia(key);current=m;mediaPhase="intro";phase="media-intro";m.intro.currentTime=0;m.loop.currentTime=0;
- m.intro.onended=()=>{if(token!==epoch)return;mediaPhase="loop";phase="media-loop";mediaPlay(m.loop,true)};
- mediaPlay(m.intro,true);attenuate();
+ function reloop(a,key){if(seeking||a!==player)return;seeking=true;
+  try{a.currentTime=tracks[key].loopStart;const p=a.play();if(p?.catch)p.catch(e=>lastError="loop "+String(e?.name||e))}
+  catch(e){lastError="loop "+String(e)}finally{seeking=false}
  }
- function mediaPlay(a,force=false){if(!a||!a.paused||mediaPending||!soundOn())return;const now=performance.now();if(!force&&now-lastMediaAttempt<1200)return;lastMediaAttempt=now;mediaPending=true;try{Promise.resolve(a.play()).then(()=>{mediaPending=false},e=>{mediaPending=false;lastError="play "+String(e?.name||e)})}catch(e){mediaPending=false;lastError=String(e)}}
- function begin(key){const token=++epoch;stopSources();current=null;phase=enabledByGesture&&soundOn()?"loading":"await-gesture";if(!enabledByGesture||!soundOn())return;
- load(key).then(()=>startBuffer(key,token)).catch(()=>startMedia(key,token));
+ function attenuate(){if(player)player.volume=performance.now()<duckUntil?.23:.4}
+ function play(){if(!player||!soundOn()||!enabledByGesture||document.hidden)return;
+  if(!player.paused)return;
+  try{const p=player.play();if(p?.catch)p.catch(e=>lastError="play "+String(e?.name||e))}
+  catch(e){lastError="play "+String(e)}
  }
- function syncBgm(area){const key=zone(area);if(key!==currentArea){currentArea=key;begin(key)}
- if(!soundOn()){stopSources();phase="off";return}
- if(enabledByGesture&&(phase==="off"||phase==="loading"&&!pending[key]&&!decoded[key]))begin(key);
- if(phase.startsWith("media")&&current)mediaPlay(current[mediaPhase],false);
- attenuate()}
- function unlock(){enabledByGesture=true;ensureCtx();if(currentArea&&(!sourceIntro&&!sourceLoop)&&phase!=="loading"&&!phase.startsWith("media"))begin(currentArea);
- else if(phase.startsWith("media")&&current)mediaPlay(current[mediaPhase],true)}
+ function syncBgm(area){
+  const key=zone(area);
+  if(key!==currentArea){
+   if(player)player.pause();
+   currentArea=key;player=setup(key);try{player.currentTime=0}catch{}
+  }
+  if(!soundOn()){if(player)player.pause();return}
+  attenuate();play();
+ }
+ function unlock(){
+  enabledByGesture=true;
+  try{ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume().catch(()=>{})}catch{}
+  play();
+ }
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
- document.addEventListener("visibilitychange",()=>{if(!document.hidden){ensureCtx();if(currentArea&&enabledByGesture){if(phase.startsWith("media"))mediaPlay(current?.[mediaPhase],true);else if(!sourceLoop)begin(currentArea)}}});
- window.addEventListener("pageshow",()=>{if(currentArea&&enabledByGesture&&phase.startsWith("media"))mediaPlay(current?.[mediaPhase],true)});
- function diagnostics(){return {area:currentArea,phase,enabledByGesture,context:ctx?.state,decoded:Object.keys(decoded),lastError}}
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)play()});
+ window.addEventListener("pageshow",play);
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player?.paused??true,readyState:player?.readyState??0,time:player?.currentTime??0,duration:player?.duration??0,lastError}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
