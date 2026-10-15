@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scene": "teahouse",
-  "status": "calibration-required",
+  "status": "visual-audit-complete-geometry-provisional",
   "concept": "design-reference/interiors/base-v1/teahouse.png",
   "renderArt": "assets/interiors/base-v1/teahouse.webp",
   "coordinateSystem": {
@@ -80,7 +80,17 @@
       "artLayer": null,
       "footprint": null,
       "depthAnchor": null,
-      "verified": false
+      "verified": false,
+      "visualBounds": [
+        92,
+        286,
+        283,
+        375
+      ],
+      "visualCenter": [
+        184,
+        329
+      ]
     },
     {
       "id": "table-2",
@@ -88,7 +98,17 @@
       "artLayer": null,
       "footprint": null,
       "depthAnchor": null,
-      "verified": false
+      "verified": false,
+      "visualBounds": [
+        484,
+        286,
+        682,
+        375
+      ],
+      "visualCenter": [
+        583,
+        329
+      ]
     },
     {
       "id": "table-3",
@@ -96,7 +116,17 @@
       "artLayer": null,
       "footprint": null,
       "depthAnchor": null,
-      "verified": false
+      "verified": false,
+      "visualBounds": [
+        64,
+        375,
+        276,
+        466
+      ],
+      "visualCenter": [
+        170,
+        420
+      ]
     },
     {
       "id": "table-4",
@@ -104,7 +134,17 @@
       "artLayer": null,
       "footprint": null,
       "depthAnchor": null,
-      "verified": false
+      "verified": false,
+      "visualBounds": [
+        491,
+        374,
+        702,
+        469
+      ],
+      "visualCenter": [
+        593,
+        422
+      ]
     }
   ],
   "constraints": {
@@ -115,5 +155,109 @@
     "anchorAlignment": "same-canvas origin",
     "entryAndServicesPreserved": true
   },
-  "activation": "NOT ACTIVE: runtime retains approved painted interior until geometry + illustration are verified"
+  "activation": "NOT ACTIVE: runtime retains approved painted interior until geometry + illustration are verified",
+  "visualAudit": {
+    "source": "GitHub Actions run 38807247755 / interior-rendering / interior-teahouse-fixed-camera-scale.png",
+    "sourceCanvas": [
+      768,
+      768
+    ],
+    "notes": "Measured against unchanged source painting in a fixed camera comparison, not floor-verified collision dimensions",
+    "heroSamples": [
+      {
+        "x": 384,
+        "y": 336,
+        "label": "rear"
+      },
+      {
+        "x": 384,
+        "y": 432,
+        "label": "middle"
+      },
+      {
+        "x": 288,
+        "y": 528,
+        "label": "threshold"
+      },
+      {
+        "x": 384,
+        "y": 560,
+        "label": "entry"
+      }
+    ],
+    "architecture": {
+      "rearWallBaseY": 287,
+      "raisedTimberFloorApproxY": [
+        291,
+        511
+      ],
+      "thresholdApproxY": [
+        508,
+        541
+      ],
+      "earthAreaApproxY": [
+        511,
+        576
+      ],
+      "entryWalkwayApproxX": [
+        302,
+        459
+      ]
+    },
+    "furnitureGroups": [
+      {
+        "id": "table-1",
+        "visualBounds": [
+          92,
+          286,
+          283,
+          375
+        ],
+        "center": [
+          184,
+          329
+        ]
+      },
+      {
+        "id": "table-2",
+        "visualBounds": [
+          484,
+          286,
+          682,
+          375
+        ],
+        "center": [
+          583,
+          329
+        ]
+      },
+      {
+        "id": "table-3",
+        "visualBounds": [
+          64,
+          375,
+          276,
+          466
+        ],
+        "center": [
+          170,
+          420
+        ]
+      },
+      {
+        "id": "table-4",
+        "visualBounds": [
+          491,
+          374,
+          702,
+          469
+        ],
+        "center": [
+          593,
+          422
+        ]
+      }
+    ],
+    "finding": "Cloth-covered benches occupy a comparable apparent height to the heroine; baked-in perspective and visual silhouettes do not match foot-space collision rectangles. Avoid moving collision directly from these bounds."
+  }
 }
