@@ -648,9 +648,10 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  if(layerReady(atlas)){
    c.save();c.imageSmoothingEnabled=true;
    const child=type==='child',village=S.area==='village';
-   // Village hero is rendered at z=.68 (~116px sprite); match adult NPC
-   // height while preserving a smaller child and the same foot anchor.
-   const h=village?(child?95:112):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
+   // A village NPC occupies one 32px ground cell. Sprite artwork may rise
+   // above that cell, but should not read as a multi-cell-wide obstruction.
+   // Keep the atlas foot at (x,y+7), identical to the collision anchor.
+   const h=village?(child?39:48):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
    shadow(c,x,y+7,w*.27,6,.17);
    c.drawImage(atlas,idx*192,row*224,192,224,x-w/2,y+7-h*212/224,w,h);
    c.restore();
