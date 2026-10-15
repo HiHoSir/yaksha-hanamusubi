@@ -40,10 +40,12 @@ const server=http.createServer((req,res)=>{
   await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');
   await page.waitForFunction(()=>YK_SETTLEMENT.ready()&&YK_LANDSCAPE.ready());
   const before=await run('JSON.stringify(S)');
+  await page.click('#settingsBtn');
   await page.selectOption('#heroArtSelect','legacy');
   assert.equal(await run('hizukiArt'),'legacy');assert.equal(await run('JSON.stringify(S)'),before);
   await page.selectOption('#heroArtSelect','bluebob');
   assert.equal(await run('JSON.stringify(S)'),before);
+  await page.click('[data-close="settings"]');
   for(const area of ['village','field']){
    await run(`S.area='${area}';S.x=${area==='village'?768:688};S.y=${area==='village'?1190:2096};S.frame=1;S.dir='d';hud();map();`);
    await page.screenshot({path:path.join(out,area+'.png')});
