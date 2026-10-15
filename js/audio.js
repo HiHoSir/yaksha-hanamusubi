@@ -25,7 +25,7 @@ window.YK_AUDIO=(()=>{
  mediaPlay(m.intro,true);attenuate();
  }
  function mediaPlay(a,force=false){if(!a||!a.paused||mediaPending||!soundOn())return;const now=performance.now();if(!force&&now-lastMediaAttempt<1200)return;lastMediaAttempt=now;mediaPending=true;try{Promise.resolve(a.play()).then(()=>{mediaPending=false},e=>{mediaPending=false;lastError="play "+String(e?.name||e)})}catch(e){mediaPending=false;lastError=String(e)}}
- function begin(key){const token=++epoch;stopSources();current=null;phase="loading";if(!enabledByGesture||!soundOn())return;
+ function begin(key){const token=++epoch;stopSources();current=null;phase=enabledByGesture&&soundOn()?"loading":"await-gesture";if(!enabledByGesture||!soundOn())return;
  load(key).then(()=>startBuffer(key,token)).catch(()=>startMedia(key,token));
  }
  function syncBgm(area){const key=zone(area);if(key!==currentArea){currentArea=key;begin(key)}
