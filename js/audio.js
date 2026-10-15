@@ -1,15 +1,15 @@
-// beta15.57.104: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.105: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.mp3?v=15.57.104",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.mp3?v=15.57.104",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.105",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.105",loopStart:4.8}
  };
- // Silent-switch A/B mode: default stays on the proven Safari playback path.
+ // Web Audio BGM is the default; ?audioRouteTest=html keeps the legacy fallback.
  const audioParams=new URLSearchParams(location.search);
  const audioSessionTest=audioParams.get("audioSessionTest")||(
   audioParams.get("audioSilentTest")==="1"?"ambient":"auto");
- const bufferTest=audioParams.get("audioRouteTest")==="buffer";
+ const bufferTest=audioParams.get("audioRouteTest")!=="html";
  const silentTest=audioSessionTest!=="auto";
  let audioSessionResult="unchanged";
  function applySessionTest(){
