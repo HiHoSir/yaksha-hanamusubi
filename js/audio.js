@@ -5,6 +5,17 @@ window.YK_AUDIO=(()=>{
   field:{url:"audio/field-v10.mp3?v=15.57.99",loopStart:7.7419354839},
   village:{url:"audio/hoozuki-v13.mp3?v=15.57.99",loopStart:4.8}
  };
+ // Opt-in experiment only. Default audio routing stays unchanged and proven.
+ const silentTest=new URLSearchParams(location.search).get("audioSilentTest")==="1";
+ let audioSessionResult="unchanged";
+ if(silentTest){
+  try{
+   if(navigator.audioSession&&"type" in navigator.audioSession){
+    navigator.audioSession.type="ambient";
+    audioSessionResult="ambient ("+navigator.audioSession.type+")";
+   }else audioSessionResult="unsupported";
+  }catch(e){audioSessionResult="error "+String(e?.name||e)}
+ }
  const player=new Audio();player.preload="auto";player.playsInline=true;player.loop=false;
  let seeking=false,playPending=false,playError="",requestId=0,backgroundPaused=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
@@ -57,7 +68,7 @@ window.YK_AUDIO=(()=>{
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden}}
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,audioSessionResult}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
@@ -81,7 +92,7 @@ window.YK_AUDIO=(()=>{
  }
  function dialogEnd(){clearTimeout(duckTimer);duckUntil=0;attenuate()}
  // Enable an explicit on-screen audio test only when ?audioDebug=1 is supplied.
- if(new URLSearchParams(location.search).get("audioDebug")==="1"){
+ if(new URLSearchParams(location.search).(new URLSearchParams(location.search).get("audioDebug")==="1"||silentTest)){
   const panel=document.createElement("div");
   panel.style.cssText="position:fixed;top:70px;right:8px;z-index:99999;background:#141e23ee;color:white;border:1px solid #fff;padding:8px;font:12px monospace;max-width:85vw";
   const out=document.createElement("pre");out.style.cssText="white-space:pre-wrap;margin:5px 0";
