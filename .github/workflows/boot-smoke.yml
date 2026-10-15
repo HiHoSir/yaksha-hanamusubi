@@ -135,6 +135,8 @@ jobs:
             assert.equal(query,version,'stale static asset version: '+asset);
           }
           NODE
+      - name: Audio playback and lifecycle contract
+        run: node qa/audio-contract.cjs
       - name: Movement geometry contract
         run: node qa/movement-rules-unit.cjs
       - name: Collision geometry contract
