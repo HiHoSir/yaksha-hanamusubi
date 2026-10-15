@@ -12,7 +12,7 @@ class MockAudio{
 }
 class MockSource{
  constructor(){this.stopped=false;this.started=false;this.loop=false;this.loopStart=0;this.loopEnd=0;sources.push(this)}
- connect(){} disconnect(){} start(t,offset=0){this.started=true;this.offset=offset} stop(){this.stopped=true}
+ connect(){return this} disconnect(){} start(t,offset=0){this.started=true;this.offset=offset} stop(){this.stopped=true}
 }
 class MockContext{
  constructor(){this.state='running';this.currentTime=0;this.destination={};ctx=this}
@@ -20,9 +20,9 @@ class MockContext{
  suspend(){this.state='suspended';return Promise.resolve()}
  decodeAudioData(){return Promise.resolve({duration:43.2})}
  createBufferSource(){return new MockSource()}
- createGain(){return {gain:{value:0,setValueAtTime(){},linearRampToValueAtTime(){},setTargetAtTime(){}},connect(){}}}
- createOscillator(){const o={frequency:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},start(){oscillators.push(o)},stop(){}};return o}
- createBiquadFilter(){return {frequency:{value:0},connect(){}}}
+ createGain(){return {gain:{value:0,setValueAtTime(){},linearRampToValueAtTime(){},setTargetAtTime(){}},connect(){return this}}}
+ createOscillator(){const o={frequency:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){return this},start(){oscillators.push(o)},stop(){}};return o}
+ createBiquadFilter(){return {frequency:{value:0},connect(){return this}}}
 }
 const document={hidden:false,addEventListener:(n,f)=>(docListeners[n]??=[]).push(f),createElement:()=>({style:{},append(){},onclick:null}),body:{append(){}}};
 const sandbox={document,location:{search:'?audioRouteTest=buffer'},navigator:{},Audio:MockAudio,AudioContext:MockContext,URLSearchParams,
