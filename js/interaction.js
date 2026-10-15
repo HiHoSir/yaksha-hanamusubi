@@ -9,7 +9,7 @@ window.YK_INTERACTION=(()=>{
    const dx=n.x-player.x,dy=n.y-player.y,d=Math.hypot(dx,dy);
    const adjacent=Math.abs(tile(n.x)-tile(player.x))+Math.abs(tile(n.y)-tile(player.y))===1;
    const levelGap=elevation?Math.abs(elevation(n.x,n.y)-elevation(player.x,player.y)):0;
-   if(d>=bd&&!(adjacent&&d<bd+20))continue;
+   if(d>=bd)continue;
    const f=facing[player.dir]||facing.d;
    const dot=(dx*f[0]+dy*f[1])/(d||1);
    // Require a forward-facing cone; lateral NPCs must not steal object inspection.
