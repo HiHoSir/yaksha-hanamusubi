@@ -48,6 +48,20 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await run('enterWorldPlace("village");S.x=768;S.y=72;move(0,-1,"u");');assert.equal(await run('S.area'),'field');
  const old=await run('YK_SAVE.migrate({...YK_SAVE.fresh(),area:"village",villageRevision:2,x:373,y:690,gold:900,quest:2})');assert.equal(old.x,768);assert.equal(old.y,1190);assert.equal(old.gold,900);assert.equal(old.quest,2);
  await run('state({...YK_SAVE.fresh(),area:"village",x:1056,y:696});YK_SAVE.auto(S);restoreState(YK_SAVE.loadAuto());');assert.equal(await run('S.x'),1056);assert.equal(await run('S.y'),696);
+ const riverRender=await page.evaluate(()=>{
+  const v=YK_SETTLEMENT,cam={x:1024,y:1176},frames=[0,900].map(t=>{
+   const c=document.createElement('canvas');c.width=768;c.height=685;
+   v.draw(c.getContext('2d'),cam,[],null,t);return c.getContext('2d').getImageData(0,0,768,685).data;
+  });
+  const edge=Math.ceil(32+1.2*v.project(1024,1120,cam).y);let landChanges=0,waterChanges=0;
+  for(let y=edge-40;y<edge+14;y++)for(let x=360;x<410;x++){
+   const i=(y*768+x)*4,changed=[0,1,2].some(k=>frames[0][i+k]!==frames[1][i+k]);
+   if(changed){if(y>=edge+2)landChanges++;else if(y<edge-2)waterChanges++;}
+  }
+  return {landChanges,waterChanges,edge};
+ });
+ assert.equal(riverRender.landChanges,0,'moving water must stay behind foreground land: '+JSON.stringify(riverRender));
+ assert(riverRender.waterChanges>0,'water remains animated beside the near bank: '+JSON.stringify(riverRender));
  assert.deepEqual(errors,[]);console.log('village '+height+': 7 doors, 12 unique residents, field camera/movement, both exits, bridge/water, migration, animation OK');await page.close();
  }
  }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

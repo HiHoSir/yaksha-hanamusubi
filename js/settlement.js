@@ -125,7 +125,23 @@ window.YK_SETTLEMENT=(()=>{
   c.drawImage(im,0,0,half,im.height,r.x-r.w*.5*openness,r.y,r.w*.5,r.h);
   c.drawImage(im,half,0,half,im.height,r.x+r.w*.5+r.w*.5*openness,r.y,r.w*.5,r.h);c.restore();
  }
- const riverDepth=24;
+ // Shared visual river geometry; collision remains governed by mapData.
+ const riverDepth=24,riverBands=[{left:1248,right:1344,back:0,front:1024},{left:0,right:1536,back:1024,front:1120}];
+ function riverPoint(x,y,cam){const p=project(x,y,cam);return p?{...p,y:p.y-waterHeight(x,y)*p.scale}:null;}
+ function clipNearBank(c,cam){
+  const p=project(cam.x,riverBands[1].front,cam);
+  // A clipped foreground edge must also work when the bank is beyond the view.
+  const edge=p?p.y:riverBands[1].front<cam.y?0:544;
+  c.beginPath();c.rect(0,136,640,Math.max(0,Math.min(544,edge)-136));c.clip();
+ }
+ function clipRiverWater(c,cam){
+  clipNearBank(c,cam);c.beginPath();
+  for(const band of riverBands)for(let y=band.back;y<band.front;y+=4){
+   const end=Math.min(y+4,band.front),a=riverPoint(band.left,y,cam),b=riverPoint(band.right,y,cam),d=riverPoint(band.left,end-.001,cam),e=riverPoint(band.right,end-.001,cam);
+   if(!a||!b||!d||!e||d.y<a.y||d.y<136||a.y>544)continue;
+   c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.lineTo(e.x,e.y+.6);c.lineTo(d.x,d.y+.6);c.closePath();
+  }c.clip();
+ }
  function waterHeight(x,y){return northHeight(x,y)-riverDepth;}
  let riverBed=null;
  function riverBedLayer(){
@@ -140,7 +156,7 @@ window.YK_SETTLEMENT=(()=>{
  }
  function riverTerrain(c,cam){
   const g=riverBedLayer(),reflection=groundLayer(),at=(x,y,z)=>{const p=project(x,y,cam);return p?{...p,y:p.y-z*p.scale}:null;};
-  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
+  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();clipNearBank(c,cam);
   // Texture coordinates stay attached to the bank in world space, never the screen.
   // Draw complete water first, then banks: strips must not overwrite earlier bank faces.
   const wall=(x1,y1,x2,y2)=>{
@@ -152,13 +168,23 @@ window.YK_SETTLEMENT=(()=>{
    c.drawImage(art.wall,source/96*art.wall.width,0,length/96*art.wall.width,art.wall.height,0,-.4,length+.35,riverDepth+1);
    c.fillStyle=x1===x2?'#29443333':'#203a4038';c.fillRect(0,0,length+.35,riverDepth+1);c.restore();
   };
-  const surface=(l,r,y)=>{const z=waterHeight((l+r)/2,y),a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,waterHeight((l+r)/2,y+3.99));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l,y,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);c.globalAlpha*=.32;c.drawImage(reflection,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);};
+  const surface=(l,r,y)=>{const z=waterHeight((l+r)/2,y),a=at(l,y,z),b=at(r,y,z),d=at(l,y+4,waterHeight((l+r)/2,y+3.99));if(!a||!b||!d||d.y<=a.y||d.y<136||a.y>544)return;const f=clamp((a.y-136)/72,0,1);c.globalAlpha=f*f*(3-2*f);c.drawImage(g,l,y,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);c.globalAlpha*=.20;c.drawImage(reflection,l+512,y+512,r-l,4,a.x,a.y,b.x-a.x,d.y-a.y+.8);
+   // Shallow contact shading at the far bank and beneath the bridge deck.
+   const bank=riverBands.find(v=>y>=v.back&&y<v.front);
+   if(bank){const distance=bank===riverBands[1]?y-bank.back:999;
+    c.globalAlpha=f*f*(3-2*f);c.fillStyle='#183d4230';
+    if(distance<10)c.fillRect(a.x,a.y,b.x-a.x,d.y-a.y+.8);
+    for(const bridge of bridges){if(y<bridge.y||y>=bridge.y+bridge.height)continue;
+     const left=Math.max(l,bridge.x+4),right=Math.min(r,bridge.x+bridge.width+6);if(right<=left)continue;
+     const u=riverPoint(left,y,cam),v=riverPoint(right,y,cam);if(u&&v){c.fillStyle='#142f4248';c.fillRect(u.x,u.y,v.x-u.x,d.y-a.y+.8);}
+    }
+   }};
   // Banks descend to the water while bridge decks retain the ground elevation.
-  for(let y=0;y<1024;y+=4){surface(1248,1344,y);}
-  for(let y=1024;y<1120;y+=4){surface(0,1536,y);}
-  for(let y=0;y<1024;y+=16){wall(1248,y,1248,y+16);wall(1344,y,1344,y+16);}
-  for(const [l,r] of [[0,1248],[1344,1536]])for(let x=l;x<r;x+=16)wall(x,1024,Math.min(r,x+16),1024);
-  for(const [l,r] of [[0,1536]])for(let x=l;x<r;x+=16)wall(x,1120,Math.min(r,x+16),1120);
+  for(const band of riverBands)for(let y=band.back;y<band.front;y+=4)surface(band.left,band.right,y);
+  const [vertical,horizontal]=riverBands;
+  for(let y=vertical.back;y<vertical.front;y+=16){wall(vertical.left,y,vertical.left,y+16);wall(vertical.right,y,vertical.right,y+16);}
+  for(const [l,r] of [[horizontal.left,vertical.left],[vertical.right,horizontal.right]])for(let x=l;x<r;x+=16)wall(x,horizontal.back,Math.min(r,x+16),horizontal.back);
+  // The foreground bank faces away from the viewer: land hides the water below it.
   c.restore();
  }
  function riverLife(c,cam,time){
@@ -314,7 +340,7 @@ window.YK_SETTLEMENT=(()=>{
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();
   c.save();c.translate(0,32);c.scale(1.2,1.2);
-  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);riverLife(q,cam,time);flow(q,cam,time);bridgeDecks(q,cam);}});
+  YK_LANDSCAPE.drawQuarter(c,mapData,{x:state.x,foot:state.y,draw:(x,y,z)=>hero?.draw(x,y,z)},1.4,{ground:groundLayer(),groundOrigin:{x:-512,y:-512},objects,edgeColor:'#527a49',elevation,afterGround:(q,cam)=>{northTerrain(q,cam,time);riverTerrain(q,cam);waterfall(q,cam,time);raisedTerrain(q,cam);q.save();clipRiverWater(q,cam);riverLife(q,cam,time);flow(q,cam,time);q.restore();bridgeDecks(q,cam);}});
   const near=doors.find(d=>Math.abs(state.x-d.x)<58&&Math.abs(state.y-d.y)<64);
   if(near){const p=project(near.x,near.y,camera(state.x,state.y));if(p){p.y-=elevation(near.x,near.y)*p.scale;c.font='bold 14px sans-serif';c.textAlign='center';c.fillStyle='#142525e8';c.fillRect(p.x-82,p.y-116,164,26);c.fillStyle='#fff2cb';c.fillText('A：'+near.name,p.x,p.y-98);}}
   c.restore();return true;
