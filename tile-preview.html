@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>既存32px地面タイル 確認</title>
+<style>body{background:#151b22;color:#f2f4f7;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:16px}main{max-width:900px;margin:auto}h1{font-size:22px}article{background:#26303c;border-radius:12px;margin:16px 0;padding:14px}h2{font-size:17px}img{image-rendering:pixelated;display:block;max-width:none} .viewport{overflow:auto;background:#3d4650;padding:10px;border-radius:8px;min-height:90px}button{font-size:16px;padding:9px;margin:4px}p{line-height:1.5}.status{font-size:14px;color:#d9e9f6}code{overflow-wrap:anywhere}</style></head><body><main>
+<h1>村内から流用可能な地面タイル</h1>
+<p>新規生成なし。GitHub Pagesが配信する実ファイルを等倍・拡大で表示します。地面・道の画像は複数セルのシート、草地基本は32pxタイルです。</p>
+<div><button id="small">等倍</button><button id="large">4倍に拡大</button><button id="refresh">再読み込み</button></div>
+<article><h2>地面タイル：world-ortho-ground-v2.png</h2><div class="viewport"><img data-file="assets/terrain/world-ortho-ground-v2.png" alt="既存地面タイル"></div><p class="status">読込中</p></article>
+<article><h2>道タイル：world-ortho-road-v2.png</h2><div class="viewport"><img data-file="assets/terrain/world-ortho-road-v2.png" alt="既存の道タイル"></div><p class="status">読込中</p></article>
+<article><h2>草地基本：grass_base.png</h2><div class="viewport"><img data-file="assets/terrain/original-32-v2/grass_base.png" alt="32px草地タイル"></div><p class="status">読込中</p></article>
+<p>表示できない場合は各画像のエラーをこのページに表示します。タイルの画像内容は変更していません。</p>
+</main><script>
+const images=[...document.querySelectorAll('img[data-file]')];
+let zoom=4;
+function apply(){for(const img of images){if(img.naturalWidth){img.style.width=(img.naturalWidth*zoom)+'px';img.style.height=(img.naturalHeight*zoom)+'px';}}}
+function load(){const stamp=Date.now();for(const img of images){const status=img.closest('article').querySelector('.status');status.textContent='読込中: '+img.dataset.file;img.onload=()=>{status.textContent='表示成功: '+img.naturalWidth+'×'+img.naturalHeight+'px';apply()};img.onerror=()=>{status.textContent='表示失敗: '+img.dataset.file+' （配信・ネットワーク状態を確認してください）'};img.src=img.dataset.file+'?tile-preview='+stamp;}}
+document.querySelector('#small').onclick=()=>{zoom=1;apply()};document.querySelector('#large').onclick=()=>{zoom=4;apply()};document.querySelector('#refresh').onclick=load;
+load();
+</script></body></html>
