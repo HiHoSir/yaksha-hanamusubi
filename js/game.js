@@ -651,8 +651,11 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
    // Sprite height is independent of the 32px movement/collision cell.
    // Hozuki's heroine uses z=.68; NPCs share its projected foot baseline.
    // Keep children shorter, without treating one terrain cell as body height.
-   const h=village?(child?52:64):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
-   const footY=y+(village?9*.68:7);
+   // Settlement projection already scales every actor by depth. Match the
+   // heroine's 104*.56 nominal height without changing collision occupancy.
+   const h=village?(child?43:54):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
+   // Hero rendering cancels its vertical sprite offset before projection.
+   const footY=village?y:y+7;
    shadow(c,x,footY,w*.27,6,.17);
    c.drawImage(atlas,idx*192,row*224,192,224,x-w/2,footY-h*212/224,w,h);
    c.restore();
