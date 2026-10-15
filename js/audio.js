@@ -1,9 +1,9 @@
-// beta15.57.92: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.94: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",player=null,duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.mp3?v=15.57.92",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.mp3?v=15.57.92",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.94",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.94",loopStart:4.8}
  };
  const players={};let seeking=false,backgrounded=document.hidden;
  // Prefer game/ambient audio routing: respect the iPhone silent switch where supported.
