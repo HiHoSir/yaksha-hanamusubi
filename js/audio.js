@@ -1,68 +1,44 @@
-// Beta 15.57.88: reliable BGM state machine for iPhone Safari.
-// Keep intro and loop separately: never restart intro after advancing to loop.
+// Beta 15.57.89: gapless AudioBuffer BGM with media fallback for Safari.
 window.YK_AUDIO=(()=>{
- let ctx=null,enabledByGesture=false,currentArea="",current=null,duckUntil=0,duckTimer=null;
- let phase="intro",pausedBySetting=false,attemptPending=false,lastError="",lastAttempt=0;
+ let ctx=null,enabledByGesture=false,currentArea="",current=null,phase="intro",duckUntil=0,duckTimer=null;
+ let master=null,sourceIntro=null,sourceLoop=null,epoch=0,lastError="",mediaPhase="intro",mediaPending=false,lastMediaAttempt=0;
  const tracks={
-  field:{intro:"audio/field-v10.ogg?v=15.57.88",loop:"audio/field-v10-loop.ogg?v=15.57.88"},
-  village:{intro:"audio/hoozuki-v13.ogg?v=15.57.88",loop:"audio/hoozuki-v13-loop.ogg?v=15.57.88"}
+  field:{intro:"audio/field-v10.ogg?v=15.57.89",loop:"audio/field-v10-loop.ogg?v=15.57.89"},
+  village:{intro:"audio/hoozuki-v13.ogg?v=15.57.89",loop:"audio/hoozuki-v13-loop.ogg?v=15.57.89"}
  };
- const buffer={};
+ const decoded={},pending={},fallback={};
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
- function zone(area){return area==="field"?"field":"village"}
- function setup(key){
-  if(buffer[key])return buffer[key];
-  const intro=new Audio(tracks[key].intro),loop=new Audio(tracks[key].loop);
-  for(const a of [intro,loop]){a.preload="auto";a.playsInline=true;a.addEventListener("error",()=>{lastError="media "+(a.error?.code||"unknown")})}
-  loop.loop=true;
-  return buffer[key]={intro,loop};
+ function zone(a){return a==="field"?"field":"village"}
+ function ensureCtx(){try{ctx??=new(window.AudioContext||window.webkitAudioContext)();if(!master){master=ctx.createGain();master.gain.value=.4;master.connect(ctx.destination)}if(ctx.state==="suspended")ctx.resume().catch(e=>{lastError=String(e?.name||e)});return true}catch(e){lastError=String(e);return false}}
+ function setupMedia(key){if(fallback[key])return fallback[key];const p=tracks[key],intro=new Audio(p.intro),loop=new Audio(p.loop);for(const a of [intro,loop]){a.preload="auto";a.playsInline=true;a.addEventListener("error",()=>lastError="media error "+(a.error?.code||0))}loop.loop=true;return fallback[key]={intro,loop}}
+ async function load(key){if(decoded[key])return decoded[key];if(pending[key])return pending[key];if(!ensureCtx())throw Error("WebAudio unavailable");const p=tracks[key];
+ pending[key]=Promise.all([p.intro,p.loop].map(async url=>{const response=await fetch(url);if(!response.ok)throw Error("BGM HTTP "+response.status);return ctx.decodeAudioData(await response.arrayBuffer())})).then(([intro,loop])=>decoded[key]={intro,loop}).catch(e=>{lastError="decode: "+String(e);throw e}).finally(()=>{pending[key]=null});return pending[key]}
+ function stopSources(){for(const s of [sourceIntro,sourceLoop]){try{s?.stop()}catch{}try{s?.disconnect()}catch{}}sourceIntro=sourceLoop=null;for(const m of Object.values(fallback)){m.intro.pause();m.loop.pause()}}
+ function attenuate(){let volume=performance.now()<duckUntil?.23:.40;if(master)master.gain.setTargetAtTime(volume,ctx.currentTime,.035);for(const m of Object.values(fallback)){m.intro.volume=volume;m.loop.volume=volume}}
+ function startBuffer(key,token){if(token!==epoch||!soundOn()||document.hidden||!enabledByGesture)return;const d=decoded[key];if(!d||!ensureCtx())return;stopSources();
+ const intro=ctx.createBufferSource(),loop=ctx.createBufferSource();intro.buffer=d.intro;loop.buffer=d.loop;loop.loop=true;intro.connect(master);loop.connect(master);
+ const time=ctx.currentTime+.035;sourceIntro=intro;sourceLoop=loop;phase="intro";
+ try{intro.start(time);loop.start(time+intro.buffer.duration);intro.onended=()=>{if(epoch===token)phase="loop"};attenuate()}catch(e){lastError=String(e);startMedia(key,token)}
  }
- function active(){return current?.[phase]||null}
- function attenuate(){
-  const target=performance.now()<duckUntil?.23:.40;
-  if(current){current.intro.volume=target;current.loop.volume=target}
+ function startMedia(key,token){if(token!==epoch||!enabledByGesture||!soundOn()||document.hidden)return;let m=setupMedia(key);current=m;mediaPhase="intro";phase="media-intro";m.intro.currentTime=0;m.loop.currentTime=0;
+ m.intro.onended=()=>{if(token!==epoch)return;mediaPhase="loop";phase="media-loop";mediaPlay(m.loop,true)};
+ mediaPlay(m.intro,true);attenuate();
  }
- function tryPlay(force=false){
-  if(!current||!soundOn()||!enabledByGesture||document.hidden)return;
-  const a=active();if(!a||!a.paused||attemptPending)return;
-  const now=performance.now();if(!force&&now-lastAttempt<1200)return;
-  lastAttempt=now;attemptPending=true;
-  try{
-   const p=a.play();
-   if(p&&typeof p.then==="function")p.then(()=>{attemptPending=false;lastError=""},e=>{attemptPending=false;lastError=String(e?.name||e)});
-   else attemptPending=false;
-  }catch(e){attemptPending=false;lastError=String(e?.name||e)}
+ function mediaPlay(a,force=false){if(!a||!a.paused||mediaPending||!soundOn())return;const now=performance.now();if(!force&&now-lastMediaAttempt<1200)return;lastMediaAttempt=now;mediaPending=true;try{Promise.resolve(a.play()).then(()=>{mediaPending=false},e=>{mediaPending=false;lastError="play "+String(e?.name||e)})}catch(e){mediaPending=false;lastError=String(e)}}
+ function begin(key){const token=++epoch;stopSources();current=null;phase="loading";if(!enabledByGesture||!soundOn())return;
+ load(key).then(()=>startBuffer(key,token)).catch(()=>startMedia(key,token));
  }
- function advance(pair){
-  if(current!==pair||phase!=="intro")return;
-  phase="loop";pair.loop.currentTime=0;
-  tryPlay(true);
- }
- function syncBgm(area){
-  const key=zone(area);
-  if(currentArea!==key){
-   if(current){current.intro.pause();current.loop.pause()}
-   currentArea=key;current=setup(key);phase="intro";attemptPending=false;lastAttempt=0;
-   current.intro.currentTime=0;current.loop.currentTime=0;
-   const pair=current;pair.intro.onended=()=>advance(pair);
-  }
-  if(!soundOn()){
-   pausedBySetting=true;if(current){current.intro.pause();current.loop.pause()}
-   return;
-  }
-  if(pausedBySetting){pausedBySetting=false;lastAttempt=0}
-  attenuate();
-  tryPlay(false);
- }
- function unlock(){
-  enabledByGesture=true;
-  try{ctx??=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume().catch(()=>{})}catch{}
-  tryPlay(true);
- }
+ function syncBgm(area){const key=zone(area);if(key!==currentArea){currentArea=key;begin(key)}
+ if(!soundOn()){stopSources();phase="off";return}
+ if(enabledByGesture&&(phase==="off"||phase==="loading"&&!pending[key]&&!decoded[key]))begin(key);
+ if(phase.startsWith("media")&&current)mediaPlay(current[mediaPhase],false);
+ attenuate()}
+ function unlock(){enabledByGesture=true;ensureCtx();if(currentArea&&(!sourceIntro&&!sourceLoop)&&!phase.startsWith("media"))begin(currentArea);
+ else if(phase.startsWith("media")&&current)mediaPlay(current[mediaPhase],true)}
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
- document.addEventListener("visibilitychange",()=>{if(!document.hidden){attemptPending=false;tryPlay(true)}});
- window.addEventListener("pageshow",()=>{attemptPending=false;tryPlay(true)});
- function diagnostics(){const a=active();return {area:currentArea,phase,enabledByGesture,soundOn:soundOn(),paused:a?.paused??true,readyState:a?.readyState??0,time:a?.currentTime??0,lastError}}
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden){ensureCtx();if(currentArea&&enabledByGesture){if(phase.startsWith("media"))mediaPlay(current?.[mediaPhase],true);else if(!sourceLoop)begin(currentArea)}}});
+ window.addEventListener("pageshow",()=>{if(currentArea&&enabledByGesture&&phase.startsWith("media"))mediaPlay(current?.[mediaPhase],true)});
+ function diagnostics(){return {area:currentArea,phase,enabledByGesture,context:ctx?.state,decoded:Object.keys(decoded),lastError}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
