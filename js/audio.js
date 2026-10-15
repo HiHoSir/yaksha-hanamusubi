@@ -1,19 +1,19 @@
-// beta15.57.97: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.99: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.mp3?v=15.57.97",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.mp3?v=15.57.97",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.99",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.99",loopStart:4.8}
  };
  const player=new Audio();player.preload="auto";player.playsInline=true;player.loop=false;
- let seeking=false,playPending=false,playError="",requestId=0;
+ let seeking=false,playPending=false,playError="",requestId=0,backgroundPaused=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
  function zone(area){return area==="field"?"field":"village"}
  function attenuate(){player.volume=performance.now()<duckUntil?.23:.4}
  function play(){
-  if(!soundOn()||!enabledByGesture||document.hidden||!currentArea||!player.paused||playPending)return;
+  if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused||!currentArea||!player.paused||playPending)return;
   const id=requestId;playPending=true;
-  try{const p=player.play();if(p?.then)p.then(()=>{if(id===requestId){playPending=false;playError=""}},e=>{if(id===requestId){playPending=false;playError=String(e?.name||e);lastError="play "+playError}});
+  try{const p=player.play();if(p?.then)p.then(()=>{if(id===requestId){playPending=false;playError="";if(document.hidden||backgroundPaused)player.pause()}},e=>{if(id===requestId){playPending=false;playError=String(e?.name||e);lastError="play "+playError}});
    else playPending=false;
   }catch(e){playPending=false;playError=String(e);lastError=playError}
  }
@@ -38,16 +38,28 @@ window.YK_AUDIO=(()=>{
  player.addEventListener("timeupdate",()=>{if(!seeking&&currentArea&&Number.isFinite(player.duration)&&player.duration>0&&player.currentTime>=player.duration-.085)reloop()});
  player.addEventListener("error",()=>{lastError="media error "+(player.error?.code||"unknown")+" "+currentArea});
  player.addEventListener("canplay",()=>{if(player.paused)play()});
- function unlock(){enabledByGesture=true;
+ function unlock(){if(document.hidden||backgroundPaused)return;enabledByGesture=true;
   try{ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume().catch(()=>{})}catch{}
   play()
  }
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
- document.addEventListener("visibilitychange",()=>{if(!document.hidden)play()});
- window.addEventListener("pageshow",play);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError}}
+ function pauseForBackground(){
+  backgroundPaused=true;player.pause();
+  // Suspending SE's WebAudio context prevents lingering synthesized notes.
+  try{if(ctx?.state==="running")ctx.suspend().catch(()=>{})}catch{}
+ }
+ function resumeFromBackground(){
+  if(document.hidden)return;
+  backgroundPaused=false;
+  try{if(enabledByGesture&&ctx?.state==="suspended")ctx.resume().catch(()=>{})}catch{}
+  play();
+ }
+ document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
+ window.addEventListener("pagehide",pauseForBackground);
+ window.addEventListener("pageshow",resumeFromBackground);
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
-  try{if(!soundOn()||!enabledByGesture)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
+  try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
    o.type=type;o.frequency.setValueAtTime(Math.max(55,freq),now);o.frequency.exponentialRampToValueAtTime(Math.max(50,freq*.89),now+dur);
    f.type="lowpass";f.frequency.value=cutoff;
@@ -58,7 +70,7 @@ window.YK_AUDIO=(()=>{
  function beep(freq=440,dur=.07,type="triangle"){sound(freq,dur,type,.027,1900)}
  const voices={child:[480,.047,1600,"triangle"],female:[345,.045,1400,"sine"],male:[215,.049,1000,"triangle"],elder:[245,.039,720,"sawtooth"],hostile:[174,.025,820,"sawtooth"],boss:[128,.052,680,"triangle"]};
  function talkChar(ch,voice="male",index=0){
-  if(!/[ぁ-ゖァ-ヺー]/.test(ch)||!soundOn())return;
+  if(!/[ぁ-ゖァ-ヺー]/.test(ch)||!soundOn()||document.hidden||backgroundPaused)return;
   const p=voices[voice]||voices.male;let f=p[0];
   if(/[あかさたなはまやらわアカサタナハマヤラワ]/.test(ch))f*=1.08;
   else if(/[いきしちにひみりイキシチニヒミリ]/.test(ch))f*=1.13;
