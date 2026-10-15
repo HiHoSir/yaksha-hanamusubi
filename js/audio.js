@@ -1,16 +1,16 @@
-// beta15.57.91: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.92: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",player=null,duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.ogg?v=15.57.91",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.ogg?v=15.57.91",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.92",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.92",loopStart:4.8}
  };
  const players={};let seeking=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
  function zone(area){return area==="field"?"field":"village"}
  function setup(key){
   if(players[key])return players[key];
-  const a=new Audio(tracks[key].url);a.preload="auto";a.playsInline=true;a.loop=false;
+  const a=new Audio(tracks[key].url);a.preload="auto";a.playsInline=true;a.loop=false;a.load();
   a.addEventListener("ended",()=>{if(player!==a||!soundOn())return;reloop(a,key)});
   a.addEventListener("error",()=>{lastError="media error "+(a.error?.code||0)});
   // Seek just before the end, avoiding a second media player and its playback permission.
