@@ -118,6 +118,30 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   });
  })()`);
  console.log('MOVE_GEOMETRY_DIAG '+JSON.stringify(movementGeometry));
+ const obstacleGeometry=await run(`(()=>{
+  const v=YK_SETTLEMENT,origin={x:768,y:760};
+  const lattice=(x,y)=>[((x-origin.x)%32+32)%32,((y-origin.y)%32+32)%32];
+  const chief=v.residents.find(n=>n.id==='chief');
+  const dirs=[[32,0],[-32,0],[0,32],[0,-32]];
+  const exits=(x,y)=>dirs.filter(([dx,dy])=>Array.from({length:16},(_,i)=>i+1).every(i=>!v.blocked(x+dx*i/16,y+dy*i/16))).length;
+  const options=[];
+  for(let ix=-2;ix<=2;ix++)for(let iy=-2;iy<=2;iy++){
+   const x=768+32*(Math.round((chief.x-768)/32)+ix);
+   const y=760+32*(Math.round((chief.y-760)/32)+iy);
+   const d=Math.hypot(x-chief.x,y-chief.y);
+   if(d>80)continue;
+   const steps=Math.ceil(d/2),route=Array.from({length:steps},(_,i)=>i+1).every(i=>!v.blocked(chief.x+(x-chief.x)*i/steps,chief.y+(y-chief.y)*i/steps));
+   options.push({at:[x,y],d:Math.round(d),blocked:v.blocked(x,y),exits:exits(x,y),route,height:v.elevation(x,y)});
+  }
+  const objects=[
+   ...v.trees.map(t=>({kind:'tree',x:t.x,y:t.y,r:18,visibleWidth:t.w})),
+   ...v.props.filter(p=>p.kind!=='fence').map(p=>({kind:p.kind,x:p.x,y:p.y,r:p.r,visibleWidth:p.w}))
+  ].map(o=>({kind:o.kind,at:[o.x,o.y],offset:lattice(o.x,o.y),radius:o.r,width:o.visibleWidth,
+    blockedAtCenter:v.blocked(o.x,o.y),blockedAt16:v.blocked(o.x+16,o.y),blockedAt32:v.blocked(o.x+32,o.y)}));
+  return {chief:{at:[chief.x,chief.y],offset:lattice(chief.x,chief.y),exits:exits(chief.x,chief.y)},options:options.sort((a,b)=>a.d-b.d),objects};
+ })()`);
+ console.log('OBJECT_GEOMETRY_DIAG '+JSON.stringify(obstacleGeometry));
+
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0,maxNpcFrameStep=0;
   const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
