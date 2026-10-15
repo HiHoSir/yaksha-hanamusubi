@@ -10,7 +10,7 @@
 <div class="wrap"><canvas id="map" width="640" height="448" aria-label="施設別間取りマップ"></canvas></div><div id="info" class="summary"></div></section>
 <section><h2>2. 操作・保存</h2><div class="actions">
 <button id="undo">元に戻す</button><button id="redo">やり直し</button><button id="fillRoad">全面を土・道に戻す</button>
-<button id="export">JSON書き出し</button><label style="background:#303c40;border:1px solid #64777a;border-radius:8px;padding:9px">JSON読み込み<input type="file" id="import" accept=".json,application/json" style="display:none"></label>
+<button id="export">JSON書き出し（配置＋オブジェクト情報）</button><label style="background:#303c40;border:1px solid #64777a;border-radius:8px;padding:9px">JSON読み込み<input type="file" id="import" accept=".json,application/json" style="display:none"></label>
 </div><p>ブラウザ内に自動保存します。別の端末やチャットへの引き継ぎにはJSONファイルを書き出してください。</p>
 <label>制作メモ <input id="notes" placeholder="例：入口中央4マス、奥は板の間" style="width:min(80vw,480px)"></label></section>
 <section><h2>3. 新規タイル制作リクエスト</h2><p>必要な種類・数量と、現在の配置を含む文章を自動生成します。ボタンでコピーできます。</p><div class="actions"><button id="makeRequest">依頼文を更新</button><button id="copyRequest">依頼文をコピー</button><button id="copyJson">JSONをコピー</button></div><textarea id="request" spellcheck="false"></textarea></section>
@@ -43,7 +43,40 @@ const types=[
 ];
 const byId=Object.fromEntries(types.map(t=>[t.id,t]));const $=id=>document.getElementById(id);
 let cells=Array(N).fill('road'),selected='wall',undo=[],redo=[],painting=false,last=-1;
-const c=$('map'),ctx=c.getContext('2d'),road=new Image();let roadReady=false;const encode=()=>JSON.stringify({version:1,project:'yaksha-hanamusubi',room,tileSize:32,width:W,height:H,notes:$('notes').value,legend:types.map(t=>({id:t.id,name:t.name,walkable:t.walk,needsArt:t.newArt})),tiles:Array.from({length:H},(_,y)=>cells.slice(y*W,(y+1)*W))},null,2);
+const c=$('map'),ctx=c.getContext('2d'),road=new Image();let roadReady=false;
+// Placement is authored in 32px world-space. Rendering is the GAME's job:
+// same village camera/projection family, with curvature disabled for interiors.
+// Visual art bounds, depth anchoring and floor-contact collision are authored
+// separately when the real object art is ready (never guessed from tile colors).
+const objectKinds=new Set(['pillar','table','counter','hearth','weapon','npc','futon','cushion']);
+function placements(){
+ const seen=new Set(),result=[];
+ for(let i=0;i<N;i++){
+  const type=cells[i];if(!objectKinds.has(type)||seen.has(i))continue;
+  const stack=[i],group=[];seen.add(i);
+  while(stack.length){
+   const v=stack.pop(),x=v%W,y=Math.floor(v/W);group.push([x,y]);
+   for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]){
+    const nx=x+dx,ny=y+dy,n=ny*W+nx;
+    if(nx>=0&&nx<W&&ny>=0&&ny<H&&!seen.has(n)&&cells[n]===type){seen.add(n);stack.push(n)}
+   }
+  }
+  const xs=group.map(p=>p[0]),ys=group.map(p=>p[1]),left=Math.min(...xs),top=Math.min(...ys),right=Math.max(...xs),bottom=Math.max(...ys);
+  result.push({id:type+'-'+result.length,kind:type,cells:group.map(([x,y])=>[x,y]),gridBounds:[left,top,right+1,bottom+1],
+   intendedWorldAnchor:[(left+right+1)*16,(bottom+1)*32],
+   artAsset:null,renderFootY:null,footprint:null,
+   status:'PLACEMENT_ONLY - art silhouette, contact footprint and depth anchor await asset QA'});
+ }
+ return result;
+}
+const encode=()=>JSON.stringify({version:2,project:'yaksha-hanamusubi',room,
+ tileSize:32,width:W,height:H,notes:$('notes').value,
+ cameraContract:{model:'settlement-compatible',curvature:false,perspective:'game-runtime',editorAppliesCamera:false,
+ note:'Curvature is a requested FUTURE runtime change, not activated by this JSON'},
+ coordinateSystem:'orthogonal 32px world cells; (0,0) = top-left',
+ legend:types.map(t=>({id:t.id,name:t.name,walkable:t.walk,needsArt:t.newArt})),
+ tiles:Array.from({length:H},(_,y)=>cells.slice(y*W,(y+1)*W)),
+ objects:placements()},null,2);
 const save=()=>{try{localStorage.setItem(storageKey(room),encode())}catch(e){}};
 function push(){undo.push([...cells]);if(undo.length>80)undo.shift();redo=[];}
 function draw(){
@@ -74,7 +107,7 @@ function importData(v){if(v.width!==W||v.height!==H||v.tileSize!==S||!Array.isAr
 $('import').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{importData(JSON.parse(await f.text()));alert('読み込みました')}catch(err){alert('読み込み失敗：'+err.message)}e.target.value=''};
 function prompt(){const counts=types.filter(t=>cells.includes(t.id));const missing=counts.filter(t=>t.newArt);
 const pos=id=>cells.flatMap((v,i)=>v===id?['('+i%W+','+Math.floor(i/W)+')']:[]);
-return '【施設別内装マップタイル制作・実装依頼】\n対象：yaksha-hanamusubi／'+rooms[room].name+'／'+W+'列×'+H+'行、1マス32×32px、合計'+(W*32)+'×'+(H*32)+'px。\n視点：真上の正投影。カメラの遠近・斜め見下ろしは禁止。\n既存地面：assets/terrain/landscape-v3/road.png を流用。地面を再生成しない。\n\n【新規アートが必要な種類】\n'+(missing.length?missing.map(t=>'・'+t.name+'：'+pos(t.id).length+'マス'+(pos(t.id).length?'（座標 '+pos(t.id).join(' ')+'）':'')).join('\n'):'新規アート指定なし')+'\n\n【配置（0始まり、左上がx=0,y=0）】\n'+counts.map(t=>'・'+t.name+'：'+pos(t.id).join(' ')).join('\n')+'\n\n【制作仕様】\n・各タイルは32×32px。接続方向と角・端部を考慮する。\n・壁/柱は接地セルを衝突判定に利用。上がり框/踏み石は原則通行可能。\n・床・壁・家具・前景は別レイヤーに分け、地面の32pxグリッドと同一原点で重ねる。\n・矩形塗りつぶしを完成素材に使わず、AGENTS.mdの内装スキルに従う。\n・承認済みキャラクター表示スケール・セーブ・村内移動を維持する。\n\n【補足】\n'+($('notes').value||'なし')+'\n\n【完全データ】別途JSONを添付/貼り付け。';}
+return '【施設別内装マップタイル制作・実装依頼】\n対象：yaksha-hanamusubi／'+rooms[room].name+'／'+W+'列×'+H+'行、1マス32×32px、合計'+(W*32)+'×'+(H*32)+'px。\n視点：真上の正投影。カメラの遠近・斜め見下ろしは禁止。\n既存地面：assets/terrain/landscape-v3/road.png を流用。地面を再生成しない。\n\n【新規アートが必要な種類】\n'+(missing.length?missing.map(t=>'・'+t.name+'：'+pos(t.id).length+'マス'+(pos(t.id).length?'（座標 '+pos(t.id).join(' ')+'）':'')).join('\n'):'新規アート指定なし')+'\n\n【配置（0始まり、左上がx=0,y=0）】\n'+counts.map(t=>'・'+t.name+'：'+pos(t.id).join(' ')).join('\n')+'\n\n【制作仕様】\n・各タイルは32×32px。接続方向と角・端部を考慮する。\n・壁/柱は接地セルを衝突判定に利用。上がり框/踏み石は原則通行可能。\n・床・壁・家具・前景は別レイヤーに分け、地面の32pxグリッドと同一原点で重ねる。\\n・エディタは配置だけを保存し、描画・遮蔽・衝突判定は村内の木と同様にゲーム側で処理する。\\n・屋内カメラは村内方式に統一し、湾曲処理を無効化する（ランタイム改修は別工程）。\n・矩形塗りつぶしを完成素材に使わず、AGENTS.mdの内装スキルに従う。\n・承認済みキャラクター表示スケール・セーブ・村内移動を維持する。\n\n【補足】\n'+($('notes').value||'なし')+'\n\n【完全データ】別途JSONを添付/貼り付け。';}
 $('makeRequest').onclick=()=>{$('request').value=prompt()};
 async function copy(text){try{await navigator.clipboard.writeText(text);alert('コピーしました')}catch(e){const ta=$('request');ta.value=text;ta.focus();ta.select();alert('コピー許可がない場合は選択した文章を手動コピーしてください')}}
 $('copyRequest').onclick=()=>copy($('request').value||prompt());$('copyJson').onclick=()=>copy(encode());
