@@ -642,7 +642,42 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   c.drawImage(sprite,x-anchorX*scale,y+9*z-480*scale,512*scale,512*scale);
   c.restore();return;
  }
-}function npc(c,x,y,type,name,dir="d",frame=1){
+}
+// Measure opaque character bounds once per asset/direction, rather than
+// confusing atlas transparent padding with visible sprite height.
+const NPC_VISIBLE_HEIGHT_CACHE=new WeakMap();
+function visibleFrameHeight(image,sx,sy,w,h){
+ if(!layerReady(image))return null;
+ let cells=NPC_VISIBLE_HEIGHT_CACHE.get(image);
+ if(!cells){cells=new Map();NPC_VISIBLE_HEIGHT_CACHE.set(image,cells);}
+ const key=[sx,sy,w,h].join(':');
+ if(cells.has(key))return cells.get(key);
+ let visible=null;
+ try{
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(image,sx,sy,w,h,0,0,w,h);
+  const data=ctx.getImageData(0,0,w,h).data;
+  let top=h,bottom=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+   if(data[(y*w+x)*4+3]>32){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+  }
+  if(bottom>=top)visible=bottom-top+1;
+ }catch{/* Preserve normal rendering if pixel readback is unavailable. */}
+ cells.set(key,visible);
+ return visible;
+}
+function villageNpcAtlasHeight(atlas,col,row,child){
+ // Hero is displayed at scale=(104*.56/312)*4 per projected depth unit.
+ // NPC's settlement renderer applies the same depth factor externally.
+ const heroCol=HIZUKI_ATLAS_DIR.d;
+ const heroPixels=heroCol===undefined?null:visibleFrameHeight(HIZUKI_8DIR,heroCol*128,128,128,128);
+ const npcPixels=visibleFrameHeight(atlas,col*192,row*224,192,224);
+ if(!heroPixels||!npcPixels)return child?43:54;
+ const target=heroPixels*(104*.56/312)*4*(child?.76:.96);
+ return Math.max(28,Math.min(120,target*224/npcPixels));
+}
+function npc(c,x,y,type,name,dir="d",frame=1){
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
  const atlas=NPC_ASSETS[type]?.atlas;
  if(layerReady(atlas)){
@@ -653,7 +688,8 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
    // Keep children shorter, without treating one terrain cell as body height.
    // Settlement projection already scales every actor by depth. Match the
    // heroine's 104*.56 nominal height without changing collision occupancy.
-   const h=village?(child?43:54):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
+   const row=({d:0,u:1,l:2,r:3})[dir]??0;
+   const h=village?villageNpcAtlasHeight(atlas,idx,row,child):(child?67:79),w=h*192/224;
    // Hero rendering cancels its vertical sprite offset before projection.
    const footY=village?y:y+7;
    shadow(c,x,footY,w*.27,6,.17);
