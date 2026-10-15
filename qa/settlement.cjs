@@ -13,8 +13,12 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await page.screenshot({path:path.join(out,'village-entry-'+height+'.png')});
  const ownership=await page.evaluate(()=>{const v=YK_SETTLEMENT;return [...v.residents,...v.doors.flatMap(d=>v.insideResidents(d.id))].map(n=>n.id);});
  assert.equal(ownership.length,12);assert.equal(new Set(ownership).size,12,'each resident occupies one place');
- await run('S.x=768;S.y=1190;fieldMotion=null;move(0,-1,"u");');assert.equal(await run('S.y'),1158,'village step is 32px');
- await run('move(0,-1,"u");');assert.equal(await run('S.y'),1158,'no stacked move during interpolation');
+ // Assert within one browser execution task: cross-process round trips can exceed
+ // the 144ms interpolation window on CI and make a legitimate second step occur.
+ const atomicMove=await run('(()=>{S.x=768;S.y=1190;fieldMotion=null;move(0,-1,"u");const first=S.y;const active=!!fieldMotion;move(0,-1,"u");return {first,second:S.y,active};})()');
+ assert.equal(atomicMove.first,1158,'village step is 32px');
+ assert(atomicMove.active,'village interpolation starts');
+ assert.equal(atomicMove.second,1158,'no stacked move during interpolation');
  await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));
  await run('move(1,-1,"u");');assert.equal(await run('S.y'),1158,'same cardinal input policy as field');
  const projected=await page.evaluate(()=>{const v=YK_SETTLEMENT,c=v.camera(768,760),a=v.project(768,760,c),b=YK_LANDSCAPE.project(768,760,c,1.4);return {a,b,near:v.project(768,860,c).scale,far:v.project(768,660,c).scale};});assert.deepEqual(projected.a,projected.b);assert(projected.near>projected.far);
