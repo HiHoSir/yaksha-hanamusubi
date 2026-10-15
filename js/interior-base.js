@@ -60,6 +60,22 @@ window.YK_INTERIOR_BASE=(()=>{
  function clipObject(c,o){c.beginPath();o.outline.forEach(([x,y],i)=>c[i?'lineTo':'moveTo'](x/2,128+y/2));c.closePath();c.clip();}
  function drawObject(c,s,o){if(kind(s)==='teahouse'&&teaStructureEnabled()&&o.kind==='tea-table'){drawTeaTable(c,o);return;}if(kind(s)!=='armory'||!layeredReady())return;c.save();clipObject(c,o);c.drawImage(images.armory,0,128,768,512);c.restore();}
  function objects(s){if(kind(s)==='teahouse'&&teaStructureEnabled())return teaObjects;if(kind(s)==='armory'&&layeredReady())return [counter];return [];}
+ // DEBUG ONLY: non-art calibration overlay on the approved painted room.
+ // Does not change collisions, actor scale, saves, or normal rendering.
+ const measureEnabled=()=>new URLSearchParams(location.search).get('interiorMeasure')==='1';
+ function drawCalibration(c,s){
+  if(!measureEnabled())return;
+  const l=layouts[kind(s)];
+  c.save();c.strokeStyle='rgba(16,255,228,.27)';c.lineWidth=1;
+  for(let x=64;x<=704;x+=32){c.beginPath();c.moveTo(x,272);c.lineTo(x,608);c.stroke();}
+  for(let y=288;y<=608;y+=32){c.beginPath();c.moveTo(48,y);c.lineTo(720,y);c.stroke();}
+  c.strokeStyle='#ffb93b';c.lineWidth=2;
+  for(const [a,b,d,e] of l.solids)c.strokeRect(a,b,d-a,e-b);
+  c.beginPath();c.arc(l.spawn[0],l.spawn[1],9,0,Math.PI*2);c.stroke();
+  c.font='11px sans-serif';c.fillStyle='#f5fff9';c.shadowColor='#000';c.shadowBlur=5;
+  c.fillText('DEBUG: 32px lattice / amber=legacy hitboxes / ring=spawn',78,269);
+  c.restore();
+ }
  const layouts={
   teahouse:{top:306,spawn:[384,560],npc:[384,400],solids:[[75,300,286,365],[477,300,697,365],[65,385,286,467],[475,385,700,467]]},
   inn:{top:246,spawn:[384,560],npc:[128,384],solids:[[130,247,210,315],[237,247,322,315],[445,247,525,315],[550,247,640,315],[68,342,202,364],[278,342,360,364],[360,215,407,364],[407,342,477,364],[567,342,700,364],[22,400,228,478]]},
@@ -68,7 +84,7 @@ window.YK_INTERIOR_BASE=(()=>{
  };
  function load(change){for(const name of Object.keys(layouts)){const im=images[name]=new Image();im.onload=change;im.src='assets/interiors/base-v1/'+name+'.webp?v=15.57.116';}const clean=images.armoryClean=new Image();clean.onload=change;clean.src='assets/interiors/layers-v1/armory-clean.webp?v=15.57.116';}
  function blocked(s,x,y){const k=kind(s),l=layouts[k];if(k==='teahouse'&&teaStructureEnabled()){if(x<66||x>700||y<300||y>612)return true;if(y>588&&(x<310||x>460))return true;return teaTables.some(t=>{const [a,b,c,d]=t.footprint;return x>=a&&x<=c&&y>=b&&y<=d;});}if(x<48||x>720||y<l.top||y>612)return true;if(y>548&&(x<310||x>490))return true;return l.solids.some(([a,b,c,d])=>x>=a&&x<=c&&y>=b&&y<=d);}
- function draw(c,s){if(kind(s)==='teahouse'&&teaStructureEnabled()){teaStructure(c);return;}c.fillStyle='#171416';c.fillRect(0,0,768,768);const im=images[kind(s)];if(loaded(im)){c.drawImage(im,0,128,768,512);if(kind(s)==='armory'&&layeredReady()){c.save();clipObject(c,counter);c.drawImage(images.armoryClean,0,128,768,512);c.restore();}}else{c.fillStyle='#fff2cb';c.font='20px sans-serif';c.fillText('内観を読込中…',300,380);}}
+ function draw(c,s){if(kind(s)==='teahouse'&&teaStructureEnabled()){teaStructure(c);return;}c.fillStyle='#171416';c.fillRect(0,0,768,768);const im=images[kind(s)];if(loaded(im)){c.drawImage(im,0,128,768,512);if(kind(s)==='armory'&&layeredReady()){c.save();clipObject(c,counter);c.drawImage(images.armoryClean,0,128,768,512);c.restore();}drawCalibration(c,s);}else{c.fillStyle='#fff2cb';c.font='20px sans-serif';c.fillText('内観を読込中…',300,380);}}
  const spawn=s=>layouts[kind(s)].spawn.slice();
  const exit=(s)=>s.y>=580&&s.x>=310&&s.x<=490;
  // Static base-image trial: keep NPC feet on the same walkable floor as the player.
