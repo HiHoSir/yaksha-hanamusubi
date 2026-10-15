@@ -648,12 +648,13 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  if(layerReady(atlas)){
    c.save();c.imageSmoothingEnabled=true;
    const child=type==='child',village=S.area==='village';
-   // A village NPC occupies one 32px ground cell. Sprite artwork may rise
-   // above that cell, but should not read as a multi-cell-wide obstruction.
-   // Keep the atlas foot at (x,y+7), identical to the collision anchor.
-   const h=village?(child?39:48):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
-   shadow(c,x,y+7,w*.27,6,.17);
-   c.drawImage(atlas,idx*192,row*224,192,224,x-w/2,y+7-h*212/224,w,h);
+   // Sprite height is independent of the 32px movement/collision cell.
+   // Hozuki's heroine uses z=.68; NPCs share its projected foot baseline.
+   // Keep children shorter, without treating one terrain cell as body height.
+   const h=village?(child?52:64):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
+   const footY=y+(village?9*.68:7);
+   shadow(c,x,footY,w*.27,6,.17);
+   c.drawImage(atlas,idx*192,row*224,192,224,x-w/2,footY-h*212/224,w,h);
    c.restore();
  }else if(!NPC_ASSET_TYPES[type]){
    // NPCs outside the five Hozuki-village roles keep their existing assets until their own map pass.
