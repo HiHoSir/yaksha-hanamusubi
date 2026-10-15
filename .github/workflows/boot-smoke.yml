@@ -294,3 +294,13 @@ jobs:
           name: hizuki-rendering
           path: qa/results/hizuki/
           if-no-files-found: ignore
+
+      - name: Interior appearance screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: interior-rendering
+          path: |
+            qa/results/autotile/interior-*.png
+            qa/results/autotile/armory-layer-*.png
+          if-no-files-found: ignore
