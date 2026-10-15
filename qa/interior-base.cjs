@@ -11,6 +11,15 @@ await run(`busy=false;S.area='village';const d=YK_SETTLEMENT.doors.find(d=>d.id=
 assert.equal(await run('S.lastInterior'),id);assert(await run('!collision(S.x,S.y)'),'spawn '+id);
 const check=await run(`(()=>{const q=[[S.x,S.y]],seen=new Set();for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!collision(a,b)){seen.add(k);q.push([a,b]);}}}return {exit:q.some(([x,y])=>YK_INTERIOR_BASE.exit({...S,x,y})),npc:areaNPCs().every(n=>q.some(([x,y])=>Math.hypot(x-n.x,y-n.y)<140))};})()`);assert(check.exit&&check.npc,JSON.stringify({id,check}));
 await run('map()');await page.waitForTimeout(300);if(['inn','shop','teahouse','osumiHome'].includes(id))await page.screenshot({path:path.join(out,'interior-'+id+'.png')});
+if(id==='teahouse'){
+ // Source-art scale audit: identical production hero drawn at four floor points.
+ // These are comparison samples, not claims of measured furniture footprints.
+ for(const [label,x,y] of [['rear',384,336],['middle',384,432],['threshold',288,528],['entrance',384,560]]){
+  await run(`S.x=${x};S.y=${y};fieldMotion=null;map();`);
+  await page.screenshot({path:path.join(out,'interior-teahouse-scale-'+label+'.png')});
+ }
+ await run('S.x=384;S.y=560;fieldMotion=null;map();');
+}
 if(id==='inn'){await run('S.x=128;S.y=496;S.dir="u";S.hp=10;action();while($("dialog").classList.contains("show"))nextDialog();');assert.equal(await run('S.hp'),100);}
 if(id==='shop'){
 await page.waitForFunction(()=>window.YK_INTERIOR_BASE.layeredReady());
