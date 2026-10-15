@@ -929,14 +929,19 @@ function move(dx,dy,dir){
   const speed=Number($("speedSelect").value)||1,dist=32*speed;
   const norm=Math.hypot(dx,dy)||1,vx=dx/norm*dist,vy=dy/norm*dist;
   const steps=Math.ceil(dist/2);
-  const fromNpc=areaNPCs().filter(n=>Math.abs(S.x-n.x)<16&&Math.abs(S.y-n.y)<16);
-  let crossesNpc=false;
+  const npcs=areaNPCs();
+  const fromNpc=npcs.filter(n=>Math.abs(S.x-n.x)<16&&Math.abs(S.y-n.y)<16);
+  const startedInsideObject=YK_SETTLEMENT.objectBlocked(S.x,S.y);
+  let crossesSolid=false;
   for(let k=1;k<=steps;k++){
    const px=Math.max(27,Math.min(1504,S.x+vx*k/steps));
    const py=Math.max(34,Math.min(1248,S.y+vy*k/steps));
-   if(areaNPCs().some(n=>!fromNpc.includes(n)&&Math.abs(px-n.x)<16&&Math.abs(py-n.y)<16)){crossesNpc=true;break;}
+   // A 32px move must never terminate halfway inside a tree, rock, building
+   // or NPC. The terrain/ramp path remains governed by YK_MOVEMENT.step.
+   if(npcs.some(n=>!fromNpc.includes(n)&&Math.abs(px-n.x)<16&&Math.abs(py-n.y)<16)
+     ||(!startedInsideObject&&YK_SETTLEMENT.objectBlocked(px,py))){crossesSolid=true;break;}
   }
-  if(crossesNpc){S.frame=1;map();return;}
+  if(crossesSolid){S.frame=1;map();return;}
  }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
