@@ -73,6 +73,24 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  const blockedStarts=await run('YK_SETTLEMENT.residents.filter(n=>YK_SETTLEMENT.blocked(n.x,n.y)).map(n=>({id:n.id,x:n.x,y:n.y}))');
  assert.deepEqual(blockedStarts,[],'NPC starting locations must be walkable: '+JSON.stringify(blockedStarts));
  const atlasSizes=await run('Object.values(NPC_ASSETS).map(s=>[s.atlas.naturalWidth,s.atlas.naturalHeight])');assert(atlasSizes.every(([w,h])=>w===576&&h===896),'all five NPC atlases loaded');
+ const geometry=await page.evaluate(()=>{
+  const v=YK_SETTLEMENT,origin={x:768,y:760},dirs=[[32,0],[-32,0],[0,32],[0,-32]];
+  const npc=v.residents.map(n=>({
+   id:n.id,at:[n.x,n.y],
+   offset:[((n.x-origin.x)%32+32)%32,((n.y-origin.y)%32+32)%32],
+   available:dirs.filter(([dx,dy])=>Array.from({length:16},(_,k)=>k+1).every(k=>!v.blocked(n.x+dx*k/16,n.y+dy*k/16))).length
+  }));
+  const slope=[];
+  for(const [label,x] of [['westRamp',768],['eastRamp',1176],['outsideRamp',880]]){
+   for(let y=480;y<=736;y+=8){
+    const start={x,y},endY=y-32, samples=Array.from({length:16},(_,k)=>v.blocked(x,y-(k+1)*2));
+    const first=samples.indexOf(true);
+    if(first>=0&&first<15&&!v.blocked(x,y))slope.push({label,y,firstBlockedPx:(first+1)*2,height:v.elevation(x,y)});
+   }
+  }
+  return {npc,slope:slope.slice(0,24)};
+ });
+ console.log('GEOMETRY_DIAG '+JSON.stringify(geometry));
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0,maxNpcFrameStep=0;
   const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
