@@ -117,10 +117,13 @@ const NPC_ASSET_TYPES={
  teagirl:"teagirl",
  elder:"elder"
 };
+let npcArt=charSizeParams.get("npcArt")==="legacy"?"legacy":"illustration";
 const NPC_ASSETS={};
 function loadNpcAssetSet(){
  for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
-  const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;NPC_ASSETS[type]={atlas};
+  const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;const refreshed=["elder","satoko","merchant"].includes(folder)?new Image():null;
+  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.109`;}
+  NPC_ASSETS[type]={atlas,refreshed};
  }
 }
 let npcAssetsLoaded=false;
@@ -156,10 +159,10 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
-HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.108";
+HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.109";
 const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
-HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.108";
+HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.109";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
@@ -168,6 +171,14 @@ heroArtSelect.addEventListener("change",()=>{
  const url=new URL(location.href);url.searchParams.set("heroArt",hizukiArt);
  history.replaceState(null,"",url.pathname+url.search+url.hash);
  map();titleHero();
+});
+const npcArtSelect=$("npcArtSelect");
+npcArtSelect.value=npcArt;
+npcArtSelect.addEventListener("change",()=>{
+ npcArt=npcArtSelect.value;
+ const url=new URL(location.href);url.searchParams.set("npcArt",npcArt);
+ history.replaceState(null,"",url.pathname+url.search+url.hash);
+ map();
 });
 const HIZUKI_8DIR=new Image();
 HIZUKI_8DIR.onload=assetLoaded;
@@ -749,7 +760,8 @@ function villageNpcAtlasHeight(atlas,col,row,child){
 }
 function npc(c,x,y,type,name,dir="d",frame=1){
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
- const atlas=NPC_ASSETS[type]?.atlas;
+ const set=NPC_ASSETS[type];
+ const atlas=npcArt!=="legacy"&&layerReady(set?.refreshed)?set.refreshed:set?.atlas;
  if(layerReady(atlas)){
    c.save();c.imageSmoothingEnabled=true;
    const child=type==='child',village=S.area==='village';

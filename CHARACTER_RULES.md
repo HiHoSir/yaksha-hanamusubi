@@ -1,3 +1,5 @@
+> Current NPC refresh rules (2026-10-15): use [NPC v3](assets/characters/npc-v3/README.md), inheriting NPC v2 identities; mirrored walking is user-approved. Older conflicting NPC appearance notes below are historical. Hizuki uses the subsequently approved cyan bob; see docs/hizuki-bluebob-v1.md.
+
 # Character visual rules
 
 | Character | Hair / silhouette | Clothing | Forbidden overlap |

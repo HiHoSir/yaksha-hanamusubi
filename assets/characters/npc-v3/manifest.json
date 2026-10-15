@@ -1,0 +1,647 @@
+{
+  "cell": [
+    192,
+    224
+  ],
+  "foot": [
+    96,
+    212
+  ],
+  "visibleHeight": 192,
+  "rows": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "columns": [
+    "walk-a",
+    "idle",
+    "walk-b"
+  ],
+  "frames": {
+    "elder": [
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          133,
+          12,
+          200,
+          350
+        ],
+        "sourceOpaqueCore": 48102,
+        "normalizedCoreAlpha": 47975,
+        "footX": 247.5
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          0,
+          1
+        ],
+        "crop": [
+          77,
+          12,
+          205,
+          348
+        ],
+        "sourceOpaqueCore": 51312,
+        "normalizedCoreAlpha": 51245,
+        "footX": 179.5
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          133,
+          12,
+          200,
+          350
+        ],
+        "sourceOpaqueCore": 48102,
+        "normalizedCoreAlpha": 47975,
+        "footX": 247.5,
+        "mirror": true
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          136,
+          9,
+          201,
+          349
+        ],
+        "sourceOpaqueCore": 47637,
+        "normalizedCoreAlpha": 47571,
+        "footX": 240
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          1,
+          1
+        ],
+        "crop": [
+          75,
+          9,
+          206,
+          349
+        ],
+        "sourceOpaqueCore": 51399,
+        "normalizedCoreAlpha": 51325,
+        "footX": 177.5
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          136,
+          9,
+          201,
+          349
+        ],
+        "sourceOpaqueCore": 47637,
+        "normalizedCoreAlpha": 47571,
+        "footX": 240,
+        "mirror": true
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          116,
+          4,
+          218,
+          344
+        ],
+        "sourceOpaqueCore": 51619,
+        "normalizedCoreAlpha": 51498,
+        "footX": 223.5,
+        "mirror": true
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          80,
+          6,
+          188,
+          345
+        ],
+        "sourceOpaqueCore": 40046,
+        "normalizedCoreAlpha": 39957,
+        "footX": 190,
+        "mirror": true
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          29,
+          4,
+          217,
+          345
+        ],
+        "sourceOpaqueCore": 47927,
+        "normalizedCoreAlpha": 47833,
+        "footX": 135,
+        "mirror": true
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          116,
+          4,
+          218,
+          344
+        ],
+        "sourceOpaqueCore": 51619,
+        "normalizedCoreAlpha": 51498,
+        "footX": 223.5
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          80,
+          6,
+          188,
+          345
+        ],
+        "sourceOpaqueCore": 40046,
+        "normalizedCoreAlpha": 39957,
+        "footX": 190
+      },
+      {
+        "source": "source/elder.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          29,
+          4,
+          217,
+          345
+        ],
+        "sourceOpaqueCore": 47927,
+        "normalizedCoreAlpha": 47833,
+        "footX": 135
+      }
+    ],
+    "satoko": [
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          101,
+          14,
+          238,
+          348
+        ],
+        "sourceOpaqueCore": 45072,
+        "normalizedCoreAlpha": 44980,
+        "footX": 220
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          0,
+          1
+        ],
+        "crop": [
+          64,
+          14,
+          234,
+          348
+        ],
+        "sourceOpaqueCore": 45759,
+        "normalizedCoreAlpha": 45679,
+        "footX": 181.5
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          101,
+          14,
+          238,
+          348
+        ],
+        "sourceOpaqueCore": 45072,
+        "normalizedCoreAlpha": 44980,
+        "footX": 220,
+        "mirror": true
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          100,
+          11,
+          238,
+          347
+        ],
+        "sourceOpaqueCore": 45999,
+        "normalizedCoreAlpha": 45953,
+        "footX": 220.5
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          1,
+          1
+        ],
+        "crop": [
+          72,
+          14,
+          231,
+          348
+        ],
+        "sourceOpaqueCore": 44353,
+        "normalizedCoreAlpha": 44274,
+        "footX": 185.5
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          100,
+          11,
+          238,
+          347
+        ],
+        "sourceOpaqueCore": 45999,
+        "normalizedCoreAlpha": 45953,
+        "footX": 220.5,
+        "mirror": true
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          99,
+          4,
+          227,
+          333
+        ],
+        "sourceOpaqueCore": 43437,
+        "normalizedCoreAlpha": 43362,
+        "footX": 234.5,
+        "mirror": true
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          64,
+          2,
+          213,
+          344
+        ],
+        "sourceOpaqueCore": 39034,
+        "normalizedCoreAlpha": 38975,
+        "footX": 194.5,
+        "mirror": true
+      },
+      {
+        "source": "source/satoko-arms-fixed.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          26,
+          5,
+          218,
+          336
+        ],
+        "sourceOpaqueCore": 44145,
+        "normalizedCoreAlpha": 44069,
+        "footX": 152,
+        "mirror": true
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          99,
+          4,
+          227,
+          333
+        ],
+        "sourceOpaqueCore": 43437,
+        "normalizedCoreAlpha": 43362,
+        "footX": 234.5
+      },
+      {
+        "source": "source/satoko.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          64,
+          2,
+          213,
+          344
+        ],
+        "sourceOpaqueCore": 39034,
+        "normalizedCoreAlpha": 38975,
+        "footX": 194.5
+      },
+      {
+        "source": "source/satoko-arms-fixed.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          26,
+          5,
+          218,
+          336
+        ],
+        "sourceOpaqueCore": 44145,
+        "normalizedCoreAlpha": 44069,
+        "footX": 152
+      }
+    ],
+    "merchant": [
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          143,
+          6,
+          163,
+          353
+        ],
+        "sourceOpaqueCore": 35923,
+        "normalizedCoreAlpha": 35811,
+        "footX": 224.5
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          0,
+          1
+        ],
+        "crop": [
+          96,
+          6,
+          169,
+          350
+        ],
+        "sourceOpaqueCore": 37629,
+        "normalizedCoreAlpha": 37548,
+        "footX": 180
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          143,
+          6,
+          163,
+          353
+        ],
+        "sourceOpaqueCore": 35923,
+        "normalizedCoreAlpha": 35811,
+        "footX": 224.5,
+        "mirror": true
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          1,
+          2
+        ],
+        "crop": [
+          58,
+          2,
+          158,
+          353
+        ],
+        "sourceOpaqueCore": 35556,
+        "normalizedCoreAlpha": 35478,
+        "footX": 130.5
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          1,
+          1
+        ],
+        "crop": [
+          101,
+          3,
+          159,
+          346
+        ],
+        "sourceOpaqueCore": 36072,
+        "normalizedCoreAlpha": 35981,
+        "footX": 181.5
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          1,
+          2
+        ],
+        "crop": [
+          58,
+          2,
+          158,
+          353
+        ],
+        "sourceOpaqueCore": 35556,
+        "normalizedCoreAlpha": 35478,
+        "footX": 130.5,
+        "mirror": true
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          131,
+          0,
+          197,
+          341
+        ],
+        "sourceOpaqueCore": 40007,
+        "normalizedCoreAlpha": 39917,
+        "footX": 231,
+        "mirror": true
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          98,
+          0,
+          161,
+          343
+        ],
+        "sourceOpaqueCore": 32368,
+        "normalizedCoreAlpha": 32286,
+        "footX": 189.5,
+        "mirror": true
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          52,
+          0,
+          188,
+          343
+        ],
+        "sourceOpaqueCore": 37556,
+        "normalizedCoreAlpha": 37502,
+        "footX": 149.5,
+        "mirror": true
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          131,
+          0,
+          197,
+          341
+        ],
+        "sourceOpaqueCore": 40007,
+        "normalizedCoreAlpha": 39917,
+        "footX": 231
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          98,
+          0,
+          161,
+          343
+        ],
+        "sourceOpaqueCore": 32368,
+        "normalizedCoreAlpha": 32286,
+        "footX": 189.5
+      },
+      {
+        "source": "source/merchant.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          52,
+          0,
+          188,
+          343
+        ],
+        "sourceOpaqueCore": 37556,
+        "normalizedCoreAlpha": 37502,
+        "footX": 149.5
+      }
+    ]
+  },
+  "sources": {
+    "design.png": {
+      "bytes": 1386953,
+      "sha256": "f2ec19e6ae19524267f0b0f527473aefe386ed5bf536acf1fa4afaa33c21ddc9"
+    },
+    "elder.png": {
+      "bytes": 1609606,
+      "sha256": "f4db3713ae6a73a548dd5e9893c6d557d9c761feb477c11d37c2524dfa5e94f0"
+    },
+    "merchant.png": {
+      "bytes": 1329898,
+      "sha256": "dfef6ae3090e61b392883e389cdee88cb132e81ba12549001cac6bfe305a481e"
+    },
+    "satoko-arms-fixed.png": {
+      "bytes": 1529462,
+      "sha256": "93b1b7d281f7b0b217921f12232afbc6d3019bbb7ca166e2113ab6264283d003"
+    },
+    "satoko-right-b.png": {
+      "bytes": 949580,
+      "sha256": "900265cab1b6d671ae5a8ac5cbfcaa7d39188eb543738de06e558ebfa4c36a62"
+    },
+    "satoko.png": {
+      "bytes": 1593206,
+      "sha256": "b1363c4336df808b0a838d806542783348e644197478586837c189634e50fbf0"
+    }
+  }
+}

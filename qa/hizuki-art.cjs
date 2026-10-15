@@ -58,12 +58,27 @@ const server=http.createServer((req,res)=>{
    }return result;
   })()`);
   for(const c of pixelCells){assert(c.height>=57&&c.height<=58);assert.equal(c.args[0],c.frame*64);assert.equal(c.args[1],({d:0,u:1,r:2,l:3})[c.dir]*64);assert.equal(c.args[5]+62*c.args[7]/64,90);assert.equal(c.smooth,false);}
+  await run('ensureNpcAssets()');
+  await page.waitForFunction(()=>window.__qaEval('["elder","child","merchant"].every(k=>layerReady(NPC_ASSETS[k].refreshed)&&layerReady(NPC_ASSETS[k].atlas))'));
+  await page.selectOption('#npcArtSelect','legacy');assert.equal(await run('npcArt'),'legacy');
+  assert(await run('(()=>{const c=document.createElement("canvas").getContext("2d");let ok=false;c.drawImage=(im)=>ok=im===NPC_ASSETS.elder.atlas;npc(c,80,90,"elder","里長");return ok;})()'));
+  await page.selectOption('#npcArtSelect','illustration');
+  assert.equal(await run('JSON.stringify({...S,playtime:0})'),before);
+  const npcFrames=await run(`(()=>{
+   const out=[];
+   for(const type of ['elder','child','merchant'])for(const dir of ['d','u','l','r'])for(let f=0;f<3;f++){
+    const c=document.createElement('canvas');c.width=c.height=160;const ctx=c.getContext('2d');let draw;
+    ctx.drawImage=(im,...args)=>draw={fresh:im===NPC_ASSETS[type].refreshed,args};
+    npc(ctx,80,90,type,type,dir,f);out.push({type,dir,f,...draw});
+   }return out;
+  })()`);
+  for(const n of npcFrames){assert(n.fresh);assert.equal(n.args[0],n.f*192);assert.equal(n.args[1],({d:0,u:1,l:2,r:3})[n.dir]*224);assert(Math.abs(n.args[5]+212*n.args[7]/224-90)<.001);}
   await page.click('[data-close="settings"]');
   for(const area of ['village','field']){
    await run(`S.area='${area}';S.x=${area==='village'?768:688};S.y=${area==='village'?1190:2096};S.frame=1;S.dir='d';hud();map();`);
    await page.screenshot({path:path.join(out,area+'.png')});
   }
   assert.deepEqual(errors,[]);
-  console.log('PASS HD and pixel 12 frames, directional mapping, 58px scale, projected foot, old/new switch and state preservation');
+  console.log('PASS 36 refreshed NPC frames and HD/pixel hero 12 frames, directional mapping, 58px scale, projected foot, old/new switch and state preservation');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});

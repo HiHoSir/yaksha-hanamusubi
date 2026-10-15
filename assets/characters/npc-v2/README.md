@@ -1,3 +1,5 @@
+> 2026-10-15: v2のデザイン方針を継承した [NPC v3](../npc-v3/README.md) を里長・里の子・商人系に導入。左右反転はユーザー承認済み。v2素材は比較・復旧用に保持。
+
 # NPC v2 — β15.57.6
 
 Built-in ImageGen regenerated five shared village archetypes. Each transparent WebP atlas is 576×896, with twelve 192×224 cells. Rows: front, back, left, right. Columns: stride A, neutral, stride B. Foot anchor: (96,212). The full visible body is normalized to 192px high without changing aspect ratio. Largest-character bounds exclude neighboring-row fragments. manifest.json records source-cell selection and any mirroring. Original NPC assets remain available in the previous directory.
