@@ -122,7 +122,7 @@ const NPC_ASSETS={};
 function loadNpcAssetSet(){
  for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
   const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;const refreshed=["elder","satoko","merchant","osumi","teagirl"].includes(folder)?new Image():null;
-  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.114`;}
+  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.116`;}
   NPC_ASSETS[type]={atlas,refreshed};
  }
 }
@@ -159,10 +159,10 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
-HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.114";
+HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.116";
 const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
-HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.114";
+HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.116";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
@@ -879,10 +879,14 @@ function areaNPCs(){
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
 function drawActorsOn(c,frameTime=performance.now()){
  const actors=areaNPCs().map(n=>({y:n.y,kind:"npc",n}));
- actors.push({y:S.y,kind:"hero"});
+ const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
+ const heroY=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
+ actors.push({y:heroY,kind:"hero"});
+ if(YK_INTERIOR_BASE.area(S))for(const object of YK_INTERIOR_BASE.objects(S))actors.push({y:object.y,kind:"object",object});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
    if(a.kind==="hero"){const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y-(YK_INTERIOR_BASE.area(S)?9*.56:0),S.dir,S.frame,S.outfit,S.area==="field"?.16:YK_INTERIOR_BASE.area(S)?.56:S.area==="village"?.68:.92);}
+   else if(a.kind==="object")YK_INTERIOR_BASE.drawObject(c,S,a.object);
    else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }

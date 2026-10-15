@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interior Occlusion Layers"
+  short_description: "Preserve room art while separating depth and collision"
+  default_prompt: "Use $interior-occlusion-layers to add occlusion and floor footprints to an approved room image."

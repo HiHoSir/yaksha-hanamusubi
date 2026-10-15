@@ -11,6 +11,7 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Background removal and alpha/outline repair | [image-cutout-and-repair](.agents/skills/image-cutout-and-repair/SKILL.md) |
 | Battle screen and mobile QA | [battle-debug-qa](.agents/skills/battle-debug-qa/SKILL.md) |
 | Yaksha-hime battle poses and outfits | [yaksha-battle-sprites](.agents/skills/yaksha-battle-sprites/SKILL.md) |
+| Interior object layers, occlusion and floor footprints | [interior-occlusion-layers](skills/interior-occlusion-layers/SKILL.md) |
 | Field/mapchip artwork and terrain | [field-mapchip-art](.agents/skills/field-mapchip-art/SKILL.md) |
 | Isolated private internal validation site | [sites-private-debug](.agents/skills/sites-private-debug/SKILL.md) |
 | Proven image-to-GitHub binary transfer, atlas and main commit | [github-image-atlas](skills/github-image-atlas/SKILL.md) |
