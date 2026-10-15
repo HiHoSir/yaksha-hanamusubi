@@ -245,6 +245,18 @@ function state(v){
  document.querySelectorAll(".overlay.show").forEach(el=>el.classList.remove("show"));
  return S;
 }
+// Both new-game and field-entry positions must share the same 32px lattice.
+// Only migrate saved village positions if the snapped foot is walkable.
+function alignVillageEntryFoot(x,y){
+ const ox=768,oy=760;
+ const sx=ox+32*Math.round((x-ox)/32),sy=oy+32*Math.round((y-oy)/32);
+ const candidates=[[sx,sy],[sx,sy+32],[sx-32,sy],[sx+32,sy],[sx,sy-32]];
+ for(const [nx,ny] of candidates){
+  if(nx<32||nx>1504||ny<40||ny>1248)continue;
+  if(!YK_SETTLEMENT.blocked(nx,ny)&&!YK_SETTLEMENT.residents.some(n=>Math.abs(nx-n.x)<16&&Math.abs(ny-n.y)<16))return [nx,ny];
+ }
+ return [x,y];
+}
 function stabilizeLoadedState(){
  const area=D.areas[S.area]?S.area:"field";S.area=area;
  S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
@@ -254,6 +266,7 @@ function stabilizeLoadedState(){
  }else if(area==="village"){
    S.x=clamp(Number(S.x)||768,32,1504);S.y=clamp(Number(S.y)||1190,40,1248);
    if(YK_SETTLEMENT.blocked(S.x,S.y)||npcBlocked(S.x,S.y))[S.x,S.y]=YK_SETTLEMENT.spawn;
+   [S.x,S.y]=alignVillageEntryFoot(S.x,S.y);
  }else if(area==="teahouse"||area==="osumiHome"||area==="villageRoom"){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
    if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||[384,625];}
@@ -580,7 +593,7 @@ function leaveInterior(){
  if(villageDoorMotion)return;
  fieldMotion=null;YK_INPUT.stopAll();S.area="village";
  const door=YK_SETTLEMENT.doors.find(d=>d.id===S.lastInterior)||YK_SETTLEMENT.doors[0];
- S.x=door.x;S.y=door.y+18;S.dir="d";S.frame=1;
+ [S.x,S.y]=alignVillageEntryFoot(door.x,door.y+18);S.dir="d";S.frame=1;
  villageDoorMotion={id:door.id,at:performance.now(),open:1,mode:"close"};busy=true;
  YK_SAVE.auto(S);message("鬼灯の里");hud();
 }
