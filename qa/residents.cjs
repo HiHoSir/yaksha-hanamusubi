@@ -83,6 +83,17 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  console.log('NPC_COLLISION_DIAG '+JSON.stringify(collisionGeometry));
  assert(collisionGeometry.atCenter&&!collisionGeometry.right&&!collisionGeometry.left,'NPC occupancy must be centered on visible foot');
  assert.deepEqual(collisionGeometry.after,collisionGeometry.start,'walking into NPC cell must reject entire move');
+ const solidFootprints=await run(`(()=>{
+  const v=YK_SETTLEMENT;
+  return {trees:v.trees.map(t=>({x:t.x,y:t.y,blocked:v.objectBlocked(t.x,t.y)})),
+    rocks:v.props.filter(p=>p.kind==='rocks').map(p=>({x:p.x,y:p.y,blocked:v.objectBlocked(p.x,p.y)})),
+    weaver:v.residents.find(n=>n.id==='weaver'),
+    method:typeof v.objectBlocked};
+ })()`);
+ assert.equal(solidFootprints.method,'function','solid footprint API is available to atomic movement');
+ assert(solidFootprints.trees.every(t=>t.blocked),'tree trunks must be solid at visible feet');
+ assert(solidFootprints.rocks.every(t=>t.blocked),'rocks must be solid at visible feet');
+ assert(solidFootprints.weaver,'weaver NPC remains present (excluded from alignment correction)');
  const spawnAlignment=await run('YK_SETTLEMENT.residents.map(n=>({id:n.id,x:n.x,y:n.y,blocked:YK_SETTLEMENT.blocked(n.x,n.y),centered:n.x%32===16&&n.y%32===16}))');
  assert(spawnAlignment.every(n=>!n.blocked),'all adjusted NPC positions must remain walkable: '+JSON.stringify(spawnAlignment));
  const spawnSlots=await run('YK_SETTLEMENT.residents.map(n=>({id:n.id,x:n.x,y:n.y,blocked:YK_SETTLEMENT.blocked(n.x,n.y)}))');
