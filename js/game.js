@@ -4,7 +4,7 @@
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
 window.gameState=YK_GAME_STATE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
 let dialogTyping=null,dialogTypingTimer=null;
-function stopDialogTyping(){clearTimeout(dialogTypingTimer);dialogTypingTimer=null;dialogTyping=null;}
+function stopDialogTyping(){clearTimeout(dialogTypingTimer);dialogTypingTimer=null;dialogTyping=null;YK_AUDIO?.dialogEnd?.();}
 function updateDialogIndicator(){
  const button=$("dialogNext");
  button.classList.toggle("hasNextLine",!!dialogTyping&&dialogTyping.index>=dialogTyping.chars.length&&dialogQueue.length>0);
@@ -21,8 +21,8 @@ function typeDialogTick(){
  if(!dialogTyping)return;
  const d=dialogTyping;
  if(d.index>=d.chars.length){dialogTypingTimer=null;return;}
- $("dialogText").textContent+=d.chars[d.index++];
- // Future dialogue SE can hook into each visible character here.
+ const ch=d.chars[d.index++];$("dialogText").textContent+=ch;
+ YK_AUDIO.talkChar(ch,d.voice,d.index);
  if(d.index<d.chars.length)dialogTypingTimer=setTimeout(typeDialogTick,36);
  else {dialogTypingTimer=null;updateDialogIndicator();}
 }
@@ -793,7 +793,7 @@ function nextDialog(){
   const chars=Array.from(d.text);
   // Category metadata reserved for future per-character dialogue voice effects.
   const voice=YK_DIALOGUE.voiceKind(d.voice);
-  dialogTyping={chars,index:0};
+  dialogTyping={chars,index:0,voice:voice};
   $("dialogNext").textContent="▼";updateDialogIndicator();
   renderDialogPortrait();
   typeDialogTick();
@@ -1220,7 +1220,7 @@ YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area===
 document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{if(!battle||battleLocked)return;selectCmd(i);battleConfirm()}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
-$("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S)});
+$("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S);YK_AUDIO.syncBgm(S.area)});
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
 YK_INPUT.tap($("newGame"),()=>{state(YK_SAVE.fresh());if(typeof YK_WORLD==="undefined"||!YK_WORLD){$("title").classList.remove("show");busy=false;hud();map();return;}S.area="village";S.x=768;S.y=760;S.dir="u";S.frame=1;S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;hud();setTimeout(()=>{if(S.area!=="village"||$("title").classList.contains("show"))return;
  $("game").classList.add("openingOmen");setTimeout(()=>$("game").classList.remove("openingOmen"),950);
