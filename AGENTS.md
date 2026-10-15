@@ -42,3 +42,11 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 - Before working on PNG/ZIP asset integration, read `skills/github-image-atlas/SKILL.md`, `skills/enemy-atlas-pipeline/SKILL.md`, and `.agents/skills/github-artifact-delivery/SKILL.md` as relevant.
 - Reuse the proven Base64 Git blob -> tree -> commit -> fast-forward main -> verify workflow. When required, bridge encoded text via supported Library tools. Never conclude that DNS limitations prevent connector-based GitHub commits.
 - Treat source files, uploaded binaries, runtime references, CI status, and mobile visual QA as distinct checkpoints. Preserve original source assets and record what is verified.
+
+
+## Interior visual quality gate (mandatory)
+- Finished game artwork must **never** use plain filled rectangles, geometric color blocks, or other primitive placeholder rendering in place of illustrated architecture or furniture. These are permitted **only** for explicitly labeled temporary debug/layout prototypes, not production presentation.
+- The approved concept illustrations in `design-reference/interiors/base-v1/` are the visual canon. Preserve their palette, material texture, detail, and room-specific composition while rebuilding physically consistent room geometry.
+- Floor/base architecture and separate foreground assets must be real illustrated art, with fixed original-canvas coordinates (or explicit exact crop offsets); maintain independent visual silhouettes, world-space depth anchors, and floor-contact footprints. Primitive polygons/rectangles are valid for non-visible collision and QA overlays only.
+- Do not enable a redesigned interior in production until side-by-side character-scale and original-art comparison, clean re-composition, movement/collision/occlusion regression checks pass. Keep the approved original as runtime fallback until that point.
+- Do not reuse earlier `tea-*.webp` / `tea-*.json` experimental scene data as if it matched `base-v1/teahouse.webp`; verify the artwork and coordinate alignment first.
