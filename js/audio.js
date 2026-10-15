@@ -1,6 +1,6 @@
 // beta15.57.97: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
- let ctx=null,enabledByGesture=false,currentArea="",player=null,duckUntil=0,duckTimer=null,lastError="";
+ let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
   field:{url:"audio/field-v10.mp3?v=15.57.97",loopStart:7.7419354839},
   village:{url:"audio/hoozuki-v13.mp3?v=15.57.97",loopStart:4.8}
