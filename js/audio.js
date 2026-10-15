@@ -1,51 +1,51 @@
-// beta15.57.96: Safari-safe single-media BGM, preserving voice and SE synthesis.
+// beta15.57.97: Safari-safe single-media BGM, preserving voice and SE synthesis.
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",player=null,duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/field-v10.mp3?v=15.57.96",loopStart:7.7419354839},
-  village:{url:"audio/hoozuki-v13.mp3?v=15.57.96",loopStart:4.8}
+  field:{url:"audio/field-v10.mp3?v=15.57.97",loopStart:7.7419354839},
+  village:{url:"audio/hoozuki-v13.mp3?v=15.57.97",loopStart:4.8}
  };
- const players={};let seeking=false;
+ const player=new Audio();player.preload="auto";player.playsInline=true;player.loop=false;
+ let seeking=false,playPending=false,playError="",requestId=0;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
  function zone(area){return area==="field"?"field":"village"}
- function setup(key){
-  if(players[key])return players[key];
-  const a=new Audio(tracks[key].url);a.preload="auto";a.playsInline=true;a.loop=false;a.load();
-  a.addEventListener("ended",()=>{if(player!==a||!soundOn())return;reloop(a,key)});
-  a.addEventListener("error",()=>{lastError="media error "+(a.error?.code||0)});
-  // Seek just before the end, avoiding a second media player and its playback permission.
-  a.addEventListener("timeupdate",()=>{if(a!==player||seeking||!Number.isFinite(a.duration))return;
-    if(a.currentTime>=a.duration-.075)reloop(a,key)});
-  return players[key]=a;
+ function attenuate(){player.volume=performance.now()<duckUntil?.23:.4}
+ function play(){
+  if(!soundOn()||!enabledByGesture||document.hidden||!currentArea||!player.paused||playPending)return;
+  const id=requestId;playPending=true;
+  try{const p=player.play();if(p?.then)p.then(()=>{if(id===requestId){playPending=false;playError=""}},e=>{if(id===requestId){playPending=false;playError=String(e?.name||e);lastError="play "+playError}});
+   else playPending=false;
+  }catch(e){playPending=false;playError=String(e);lastError=playError}
  }
- function reloop(a,key){if(seeking||a!==player)return;seeking=true;
-  try{a.currentTime=tracks[key].loopStart;const p=a.play();if(p?.catch)p.catch(e=>lastError="loop "+String(e?.name||e))}
-  catch(e){lastError="loop "+String(e)}finally{seeking=false}
- }
- function attenuate(){if(player)player.volume=performance.now()<duckUntil?.23:.4}
- function play(){if(!player||!soundOn()||!enabledByGesture||document.hidden)return;
-  if(!player.paused)return;
-  try{const p=player.play();if(p?.catch)p.catch(e=>lastError="play "+String(e?.name||e))}
-  catch(e){lastError="play "+String(e)}
- }
- function syncBgm(area){
-  const key=zone(area);
-  if(key!==currentArea){
-   if(player)player.pause();
-   currentArea=key;player=setup(key);try{player.currentTime=0}catch{}
-  }
-  if(!soundOn()){if(player)player.pause();return}
+ function setTrack(key){
+  if(key===currentArea)return;
+  requestId++;playPending=false;player.pause();
+  currentArea=key;seeking=false;player.src=tracks[key].url;player.load();
+  // Do not seek before metadata exists; Safari may otherwise cancel the queued playback.
   attenuate();play();
  }
- function unlock(){
-  enabledByGesture=true;
+ function syncBgm(area){
+  const key=zone(area);if(key!==currentArea)setTrack(key);
+  if(!soundOn()){player.pause();return}
+  attenuate();play()
+ }
+ function reloop(){
+  if(seeking||!currentArea||!soundOn())return;seeking=true;
+  try{player.currentTime=tracks[currentArea].loopStart;playPending=false;play()}
+  catch(e){lastError="loop "+String(e)}finally{seeking=false}
+ }
+ player.addEventListener("ended",reloop);
+ player.addEventListener("timeupdate",()=>{if(!seeking&&currentArea&&Number.isFinite(player.duration)&&player.duration>0&&player.currentTime>=player.duration-.085)reloop()});
+ player.addEventListener("error",()=>{lastError="media error "+(player.error?.code||"unknown")+" "+currentArea});
+ player.addEventListener("canplay",()=>{if(player.paused)play()});
+ function unlock(){enabledByGesture=true;
   try{ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume().catch(()=>{})}catch{}
-  play();
+  play()
  }
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  document.addEventListener("visibilitychange",()=>{if(!document.hidden)play()});
  window.addEventListener("pageshow",play);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player?.paused??true,readyState:player?.readyState??0,time:player?.currentTime??0,duration:player?.duration??0,lastError}}
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
@@ -74,7 +74,7 @@ window.YK_AUDIO=(()=>{
   panel.style.cssText="position:fixed;top:70px;right:8px;z-index:99999;background:#141e23ee;color:white;border:1px solid #fff;padding:8px;font:12px monospace;max-width:85vw";
   const out=document.createElement("pre");out.style.cssText="white-space:pre-wrap;margin:5px 0";
   const button=document.createElement("button");button.textContent="BGM再生テスト";button.style.cssText="font-size:14px;padding:8px";
-  button.onclick=()=>{unlock();if(!player){currentArea="";syncBgm(window.gameState?.area||"village")}play();out.textContent=JSON.stringify(diagnostics(),null,2)};
+  button.onclick=()=>{unlock();if(!currentArea){syncBgm(window.gameState?.area||"village")}play();out.textContent=JSON.stringify(diagnostics(),null,2)};
   panel.append(button,out);document.body.append(panel);
   setInterval(()=>{out.textContent=JSON.stringify(diagnostics(),null,2)},1500);
  }
