@@ -267,8 +267,15 @@ window.YK_LANDSCAPE=(()=>{
  }
  // Based on the 2026-10-07 Mode7/HDMA handoff. Browser approximation values,
  // not a verbatim copy of ROM coefficient tables. Angles are camera yaw.
- const cameraPresets=[{name:'標準',far:.34,near:1.30,gamma:1.85},{name:'強調',far:.28,near:1.35,gamma:2.1},{name:'穏やか',far:.48,near:1.18,gamma:1.45}];
- function perspectiveScale(t,p=cameraPresets[0]){t=Math.max(0,Math.min(1,t));return p.far+(p.near-p.far)*Math.pow(t,p.gamma);}
+ const cameraPresets=[{name:'標準',far:.34,near:1.30,gamma:1.85},{name:'強調',far:.28,near:1.35,gamma:2.1},{name:'穏やか',far:.48,near:1.18,gamma:1.45},
+  // Settlement: retain distant depth, but prevent foreground expansion and side convergence.
+  {name:'村内安定',far:.46,near:1.22,gamma:1.5,softNear:true}];
+ function perspectiveScale(t,p=cameraPresets[0]){
+  t=Math.max(0,Math.min(1,t));
+  // Smoothly ease the near end of the village curve; leave world presets unchanged.
+  if(p.softNear&&t>.65)t=.65+.18*(1-Math.exp(-(t-.65)/.18));
+  return p.far+(p.near-p.far)*Math.pow(t,p.gamma);
+ }
  function mode7LikeMatrix(angle,scale){const c=Math.cos(angle)*scale,s=Math.sin(angle)*scale;return {a:c,b:s,c:-s,d:c};}
  const curves=new Map();
  function cameraCurve(zoom=1.4,preset=0){
@@ -280,7 +287,7 @@ window.YK_LANDSCAPE=(()=>{
  }
  function lineAt(y,zoom=1.4,preset=0){
   const c=cameraCurve(zoom,preset),i=Math.max(0,Math.min(799,Math.floor(y))),f=Math.max(0,Math.min(1,y-i));
-  const scale=zoom*perspectiveScale(y/543,c.p),xScale=scale*(.94+.06*Math.max(0,Math.min(1,y/543)));
+  const scale=zoom*perspectiveScale(y/543,c.p),xScale=c.p.softNear?scale:scale*(.94+.06*Math.max(0,Math.min(1,y/543)));
   return {offset:c.offset[i]*(1-f)+c.offset[i+1]*f,scale,xScale};
  }
  function project(x,y,camera,zoom=1.4){
