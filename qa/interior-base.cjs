@@ -12,6 +12,26 @@ assert.equal(await run('S.lastInterior'),id);assert(await run('!collision(S.x,S.
 const check=await run(`(()=>{const q=[[S.x,S.y]],seen=new Set();for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!collision(a,b)){seen.add(k);q.push([a,b]);}}}return {exit:q.some(([x,y])=>YK_INTERIOR_BASE.exit({...S,x,y})),npc:areaNPCs().every(n=>q.some(([x,y])=>Math.hypot(x-n.x,y-n.y)<140))};})()`);assert(check.exit&&check.npc,JSON.stringify({id,check}));
 await run('map()');await page.waitForTimeout(300);if(['inn','shop','teahouse','osumiHome'].includes(id))await page.screenshot({path:path.join(out,'interior-'+id+'.png')});
 if(id==='teahouse'){
+ const composite=await run(`(()=>{
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=768;
+  const c=canvas.getContext('2d');
+  YK_INTERIOR_BASE.draw(c,S);
+  const samples=[[384,336,'rear'],[384,432,'middle'],[288,528,'threshold'],[384,560,'entry']];
+  c.save();c.globalAlpha=.83;
+  for(const [x,y,label] of samples){
+    hero(c,x,y-9*.56,'d',0,S.outfit,.56);
+    c.save();c.globalAlpha=1;c.lineWidth=2;c.strokeStyle='#00ffdc';
+    c.beginPath();c.arc(x,y,5,0,Math.PI*2);c.stroke();
+    c.font='bold 14px sans-serif';c.fillStyle='#ffffff';
+    c.shadowColor='#000000';c.shadowBlur=5;c.fillText(label,x+12,y);c.restore();
+  }
+  c.restore();
+  return canvas.toDataURL('image/png').split(',')[1];
+ })()`);
+ fs.writeFileSync(path.join(out,'interior-teahouse-fixed-camera-scale.png'),Buffer.from(composite,'base64'));
+ console.log('teahouse: fixed-camera scale composite captured using real actor art');
+}
+if(id==='teahouse'){
  // Source-art scale audit: identical production hero drawn at four floor points.
  // These are comparison samples, not claims of measured furniture footprints.
  for(const [label,x,y] of [['rear',384,336],['middle',384,432],['threshold',288,528],['entrance',384,560]]){
