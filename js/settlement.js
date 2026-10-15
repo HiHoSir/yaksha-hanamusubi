@@ -98,7 +98,7 @@ window.YK_SETTLEMENT=(()=>{
    const px=n.x+(x-n.x)*k/steps,py=n.y+(y-n.y)*k/steps;
    if(blocked(px,py))return;
   }
-  if(residents.some(o=>o!==n&&YK_INTERACTION.sameTile({x,y},o)))return;
+  if(residents.some(o=>o!==n&&Math.floor(o.x/32)===Math.floor(x/32)&&Math.floor(o.y/32)===Math.floor(y/32)))return;
   n.x=x;n.y=y;
  }
  residents.forEach(alignVillageNPC);
