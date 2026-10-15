@@ -153,6 +153,19 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 }
 // The withheld stardust artwork is intentionally not loaded in public builds.
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
+let hizukiArt=charSizeParams.get("heroArt")==="legacy"?"legacy":"bluebob";
+const HIZUKI_4DIR=new Image();
+HIZUKI_4DIR.onload=assetLoaded;
+HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.107";
+const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
+const heroArtSelect=$("heroArtSelect");
+heroArtSelect.value=hizukiArt;
+heroArtSelect.addEventListener("change",()=>{
+ hizukiArt=heroArtSelect.value;
+ const url=new URL(location.href);url.searchParams.set("heroArt",hizukiArt);
+ history.replaceState(null,"",url.pathname+url.search+url.hash);
+ map();titleHero();
+});
 const HIZUKI_8DIR=new Image();
 HIZUKI_8DIR.onload=assetLoaded;
 HIZUKI_8DIR.onerror=()=>{HIZUKI_8DIR.datasetFailed="1";};
@@ -660,6 +673,16 @@ function villageDoorAction(){
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  z*=characterScale();
+ if(outfit==="normal"&&hizukiArt==="bluebob"&&layerReady(HIZUKI_4DIR)){
+  const row=HIZUKI_4DIR_ROW[dir]??0;
+  const col=Math.max(0,Math.min(2,Number(frame)||0));
+  // Preserve the caller's projected foot and scale; visible height is 58px at z=.56.
+  const scale=(58/232)*(z/.56),foot=y+9*z;
+  c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality="high";
+  shadow(c,x,foot,31*z,10*z,.32);
+  c.drawImage(HIZUKI_4DIR,col*256,row*256,256,256,x-128*scale,foot-248*scale,256*scale,256*scale);
+  c.restore();return;
+ }
  if(outfit==="normal"&&layerReady(HIZUKI_8DIR)){
   const facing=(dir===S.dir?hizukiFacing8:null)||dir;
   const col=HIZUKI_ATLAS_DIR[facing];
@@ -713,8 +736,9 @@ function villageNpcAtlasHeight(atlas,col,row,child){
  const heroCol=HIZUKI_ATLAS_DIR.d;
  const heroPixels=heroCol===undefined?null:visibleFrameHeight(HIZUKI_8DIR,heroCol*128,128,128,128);
  const npcPixels=visibleFrameHeight(atlas,col*192,row*224,192,224);
- if(!heroPixels||!npcPixels)return child?43:54;
- const target=heroPixels*(104*.56/312)*4*(child?.76:.96);
+ if(!npcPixels)return child?43:54;
+ const heroHeight=hizukiArt==="bluebob"&&layerReady(HIZUKI_4DIR)?58:heroPixels?heroPixels*(104*.56/312)*4:58;
+ const target=heroHeight*(child?.76:.96);
  return Math.max(28,Math.min(120,target*224/npcPixels));
 }
 function npc(c,x,y,type,name,dir="d",frame=1){

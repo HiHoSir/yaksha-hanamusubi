@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "baseHeight": 58,
+  "cellSize": 256,
+  "anchor": [
+    128,
+    248
+  ],
+  "visibleHeight": 232,
+  "rows": [
+    "d",
+    "u",
+    "r",
+    "l"
+  ],
+  "columns": [
+    "A",
+    "idle",
+    "B"
+  ],
+  "cycle": [
+    0,
+    1,
+    2,
+    1
+  ],
+  "approvedSideB": "2026-10-15 17:37 JST",
+  "sources": [
+    {
+      "name": "front_idle",
+      "source": "青髪鬼角巫女のちびキャラスプライトシート.png",
+      "sha256": "70cf3250ccda7de4b8e7612a129c13f392142595bd9955f06a9a8e0bc9bb28bf",
+      "crop": [
+        850,
+        0,
+        1320,
+        724
+      ],
+      "visible_width_at_58": 31.75
+    },
+    {
+      "name": "front_A",
+      "source": "青髪鬼角巫女のちびキャラスプライトシート.png",
+      "sha256": "70cf3250ccda7de4b8e7612a129c13f392142595bd9955f06a9a8e0bc9bb28bf",
+      "crop": [
+        1320,
+        0,
+        1850,
+        724
+      ],
+      "visible_width_at_58": 32.5
+    },
+    {
+      "name": "back_idle",
+      "source": "後ろ姿の巫女風ちびキャラスプライト.png",
+      "sha256": "201e93e8bdce124773f0386ba23e422809db6db6fbb6114b2671917b2e5c3faa",
+      "crop": [
+        840,
+        0,
+        1320,
+        724
+      ],
+      "visible_width_at_58": 32.0
+    },
+    {
+      "name": "back_A",
+      "source": "後ろ姿の巫女風ちびキャラスプライト.png",
+      "sha256": "201e93e8bdce124773f0386ba23e422809db6db6fbb6114b2671917b2e5c3faa",
+      "crop": [
+        1320,
+        0,
+        1860,
+        724
+      ],
+      "visible_width_at_58": 32.75
+    },
+    {
+      "name": "right_idle",
+      "source": "水彩色の鬼角巫女ちびキャラ歩行スプライト.png",
+      "sha256": "2220ff077f896b538843b86730b5afbfeafb21b19449e7f37a876d0f7311a214",
+      "crop": [
+        850,
+        0,
+        1320,
+        724
+      ],
+      "visible_width_at_58": 31.5
+    },
+    {
+      "name": "right_A",
+      "source": "水彩色の鬼角巫女ちびキャラ歩行スプライト.png",
+      "sha256": "2220ff077f896b538843b86730b5afbfeafb21b19449e7f37a876d0f7311a214",
+      "crop": [
+        320,
+        0,
+        840,
+        724
+      ],
+      "visible_width_at_58": 34.5
+    },
+    {
+      "name": "right_B",
+      "source": "exec-45048d90-87e8-46b0-84f0-ef45bc495c53.png",
+      "sha256": "6e01aa2c0f073a68a780a3a30dea981f7082606c760f576f63922f12633536fe",
+      "crop": null,
+      "visible_width_at_58": 34.25
+    }
+  ]
+}
