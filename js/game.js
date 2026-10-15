@@ -839,7 +839,21 @@ function map(frameTime=performance.now()){
   const p=YK_LANDSCAPE.project(view.x,view.y,view,1.4),zoom=1.2*p.scale;
   g.fillStyle="#171416";g.fillRect(0,0,768,768);
   g.save();g.translate(384,32+1.2*p.y);g.scale(zoom,zoom);g.translate(-view.x,-view.y);
-  YK_INTERIOR_BASE.draw(g,S);drawActors(frameTime);g.restore();
+  YK_INTERIOR_BASE.draw(g,S);drawActors(frameTime);
+  // DEBUG ONLY: real production character sprite at reference floor points.
+  // All copies use the identical indoor actor scale, with no synthetic artwork.
+  if(new URLSearchParams(location.search).get('interiorMeasure')==='1'&&YK_INTERIOR_BASE.kind(S)==='teahouse'){
+   g.save();g.globalAlpha=.70;
+   for(const [x,y,label] of [[384,336,'rear'],[384,432,'middle'],[288,528,'threshold'],[384,560,'entry']]){
+    hero(g,x,y-9*.56,'d',0,S.outfit,.56);
+    g.save();g.globalAlpha=1;g.strokeStyle='#16ffe3';g.lineWidth=1.5;
+    g.beginPath();g.arc(x,y,7,0,Math.PI*2);g.stroke();
+    g.font='11px sans-serif';g.fillStyle='#fff';g.shadowColor='#000';g.shadowBlur=4;
+    g.fillText(label,x+12,y+2);g.restore();
+   }
+   g.restore();
+  }
+  g.restore();
   worldHint(YK_INTERIOR_BASE.exit(S)?"A：村へ戻る":"入口の土間から A：村へ戻る");return;
  }
  else {
