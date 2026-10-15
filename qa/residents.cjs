@@ -91,6 +91,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   return {npc,slope:slope.slice(0,24)};
  });
  console.log('GEOMETRY_DIAG '+JSON.stringify(geometry));
+ assert(geometry.npc.every(n=>n.available>=2),'NPC placements must retain navigable exits: '+JSON.stringify(geometry.npc));
  const movementGeometry=await run(`(()=>{
   const starts=[[768,1190],[768,1158],[768,760],[768,688],[768,624],[768,560],[1176,688],[1176,624]];
   return starts.map(([x,y])=>{

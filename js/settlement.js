@@ -85,6 +85,32 @@ window.YK_SETTLEMENT=(()=>{
   if(gardens.some(a=>hit(a.x-a.w/2,a.y-68,a.x+a.w/2,a.y+8)))return true;
   return trees.some(t=>Math.hypot(x-t.x,y-t.y)<18);
  }
+ // NPC-only alignment, retaining the hero's existing 32px lattice.
+ function npcOpenExits(x,y){
+  return [[32,0],[-32,0],[0,32],[0,-32]].filter(([dx,dy])=>
+   Array.from({length:16},(_,k)=>k+1).every(k=>!blocked(x+dx*k/16,y+dy*k/16))
+  ).length;
+ }
+ function alignNpcToWalkableSlot(n){
+  const originalX=n.x,originalY=n.y;
+  const exits=npcOpenExits(originalX,originalY);
+  const centerX=768+32*Math.round((originalX-768)/32);
+  const centerY=760+32*Math.round((originalY-760)/32);
+  const candidates=[];
+  for(let ix=-1;ix<=1;ix++)for(let iy=-1;iy<=1;iy++){
+   const x=centerX+ix*32,y=centerY+iy*32;
+   const distance=Math.hypot(x-originalX,y-originalY);
+   if(distance>39||blocked(x,y)||Math.abs(elevation(x,y)-elevation(originalX,originalY))>.01)continue;
+   if(npcOpenExits(x,y)<exits)continue;
+   if(residents.some(o=>o!==n&&Math.floor(o.x/32)===Math.floor(x/32)&&Math.floor(o.y/32)===Math.floor(y/32)))continue;
+   const steps=Math.ceil(distance/2);
+   if(Array.from({length:steps},(_,i)=>i+1).some(k=>blocked(originalX+(x-originalX)*k/steps,originalY+(y-originalY)*k/steps)))continue;
+   candidates.push({x,y,distance});
+  }
+  candidates.sort((a,b)=>a.distance-b.distance);
+  if(candidates.length){n.x=candidates[0].x;n.y=candidates[0].y;}
+ }
+ residents.forEach(alignNpcToWalkableSlot);
  const aperture={home:[.429,.66,.165,.273],inn:[.411,.714,.175,.212],shop:[.435,.62,.139,.314],tea:[.406,.616,.168,.319]};
  function doorRect(b,cam){const p=project(b.x,b.y,cam);if(p)p.y-=elevation(b.x,b.y)*p.scale;if(!p)return null;const im=art[b.kind],w=b.w*p.scale,h=w*im.height/im.width,a=aperture[b.kind];return {x:p.x-w/2+w*a[0],y:p.y-h+h*a[1],w:w*a[2],h:h*a[3]};}
  function drawDoor(c,b,x,y,w,h,openness){
