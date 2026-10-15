@@ -921,17 +921,7 @@ function move(dx,dy,dir){
  S.dir=dir;
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
- const speed=Number($("speedSelect").value)||1;
- const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,speed,YK_WORLD.size,collision);
- // Village full-cell commitment. Measure with the established player movement
- // function, but do not accept a truncated step at an obstacle. This preserves
- // the original 32px lattice, hit geometry, ramp height and movement speed.
- if(S.area==="village"){
-  const intendedX=Math.max(27,Math.min(1504,startX+dx*32*speed));
-  const intendedY=Math.max(34,Math.min(1248,startY+dy*32*speed));
-  const partial=Math.hypot(destination.x-intendedX,destination.y-intendedY)>.01;
-  if(partial){S.frame=1;map();return;}
- }
+ const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,Number($("speedSelect").value)||1,YK_WORLD.size,collision);
  S.x=destination.x;S.y=destination.y;
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now()};
