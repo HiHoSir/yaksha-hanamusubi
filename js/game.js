@@ -966,26 +966,26 @@ function move(dx,dy,dir){
  const fieldStyle=["field","village","teahouse","osumiHome","villageRoom"].includes(S.area);
  if(fieldStyle&&(fieldMotion||dx&&dy))return;
  S.dir=dir;
- // NPC-only atomic collision: if the existing hero step would enter an NPC's
- // actual foot-centered 32px square, reject that move before changing S.x/y.
- // Terrain, ramps, speed and the authoritative YK_MOVEMENT.step stay untouched.
+ // Village movement is atomic across *all* blockers, including river banks,
+ // ramps, props and NPCs. Reject the whole stride if any 2px sample is blocked.
+ // Previously only NPCs/props were preflighted, so water and cliffs could
+ // leave the hero stranded at an arbitrary partial-cell coordinate.
  if(S.area==="village"){
   const speed=Number($("speedSelect").value)||1,dist=32*speed;
   const norm=Math.hypot(dx,dy)||1,vx=dx/norm*dist,vy=dy/norm*dist;
-  const steps=Math.ceil(dist/2);
-  const npcs=areaNPCs();
-  const fromNpc=npcs.filter(n=>Math.abs(S.x-n.x)<16&&Math.abs(S.y-n.y)<16);
-  const startedInsideObject=YK_SETTLEMENT.objectBlocked(S.x,S.y);
-  let crossesSolid=false;
+  const steps=Math.max(1,Math.ceil(dist/2));
+  const initialTerrainBlocked=collision(S.x,S.y,true);
+  const initialNpcBlocked=npcBlocked(S.x,S.y);
+  let crossesBlocked=false;
   for(let k=1;k<=steps;k++){
    const px=Math.max(27,Math.min(1504,S.x+vx*k/steps));
    const py=Math.max(34,Math.min(1248,S.y+vy*k/steps));
-   // A 32px move must never terminate halfway inside a tree, rock, building
-   // or NPC. The terrain/ramp path remains governed by YK_MOVEMENT.step.
-   if(npcs.some(n=>!fromNpc.includes(n)&&Math.abs(px-n.x)<16&&Math.abs(py-n.y)<16)
-     ||(!startedInsideObject&&YK_SETTLEMENT.objectBlocked(px,py))){crossesSolid=true;break;}
+   // Old saves may start inside terrain or NPC footprints; allow them to
+   // escape rather than locking movement, while still refusing new overlaps.
+   if((!initialTerrainBlocked&&collision(px,py,true))
+      ||(!initialNpcBlocked&&npcBlocked(px,py))){crossesBlocked=true;break;}
   }
-  if(crossesSolid){S.frame=1;map();return;}
+  if(crossesBlocked){S.frame=1;map();return;}
  }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
