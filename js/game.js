@@ -122,7 +122,7 @@ const NPC_ASSETS={};
 function loadNpcAssetSet(){
  for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
   const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;const refreshed=["elder","satoko","merchant","osumi","teagirl"].includes(folder)?new Image():null;
-  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.113`;}
+  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.114`;}
   NPC_ASSETS[type]={atlas,refreshed};
  }
 }
@@ -159,10 +159,10 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
-HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.113";
+HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.114";
 const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
-HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.113";
+HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.114";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
@@ -766,7 +766,7 @@ function npc(c,x,y,type,name,dir="d",frame=1){
  const atlas=npcArt!=="legacy"&&layerReady(set?.refreshed)?set.refreshed:set?.atlas;
  if(layerReady(atlas)){
    c.save();c.imageSmoothingEnabled=true;
-   const child=type==='child',village=S.area==='village';
+   const child=type==='child',village=S.area==='village'||YK_INTERIOR_BASE.area(S);
    // Sprite height is independent of the 32px movement/collision cell.
    // Hozuki's heroine uses z=.68; NPCs share its projected foot baseline.
    // Keep children shorter, without treating one terrain cell as body height.
@@ -834,7 +834,14 @@ function map(frameTime=performance.now()){
   else worldHint(YK_FIELD_HINT.village(!!nearbyInspectable()));
   return;
  }
- else if(YK_INTERIOR_BASE.area(S)) YK_INTERIOR_BASE.draw(g,S);
+ else if(YK_INTERIOR_BASE.area(S)) {
+  const view=YK_CAMERA.position(S,fieldMotion,frameTime);
+  const p=YK_LANDSCAPE.project(view.x,view.y,view,1.4),zoom=1.2*p.scale;
+  g.fillStyle="#171416";g.fillRect(0,0,768,768);
+  g.save();g.translate(384,32+1.2*p.y);g.scale(zoom,zoom);g.translate(-view.x,-view.y);
+  YK_INTERIOR_BASE.draw(g,S);drawActors(frameTime);g.restore();
+  worldHint(YK_INTERIOR_BASE.exit(S)?"A：村へ戻る":"入口の土間から A：村へ戻る");return;
+ }
  else {
   const art=S.area==="forest"?B9IMG.forest:null;
   if(art&&art.complete&&art.naturalWidth)g.drawImage(art,0,0,768,768);
@@ -875,7 +882,7 @@ function drawActorsOn(c,frameTime=performance.now()){
  actors.push({y:S.y,kind:"hero"});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero"){const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y,S.dir,S.frame,S.outfit,S.area==="field"?.16:["village","teahouse","osumiHome","villageRoom"].includes(S.area)?.68:.92);}
+   if(a.kind==="hero"){const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y-(YK_INTERIOR_BASE.area(S)?9*.56:0),S.dir,S.frame,S.outfit,S.area==="field"?.16:YK_INTERIOR_BASE.area(S)?.56:S.area==="village"?.68:.92);}
    else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
 }
@@ -884,7 +891,7 @@ function nearestNPC(max=92){return YK_INTERACTION.nearestFacingNPC(S,areaNPCs(),
 function npcBlocked(x,y){
  // The NPC's world-space foot is the authoritative center. The old floor(x/32)
  // occupancy was offset from both the sprite and the player's 32px stride.
- if(S.area==="village")return areaNPCs().some(n=>Math.abs(x-n.x)<16&&Math.abs(y-n.y)<16);
+ if(S.area==="village"||YK_INTERIOR_BASE.area(S))return areaNPCs().some(n=>Math.abs(x-n.x)<16&&Math.abs(y-n.y)<16);
  return areaNPCs().some(n=>YK_INTERACTION.sameTile({x,y},n));
 }
 function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.dir=dx>0?"r":"l";n.dir=dx>0?"l":"r"}else{S.dir=dy>0?"d":"u";n.dir=dy>0?"u":"d"}n.frame=1;map()}
@@ -1053,7 +1060,7 @@ function move(dx,dy,dir){
  // ramps, props and NPCs. Reject the whole stride if any 2px sample is blocked.
  // Previously only NPCs/props were preflighted, so water and cliffs could
  // leave the hero stranded at an arbitrary partial-cell coordinate.
- if(S.area==="village"){
+ if(S.area==="village"||YK_INTERIOR_BASE.area(S)){
   const speed=Number($("speedSelect").value)||1,dist=32*speed;
   const norm=Math.hypot(dx,dy)||1,vx=dx/norm*dist,vy=dy/norm*dist;
   const steps=Math.max(1,Math.ceil(dist/2));
@@ -1061,8 +1068,8 @@ function move(dx,dy,dir){
   const initialNpcBlocked=npcBlocked(S.x,S.y);
   let crossesBlocked=false;
   for(let k=1;k<=steps;k++){
-   const px=Math.max(27,Math.min(1504,S.x+vx*k/steps));
-   const py=Math.max(34,Math.min(1248,S.y+vy*k/steps));
+   const px=Math.max(27,Math.min(S.area==="village"?1504:741,S.x+vx*k/steps));
+   const py=Math.max(34,Math.min(S.area==="village"?1248:736,S.y+vy*k/steps));
    // Old saves may start inside terrain or NPC footprints; allow them to
    // escape rather than locking movement, while still refusing new overlaps.
    if((!initialTerrainBlocked&&collision(px,py,true))

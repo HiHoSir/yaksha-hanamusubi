@@ -9,7 +9,7 @@ window.YK_INTERIOR_BASE=(()=>{
   armory:{top:286,spawn:[384,560],npc:[384,300],solids:[[245,316,523,370],[25,315,155,451],[642,322,744,451],[25,447,140,520],[650,460,744,520]]},
   home:{top:300,spawn:[432,560],npc:[400,400],solids:[[81,369,264,436],[193,278,257,310],[584,292,735,331]]}
  };
- function load(change){for(const name of Object.keys(layouts)){const im=images[name]=new Image();im.onload=change;im.src='design-reference/interiors/base-v1/'+name+'.png?v=15.57.113';}}
+ function load(change){for(const name of Object.keys(layouts)){const im=images[name]=new Image();im.onload=change;im.src='assets/interiors/base-v1/'+name+'.webp?v=15.57.114';}}
  function blocked(s,x,y){const k=kind(s),l=layouts[k];if(x<48||x>720||y<l.top||y>612)return true;if(y>548&&(x<310||x>490))return true;return l.solids.some(([a,b,c,d])=>x>=a&&x<=c&&y>=b&&y<=d);}
  function draw(c,s){c.fillStyle='#171416';c.fillRect(0,0,768,768);const im=images[kind(s)];if(im?.complete&&im.naturalWidth)c.drawImage(im,0,128,768,512);else{c.fillStyle='#fff2cb';c.font='20px sans-serif';c.fillText('内観を読込中…',300,380);}}
  const spawn=s=>layouts[kind(s)].spawn.slice();
