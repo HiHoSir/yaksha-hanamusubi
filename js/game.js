@@ -924,7 +924,15 @@ function move(dx,dy,dir){
  if(S.area==="village"&&areaNPCs().length){
   const speed=Number($("speedSelect").value)||1;
   const stepX=dx*32*speed,stepY=dy*32*speed;
-  if(npcBlocked(S.x+stepX,S.y+stepY)){S.frame=1;map();return;}
+  const segments=Math.ceil(Math.hypot(stepX,stepY)/2);
+  const occupiedStart=npcBlocked(S.x,S.y);
+  let npcInPath=false;
+  for(let i=1;i<=segments;i++){
+   const px=S.x+stepX*i/segments,py=S.y+stepY*i/segments;
+   // Permit leaving an occupied spawn tile, never entering a new NPC tile.
+   if(npcBlocked(px,py)&&(!occupiedStart||!YK_INTERACTION.sameTile({x:px,y:py},{x:S.x,y:S.y}))){npcInPath=true;break;}
+  }
+  if(npcInPath){S.frame=1;map();return;}
  }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
