@@ -1,8 +1,8 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>茶店 カメラ・配置検証</title><style>
 body{background:#10181b;color:#eee;margin:0;font:15px -apple-system,BlinkMacSystemFont,sans-serif}main{max-width:840px;margin:auto;padding:12px}h1{font-size:20px}p{line-height:1.5;color:#cdd5d6}button,select,input{font:inherit;background:#314247;color:#fff;border:1px solid #698183;border-radius:8px;padding:8px}button{margin:3px}canvas{width:min(100%,640px);display:block;background:#131a1a;touch-action:none;border:1px solid #677}label{display:inline-flex;align-items:center;gap:5px;margin:4px}.status{font-size:13px;color:#cbd}code{overflow-wrap:anywhere}
 </style></head><body><main><h1>茶店：地面＋室内カメラ検証</h1>
-<p>村内と同じ `YK_LANDSCAPE.project` を比較用に呼び出します。「湾曲なし」は室内向けに直線投影した検証モードで、本編カメラを変更しません。</p>
-<label>カメラ<select id="mode"><option value="flat">室内：湾曲なし</option><option value="village">村内投影（比較）</option></select></label>
+<p>村内と同じ `YK_LANDSCAPE.project` を比較用に呼び出します。「湾曲なし」は室内向けに奥行きで拡縮する湾曲なしの検証モードで、本編カメラを変更しません。</p>
+<label>カメラ<select id="mode"><option value="flat">室内：遠近あり・湾曲なし</option><option value="village">村内投影（比較）</option></select></label>
 <label>拡大 <input id="zoom" type="range" min="60" max="165" value="100"> <span id="zlabel">100%</span></label>
 <label><input type="checkbox" id="grid" checked>32px格子</label><label><input type="checkbox" id="objects" checked>配置枠</label>
 <canvas id="scene" width="640" height="576"></canvas>
@@ -19,7 +19,12 @@ const key='yaksha.roomEditor.multi.v1.teahouse',oldKey='yaksha.roomEditor.v1';
 function layout(){try{const d=JSON.parse(localStorage.getItem(key)||localStorage.getItem(oldKey));if(d?.width===W&&d?.height===H&&d.tiles?.length===H)return d.tiles}catch(e){}return Array.from({length:H},()=>Array(W).fill('road'))}
 function projection(x,y){
  const factor=Number($('#zoom').value)/100;
- if($('#mode').value==='flat')return {x:320+(x-camX)*factor,y:288+(y-camY)*factor,scale:factor,xScale:factor};
+ if($('#mode').value==='flat'){
+  // Interior projection: perspective by depth, without horizontal curvature or convergence.
+  // Depth affects both vertical screen position and scale. The X axis remains linear at each depth.
+  const dy=y-camY,depth=1+dy/780,scale=factor*Math.max(.70,Math.min(1.36,depth));
+  return {x:320+(x-camX)*scale,y:288+dy*factor*(1+dy/1560),scale,xScale:scale};
+ }
  const p=window.YK_LANDSCAPE?.project(x,y,{x:camX,y:camY,preset:3},1.4);
  return p?{x:p.x,y:288+(p.y-354)*factor,scale:p.scale*factor,xScale:p.xScale*factor}:null;
 }
@@ -39,7 +44,7 @@ function render(){
  }
  const foot=projection(320,224);if(foot){ctx.strokeStyle='#00ffcb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(foot.x,foot.y,5,0,Math.PI*2);ctx.stroke()}
  $('#zlabel').textContent=$('#zoom').value+'%';
- $('#status').textContent='茶屋 '+W+'×'+H+'マス／'+count+'セル描画／地面素材 '+(roadOK?'読込成功':'未読込')+'／カメラ '+($('#mode').value==='flat'?'直線（湾曲なし）':landscapeOK?'村内投影':'村内投影読込中')+'／配置データ '+(localStorage.getItem(key)||localStorage.getItem(oldKey)?'保存済み':'未保存：地面のみ');
+ $('#status').textContent='茶屋 '+W+'×'+H+'マス／'+count+'セル描画／地面素材 '+(roadOK?'読込成功':'未読込')+'／カメラ '+($('#mode').value==='flat'?'遠近あり（湾曲なし）':landscapeOK?'村内投影':'村内投影読込中')+'／配置データ '+(localStorage.getItem(key)||localStorage.getItem(oldKey)?'保存済み':'未保存：地面のみ');
 }
 window.YK_LANDSCAPE?.load(()=>{landscapeOK=YK_LANDSCAPE.ready();render()});
 for(const id of ['mode','zoom','grid','objects'])$('#'+id).addEventListener('input',render);
