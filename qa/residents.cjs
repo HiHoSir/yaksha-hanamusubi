@@ -66,6 +66,23 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  })()`);
  assert(rearNPC.selected===null&&rearNPC.target==='井戸'&&rearNPC.fired&&rearNPC.open&&rearNPC.speaker==='井戸',
    'A button must inspect well with NPC behind: '+JSON.stringify(rearNPC));
+ const collisionGeometry=await run(`(()=>{
+  const npc=YK_SETTLEMENT.residents.find(n=>n.id==='child-square');
+  const before={area:S.area,x:S.x,y:S.y,dir:S.dir};
+  S.area='village';
+  const atCenter=npcBlocked(npc.x,npc.y),right=npcBlocked(npc.x+17,npc.y),left=npcBlocked(npc.x-17,npc.y);
+  const origin={x:npc.x-32,y:npc.y};
+  S.x=origin.x;S.y=origin.y;S.dir='r';
+  const blockedByTerrain=collision(S.x,S.y,true);
+  const start=[S.x,S.y];fieldMotion=null;
+  move(1,0,'r');
+  const after=[S.x,S.y];
+  S.x=before.x;S.y=before.y;S.dir=before.dir;S.area=before.area;fieldMotion=null;
+  return {atCenter,right,left,start,after,blockedByTerrain};
+ })()`);
+ console.log('NPC_COLLISION_DIAG '+JSON.stringify(collisionGeometry));
+ assert(collisionGeometry.atCenter&&!collisionGeometry.right&&!collisionGeometry.left,'NPC occupancy must be centered on visible foot');
+ assert.deepEqual(collisionGeometry.after,collisionGeometry.start,'walking into NPC cell must reject entire move');
  const spawnAlignment=await run('YK_SETTLEMENT.residents.map(n=>({id:n.id,x:n.x,y:n.y,blocked:YK_SETTLEMENT.blocked(n.x,n.y),centered:n.x%32===16&&n.y%32===16}))');
  assert(spawnAlignment.every(n=>!n.blocked),'all adjusted NPC positions must remain walkable: '+JSON.stringify(spawnAlignment));
  const spawnSlots=await run('YK_SETTLEMENT.residents.map(n=>({id:n.id,x:n.x,y:n.y,blocked:YK_SETTLEMENT.blocked(n.x,n.y)}))');
