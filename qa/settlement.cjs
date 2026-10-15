@@ -47,7 +47,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await run('S.x=768;S.y=1228;move(0,1,"d");');assert.equal(await run('S.area'),'field');
  await run('enterWorldPlace("village");S.x=768;S.y=72;move(0,-1,"u");');assert.equal(await run('S.area'),'field');
  const old=await run('YK_SAVE.migrate({...YK_SAVE.fresh(),area:"village",villageRevision:2,x:373,y:690,gold:900,quest:2})');assert.equal(old.x,768);assert.equal(old.y,1190);assert.equal(old.gold,900);assert.equal(old.quest,2);
- await run('state({...YK_SAVE.fresh(),area:"village",villageRevision:YK_SETTLEMENT.revision,x:1056,y:696});YK_SAVE.auto(S);restoreState(YK_SAVE.loadAuto());');assert.equal(await run('S.x'),1056);assert.equal(await run('S.y'),696);
+ await run('state({...YK_SAVE.fresh(),area:"village",x:1056,y:696});YK_SAVE.auto(S);restoreState(YK_SAVE.loadAuto());');assert.equal(await run('S.x'),1056);assert.equal(await run('S.y'),696);
  assert.deepEqual(errors,[]);console.log('village '+height+': 7 doors, 12 unique residents, field camera/movement, both exits, bridge/water, migration, animation OK');await page.close();
  }
  }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
