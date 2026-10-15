@@ -91,6 +91,15 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   return {npc,slope:slope.slice(0,24)};
  });
  console.log('GEOMETRY_DIAG '+JSON.stringify(geometry));
+ const movementGeometry=await run(`(()=>{
+  const starts=[[768,1190],[768,1158],[768,760],[768,688],[768,624],[768,560],[1176,688],[1176,624]];
+  return starts.map(([x,y])=>{
+   const path=Array.from({length:16},(_,k)=>({px:x,py:y-(k+1)*2,blocked:collision(x,y-(k+1)*2,true),npc:npcBlocked(x,y-(k+1)*2)}));
+   const to=YK_MOVEMENT.step('village',x,y,0,-1,1,YK_WORLD.size,(a,b)=>collision(a,b,true));
+   return {from:[x,y],to:[to.x,to.y],initial:collision(x,y,true),endpoint:collision(x,y-32,true),firstBlock: path.findIndex(p=>p.blocked),firstNPC:path.findIndex(p=>p.npc)};
+  });
+ })()`);
+ console.log('MOVE_GEOMETRY_DIAG '+JSON.stringify(movementGeometry));
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0,maxNpcFrameStep=0;
   const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
