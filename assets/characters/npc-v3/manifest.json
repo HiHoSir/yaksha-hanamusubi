@@ -616,6 +616,405 @@
         "normalizedCoreAlpha": 37502,
         "footX": 149.5
       }
+    ],
+    "osumi": [
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          157,
+          3,
+          178,
+          345
+        ],
+        "sourceOpaqueCore": 42339,
+        "normalizedCoreAlpha": 42299,
+        "footX": 242.5
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          0,
+          1
+        ],
+        "crop": [
+          92,
+          3,
+          176,
+          345
+        ],
+        "sourceOpaqueCore": 42381,
+        "normalizedCoreAlpha": 42346,
+        "footX": 177.5
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          157,
+          3,
+          178,
+          345
+        ],
+        "sourceOpaqueCore": 42339,
+        "normalizedCoreAlpha": 42299,
+        "footX": 242.5,
+        "mirror": true
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          156,
+          3,
+          180,
+          348
+        ],
+        "sourceOpaqueCore": 42910,
+        "normalizedCoreAlpha": 42894,
+        "footX": 247.5
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          1,
+          1
+        ],
+        "crop": [
+          90,
+          3,
+          180,
+          346
+        ],
+        "sourceOpaqueCore": 44558,
+        "normalizedCoreAlpha": 44540,
+        "footX": 181
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          156,
+          3,
+          180,
+          348
+        ],
+        "sourceOpaqueCore": 42910,
+        "normalizedCoreAlpha": 42894,
+        "footX": 247.5,
+        "mirror": true
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          2,
+          0
+        ],
+        "crop": [
+          150,
+          3,
+          192,
+          327
+        ],
+        "sourceOpaqueCore": 43152,
+        "normalizedCoreAlpha": 43117,
+        "footX": 241.5,
+        "mirror": false
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          89,
+          3,
+          198,
+          332
+        ],
+        "sourceOpaqueCore": 39156,
+        "normalizedCoreAlpha": 39094,
+        "footX": 198,
+        "mirror": true
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          19,
+          3,
+          200,
+          331
+        ],
+        "sourceOpaqueCore": 43556,
+        "normalizedCoreAlpha": 43494,
+        "footX": 135,
+        "mirror": true
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          2,
+          0
+        ],
+        "crop": [
+          150,
+          3,
+          192,
+          327
+        ],
+        "sourceOpaqueCore": 43152,
+        "normalizedCoreAlpha": 43117,
+        "footX": 241.5,
+        "mirror": true
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          89,
+          3,
+          198,
+          332
+        ],
+        "sourceOpaqueCore": 39156,
+        "normalizedCoreAlpha": 39094,
+        "footX": 198
+      },
+      {
+        "source": "source/osumi.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          19,
+          3,
+          200,
+          331
+        ],
+        "sourceOpaqueCore": 43556,
+        "normalizedCoreAlpha": 43494,
+        "footX": 135
+      }
+    ],
+    "teagirl": [
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          166,
+          3,
+          181,
+          341
+        ],
+        "sourceOpaqueCore": 38639,
+        "normalizedCoreAlpha": 38562,
+        "footX": 248
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          0,
+          1
+        ],
+        "crop": [
+          92,
+          3,
+          183,
+          340
+        ],
+        "sourceOpaqueCore": 39443,
+        "normalizedCoreAlpha": 39386,
+        "footX": 180
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          0,
+          0
+        ],
+        "crop": [
+          166,
+          3,
+          181,
+          341
+        ],
+        "sourceOpaqueCore": 38639,
+        "normalizedCoreAlpha": 38562,
+        "footX": 248,
+        "mirror": true
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          155,
+          3,
+          182,
+          335
+        ],
+        "sourceOpaqueCore": 38838,
+        "normalizedCoreAlpha": 38790,
+        "footX": 244
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          1,
+          1
+        ],
+        "crop": [
+          91,
+          3,
+          176,
+          335
+        ],
+        "sourceOpaqueCore": 39284,
+        "normalizedCoreAlpha": 39243,
+        "footX": 179.5
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          1,
+          0
+        ],
+        "crop": [
+          155,
+          3,
+          182,
+          335
+        ],
+        "sourceOpaqueCore": 38838,
+        "normalizedCoreAlpha": 38790,
+        "footX": 244,
+        "mirror": true
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          136,
+          3,
+          206,
+          334
+        ],
+        "sourceOpaqueCore": 43779,
+        "normalizedCoreAlpha": 43699,
+        "footX": 256.5,
+        "mirror": true
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          85,
+          3,
+          202,
+          337
+        ],
+        "sourceOpaqueCore": 38028,
+        "normalizedCoreAlpha": 37942,
+        "footX": 194,
+        "mirror": true
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          25,
+          3,
+          210,
+          333
+        ],
+        "sourceOpaqueCore": 42411,
+        "normalizedCoreAlpha": 42348,
+        "footX": 143,
+        "mirror": true
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          3,
+          0
+        ],
+        "crop": [
+          136,
+          3,
+          206,
+          334
+        ],
+        "sourceOpaqueCore": 43779,
+        "normalizedCoreAlpha": 43699,
+        "footX": 256.5
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          3,
+          1
+        ],
+        "crop": [
+          85,
+          3,
+          202,
+          337
+        ],
+        "sourceOpaqueCore": 38028,
+        "normalizedCoreAlpha": 37942,
+        "footX": 194
+      },
+      {
+        "source": "source/teagirl.png",
+        "sourceCell": [
+          3,
+          2
+        ],
+        "crop": [
+          25,
+          3,
+          210,
+          333
+        ],
+        "sourceOpaqueCore": 42411,
+        "normalizedCoreAlpha": 42348,
+        "footX": 143
+      }
     ]
   },
   "sources": {
@@ -631,6 +1030,10 @@
       "bytes": 1329898,
       "sha256": "dfef6ae3090e61b392883e389cdee88cb132e81ba12549001cac6bfe305a481e"
     },
+    "osumi.png": {
+      "bytes": 1468288,
+      "sha256": "5e32d76f136a31c2acf1fa0761c9c3f19a0c170ba2b9f6fd795e85f9b875deed"
+    },
     "satoko-arms-fixed.png": {
       "bytes": 1529462,
       "sha256": "93b1b7d281f7b0b217921f12232afbc6d3019bbb7ca166e2113ab6264283d003"
@@ -642,6 +1045,10 @@
     "satoko.png": {
       "bytes": 1593206,
       "sha256": "b1363c4336df808b0a838d806542783348e644197478586837c189634e50fbf0"
+    },
+    "teagirl.png": {
+      "bytes": 1451356,
+      "sha256": "ecc8223d3e4729019f1f92f0a442113b9a92e236c10a536132babe36d7f33852"
     }
   }
 }

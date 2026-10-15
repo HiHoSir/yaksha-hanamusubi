@@ -59,14 +59,14 @@ const server=http.createServer((req,res)=>{
   })()`);
   for(const c of pixelCells){assert(c.height>=57&&c.height<=58);assert.equal(c.args[0],c.frame*64);assert.equal(c.args[1],({d:0,u:1,r:2,l:3})[c.dir]*64);assert.equal(c.args[5]+62*c.args[7]/64,90);assert.equal(c.smooth,false);}
   await run('ensureNpcAssets()');
-  await page.waitForFunction(()=>window.__qaEval('["elder","child","merchant"].every(k=>layerReady(NPC_ASSETS[k].refreshed)&&layerReady(NPC_ASSETS[k].atlas))'));
+  await page.waitForFunction(()=>window.__qaEval('["elder","child","merchant","woman","teagirl"].every(k=>layerReady(NPC_ASSETS[k].refreshed)&&layerReady(NPC_ASSETS[k].atlas))'));
   await page.selectOption('#npcArtSelect','legacy');assert.equal(await run('npcArt'),'legacy');
   assert(await run('(()=>{const c=document.createElement("canvas").getContext("2d");let ok=false;c.drawImage=(im)=>ok=im===NPC_ASSETS.elder.atlas;npc(c,80,90,"elder","里長");return ok;})()'));
   await page.selectOption('#npcArtSelect','illustration');
   assert.equal(await run('JSON.stringify({...S,playtime:0})'),before);
   const npcFrames=await run(`(()=>{
    const out=[];
-   for(const type of ['elder','child','merchant'])for(const dir of ['d','u','l','r'])for(let f=0;f<3;f++){
+   for(const type of ['elder','child','merchant','woman','teagirl'])for(const dir of ['d','u','l','r'])for(let f=0;f<3;f++){
     const c=document.createElement('canvas');c.width=c.height=160;const ctx=c.getContext('2d');let draw;
     ctx.drawImage=(im,...args)=>draw={fresh:im===NPC_ASSETS[type].refreshed,args};
     npc(ctx,80,90,type,type,dir,f);out.push({type,dir,f,...draw});
@@ -79,6 +79,6 @@ const server=http.createServer((req,res)=>{
    await page.screenshot({path:path.join(out,area+'.png')});
   }
   assert.deepEqual(errors,[]);
-  console.log('PASS 36 refreshed NPC frames and HD/pixel hero 12 frames, directional mapping, 58px scale, projected foot, old/new switch and state preservation');
+  console.log('PASS 60 refreshed NPC frames and HD/pixel hero 12 frames, directional mapping, 58px scale, projected foot, old/new switch and state preservation');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});
