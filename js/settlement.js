@@ -30,12 +30,12 @@ window.YK_SETTLEMENT=(()=>{
  };
  function resident(role,id,x,y,dir='d',extra={}){return {...roles[role],role,id,x,y,dir,frame:1,service:role==='merchant'?'shop':roles[role].service,...extra};}
  const residents=[
-  resident('elder','chief',716,648,'d'),resident('child','child-square',842,728,'l'),
+  resident('elder','chief',704,640,'d'),resident('child','child-square',832,736,'l'),
 
 
-  resident('farmer','farmer',576,470,'l'),resident('weaver','weaver',984,390,'d'),
-  resident('child','child-garden',560,648,'r'),resident('fisher','fisher',1160,992,'l'),
-  resident('traveler','traveler',896,868,'u'),resident('elder','shrine-keeper',1406,350,'d',{name:'社の世話役',talk:['大きな社は里の北。ここは里を見守る小さなお社じゃ。','このところ、お供えの数が一つ多い。誰が置いたか分からぬのじゃ。']})
+  resident('farmer','farmer',576,480,'l'),resident('weaver','weaver',992,384,'d'),
+  resident('child','child-garden',576,640,'r'),resident('fisher','fisher',1152,992,'l'),
+  resident('traveler','traveler',896,864,'u'),resident('elder','shrine-keeper',1408,352,'d',{name:'社の世話役',talk:['大きな社は里の北。ここは里を見守る小さなお社じゃ。','このところ、お供えの数が一つ多い。誰が置いたか分からぬのじゃ。']})
  ];
  const mapData=Array.from({length:40},(_,y)=>Array.from({length:48},(_,x)=>x<3||x>45||y<3?'forest':'grass'));
  for(let y=0;y<34;y++)for(let x=39;x<=41;x++)mapData[y][x]='river';
