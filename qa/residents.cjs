@@ -83,6 +83,19 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  console.log('NPC_COLLISION_DIAG '+JSON.stringify(collisionGeometry));
  assert(collisionGeometry.atCenter&&!collisionGeometry.right&&!collisionGeometry.left,'NPC occupancy must be centered on visible foot');
  assert.deepEqual(collisionGeometry.after,collisionGeometry.start,'walking into NPC cell must reject entire move');
+ const riverStride=await run(`(()=>{
+  const v=YK_SETTLEMENT, samples=[];
+  for(const x of [1200,1216,1232,1248,1264,1280,1296,1312,1328,1344,1360]){
+   for(const y of [400,448,496,704,752,928]){
+    const start={x,y},end={x:x+32,y};
+    if(v.blocked(start.x,start.y))continue;
+    const hits=Array.from({length:16},(_,i)=>v.blocked(x+(i+1)*2,y));
+    if(hits.some(Boolean))samples.push({start,end,firstHit:hits.indexOf(true)});
+   }
+  }
+  return samples;
+ })()`);
+ assert(riverStride.every(q=>q.firstHit>=0),'riverbank blocked strides must be detectable before movement');
  const solidFootprints=await run(`(()=>{
   const v=YK_SETTLEMENT;
   return {trees:v.trees.map(t=>({x:t.x,y:t.y,blocked:v.objectBlocked(t.x,t.y)})),
