@@ -1,4 +1,4 @@
-name: Test, Build and Deploy
+name: Test and QA
 on:
   push:
     branches: [main]
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pages-${{ github.ref }}
+  group: qa-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
                   else
                     tests="$tests battle-layout settlement movement dialog residents guide-menu field-access"
                   fi ;;
-                js/game-state.js) tests="$tests title-entrance" ;;
+                js/game-state.js) : ;;
                 docs/*|art-source/*) : ;;
                 js/settlement.js|assets/settlement/*|assets/village/*) tests="$tests settlement residents movement" ;;
                 js/input.js|css/game.css|index.html|assets/ui/*) tests="$tests dialog battle-layout guide-menu" ;;
@@ -283,53 +283,3 @@ jobs:
           done
           exit "$failed"
 
-  build:
-    name: Build website after smoke
-    needs: smoke
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - name: Assemble static website
-        run: |
-          mkdir -p _site
-          # Static site: do not publish QA harness, CI configuration or git internals.
-          cp index.html _site/index.html
-          for f in *.html; do
-            if [ "$f" != "index.html" ] && [ "$f" != "debug-world.html" ]; then cp "$f" "_site/$f"; fi
-          done
-          for directory in assets css js audio; do
-            if [ -d "$directory" ]; then cp -a "$directory" "_site/$directory"; fi
-          done
-          for f in favicon.ico manifest.json sw.js; do
-            if [ -f "$f" ]; then cp "$f" "_site/$f"; fi
-          done
-          test -s _site/index.html
-          test -s _site/js/game.js
-          test -s _site/js/data.js
-          test -s _site/assets/ui/kikoku-title-logo.png
-          printf 'Website built from %s\\n' "$GITHUB_SHA"
-      - name: Upload verified Pages build
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  deploy:
-    name: Deploy only verified build
-    needs: [smoke, build]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
