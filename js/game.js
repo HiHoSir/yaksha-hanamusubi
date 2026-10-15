@@ -122,7 +122,7 @@ const NPC_ASSETS={};
 function loadNpcAssetSet(){
  for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
   const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;const refreshed=["elder","satoko","merchant","osumi","teagirl"].includes(folder)?new Image():null;
-  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.110`;}
+  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.111`;}
   NPC_ASSETS[type]={atlas,refreshed};
  }
 }
@@ -159,10 +159,10 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
-HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.110";
+HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.111";
 const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
-HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.110";
+HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.111";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;

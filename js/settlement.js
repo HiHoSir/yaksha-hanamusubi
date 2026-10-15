@@ -33,7 +33,7 @@ window.YK_SETTLEMENT=(()=>{
   resident('elder','chief',736,720,'d',{stationary:true}),resident('child','child-square',842,728,'l'),
 
 
-  resident('farmer','farmer',576,470,'l'),resident('weaver','weaver',984,390,'d'),
+  resident('farmer','farmer',576,470,'l'),resident('weaver','weaver',992,408,'d'),
   resident('child','child-garden',560,648,'r'),resident('fisher','fisher',1160,992,'l'),
   resident('traveler','traveler',896,868,'u'),resident('elder','shrine-keeper',1406,350,'d',{name:'社の世話役',talk:['大きな社は里の北。ここは里を見守る小さなお社じゃ。','このところ、お供えの数が一つ多い。誰が置いたか分からぬのじゃ。']})
  ];
@@ -98,7 +98,6 @@ window.YK_SETTLEMENT=(()=>{
   ).length;
  }
  function alignNpcToWalkableSlot(n){
-  if(n.id==='weaver')return; // preserve verified wandering near the building
   const originalX=n.x,originalY=n.y;
   const exits=npcOpenExits(originalX,originalY);
   const centerX=768+32*Math.round((originalX-768)/32);

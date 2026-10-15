@@ -106,7 +106,8 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  assert.equal(solidFootprints.method,'function','solid footprint API is available to atomic movement');
  assert(solidFootprints.trees.every(t=>t.blocked),'tree trunks must be solid at visible feet');
  assert(solidFootprints.rocks.every(t=>t.blocked),'rocks must be solid at visible feet');
- assert(solidFootprints.weaver,'weaver NPC remains present (excluded from alignment correction)');
+ assert(solidFootprints.weaver,'weaver NPC remains present');
+ assert.deepEqual([solidFootprints.weaver.x,solidFootprints.weaver.y],[992,408],'weaver starts on a shared grid slot clear of the doorway');
  const spawnAlignment=await run('YK_SETTLEMENT.residents.map(n=>({id:n.id,x:n.x,y:n.y,blocked:YK_SETTLEMENT.blocked(n.x,n.y),centered:n.x%32===16&&n.y%32===16}))');
  assert(spawnAlignment.every(n=>!n.blocked),'all adjusted NPC positions must remain walkable: '+JSON.stringify(spawnAlignment));
  const spawnSlots=await run('YK_SETTLEMENT.residents.map(n=>({id:n.id,x:n.x,y:n.y,blocked:YK_SETTLEMENT.blocked(n.x,n.y)}))');
@@ -132,6 +133,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   return {npc,slope:slope.slice(0,24)};
  });
  console.log('GEOMETRY_DIAG '+JSON.stringify(geometry));
+ assert.deepEqual(geometry.npc.find(n=>n.id==='weaver').offset,[0,0],'weaver shares the hero/NPC movement lattice');
  assert.deepEqual(geometry.npc.find(n=>n.id==='chief').at,[736,728],'village chief must stand on central flat road, off the elevated ramp');
  assert(geometry.npc.every(n=>n.available>=2),'NPC placements must retain navigable exits: '+JSON.stringify(geometry.npc));
  const movementGeometry=await run(`(()=>{
@@ -167,6 +169,24 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  })()`);
  console.log('OBJECT_GEOMETRY_DIAG '+JSON.stringify(obstacleGeometry));
 
+ const weaverWalk=await page.evaluate(()=>{
+  const v=YK_SETTLEMENT,n={...v.residents.find(n=>n.id==='weaver')},home=[n.x,n.y];
+  let seed=71,t=performance.now(),moved=false,bad=0,maxStep=0,offGridStops=0,stops=0;
+  const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+  for(let i=0;i<2400;i++){
+   const old=[n.x,n.y];v.updateResidents(t+=50,{area:'village',x:768,y:1176},[n],v.blocked,true,rnd);
+   const d=Math.hypot(n.x-old[0],n.y-old[1]);maxStep=Math.max(maxStep,d);if(d>0)moved=true;
+   if(v.blocked(n.x,n.y)||Math.hypot(n.x-home[0],n.y-home[1])>96.001||v.doors.some(q=>Math.abs(n.x-q.x)<52&&Math.abs(n.y-q.y)<38))bad++;
+   if(d===0&&n.frame===1){stops++;if(Math.abs((n.x-768)/32-Math.round((n.x-768)/32))>1e-6||Math.abs((n.y-760)/32-Math.round((n.y-760)/32))>1e-6)offGridStops++;}
+  }
+  const before=[n.x,n.y];v.updateResidents(t+=50,{area:'village',x:n.x+32,y:n.y},[n],v.blocked,true,rnd);
+  const nearbyStopped=n.x===before[0]&&n.y===before[1]&&n.frame===1;
+  for(let i=0;i<20;i++)v.updateResidents(t+=50,{area:'village',x:768,y:1176},[n],v.blocked,false,rnd);
+  return {moved,bad,maxStep,stops,offGridStops,nearbyStopped,dialogStopped:n.x===before[0]&&n.y===before[1]};
+ });
+ assert(weaverWalk.moved&&weaverWalk.stops>0,JSON.stringify(weaverWalk));
+ assert.equal(weaverWalk.bad,0);assert.equal(weaverWalk.offGridStops,0);
+ assert(weaverWalk.maxStep<=1.900001&&weaverWalk.nearbyStopped&&weaverWalk.dialogStopped,JSON.stringify(weaverWalk));
  const result=await page.evaluate(()=>{
   const v=YK_SETTLEMENT,npcs=JSON.parse(JSON.stringify(v.residents)),start=npcs.map(n=>[n.x,n.y]),moved=new Set();let seed=17,t=performance.now(),bad=0,maxNpcFrameStep=0;
   const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
