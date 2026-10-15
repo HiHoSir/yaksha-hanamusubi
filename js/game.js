@@ -647,7 +647,10 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  const atlas=NPC_ASSETS[type]?.atlas;
  if(layerReady(atlas)){
    c.save();c.imageSmoothingEnabled=true;
-   const child=type==='child',h=child?67:79,w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
+   const child=type==='child',village=S.area==='village';
+   // Village hero is rendered at z=.68 (~116px sprite); match adult NPC
+   // height while preserving a smaller child and the same foot anchor.
+   const h=village?(child?95:112):(child?67:79),w=h*192/224,row=({d:0,u:1,l:2,r:3})[dir]??0;
    shadow(c,x,y+7,w*.27,6,.17);
    c.drawImage(atlas,idx*192,row*224,192,224,x-w/2,y+7-h*212/224,w,h);
    c.restore();
