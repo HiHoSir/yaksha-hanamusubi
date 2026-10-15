@@ -1,0 +1,50 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>茶店 カメラ・配置検証</title><style>
+body{background:#10181b;color:#eee;margin:0;font:15px -apple-system,BlinkMacSystemFont,sans-serif}main{max-width:840px;margin:auto;padding:12px}h1{font-size:20px}p{line-height:1.5;color:#cdd5d6}button,select,input{font:inherit;background:#314247;color:#fff;border:1px solid #698183;border-radius:8px;padding:8px}button{margin:3px}canvas{width:min(100%,640px);display:block;background:#131a1a;touch-action:none;border:1px solid #677}label{display:inline-flex;align-items:center;gap:5px;margin:4px}.status{font-size:13px;color:#cbd}code{overflow-wrap:anywhere}
+</style></head><body><main><h1>茶店：地面＋室内カメラ検証</h1>
+<p>村内と同じ `YK_LANDSCAPE.project` を比較用に呼び出します。「湾曲なし」は室内向けに直線投影した検証モードで、本編カメラを変更しません。</p>
+<label>カメラ<select id="mode"><option value="flat">室内：湾曲なし</option><option value="village">村内投影（比較）</option></select></label>
+<label>拡大 <input id="zoom" type="range" min="60" max="165" value="100"> <span id="zlabel">100%</span></label>
+<label><input type="checkbox" id="grid" checked>32px格子</label><label><input type="checkbox" id="objects" checked>配置枠</label>
+<canvas id="scene" width="640" height="576"></canvas>
+<div><button data-move="0,-1">↑</button><button data-move="-1,0">←</button><button data-move="0,1">↓</button><button data-move="1,0">→</button><button id="reset">視点を戻す</button></div>
+<p id="status" class="status">読み込み中</p>
+<p>このページは配置・カメラ確認用です。生成済みのテーブル・座布団・踏み石PNGはリポジトリ上に未登録のため、色付き表示は<strong>仮の位置表示</strong>です。アセットを読み込んだ完成描画とは区別しています。</p>
+<p><a href="interior-layout-editor.html" style="color:#bde8d1">間取りエディタへ戻る</a></p>
+</main><script src="js/landscape.js"></script><script>
+(()=>{'use strict';
+const $=s=>document.querySelector(s),canvas=$('#scene'),ctx=canvas.getContext('2d'),S=32,W=20,H=14;
+let camX=320,camY=224,roadOK=false,landscapeOK=false;
+const terrain=new Image();terrain.onload=()=>{roadOK=true;render()};terrain.onerror=()=>{render()};terrain.src='assets/terrain/landscape-v3/road.png';
+const key='yaksha.roomEditor.multi.v1.teahouse',oldKey='yaksha.roomEditor.v1';
+function layout(){try{const d=JSON.parse(localStorage.getItem(key)||localStorage.getItem(oldKey));if(d?.width===W&&d?.height===H&&d.tiles?.length===H)return d.tiles}catch(e){}return Array.from({length:H},()=>Array(W).fill('road'))}
+function projection(x,y){
+ const factor=Number($('#zoom').value)/100;
+ if($('#mode').value==='flat')return {x:320+(x-camX)*factor,y:288+(y-camY)*factor,scale:factor,xScale:factor};
+ const p=window.YK_LANDSCAPE?.project(x,y,{x:camX,y:camY,preset:3},1.4);
+ return p?{x:p.x,y:288+(p.y-354)*factor,scale:p.scale*factor,xScale:p.xScale*factor}:null;
+}
+const palette={road:'#98754c',wood:'#c79c62',raised:'#e0b870',wall:'#5c3f2d',stone:'#9da2a0',table:'#ad6851',cushion:'#4b8965',npc:'#b9a2e2',entrance:'#6fadc4',pillar:'#5a392b',tatami:'#b1ae70',counter:'#98654f',futon:'#dfd4b8',hearth:'#717471',weapon:'#808b92'};
+function render(){
+ ctx.clearRect(0,0,640,576);ctx.fillStyle='#162025';ctx.fillRect(0,0,640,576);
+ let tiles=layout(),count=0;
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  let p0=projection(x*S,y*S),p1=projection((x+1)*S,(y+1)*S);if(!p0||!p1)continue;
+  const l=p0.x,t=p0.y,w=p1.x-p0.x,h=p1.y-p0.y;if(w<=0||h<=0)continue;
+  const v=tiles[y][x]||'road';
+  if(roadOK){ctx.imageSmoothingEnabled=false;ctx.drawImage(terrain,(x%2)*32,(y%2)*32,32,32,l,t,w+.5,h+.5)}
+  else{ctx.fillStyle=palette.road;ctx.fillRect(l,t,w+.5,h+.5)}
+  if(v!=='road'&&$('#objects').checked){ctx.fillStyle=(palette[v]||'#777')+'aa';ctx.fillRect(l,t,w,h);if(v==='table'||v==='stone'||v==='cushion'){ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.fillText(v,l+2,t+Math.min(13,h-1))}}
+  if($('#grid').checked){ctx.strokeStyle='#ffffff38';ctx.lineWidth=.7;ctx.strokeRect(l,t,w,h)}
+  count++;
+ }
+ const foot=projection(320,224);if(foot){ctx.strokeStyle='#00ffcb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(foot.x,foot.y,5,0,Math.PI*2);ctx.stroke()}
+ $('#zlabel').textContent=$('#zoom').value+'%';
+ $('#status').textContent='茶屋 '+W+'×'+H+'マス／'+count+'セル描画／地面素材 '+(roadOK?'読込成功':'未読込')+'／カメラ '+($('#mode').value==='flat'?'直線（湾曲なし）':landscapeOK?'村内投影':'村内投影読込中')+'／配置データ '+(localStorage.getItem(key)||localStorage.getItem(oldKey)?'保存済み':'未保存：地面のみ');
+}
+window.YK_LANDSCAPE?.load(()=>{landscapeOK=YK_LANDSCAPE.ready();render()});
+for(const id of ['mode','zoom','grid','objects'])$('#'+id).addEventListener('input',render);
+document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.move.split(',').map(Number);camX=Math.max(0,Math.min(640,camX+x*32));camY=Math.max(0,Math.min(448,camY+y*32));render()});
+$('#reset').onclick=()=>{camX=320;camY=224;render()};
+render();
+})();
+</script></body></html>
