@@ -282,9 +282,14 @@ window.YK_SETTLEMENT=(()=>{
      if(valid){m.dx=v[0];m.dy=v[1];m.dir=v[2];m.left=distance;chosen=true;break;}
     }if(!chosen){m.wait=.6+random();continue;}
    }
-   const step=Math.min(m.left,dt*(n.type==='child'?46:n.type==='elder'?30:38));
-   if(!allowed(n.x+m.dx*step,n.y+m.dy*step)){m.left=0;m.wait=.8+random();n.frame=1;changed=true;continue;}
-   n.x+=m.dx*step;n.y+=m.dy*step;m.left-=step;m.phase+=dt;n.dir=m.dir;n.frame=[1,0,1,2][Math.floor(m.phase/.14)%4];changed=true;
+   const requested=Math.min(m.left,dt*(n.type==='child'?46:n.type==='elder'?30:38));
+   // Use the same sub-step movement and terrain/collision function as the hero.
+   // NPC pace and wandering decisions remain independent of player controls.
+   const destination=YK_MOVEMENT.step(state.area,n.x,n.y,m.dx,m.dy,requested/32,size,allowed);
+   const traveled=Math.hypot(destination.x-n.x,destination.y-n.y);
+   if(traveled<.001){m.left=0;m.wait=.8+random();n.frame=1;changed=true;continue;}
+   n.x=destination.x;n.y=destination.y;m.left=Math.max(0,m.left-traveled);
+   m.phase+=dt;n.dir=m.dir;n.frame=[1,0,1,2][Math.floor(m.phase/.14)%4];changed=true;
    if(m.left<.01){m.left=0;m.wait=.9+random()*2;n.frame=1;}
   }
   return changed;
