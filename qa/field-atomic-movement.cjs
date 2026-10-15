@@ -1,0 +1,18 @@
+// Run: node qa/field-atomic-movement.cjs
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const source=fs.readFileSync(path.join(__dirname,'../js/movement-rules.js'),'utf8');
+const sandbox={window:{}};vm.runInNewContext(source,sandbox);
+const step=sandbox.window.YK_MOVEMENT.step;
+const full=(x,y)=>step('field',x,y,1,0,1,2560,()=>false);
+assert.deepEqual([full(560,2080).x,full(560,2080).y],[592,2080],'clear field stride is 32px');
+const bank=(x,y)=>x>=581;
+const stopped=step('field',560,2080,1,0,1,2560,bank);
+assert.deepEqual([stopped.x,stopped.y],[560,2080],'bank must block entire stride, not stop after 20px');
+const coast=(x,y)=>y<=2060;
+const blocked=step('field',560,2080,0,-1,1,2560,coast);
+assert.deepEqual([blocked.x,blocked.y],[560,2080],'coast must block entire stride');
+const speed2=step('field',560,2080,1,0,2,2560,(x)=>x>=615);
+assert.deepEqual([speed2.x,speed2.y],[560,2080],'faster strides must also be atomic');
+const clear=step('field',560,2080,0,-1,1,2560,()=>false);
+assert.deepEqual([clear.x,clear.y],[560,2048],'unblocked north step works');
+console.log('field atomic movement regression passed');
