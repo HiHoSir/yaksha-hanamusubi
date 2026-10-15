@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "scene": "teahouse",
+  "status": "calibration-required",
+  "concept": "design-reference/interiors/base-v1/teahouse.png",
+  "renderArt": "assets/interiors/base-v1/teahouse.webp",
+  "coordinateSystem": {
+    "unit": "logical room pixel",
+    "original": [
+      1536,
+      1024
+    ],
+    "render": [
+      768,
+      512
+    ],
+    "canvasOrigin": [
+      0,
+      128
+    ],
+    "originalToWorld": "worldX=sourceX/2;worldY=sourceY/2+128",
+    "stride": 32
+  },
+  "referenceActor": {
+    "nominalHeroVisibleHeightAtZ056": 58,
+    "heroRenderZoom": "1.2 * YK_LANDSCAPE.project(view.x,view.y,view,1.4).scale",
+    "npcHeightRule": "villageNpcAtlasHeight"
+  },
+  "existingAnchors": {
+    "spawn": [
+      384,
+      560
+    ],
+    "resident": [
+      384,
+      400
+    ],
+    "bounds": [
+      48,
+      306,
+      720,
+      612
+    ],
+    "exit": {
+      "minY": 580,
+      "minX": 310,
+      "maxX": 490
+    }
+  },
+  "zones": [
+    {
+      "id": "entrance",
+      "role": "earth",
+      "walkable": true,
+      "confirmedGeometry": false
+    },
+    {
+      "id": "step-stones",
+      "role": "ground-decoration",
+      "walkable": true,
+      "confirmedGeometry": false
+    },
+    {
+      "id": "raised-floor",
+      "role": "timber",
+      "walkable": true,
+      "confirmedGeometry": false
+    },
+    {
+      "id": "rear-wall",
+      "role": "wall",
+      "walkable": false,
+      "confirmedGeometry": false
+    }
+  ],
+  "objects": [
+    {
+      "id": "table-1",
+      "type": "table",
+      "artLayer": null,
+      "footprint": null,
+      "depthAnchor": null,
+      "verified": false
+    },
+    {
+      "id": "table-2",
+      "type": "table",
+      "artLayer": null,
+      "footprint": null,
+      "depthAnchor": null,
+      "verified": false
+    },
+    {
+      "id": "table-3",
+      "type": "table",
+      "artLayer": null,
+      "footprint": null,
+      "depthAnchor": null,
+      "verified": false
+    },
+    {
+      "id": "table-4",
+      "type": "table",
+      "artLayer": null,
+      "footprint": null,
+      "depthAnchor": null,
+      "verified": false
+    }
+  ],
+  "constraints": {
+    "noRectangularFinalArtwork": true,
+    "textureQuality": "approved concept",
+    "collision": "contact-footprint only",
+    "occlusion": "interpolated actor-foot depth",
+    "anchorAlignment": "same-canvas origin",
+    "entryAndServicesPreserved": true
+  },
+  "activation": "NOT ACTIVE: runtime retains approved painted interior until geometry + illustration are verified"
+}
