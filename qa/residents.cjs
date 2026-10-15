@@ -66,6 +66,8 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  })()`);
  assert(rearNPC.selected===null&&rearNPC.target==='井戸'&&rearNPC.fired&&rearNPC.open&&rearNPC.speaker==='井戸',
    'A button must inspect well with NPC behind: '+JSON.stringify(rearNPC));
+ const spawnAlignment=await run('YK_SETTLEMENT.residents.map(n=>({id:n.id,x:n.x,y:n.y,blocked:YK_SETTLEMENT.blocked(n.x,n.y),centered:n.x%32===16&&n.y%32===16}))');
+ assert(spawnAlignment.every(n=>!n.blocked),'all adjusted NPC positions must remain walkable: '+JSON.stringify(spawnAlignment));
  const blockedStarts=await run('YK_SETTLEMENT.residents.filter(n=>YK_SETTLEMENT.blocked(n.x,n.y)).map(n=>({id:n.id,x:n.x,y:n.y}))');
  assert.deepEqual(blockedStarts,[],'NPC starting locations must be walkable: '+JSON.stringify(blockedStarts));
  const atlasSizes=await run('Object.values(NPC_ASSETS).map(s=>[s.atlas.naturalWidth,s.atlas.naturalHeight])');assert(atlasSizes.every(([w,h])=>w===576&&h===896),'all five NPC atlases loaded');
