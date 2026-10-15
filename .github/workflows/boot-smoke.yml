@@ -122,6 +122,19 @@ jobs:
         run: node qa/camera-position-unit.cjs
       - name: Area transitions contract
         run: node qa/area-transitions-unit.cjs
+      - name: Cache version consistency contract
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('node:assert/strict');
+          const html=fs.readFileSync('index.html','utf8');
+          const version=html.match(/<title>[^<]*?β(\d+\.\d+\.\d+)<\/title>/)?.[1];
+          assert(version,'missing visible build version');
+          assert(html.includes('const loadedBuild="'+version+'"'),'cache-check build must match title');
+          assert(html.includes('cache:"no-store"'),'fresh build check must bypass browser cache');
+          for(const [,asset,query] of html.matchAll(/(?:src|href)="((?:js|css)\/[^"]+\.(?:js|css))\?v=([^"]+)"/g)){
+            assert.equal(query,version,'stale static asset version: '+asset);
+          }
+          NODE
       - name: Movement geometry contract
         run: node qa/movement-rules-unit.cjs
       - name: Collision geometry contract
