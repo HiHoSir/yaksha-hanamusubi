@@ -13,7 +13,7 @@ window.YK_INTERACTION=(()=>{
    // Require a forward-facing cone; lateral NPCs must not steal object inspection.
    const fdx=tile(n.x)-tile(player.x),fdy=tile(n.y)-tile(player.y);
    const forwardCell=fdx===f[0]&&fdy===f[1];
-   if(dot<.75&&!forwardCell)continue;
+   if(dot<.75&&!(elevation&&forwardCell))continue;
    best=n;bd=d;
   }
   return best;
