@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>茶屋 床タイル 20×14</title>
+<style>
+body{margin:0;background:#161a1e;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+main{padding:14px;max-width:800px;margin:auto}h1{font-size:19px}p{font-size:14px;line-height:1.5}
+#view{overflow:auto;max-width:100%;background:#29302e;border:1px solid #56615b;border-radius:8px;padding:8px;box-sizing:border-box}
+canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;max-width:none}
+button{font-size:16px;padding:9px 13px}small{display:block;color:#c6d1cb;margin-top:9px}
+</style></head><body><main><h1>茶屋用 地面マップ（20×14マス）</h1>
+<p>村内で使用中の <code>assets/terrain/landscape-v3/road.png</code> を、32×32pxの280マスに敷き詰めた実験マップ。家具・建物・斜め投影はありません。</p>
+<div id="view"><canvas id="map" width="640" height="448"></canvas></div>
+<p><button id="grid">マス目を表示</button> <button id="scale">2倍表示</button></p>
+<small id="status">読込中…</small></main>
+<script>
+(()=>{'use strict';const c=document.getElementById('map'),ctx=c.getContext('2d'),status=document.getElementById('status');
+const tile=new Image();let grid=false,magnification=1;
+function draw(){if(!tile.complete||!tile.naturalWidth)return;
+ ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,640,448);
+ // Landscape runtime uses this same 64px road asset. Two-by-two 32px tiles
+ // reproduce its native 64px patch without resampling.
+ for(let y=0;y<14;y++)for(let x=0;x<20;x++){
+  const sx=(x%2)*32,sy=(y%2)*32;
+  ctx.drawImage(tile,sx,sy,32,32,x*32,y*32,32,32);
+ }
+ if(grid){ctx.strokeStyle='rgba(255,255,255,.28)';ctx.lineWidth=1;
+ for(let x=0;x<=640;x+=32){ctx.beginPath();ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,448);ctx.stroke()}
+ for(let y=0;y<=448;y+=32){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(640,y+.5);ctx.stroke()}}
+ c.style.width=(640*magnification)+'px';c.style.height=(448*magnification)+'px';
+}
+tile.onload=()=>{if(tile.naturalWidth!==64||tile.naturalHeight!==64){status.textContent='タイル寸法エラー: '+tile.naturalWidth+'×'+tile.naturalHeight;return}
+draw();status.textContent='読み込み成功：64×64pxの既存道路アセット／20×14＝280タイル／出力640×448px'};
+tile.onerror=()=>status.textContent='読込失敗：assets/terrain/landscape-v3/road.png';
+tile.src='assets/terrain/landscape-v3/road.png';
+document.getElementById('grid').onclick=()=>{grid=!grid;draw()};
+document.getElementById('scale').onclick=()=>{magnification=magnification===1?2:1;draw()};
+})();
+</script></body></html>
