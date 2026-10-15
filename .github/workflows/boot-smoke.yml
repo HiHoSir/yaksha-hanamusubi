@@ -58,6 +58,7 @@ jobs:
                 js/world.js|js/landscape.js|assets/terrain/*|assets/maps/*|js/autotile.js) tests="$tests movement field-access settlement";terrain=true ;;
                 js/data.js|js/equipment.js|js/save.js|assets/characters/*|assets/enemies/*) tests="$tests battle-layout dialog";equipment=true ;;
                 js/audio.js) tests="$tests dialog" ;;
+                qa/autotile-smoke.cjs|qa/runtime-smoke.cjs) tests="$tests interior-base settlement movement";terrain=true ;;
                 qa/*.cjs) name="${file#qa/}";name="${name%.cjs}";case " battle-layout settlement movement dialog residents guide-menu field-access interior-base " in *" $name "*) tests="$tests $name";; esac ;;
                 .github/workflows/*) tests="$tests battle-layout settlement movement dialog residents guide-menu field-access interior-base";terrain=true;equipment=true ;;
                 assets/interiors/*) tests="$tests dialog" ;;
