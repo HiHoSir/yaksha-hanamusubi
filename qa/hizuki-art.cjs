@@ -19,7 +19,7 @@ const server=http.createServer((req,res)=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:'+server.address().port);
   const run=code=>page.evaluate(code=>window.__qaEval(code),code);
-  await page.waitForFunction(()=>window.__qaEval&&window.__qaEval('layerReady(HIZUKI_4DIR)&&layerReady(HIZUKI_8DIR)'));
+  await page.waitForFunction(()=>window.__qaEval&&window.__qaEval('layerReady(HIZUKI_4DIR)&&layerReady(HIZUKI_8DIR)&&layerReady(HIZUKI_PIXEL)'));
   assert.deepEqual(await run('[HIZUKI_4DIR.naturalWidth,HIZUKI_4DIR.naturalHeight]'),[768,1024]);
   const cells=await run(`(()=>{
    const results=[];
@@ -45,12 +45,25 @@ const server=http.createServer((req,res)=>{
   assert.equal(await run('hizukiArt'),'legacy');assert.equal(await run('JSON.stringify({...S,playtime:0})'),before);
   await page.selectOption('#heroArtSelect','bluebob');
   assert.equal(await run('JSON.stringify({...S,playtime:0})'),before);
+  await page.selectOption('#heroArtSelect','pixel');
+  assert.equal(await run('hizukiArt'),'pixel');
+  assert.equal(await run('JSON.stringify({...S,playtime:0})'),before);
+  const pixelCells=await run(`(()=>{
+   const result=[];
+   for(const dir of ['d','u','r','l'])for(let frame=0;frame<3;frame++){
+    const c=document.createElement('canvas');c.width=c.height=128;const ctx=c.getContext('2d'),draw=ctx.drawImage.bind(ctx);let args,smooth;
+    ctx.drawImage=(...a)=>{args=a.slice(1);smooth=ctx.imageSmoothingEnabled;draw(...a)};
+    hero(ctx,64,90-9*.56,dir,frame,'normal',.56);
+    result.push({dir,frame,args,smooth,height:visibleFrameHeight(HIZUKI_PIXEL,frame*64,HIZUKI_4DIR_ROW[dir]*64,64,64)});
+   }return result;
+  })()`);
+  for(const c of pixelCells){assert(c.height>=57&&c.height<=58);assert.equal(c.args[0],c.frame*64);assert.equal(c.args[1],({d:0,u:1,r:2,l:3})[c.dir]*64);assert.equal(c.args[5]+62*c.args[7]/64,90);assert.equal(c.smooth,false);}
   await page.click('[data-close="settings"]');
   for(const area of ['village','field']){
    await run(`S.area='${area}';S.x=${area==='village'?768:688};S.y=${area==='village'?1190:2096};S.frame=1;S.dir='d';hud();map();`);
    await page.screenshot({path:path.join(out,area+'.png')});
   }
   assert.deepEqual(errors,[]);
-  console.log('PASS 12 frames, directional mapping, 58px scale, projected foot, old/new switch and state preservation');
+  console.log('PASS HD and pixel 12 frames, directional mapping, 58px scale, projected foot, old/new switch and state preservation');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});

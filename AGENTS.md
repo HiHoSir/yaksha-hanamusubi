@@ -6,6 +6,7 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Work | Skill |
 | --- | --- |
 | GitHub binary uploads, commits, CI, deployment | [github-artifact-delivery](.agents/skills/github-artifact-delivery/SKILL.md) |
+| Hizuki walking illustrations, limb corrections and pixel variants | [hizuki-walk-assets](.agents/skills/hizuki-walk-assets/SKILL.md) |
 | High-resolution enemy sprites (intact/worn) | [battle-enemy-hd-assets](.agents/skills/battle-enemy-hd-assets/SKILL.md) |
 | Background removal and alpha/outline repair | [image-cutout-and-repair](.agents/skills/image-cutout-and-repair/SKILL.md) |
 | Battle screen and mobile QA | [battle-debug-qa](.agents/skills/battle-debug-qa/SKILL.md) |

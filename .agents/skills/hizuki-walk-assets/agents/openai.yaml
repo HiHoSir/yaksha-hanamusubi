@@ -1,0 +1,4 @@
+interface:
+  display_name: "緋月の歩行素材制作"
+  short_description: "承認済みのポーズを守り、緋月の4方向歩行素材を生成・監査・実装する"
+  default_prompt: "Use $hizuki-walk-assets to prepare and verify Hizuki walking assets."
