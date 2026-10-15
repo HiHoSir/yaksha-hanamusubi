@@ -753,28 +753,23 @@ function drawActorsOn(c,frameTime=performance.now()){
  }
 }
 function drawActors(frameTime){drawActorsOn(g,frameTime)}
-function nearestNPC(max=92){return YK_INTERACTION.nearestFacingNPC(S,areaNPCs(),max)}
+function nearestNPC(max=92){return YK_INTERACTION.nearestFacingNPC(S,areaNPCs(),max,S.area==='village'?YK_SETTLEMENT.elevation:null)}
 function npcBlocked(x,y){
- const list=areaNPCs();
- // Artwork can be wide; collision only uses the character's foot/body core.
- return list.some(n=>{
-   const dx=x-n.x,dy=y-n.y;
-   const radius=n.type==="merchant"?20:(n.type==="child"?15:18);
-   return dx*dx+dy*dy<radius*radius;
- });
+ return areaNPCs().some(n=>YK_INTERACTION.sameTile({x,y},n));
 }
-function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.dir=dx>0?"r":"l";n.dir=dx>0?"l":"r"}else{S.dir=dy>0?"d":"u";n.dir=dy>0?"u":"d"}}
+function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.dir=dx>0?"r":"l";n.dir=dx>0?"l":"r"}else{S.dir=dy>0?"d":"u";n.dir=dy>0?"u":"d"}n.frame=1;map()}
 
 function hud(redraw=true){YK_AUDIO.syncBgm(S.area);const a=D.areas[S.area];const text=`体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>${S.lv}段　${S.gold}両<br><span class="outfitHud">衣装：${D.outfits[S.outfit]?.name||"花守り装束"}${OUTFIT_READY[S.outfit]?"":"（制作中）"}</span>`;if($("hud").innerHTML!==text)$("hud").innerHTML=text;const objective="目的： "+D.objectives[Math.min(S.quest,D.objectives.length-1)];if($("objective").textContent!==objective)$("objective").textContent=objective;if(redraw)map()}
 function message(t,ms=1300){clearTimeout(msgTimer);$("message").textContent=t;$("message").style.display="block";msgTimer=setTimeout(()=>$("message").style.display="none",ms)}
 
-function talk(entry,after=null){
+function talk(entry,after=null,turnDelay=0){
  if(!entry)return false;
  dialogQueue=YK_DIALOGUE.normalize(entry);
  if(!dialogQueue.length)return false;
  dialogAfter=typeof after==="function"?after:null;
  YK_INPUT.stopAll();fieldMotion=null;busy=true;$("pad").classList.add("dialogActive");$("cancel").disabled=true;$("dialog").classList.add("show");
- nextDialog();return true;
+ if(turnDelay)setTimeout(()=>{if($("dialog").classList.contains("show"))nextDialog();},turnDelay);
+ else nextDialog();return true;
 }
 function nextDialog(){
  if(dialogTyping&&dialogTyping.index<dialogTyping.chars.length){revealDialogLine();return;}
@@ -864,12 +859,12 @@ function action(){
  const n=nearestNPC(100);
  if(n){faceNPC(n);n.frame=1;
   if(n.service==="shop"||(n.type==="merchant"&&n.service===undefined)){openShop();return true;}
-  if(n.service==="rest")return talk({n:n.name,t:["旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();});
+  if(n.service==="rest")return talk({n:n.name,t:["旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();},120);
   const event=YK_STORY_EVENTS.match(S,D.story,n.name);
   if(event){const stage=S.quest;
-   return talk({n:n.name,t:event.lines},()=>{if(!YK_STORY_EVENTS.complete(S,event,stage))return;YK_SAVE.auto(S);message(event.unlock,4200);});
+   return talk({n:n.name,t:event.lines},()=>{if(!YK_STORY_EVENTS.complete(S,event,stage))return;YK_SAVE.auto(S);message(event.unlock,4200);},120);
   }
-  return talk({n:n.name,t:n.talk});
+  return talk({n:n.name,t:n.talk},null,120);
  }
  if(S.area==="hotspring"){
   hotBathing=false;YK_INPUT.stopAll();

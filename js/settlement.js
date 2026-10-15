@@ -258,7 +258,7 @@ window.YK_SETTLEMENT=(()=>{
    if(fixed)continue;
    let m=wander.get(n);if(!m){m={home:[n.x,n.y],wait:.4+random()*1.8,left:0,phase:0};wander.set(n,m);}
    if(Math.hypot(state.x-n.x,state.y-n.y)<68){if(n.frame!==1)changed=true;n.frame=1;continue;}
-   const allowed=(x,y)=>!isBlocked(x,y)&&Math.hypot(x-m.home[0],y-m.home[1])<=(n.id==='chief'?64:96)&&Math.hypot(x-state.x,y-state.y)>44&&!list.some(o=>o!==n&&Math.hypot(x-o.x,y-o.y)<38)&&
+   const allowed=(x,y)=>!isBlocked(x,y)&&Math.hypot(x-m.home[0],y-m.home[1])<=(n.id==='chief'?64:96)&&!YK_INTERACTION.sameTile({x,y},state)&&!list.some(o=>o!==n&&YK_INTERACTION.sameTile({x,y},o))&&
     (state.area!=='village'||y>90&&y<1170&&!doors.some(d=>Math.abs(x-d.x)<52&&Math.abs(y-d.y)<38))&&
     (!['teahouse','osumiHome','villageRoom'].includes(state.area)||y<580);
    if(m.left<=0){n.frame=1;m.wait-=dt;if(m.wait>0)continue;

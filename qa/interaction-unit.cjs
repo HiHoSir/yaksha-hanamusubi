@@ -24,4 +24,7 @@ assert.equal(find({...p,dir:'u'},[{x:25,y:-12}]),null,'oblique NPC outside facin
 assert.equal(find(p,[{x:0,y:-100}],100),null,'range boundary excludes NPC');
 assert.equal(find(p,[{x:0,y:-99}],100).y,-99,'just-inside range is accepted');
 assert.deepEqual(objectAhead,{x:0,y:-24});
-console.log('NPC-facing selection contract OK');
+assert.equal(c.YK_INTERACTION.sameTile({x:65,y:65},{x:95,y:95}),true);
+assert.equal(c.YK_INTERACTION.sameTile({x:65,y:65},{x:96,y:65}),false);
+assert.ok(find({x:64,y:64,dir:'r'},[{x:112,y:70}],92,(x,y)=>x>100?32:0),'slope NPC in adjacent tile can be selected');
+console.log('NPC-facing selection and tile occupancy contracts OK');
