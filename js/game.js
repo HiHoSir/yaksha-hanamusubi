@@ -755,12 +755,7 @@ function drawActorsOn(c,frameTime=performance.now()){
 function drawActors(frameTime){drawActorsOn(g,frameTime)}
 function nearestNPC(max=92){return YK_INTERACTION.nearestFacingNPC(S,areaNPCs(),max,S.area==='village'?YK_SETTLEMENT.elevation:null)}
 function npcBlocked(x,y){
- // NPC-only collision: align occupied cells with the hero's unchanged
- // 32px village movement lattice, rather than floor(x/32) cells.
- if(S.area!=="village")return areaNPCs().some(n=>YK_INTERACTION.sameTile({x,y},n));
- const originX=768,originY=760,cell=32;
- const slot=(v,origin)=>Math.round((v-origin)/cell);
- return areaNPCs().some(n=>slot(x,originX)===slot(n.x,originX)&&slot(y,originY)===slot(n.y,originY));
+ return areaNPCs().some(n=>YK_INTERACTION.sameTile({x,y},n));
 }
 function faceNPC(n){const dx=n.x-S.x,dy=n.y-S.y;if(Math.abs(dx)>Math.abs(dy)){S.dir=dx>0?"r":"l";n.dir=dx>0?"l":"r"}else{S.dir=dy>0?"d":"u";n.dir=dy>0?"u":"d"}n.frame=1;map()}
 

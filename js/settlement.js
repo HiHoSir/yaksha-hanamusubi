@@ -85,26 +85,6 @@ window.YK_SETTLEMENT=(()=>{
   if(gardens.some(a=>hit(a.x-a.w/2,a.y-68,a.x+a.w/2,a.y+8)))return true;
   return trees.some(t=>Math.hypot(x-t.x,y-t.y)<18);
  }
- // Hero's existing village walking lattice: x = 768 + 32k, y = 760 + 32k.
- // NPC-only placement: accept a correction only if the complete short path is
- // walkable, stays on the same height and does not claim another resident's tile.
- function alignVillageNPC(n){
-  // The weaver's original foothold has room to wander; snapping this NPC
-  // against the nearby building removes all valid walking exits.
-  if(n.id==='weaver')return;
-  const x=768+32*Math.round((n.x-768)/32);
-  const y=760+32*Math.round((n.y-760)/32);
-  if(x===n.x&&y===n.y)return;
-  if(Math.abs(elevation(x,y)-elevation(n.x,n.y))>0.01)return;
-  const steps=Math.ceil(Math.hypot(x-n.x,y-n.y)/2);
-  for(let k=1;k<=steps;k++){
-   const px=n.x+(x-n.x)*k/steps,py=n.y+(y-n.y)*k/steps;
-   if(blocked(px,py))return;
-  }
-  if(residents.some(o=>o!==n&&Math.floor(o.x/32)===Math.floor(x/32)&&Math.floor(o.y/32)===Math.floor(y/32)))return;
-  n.x=x;n.y=y;
- }
- residents.forEach(alignVillageNPC);
  const aperture={home:[.429,.66,.165,.273],inn:[.411,.714,.175,.212],shop:[.435,.62,.139,.314],tea:[.406,.616,.168,.319]};
  function doorRect(b,cam){const p=project(b.x,b.y,cam);if(p)p.y-=elevation(b.x,b.y)*p.scale;if(!p)return null;const im=art[b.kind],w=b.w*p.scale,h=w*im.height/im.width,a=aperture[b.kind];return {x:p.x-w/2+w*a[0],y:p.y-h+h*a[1],w:w*a[2],h:h*a[3]};}
  function drawDoor(c,b,x,y,w,h,openness){
