@@ -233,7 +233,7 @@ function enemyArt(c,x,y,debugSmoothing=null){
  else c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);c.restore();
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
-let villageDoorMotion=null,villagePaintAt=0,npcPaintAt=0,lastNpcUpdate=0,lastMotionPaint=0;
+let villageDoorMotion=null,villagePaintAt=0,npcPaintAt=0;
 const D=YK_DATA,E=YK_EQUIPMENT, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
 function state(v){
@@ -1231,12 +1231,43 @@ window.addEventListener("error",e=>{
  message("復旧: "+String(e.message||e.error||"不明なエラー").slice(0,55)+loc,6000);
 });
 function titleHero(){const c=$("titleHero"),q=c?.getContext("2d");if(!q)return;q.clearRect(0,0,c.width,c.height);hero(q,210,425,"d",1,"normal",3.1)}
-function loop(t){tickVillageDoor(t);const updateNPCs=t-lastNpcUpdate>=100||t<lastNpcUpdate;if(updateNPCs)lastNpcUpdate=t;const npcMoved=updateNPCs?YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show")):false;const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>100;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>160;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
+// Opt-in Safari performance probe (?perf=1); normal gameplay has no diagnostic DOM.
+const performanceProbe=location.search.includes('perf=1')?{draw:0,drawCount:0,drawPeak:0,npc:0,npcCount:0,npcPeak:0,frames:0,last:performance.now(),element:null}:null;
+function recordProbe(kind,duration){
+ if(!performanceProbe)return;
+ const p=performanceProbe;p[kind]+=duration;p[kind+'Count']++;p[kind+'Peak']=Math.max(p[kind+'Peak'],duration);
+}
+const rawMap=map;
+map=function(...args){
+ if(!performanceProbe)return rawMap(...args);
+ const begin=performance.now();
+ try{return rawMap(...args);}finally{recordProbe('draw',performance.now()-begin);}
+};
+function timedNpcUpdate(t){
+ const start=performanceProbe?performance.now():0;
+ const changed=YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show"));
+ if(performanceProbe)recordProbe('npc',performance.now()-start);
+ return changed;
+}
+function publishProbe(t){
+ const p=performanceProbe;if(!p)return;
+ p.frames++;
+ if(t-p.last<1000)return;
+ if(!p.element){
+  p.element=document.createElement('div');p.element.id='perfProbe';
+  p.element.style.cssText='position:fixed;top:env(safe-area-inset-top,0px);left:3px;z-index:99999;background:#07101de8;color:white;font:12px monospace;padding:6px;pointer-events:none;white-space:pre;border:1px solid #c8a566';
+  document.body.appendChild(p.element);
+ }
+ const avg=(sum,count)=>(count?sum/count:0).toFixed(1);
+ p.element.textContent='FPS '+(p.frames*1000/(t-p.last)).toFixed(0)+'  '+S.area+'  busy:'+busy+'\n描画 '+avg(p.draw,p.drawCount)+'ms 最大'+p.drawPeak.toFixed(0)+'ms\nNPC '+avg(p.npc,p.npcCount)+'ms 最大'+p.npcPeak.toFixed(0)+'ms\n描画回数 '+p.drawCount+' /秒  移動:'+!!fieldMotion;
+ p.draw=p.npc=p.drawPeak=p.npcPeak=p.drawCount=p.npcCount=p.frames=0;p.last=t;
+}
+function loop(t){publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>50;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
  const deadline=fieldMotion.at+144;fieldMotion=null;
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
- }if(t-lastMotionPaint>=48){lastMotionPaint=t;map(motionTime);}}else if(idleNpcPaint||idleVillagePaint){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+ }map(motionTime);}else if(idleNpcPaint||idleVillagePaint){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
