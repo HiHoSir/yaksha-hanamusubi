@@ -1,6 +1,6 @@
 // Audio system for yaksha-hanamusubi: approved BGM masters and lightweight NPC voices.
 window.YK_AUDIO=(()=>{
- let ctx=null,enabledByGesture=false,currentArea="",current=null,sequence=0,duckUntil=0;
+ let ctx=null,enabledByGesture=false,currentArea="",current=null,sequence=0,duckUntil=0,duckTimer=null;
  const tracks={
    field:{intro:"audio/field-v10.ogg?v=15.57.85",loop:"audio/field-v10-loop.ogg?v=15.57.85"},
    village:{intro:"audio/hoozuki-v13.ogg?v=15.57.85",loop:"audio/hoozuki-v13-loop.ogg?v=15.57.85"}
@@ -44,8 +44,8 @@ window.YK_AUDIO=(()=>{
   else if(/[おこそとのほもよろをオコソトノホモヨロヲ]/.test(ch))f*=.90;
   if(/[んン]/.test(ch))sound(f*.65,.104,"triangle",p[1]*.65,550);
   else sound(f*(1+(index%3)*.025),.078,p[3],p[1],p[2]);
-  duckUntil=performance.now()+260;attenuate();
+  duckUntil=performance.now()+260;attenuate();clearTimeout(duckTimer);duckTimer=setTimeout(()=>{duckUntil=0;attenuate()},340);
  }
- function dialogEnd(){duckUntil=0;attenuate()}
+ function dialogEnd(){clearTimeout(duckTimer);duckUntil=0;attenuate()}
  return {beep,syncBgm,unlock,talkChar,dialogEnd};
 })();
