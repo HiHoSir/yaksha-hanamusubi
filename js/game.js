@@ -122,7 +122,7 @@ const NPC_ASSETS={};
 function loadNpcAssetSet(){
  for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
   const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;const refreshed=["elder","satoko","merchant","osumi","teagirl"].includes(folder)?new Image():null;
-  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.112`;}
+  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.113`;}
   NPC_ASSETS[type]={atlas,refreshed};
  }
 }
@@ -159,10 +159,10 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
-HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.112";
+HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.113";
 const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
-HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.112";
+HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.113";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
@@ -322,7 +322,7 @@ function stabilizeLoadedState(){
    [S.x,S.y]=alignVillageEntryFoot(S.x,S.y);
  }else if(area==="teahouse"||area==="osumiHome"||area==="villageRoom"){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
-   if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||[384,625];}
+   if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||YK_INTERIOR_BASE.spawn(S);}
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
    if(collision(S.x,S.y)){
@@ -588,6 +588,7 @@ function drawPaintedTeaActors(c,frameTime){
  drawLayeredIndoorActors(c,frameTime,INDOOR_PERSPECTIVE.tea,TEA_ART.back);
 }
 window.YKIndoorControlDebug=()=>({scene:"teahouse",depthLoaded:!!INDOOR_CONTROLS.tea.depth,collisionLoaded:!!INDOOR_CONTROLS.tea.collision,backdropReady:paintedTeaReady(),back:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,245),front:indoorPerspective(INDOOR_PERSPECTIVE.tea,384,705),postsReady:TEA_ART.postsReady,depthProps:TEA_DEPTH_OBJECTS.map(v=>({id:v.id,depth:v.depth}))});
+YK_INTERIOR_BASE.load(assetLoaded);
 function drawInterior(c,kind){
  // Purpose-built room renderer. Furniture coordinates intentionally match interiorBlocked().
  const tea=kind==="tea";
@@ -628,6 +629,7 @@ function drawInterior(c,kind){
  const grd=c.createRadialGradient(384,390,170,384,390,520);grd.addColorStop(0,"rgba(255,220,145,0)");grd.addColorStop(1,"rgba(20,10,12,.28)");c.fillStyle=grd;c.fillRect(42,48,684,656);
 }
 function interiorBlocked(x,y){
+ if(YK_INTERIOR_BASE.area(S))return YK_INTERIOR_BASE.blocked(S,x,y);
  if(x<72||x>696||y<195||y>704)return true;
  // Counter/hearth/furniture collision uses the same rectangles as drawInterior().
  if(S.area==="teahouse"&&paintedTeaReady())return indoorProjectedBlocked(INDOOR_PERSPECTIVE.tea,x,y);
@@ -641,7 +643,7 @@ function interiorBlocked(x,y){
  // Keep the bottom-center doorway usable.
  return false;
 }
-function enterInterior(area){fieldMotion=null;YK_INPUT.stopAll();S.area=area;S.x=384;S.y=625;S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
+function enterInterior(area){fieldMotion=null;YK_INPUT.stopAll();S.area=area;[S.x,S.y]=YK_INTERIOR_BASE.spawn(S);S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
 function leaveInterior(){
  if(villageDoorMotion)return;
  fieldMotion=null;YK_INPUT.stopAll();S.area="village";
@@ -832,8 +834,7 @@ function map(frameTime=performance.now()){
   else worldHint(YK_FIELD_HINT.village(!!nearbyInspectable()));
   return;
  }
- else if(S.area==="teahouse") {if(paintedTeaReady())drawPaintedTeaBase(g);else drawInterior(g,"tea");}
- else if(S.area==="osumiHome"||S.area==="villageRoom") drawInterior(g,"home");
+ else if(YK_INTERIOR_BASE.area(S)) YK_INTERIOR_BASE.draw(g,S);
  else {
   const art=S.area==="forest"?B9IMG.forest:null;
   if(art&&art.complete&&art.naturalWidth)g.drawImage(art,0,0,768,768);
@@ -841,7 +842,7 @@ function map(frameTime=performance.now()){
  }
  if(S.area==="field")drawWorldPins(g,false);
  drawChests();
- if(S.area==="teahouse"&&paintedTeaReady()){
+ if(!YK_INTERIOR_BASE.area(S)&&S.area==="teahouse"&&paintedTeaReady()){
   drawPaintedTeaActors(g,frameTime);
   // Explicit image-stack compositing: background/floor -> actors -> foreground props.
   // No polygon clipping, source-image sampling, or duplicated occluder draws.
@@ -865,7 +866,7 @@ function map(frameTime=performance.now()){
 };
 function areaNPCs(){
  if(S.area==="village")return YK_SETTLEMENT.residents;
- if(["villageRoom","teahouse","osumiHome"].includes(S.area))return YK_SETTLEMENT.insideResidents(S.lastInterior||S.area);
+ if(["villageRoom","teahouse","osumiHome"].includes(S.area))return YK_INTERIOR_BASE.residents(S,YK_SETTLEMENT.insideResidents(S.lastInterior||S.area));
  return NPCS[S.area]||[];
 }
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
@@ -986,9 +987,9 @@ function action(){
  if(openNearbyChest())return true;
  if(villageDoorAction())return true;
  if(S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom"){
-  if(S.y>=590){leaveInterior();return true}
+  if(YK_INTERIOR_BASE.exit(S)){leaveInterior();return true}
  }
- const n=nearestNPC(100);
+ const n=nearestNPC(YK_INTERIOR_BASE.area(S)&&["inn","armory"].includes(YK_INTERIOR_BASE.kind(S))?140:100);
  if(n){faceNPC(n);n.frame=1;
   if(n.service==="shop"||(n.type==="merchant"&&n.service===undefined)){openShop();return true;}
   if(n.service==="rest")return talk({n:n.name,t:["旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();},120);

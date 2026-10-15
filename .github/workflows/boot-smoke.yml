@@ -35,7 +35,7 @@ jobs:
           equipment=false
           # First push or missing base: run everything rather than silently skip.
           if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
-            tests="battle-layout settlement movement dialog residents guide-menu field-access"
+            tests="battle-layout settlement movement dialog residents guide-menu field-access interior-base"
             terrain=true
             equipment=true
           else
@@ -49,7 +49,7 @@ jobs:
                   if printf '%s' "$diff" | grep -Eq 'indoorPerspective|indoorProjectedBlocked|INDOOR_PERSPECTIVE|drawLayeredIndoorActors|drawPaintedTeaActors|TEA_ART|drawIndoorOccluder'; then
                     tests="$tests dialog settlement"
                   else
-                    tests="$tests battle-layout settlement movement dialog residents guide-menu field-access"
+                    tests="$tests battle-layout settlement movement dialog residents guide-menu field-access interior-base"
                   fi ;;
                 js/game-state.js) : ;;
                 docs/*|art-source/*) : ;;
@@ -58,15 +58,15 @@ jobs:
                 js/world.js|js/landscape.js|assets/terrain/*|assets/maps/*|js/autotile.js) tests="$tests movement field-access settlement";terrain=true ;;
                 js/data.js|js/equipment.js|js/save.js|assets/characters/*|assets/enemies/*) tests="$tests battle-layout dialog";equipment=true ;;
                 js/audio.js) tests="$tests dialog" ;;
-                qa/*.cjs) name="${file#qa/}";name="${name%.cjs}";case " battle-layout settlement movement dialog residents guide-menu field-access " in *" $name "*) tests="$tests $name";; esac ;;
-                .github/workflows/*) tests="$tests battle-layout settlement movement dialog residents guide-menu field-access";terrain=true;equipment=true ;;
+                qa/*.cjs) name="${file#qa/}";name="${name%.cjs}";case " battle-layout settlement movement dialog residents guide-menu field-access interior-base " in *" $name "*) tests="$tests $name";; esac ;;
+                .github/workflows/*) tests="$tests battle-layout settlement movement dialog residents guide-menu field-access interior-base";terrain=true;equipment=true ;;
                 assets/interiors/*) tests="$tests dialog" ;;
-                *) tests="$tests battle-layout settlement movement dialog residents guide-menu field-access";terrain=true;equipment=true ;;
+                *) tests="$tests battle-layout settlement movement dialog residents guide-menu field-access interior-base";terrain=true;equipment=true ;;
               esac
             done <<< "$files"
           fi
           selected=""
-          for test in battle-layout settlement movement dialog residents guide-menu field-access; do
+          for test in battle-layout settlement movement dialog residents guide-menu field-access interior-base; do
             case " $tests " in *" $test "*) selected="$selected $test";; esac
           done
           echo "tests=${selected# }" >> "$GITHUB_OUTPUT"
