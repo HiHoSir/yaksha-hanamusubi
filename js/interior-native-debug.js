@@ -22,6 +22,18 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  const plasterWall=new Image(),woodWainscot=new Image();
  let plasterReady=false,wainscotReady=false;
  const wallImage=document.createElement('canvas');wallImage.width=32;wallImage.height=96;
+ const wallEdges={left:document.createElement('canvas'),right:document.createElement('canvas')};
+ for(const edge of Object.values(wallEdges)){edge.width=32;edge.height=96}
+ function finishWallEdge(edge,side){
+  const ctx=edge.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,32,96);
+  ctx.drawImage(wallImage,0,0);
+  // Thin shared timber facing ties plaster/wainscot into the corner pillars.
+  const x=side==='left'?0:29;
+  ctx.fillStyle='#493021';ctx.fillRect(x,0,3,96);
+  ctx.fillStyle='#92623b';ctx.fillRect(x+(side==='left'?2:0),23,1,73);
+  // Respect the adopted fade rule: only the upper 23px of the trim darkens.
+  window.YK_INTERIOR_WALL_SHADE?.apply(ctx,x,0,3,23,{height:23,topAlpha:1,midAlpha:.52});
+ }
  function rebuildWall(){
   const c=wallImage.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,32,96);
   // Three vertical zones: top 0..22, plaster 23..78, wood panel 79..95.
@@ -36,6 +48,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   c.fillStyle='#65482f';c.fillRect(0,77,32,2);
   // Only topmost 23px fades upward to black: middle and wainscot remain unmasked.
   window.YK_INTERIOR_WALL_SHADE?.apply(c,0,0,32,23,{height:23,topAlpha:1,midAlpha:.52});
+  finishWallEdge(wallEdges.left,'left');finishWallEdge(wallEdges.right,'right');
  }
  plasterWall.onload=()=>{plasterReady=true;rebuildWall()};
  plasterWall.onerror=()=>{plasterReady=false;rebuildWall()};
@@ -128,7 +141,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   }
 
   // Provisional north wall: 3 vertical bands in the village depth queue.
-  for(let tx=1;tx<=8;tx++)objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(wallImage,l,t,W,H)}});
+  for(let tx=1;tx<=8;tx++){const tile=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(tile,l,t,W,H)}})}
 
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
   const map=Array.from({length:H},()=>Array(W).fill('road'));
