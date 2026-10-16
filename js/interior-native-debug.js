@@ -32,6 +32,8 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   c.fillStyle='#503b2c';c.fillRect(0,79,32,17);
   if(wainscotReady)c.drawImage(woodWainscot,0,0,32,17,0,79,32,17);
   c.fillStyle='#65482f';c.fillRect(0,77,32,2);
+  // Mask only the wall bitmap; characters, furniture and floor stay unchanged.
+  window.YK_INTERIOR_WALL_SHADE?.apply(c,0,0,32,96,{height:79,topAlpha:1,midAlpha:.52});
  }
  plasterWall.onload=()=>{plasterReady=true;rebuildWall()};
  plasterWall.onerror=()=>{plasterReady=false;rebuildWall()};
