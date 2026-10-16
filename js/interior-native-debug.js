@@ -161,18 +161,24 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
 
   }
 
-  // Provisional north wall: 3 vertical bands in the village depth queue.
-  if(fullBackWallReady){
-   // Project each 32px portion at its original wall tile anchor.
-   // Keep one artwork source but match the established tile-by-tile camera geometry.
-   for(let tx=1;tx<=8;tx++){
-    const sx=(tx-1)*S;
-    objects.push({kind:'wall-panel',x:ox+tx*S,foot:oy+S,width:S,height:122,draw:(q,l,t,W,H)=>{
-     q.imageSmoothingEnabled=false;q.drawImage(fullBackWall,sx,0,S,96,l,t,W,H);
+  // Rear wall is painted *behind* the two rear posts; depth sorting stays at
+  // the rear posts' shared contact plane. The visual panel's bottom edge is
+  // lowered independently to meet the visible base of the posts.
+  const rearPostFoot=oy+S;
+  const wallVisualDrop=18; // world pixels; independent of wall sprite height
+  function addBackWallTile(tx,source,sx){
+   objects.push({kind:'wall',x:ox+tx*S,foot:rearPostFoot,width:S,height:96,
+    draw:(q,l,t,W,H,p)=>{
+     q.imageSmoothingEnabled=false;
+     const drop=wallVisualDrop*p.scale;
+     if(source===fullBackWall)q.drawImage(source,sx,0,S,96,l,t+drop,W,H);
+     else q.drawImage(source,l,t+drop,W,H);
     }});
-   }
+  }
+  if(fullBackWallReady){
+   for(let tx=1;tx<=8;tx++)addBackWallTile(tx,fullBackWall,(tx-1)*S);
   }else{
-   for(let tx=1;tx<=8;tx++){const tile=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:122,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(tile,l,t,W,H)}})}
+   for(let tx=1;tx<=8;tx++)addBackWallTile(tx,tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage,0);
   }
 
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
