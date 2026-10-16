@@ -7,8 +7,8 @@ window.YK_AUDIO=(()=>{
  };
  // Web Audio BGM is the approved default; HTMLAudio is opt-in diagnostics only.
  const audioParams=new URLSearchParams(location.search);
- const audioSessionTest=audioParams.get("audioSessionTest")||(
-  audioParams.get("audioSilentTest")==="1"?"ambient":"auto");
+ // Ambient session on supported Safari respects the device silent switch.
+ const audioSessionTest=audioParams.get("audioSessionTest")||"ambient";
  const bufferTest=audioParams.get("audioRouteTest")!=="html";
  const silentTest=audioSessionTest!=="auto";
  let audioSessionResult="unchanged";
@@ -130,6 +130,17 @@ window.YK_AUDIO=(()=>{
   play();
   if(bufferTest&&currentArea&&enabledByGesture&&soundOn()&&!bufferSource)void playBuffer(currentArea);
  }
+ // Safari sometimes resumes page visibility before its audio context can run again.
+ // Preserve the decoded track and retry reconstruction only on a subsequent gesture.
+ function recoverFromGesture(){
+  if(document.hidden||backgroundPaused||!soundOn()||!enabledByGesture)return;
+  applySessionTest();
+  if(!bufferTest){play();return;}
+  if(!currentArea)return;
+  if(!bufferSource&&!bufferLoading)void playBuffer(currentArea);
+  if(ctx&&ctx.state!=="running")ctx.resume().catch(e=>{bufferError="gesture resume "+String(e?.name||e)});
+ }
+ ["pointerup","keydown"].forEach(ev=>document.addEventListener(ev,recoverFromGesture,{passive:true}));
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
