@@ -25,7 +25,7 @@ class MockContext{
  createBiquadFilter(){return {frequency:{value:0},connect(){return this}}}
 }
 const document={hidden:false,addEventListener:(n,f)=>(docListeners[n]??=[]).push(f),createElement:()=>({style:{},append(){},onclick:null}),body:{append(){}}};
-const sandbox={document,location:{search:'?audioRouteTest=buffer'},navigator:{},Audio:MockAudio,AudioContext:MockContext,URLSearchParams,
+const sandbox={document,location:{search:'?audioRouteTest=buffer'},navigator:{audioSession:{type:"auto"}},Audio:MockAudio,AudioContext:MockContext,URLSearchParams,
  fetch:async url=>{fetched.push(url);return {ok:true,arrayBuffer:async()=>new ArrayBuffer(8)}},
  performance:{now:()=>1000},console,clearTimeout(){},setTimeout(){return 1},
  addEventListener:(n,f)=>(listeners[n]??=[]).push(f),gameState:{sound:true}};
@@ -34,6 +34,7 @@ const audio=sandbox.YK_AUDIO;
 const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve()};
 (async()=>{
  audio.unlock();audio.syncBgm('field');await tick();
+ assert.equal(sandbox.navigator.audioSession.type,"ambient","default respects iOS silent mode");
  assert.equal(audio.diagnostics().bufferKey,'field','field BGM starts');
  assert.equal(audio.diagnostics().contextState,'running');
  assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'only one active BGM');
@@ -58,6 +59,8 @@ const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve()};
  assert.equal(audio.diagnostics().bufferKey,'village','foreground restores BGM');
  assert.ok(sources.at(-1).offset>0,'foreground resumes from previous position');
  assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'no duplicate BGM after resume');
+ for(const fn of docListeners.pointerup||[])fn();await tick();
+ assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'foreground gesture does not duplicate playback');
  assert.ok(fetched.some(x=>x.includes('field-v10.mp3'))&&fetched.some(x=>x.includes('hoozuki-v13.mp3')));
  console.log('Audio field/village switching, SE, mute, and background resume contracts OK');
 })().catch(e=>{console.error(e);process.exitCode=1});
