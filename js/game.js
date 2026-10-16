@@ -993,6 +993,17 @@ function encounterDissolve(){
  const grain=document.createElement("div");
  Object.assign(grain.style,{position:"absolute",inset:"0",background:"repeating-linear-gradient(0deg,transparent 0px,rgba(238,215,194,.12) 2px,transparent 4px,rgba(8,8,30,.2) 7px)",mixBlendMode:"screen",opacity:".35"});
  cover.appendChild(grain);
+ // Large sequential brush lettering, kept above the outgoing screenshot.
+ const words=document.createElement("div");
+ Object.assign(words.style,{position:"absolute",inset:"0",display:"flex",alignItems:"center",justifyContent:"center",gap:"min(4vw,24px)",zIndex:"2",pointerEvents:"none"});
+ for(const [i,char] of ["接","敵"].entries()){
+  const glyph=document.createElement("span");glyph.textContent=char;
+  Object.assign(glyph.style,{display:"inline-block",fontFamily:'"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif',fontSize:"clamp(84px,18vmin,175px)",fontWeight:"900",lineHeight:"1",color:"#fff3d9",WebkitTextStroke:"1px #34202d",textShadow:"3px 4px 0 #3a1429,0 0 18px #dd6d6d,0 10px 25px #000",opacity:"0",transform:"scale(1.85) rotate("+(i?-7:5)+"deg)",transition:"opacity 130ms ease-out,transform 240ms cubic-bezier(.12,.8,.2,1)"});
+  words.appendChild(glyph);
+  battleLater(()=>{glyph.style.opacity="1";glyph.style.transform="scale(1) rotate("+(i?-7:5)+"deg)"},i*190+50);
+  battleLater(()=>{glyph.style.transition="opacity 230ms ease-in,transform 250ms ease-in";glyph.style.opacity="0";glyph.style.transform="scale(.96) translateY(-10px)"},690+i*70);
+ }
+ cover.appendChild(words);
  document.body.appendChild(cover);
  const panel=$("battle");panel.style.transition="none";panel.style.opacity="1";panel.classList.add("show");renderBattle();
  // Two animation frames ensure Safari paints the outgoing scene before the fade.
