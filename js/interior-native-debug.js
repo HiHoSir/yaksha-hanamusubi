@@ -41,7 +41,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  let fullBackWallReady=false;
  fullBackWall.onload=()=>{fullBackWallReady=fullBackWall.naturalWidth===256&&fullBackWall.naturalHeight===96};
  fullBackWall.onerror=()=>{fullBackWallReady=false};
- fullBackWall.src='assets/interiors/prototypes/teahouse-back-wall-panel-256x96-candidate.png?v=15.57.128';
+ fullBackWall.src='assets/interiors/prototypes/teahouse-back-wall-clean-256x96-v2.png?v=15.57.133';
  const wallImage=document.createElement('canvas');wallImage.width=32;wallImage.height=96;
  const wallEdges={left:document.createElement('canvas'),right:document.createElement('canvas')};
  for(const edge of Object.values(wallEdges)){edge.width=32;edge.height=96}
