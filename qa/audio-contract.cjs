@@ -15,9 +15,11 @@ class MockSource{
  connect(){return this} disconnect(){} start(t,offset=0){this.started=true;this.offset=offset} stop(){this.stopped=true}
 }
 class MockContext{
- constructor(){this.state='running';this.currentTime=0;this.destination={};ctx=this}
- resume(){this.state='running';return Promise.resolve()}
- suspend(){this.state='suspended';return Promise.resolve()}
+ constructor(){this.state='running';this.currentTime=0;this.destination={};this.holdResume=false;this.events={};ctx=this}
+ addEventListener(name,fn){this.events[name]=fn}
+ signalRunning(){this.state='running';this.events.statechange?.()}
+ resume(){if(this.holdResume)return new Promise(()=>{});this.signalRunning();return Promise.resolve()}
+ suspend(){this.state='suspended';this.events.statechange?.();return Promise.resolve()}
  decodeAudioData(){return Promise.resolve({duration:43.2})}
  createBufferSource(){return new MockSource()}
  createGain(){return {gain:{value:0,setValueAtTime(){},linearRampToValueAtTime(){},setTargetAtTime(){}},connect(){return this}}}
@@ -59,6 +61,15 @@ const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve()};
  assert.equal(audio.diagnostics().bufferKey,'village','foreground restores BGM');
  assert.ok(sources.at(-1).offset>0,'foreground resumes from previous position');
  assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'no duplicate BGM after resume');
+ // iOS may report the page foregrounded while AudioContext.resume remains pending.
+ ctx.currentTime+=3;document.hidden=true;for(const fn of docListeners.visibilitychange||[])fn();await tick();
+ ctx.holdResume=true;
+ document.hidden=false;for(const fn of docListeners.visibilitychange||[])fn();await tick();
+ assert.equal(sources.filter(x=>x.started&&!x.stopped).length,0,'do not mark silent context source as active');
+ assert.equal(audio.diagnostics().restorePending,true,'resume remains pending');
+ ctx.holdResume=false;ctx.signalRunning();await tick();
+ assert.equal(audio.diagnostics().bufferKey,'village','statechange restores current music');
+ assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'delayed Safari resume has exactly one source');
  for(const fn of docListeners.pointerup||[])fn();await tick();
  assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'foreground gesture does not duplicate playback');
  assert.ok(fetched.some(x=>x.includes('field-v10.mp3'))&&fetched.some(x=>x.includes('hoozuki-v13.mp3')));
