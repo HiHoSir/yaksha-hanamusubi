@@ -167,12 +167,12 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
    // Keep one artwork source but match the established tile-by-tile camera geometry.
    for(let tx=1;tx<=8;tx++){
     const sx=(tx-1)*S;
-    objects.push({kind:'wall-panel',x:ox+tx*S,foot:oy+S,width:S,height:96,draw:(q,l,t,W,H)=>{
+    objects.push({kind:'wall-panel',x:ox+tx*S,foot:oy+S,width:S,height:122,draw:(q,l,t,W,H)=>{
      q.imageSmoothingEnabled=false;q.drawImage(fullBackWall,sx,0,S,96,l,t,W,H);
     }});
    }
   }else{
-   for(let tx=1;tx<=8;tx++){const tile=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(tile,l,t,W,H)}})}
+   for(let tx=1;tx<=8;tx++){const tile=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:122,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(tile,l,t,W,H)}})}
   }
 
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
