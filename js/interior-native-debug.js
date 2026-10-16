@@ -8,6 +8,22 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  sprites.cushion=new Image();sprites.cushion.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAYFBMVEUAAABzh0o4RyVmekJVaTdgcz6Hl1VIWS8oNhoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAArDpsqAAAAIHRSTlMA//////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAORL9MUAAADKSURBVHja3ZILDoMwDEPJn/ufeHY7JBK2A2xGULV5OGna4/gdSdZYMdP7NCXCojw8wjlQd0AtU0QiIeErrs1BdwQMwwRMzzvgO3gJk+oOJZkNsJnC6ArJGvCpFj9q5zDHXgxIDAMUsVNgi86w10fAmLkAgHgAO7mXKUuJLwCdFc385hDm+BdVSswaKpIZIsRkswPQ9y7BkAIw+uCrk4hRvk62W7BPxmedsz8BRepYBuhRoVuzU6IUQnrp1GiAadep0i6hjqK5cvyRXuK3BRk4FpAUAAAAAElFTkSuQmCC';
  for(const kind of ['cushion','stone'])sprites[kind].addEventListener('load',()=>{groundsDirty=true});
  sprites.pillar=new Image();sprites.pillar.src='assets/interiors/prototypes/pillar-32x160.png?v=3684894b';
+ // QA prototype: assemble a single front-facing 32x160 sprite from 32px tiles.
+ // Keep the prior approved visual as an image-load fallback. No new footprints.
+ const pillarTiles={};
+ for(const role of ['top','middle','base']){
+  const im=pillarTiles[role]=new Image();
+  im.onload=()=>{
+   if(!['top','middle','base'].every(k=>pillarTiles[k]?.complete&&pillarTiles[k].naturalWidth===32&&pillarTiles[k].naturalHeight===32))return;
+   const canvas=document.createElement('canvas');canvas.width=32;canvas.height=160;
+   const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+   ctx.drawImage(pillarTiles.top,0,0);
+   for(let i=1;i<=3;i++)ctx.drawImage(pillarTiles.middle,0,i*32);
+   ctx.drawImage(pillarTiles.base,0,128);
+   sprites.pillar=canvas;
+  };
+  im.src='assets/interiors/prototypes/pillar-repeat-v2-'+role+'-32.png?v=15.57.127';
+ }
 
  // The same ground projection and depth queue as settlement.draw() uses.
  const road=new Image();let roadReady=false;
