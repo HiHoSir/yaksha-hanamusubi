@@ -63,15 +63,16 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   // Provisional north wall: 3 vertical bands in the village depth queue.
   for(let tx=1;tx<=8;tx++)objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(wallImage,l,t,W,H)}});
 
-  for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,160);
+  for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
   const map=Array.from({length:H},()=>Array(W).fill('road'));
   g.fillStyle='#171416';g.fillRect(0,0,768,768);
-  g.save();g.translate(0,32);g.scale(1.2,1.2);
+  // Indoor framing: fill more of the available stage while retaining the village projection.
+  g.save();g.translate(-96,-95);g.scale(1.5,1.5);
   YK_LANDSCAPE.drawQuarter(g,map,{x:actorFoot.x,foot:actorFoot.y,draw:(x,y,z)=>heroDraw({x,y,z})},1.4,{
-   preset:3,ground:floor(),groundOrigin:{x:ox,y:oy},objects,edgeColor:'#514336'
+   preset:3,ground:floor(),groundOrigin:{x:ox,y:oy},objects,edgeColor:'#211a17',interiorBackdrop:'#211a17'
   });
   g.restore();
-  g.save();g.fillStyle='#ffffff';g.font='16px sans-serif';g.fillText('茶店・村内と共通の遠近投影／10×8',18,66);g.restore();
+  g.save();g.fillStyle='#ffffff';g.font='16px sans-serif';g.fillText('茶店・室内画角テスト／10×8',18,66);g.restore();
  }
  return {blocked,render,spawn:()=>[ox+4.5*S,oy+6.5*S],pillars};
 })();
