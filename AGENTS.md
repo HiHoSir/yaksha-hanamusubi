@@ -13,6 +13,7 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Yaksha-hime battle poses and outfits | [yaksha-battle-sprites](.agents/skills/yaksha-battle-sprites/SKILL.md) |
 | Interior object layers, occlusion and floor footprints | [interior-occlusion-layers](skills/interior-occlusion-layers/SKILL.md) |
 | Field/mapchip artwork and terrain | [field-mapchip-art](.agents/skills/field-mapchip-art/SKILL.md) |
+| New tile, floor decoration, furniture or architecture generation preflight | [asset-design](.agents/skills/asset-design/SKILL.md) |
 | Isolated private internal validation site | [sites-private-debug](.agents/skills/sites-private-debug/SKILL.md) |
 | Proven image-to-GitHub binary transfer, atlas and main commit | [github-image-atlas](skills/github-image-atlas/SKILL.md) |
 | Paired intact/worn enemy preprocessing and atlas build | [enemy-atlas-pipeline](skills/enemy-atlas-pipeline/SKILL.md) |
@@ -147,3 +148,9 @@ A footprint (world cells), a sprite's rendered pixel rectangle, its visual silho
 - Claiming a file is integrated, the GitHub commit is deployed, or Safari passed without actually verifying those steps.
 
 **If a request conflicts with an existing rule:** explicitly flag the exact conflict, propose a compatible modification, and request confirmation only where the user's intent cannot be resolved from project history. A user may override a default deliberately; do not override silently.
+
+
+## Asset-design skill entry (mandatory)
+- For any user-requested tile/object illustration, follow `.agents/skills/asset-design/SKILL.md` **before invoking image generation**. Use its category templates and preflight reuse decision. Never bypass its pre-generation contract just because the user says 'make it'.
+- This repository skill is not guaranteed to auto-load in ordinary ChatGPT chats: explicitly read it each time. On compatible coding clients invoke `$asset-design`; in ChatGPT users may explicitly ask 'asset-design スキルに従って'.
+- The validator is a structural support tool, not a replacement for the generation-time contract or gameplay QA. Use it for file metadata after deterministic processing.
