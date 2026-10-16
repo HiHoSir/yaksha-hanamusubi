@@ -18,15 +18,28 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  woodFloor.onload=()=>{woodReady=true;groundsDirty=true};
  woodFloor.onerror=()=>{woodReady=false};
  woodFloor.src='assets/interiors/prototypes/teahouse-wood-floor-4x4-preview.png?v=83f83db';
+ // Layered wall evaluation using preexisting 32px candidate textures.
+ const plasterWall=new Image(),woodWainscot=new Image();
+ let plasterReady=false,wainscotReady=false;
  const wallImage=document.createElement('canvas');wallImage.width=32;wallImage.height=96;
- {const c=wallImage.getContext('2d');
-  c.fillStyle='#69513b';c.fillRect(0,0,32,96);
+ function rebuildWall(){
+  const c=wallImage.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,32,96);
+  // Provisional ceiling beam retained until an approved beam asset exists.
   c.fillStyle='#24201d';c.fillRect(0,0,32,23);
   c.fillStyle='#866547';c.fillRect(0,23,32,56);
+  if(plasterReady)c.drawImage(plasterWall,0,23,32,56);
+  // Waist-high wood panelling: the same reusable 32px source, stretched vertically.
   c.fillStyle='#503b2c';c.fillRect(0,79,32,17);
-  c.strokeStyle='#ab8157';c.beginPath();c.moveTo(4,23);c.lineTo(4,96);c.stroke();
-  c.strokeStyle='#392b23';c.beginPath();c.moveTo(30,23);c.lineTo(30,96);c.stroke();
+  if(wainscotReady)c.drawImage(woodWainscot,0,0,32,17,0,79,32,17);
+  c.fillStyle='#65482f';c.fillRect(0,77,32,2);
  }
+ plasterWall.onload=()=>{plasterReady=true;rebuildWall()};
+ plasterWall.onerror=()=>{plasterReady=false;rebuildWall()};
+ woodWainscot.onload=()=>{wainscotReady=true;rebuildWall()};
+ woodWainscot.onerror=()=>{wainscotReady=false;rebuildWall()};
+ plasterWall.src='assets/interiors/prototypes/plaster-wall-32-candidate.png?v=15.57.123';
+ woodWainscot.src='assets/interiors/prototypes/wood-wainscot-32-candidate.png?v=15.57.123';
+ rebuildWall();
  // Raised wood floor is visual only; collision remains unchanged.
  const stepY=oy+6*S,stepHeight=7;
  function elevation(x,y){
