@@ -166,14 +166,29 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   // The entire composition (plaster, paneling, lamps and hanging scroll) is
   // a surface texture, not a separate depth-sorted background or decal.
   const rearWallFoot=oy+S;
+  // Tuck the wall 6 logical pixels behind each rear pillar. This only
+  // extends the visual surface: contact cells and collision remain unchanged.
+  // Draw edge strips at native pixel density rather than stretching 32px art.
+  const pillarWallOverlap=6;
   for(let tx=1;tx<=8;tx++){
    const sx=(tx-1)*S;
-   const substrate=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;
-   objects.push({kind:'wall',x:ox+tx*S,foot:rearWallFoot-0.01,width:S,height:96,
+   const isLeft=tx===1,isRight=tx===8;
+   const substrate=isLeft?wallEdges.left:isRight?wallEdges.right:wallImage;
+   const leftInset=isLeft?pillarWallOverlap:0;
+   const rightInset=isRight?pillarWallOverlap:0;
+   const worldWidth=S+leftInset+rightInset;
+   objects.push({kind:'wall',x:ox+tx*S-leftInset,foot:rearWallFoot-0.01,width:worldWidth,height:96,
     draw:(q,l,t,W,H)=>{
      q.imageSmoothingEnabled=false;
-     q.drawImage(substrate,l,t,W,H);
-     if(fullBackWallReady)q.drawImage(fullBackWall,sx,0,S,96,l,t,W,H);
+     const unit=W/worldWidth;
+     const paint=(img,srcX)=>{
+      // Main 32px panel stays aligned to the tile grid.
+      if(leftInset)q.drawImage(img,srcX,0,leftInset,96,l,t,leftInset*unit,H);
+      q.drawImage(img,srcX,0,S,96,l+leftInset*unit,t,S*unit,H);
+      if(rightInset)q.drawImage(img,srcX+S-rightInset,0,rightInset,96,l+(leftInset+S)*unit,t,rightInset*unit,H);
+     };
+     paint(substrate,0);
+     if(fullBackWallReady)paint(fullBackWall,sx);
     }});
   }
 
