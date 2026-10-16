@@ -193,7 +193,7 @@ window.YK_AUDIO=(()=>{
  }
  function dialogEnd(){clearTimeout(duckTimer);duckUntil=0;attenuate()}
  // Enable an explicit on-screen audio test only when ?audioDebug=1 is supplied.
- if(new URLSearchParams(location.search).get("audioDebug")==="1"||silentTest){
+ if(audioParams.get("audioDebug")==="1"||audioParams.has("audioSessionTest")||audioParams.get("audioSilentTest")==="1"){
   const panel=document.createElement("div");
   panel.style.cssText="position:fixed;top:calc(env(safe-area-inset-top) + 8px);right:8px;z-index:99999;background:#141e23ee;color:white;border:1px solid #fff;padding:6px;font:12px monospace;max-width:min(85vw,420px);max-height:75dvh;overflow:auto;border-radius:8px";
   const togglePanel=document.createElement("button");togglePanel.textContent="音声診断を開く";
