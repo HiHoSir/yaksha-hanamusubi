@@ -5,11 +5,11 @@ window.YK_AUDIO=(()=>{
   field:{url:"audio/field-v10.mp3?v=15.57.105",loopStart:7.7419354839},
   village:{url:"audio/hoozuki-v13.mp3?v=15.57.105",loopStart:4.8}
  };
- // Web Audio BGM is the default; ?audioRouteTest=html keeps the legacy fallback.
+ // Web Audio BGM is the approved default; HTMLAudio is opt-in diagnostics only.
  const audioParams=new URLSearchParams(location.search);
  const audioSessionTest=audioParams.get("audioSessionTest")||(
   audioParams.get("audioSilentTest")==="1"?"ambient":"auto");
- const bufferTest=audioParams.get("audioRouteTest")==="web";
+ const bufferTest=audioParams.get("audioRouteTest")!=="html";
  const silentTest=audioSessionTest!=="auto";
  let audioSessionResult="unchanged";
  function applySessionTest(){
