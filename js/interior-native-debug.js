@@ -84,7 +84,17 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   const objects=[];
   function add(kind,x,y,w,h,renderHeight=h){
    const image=sprites[kind];if(!image?.complete||!image.naturalWidth)return;
-   objects.push({kind,x:x+ox,foot:y+oy+h,width:w,height:renderHeight,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(image,l,t,W,H)}});
+   objects.push({kind,x:x+ox,foot:y+oy+h,width:w,height:renderHeight,draw:(q,l,t,W,H,p)=>{
+    q.imageSmoothingEnabled=false;
+    if(kind==='table'){
+     // Contact shadow belongs to the table's projected floor anchor; collision is unchanged.
+     const base=t+H,shift=3*p.scale;
+     q.save();q.fillStyle='rgba(38,24,16,.23)';
+     q.beginPath();q.ellipse(l+W*.5,base+shift*.35,W*.39,Math.max(1,3*p.scale),0,0,Math.PI*2);q.fill();
+     q.restore();
+     q.drawImage(image,l,t+shift,W,H);
+    }else q.drawImage(image,l,t,W,H);
+   }});
   }
   for(const [x,y] of placements){
    add('table',x*32,y*32,64,32,40);
