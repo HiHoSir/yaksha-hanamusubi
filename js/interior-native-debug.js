@@ -24,16 +24,18 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  const wallImage=document.createElement('canvas');wallImage.width=32;wallImage.height=96;
  function rebuildWall(){
   const c=wallImage.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,32,96);
-  // Provisional ceiling beam retained until an approved beam asset exists.
-  c.fillStyle='#24201d';c.fillRect(0,0,32,23);
-  c.fillStyle='#866547';c.fillRect(0,23,32,56);
-  if(plasterReady)c.drawImage(plasterWall,0,23,32,56);
-  // Waist-high wood panelling: the same reusable 32px source, stretched vertically.
+  // Three vertical zones: top 0..22, plaster 23..78, wood panel 79..95.
+  // Apply the shared 32px plaster texture to the top zone as well.
+  c.fillStyle='#866547';c.fillRect(0,0,32,79);
+  if(plasterReady){
+   c.drawImage(plasterWall,0,0,32,23,0,0,32,23);
+   c.drawImage(plasterWall,0,23,32,56);
+  }
   c.fillStyle='#503b2c';c.fillRect(0,79,32,17);
   if(wainscotReady)c.drawImage(woodWainscot,0,0,32,17,0,79,32,17);
   c.fillStyle='#65482f';c.fillRect(0,77,32,2);
-  // Mask only the wall bitmap; characters, furniture and floor stay unchanged.
-  window.YK_INTERIOR_WALL_SHADE?.apply(c,0,0,32,96,{height:79,topAlpha:1,midAlpha:.52});
+  // Only topmost 23px fades upward to black: middle and wainscot remain unmasked.
+  window.YK_INTERIOR_WALL_SHADE?.apply(c,0,0,32,23,{height:23,topAlpha:1,midAlpha:.52});
  }
  plasterWall.onload=()=>{plasterReady=true;rebuildWall()};
  plasterWall.onerror=()=>{plasterReady=false;rebuildWall()};
