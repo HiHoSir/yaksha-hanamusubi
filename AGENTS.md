@@ -50,3 +50,100 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 - Floor/base architecture and separate foreground assets must be real illustrated art, with fixed original-canvas coordinates (or explicit exact crop offsets); maintain independent visual silhouettes, world-space depth anchors, and floor-contact footprints. Primitive polygons/rectangles are valid for non-visible collision and QA overlays only.
 - Do not enable a redesigned interior in production until side-by-side character-scale and original-art comparison, clean re-composition, movement/collision/occlusion regression checks pass. Keep the approved original as runtime fallback until that point.
 - Do not reuse earlier `tea-*.webp` / `tea-*.json` experimental scene data as if it matched `base-v1/teahouse.webp`; verify the artwork and coordinate alignment first.
+
+
+## Mandatory tile and object asset production contract (read BEFORE generating)
+
+These rules apply whenever the user requests a game **tile, floor decoration, furniture/object, wall, pillar, or asset revision**. They are binding whether the request uses Japanese terms such as 「タイル」「床板」「座布団」「踏み石」「オブジェクト」「柱」or an English equivalent. A generic image-generation request must not bypass the asset contract. Read this section and applicable skill files at the **beginning of every such task**, even across chat sessions. Never claim compliance without checking the actual output.
+
+### 1. Classify before creating
+
+Classify each deliverable into one category, then state the target footprint, image dimensions, viewpoint, transparency, connections, collision and occlusion rules before creating:
+
+- **Terrain/floor tile**: continuous and repeatable walkable ground, such as road, wood plank flooring or tatami.
+- **Walkable floor decoration**: an individual low item baked into the floor texture, such as a zabuton cushion, stepping stone or floor mat.
+- **Independent object**: furniture/equipment such as a low table, shelf or counter, with an independent sprite, footprint and depth ordering.
+- **Architecture**: pillars, walls, wall corners and doors, potentially assembled from base/middle/upper-dark image layers.
+
+A footprint (world cells), a sprite's rendered pixel rectangle, its visual silhouette, its world-space foot/depth anchor, and its collision polygon are **different concepts**. Never infer collision from the PNG bounding box.
+
+### 2. Mandatory common constraints
+
+1. **1 map tile = 32×32 world pixels**. Enforce user-approved footprints such as 1×1 or 2×1 cells; a 2×1 footprint spans **64×32 world pixels**. Actual sprite height may exceed footprint for tall furniture and architecture.
+2. Preserve approved character proportions and visual scale; test alongside the actual game protagonist (interior reference: approximately 58px tall, subject to game projection), not a newly invented character.
+3. Match this project's current **actual** village/interior camera and art canon. For horizontal floors use top-down map-space art, not isometric perspective. Furniture/architecture must match the game's established apparent viewing angle; do not introduce unapproved oblique/isometric views.
+4. Reuse the latest **approved** existing art and repository assets first. Do not repeatedly generate images merely to crop, resize, remove backgrounds, rotate or divide layers where deterministic editing would suffice.
+5. Give game assets true RGBA transparency where needed; alpha must be real, **not a checkerboard or white/black painted background**. Trim unused margins, retaining exact anchor/crop-offset metadata, and preserve aspect ratio unless the approved tile specification deliberately uses another form.
+6. Do not present a large unconstrained illustration/texture/specification poster as an approved gameplay asset. Concept images and debug diagrams must be labeled as such.
+7. No plain filled-color rectangles, crude flat placeholder sprites or arbitrary primitive shapes as final visual game art. They may be used in **explicitly labeled debug/layout prototypes**, never reported as complete assets.
+8. Treat image generation as a **source-art stage**, not evidence that a finished file matches exact dimensions, tiling or alpha constraints. Programmatically process and inspect it before declaring completion. Never assume a generator obeyed exact pixel dimensions.
+9. Record which checks actually passed, what remains untested, and whether GitHub commit/Pages deployment/Safari QA really occurred. No made-up verification.
+
+### 3. Terrain and repeating floor tiles (strict)
+
+- Deliverable baseline: **individual 32×32px tiles**, or an explicit **128×128px sheet with 4×4 cells of 32×32px**, per the existing field-mapchip specification. When an alternative sheet is justified, declare tile grid/cell size and preserve exact cell boundaries. Do not substitute an arbitrary 1024px texture.
+- Ground graphics are top-down, orthogonal, grid-aligned **late-SFC-style pixel art**, without unintended antialiasing or perspective distortion. Preserve the user's existing art canon.
+- **Seamless, genuinely repeatable connections** are required for base flooring. Test top-bottom and left-right edge pixel continuity, including a 3×3 repetition preview. Plank lines, grain and knots must align without conspicuous boundaries or obviously identical repeating artifacts.
+- For multi-piece autotiles, list roles explicitly (center, edge, corners, junctions/T/crossings as applicable), and test all permitted neighbor combinations. No feature may inadvertently cross a 32px cell boundary unless a documented multi-cell assembly defines it.
+- Never generate arbitrary seams or plank offsets that do not connect at a cell edge. The repeated-floor behavior is more important than the beauty of a standalone large image.
+- Do not add canvas padding, grid lines, labels or tile separators inside the exported production PNG.
+- **Before approval**: inspect pixel dimensions, actual cell count, tile boundary continuity and repeated view at the intended game's native scale. If the source image cannot pass, correct deterministically or identify it as a **reference/rejected candidate**, not a finished tile.
+- For a new floor, first check whether an existing repository tile (e.g. the village road) already meets the request. Reuse it rather than regenerate.
+
+### 4. Walkable floor decoration
+
+- Examples: green zabuton, horizontal low stepping stone, floor mat. The decoration is **walkable by default only if explicitly intended as such**; any elevation/transition rules are separate movement metadata.
+- Use approved dimensions (e.g. cushion **1×1=32×32px**; low stepping stone **2×1=64×32px**). A high-resolution source may be larger but final ground tile composition must obey its target world footprint.
+- Create a top-down/near-top-down sprite with **true alpha**, trim transparent padding, preserve proportions and place it within the specified footprint. A very low-profile stone should not become a raised furniture sprite.
+- Prefer precompositing walkable decoration into the **floor/ground layer** before passing the surface to the existing village projection; do not sort it with actors or add fake collision/occlusion.
+- The original transparent sprite should remain independently stored for reuse and editing; the baked ground is a runtime representation, not loss of source data.
+- Use the same world-space placement system for decoration and ground; explicitly test walk-through and foot alignment.
+
+### 5. Independent furniture and equipment objects
+
+- Produce a transparent, trimmed sprite, with world footprint and rendered extent independently specified. A 2×1 table is **2 occupied ground cells**, even when its top silhouette overhangs the footprint.
+- Explicitly define passability/collision from **floor contact**; approved teahouse table: **2×1 cells are blocked**. Other furniture may have a smaller contact footprint.
+- Draw independent furniture and the actual protagonist/NPCs through the same **rendered-foot depth sort**, using the interpolated actor foot during movement. Do not change physical scale arbitrarily with screen position separately from the shared projection.
+- Ensure the selected visual angle is consistent with the game camera; inspect front/back/side occlusion and contact shadows. Keep silhouettes, ground shadows and hitboxes separated.
+- Never equate trimmed PNG edges with the collision shape; do not use a bounding rectangle image as a permanent replacement for finished art.
+
+### 6. Wall/pillar architecture
+
+- Prefer **3 compatible layers**: (1) ground-contact base, (2) continuously connected middle, (3) upper section fading/connecting into dark roof/ceiling. The dark top is **not a visibly exposed freestanding post top**.
+- Ground contact determines collision. Middle/upper visual images do not gain collision merely because they are tall.
+- The **visual joins** must share one image-space/world-space basis and maintain grain, contour, lighting, scale and offsets without cracks or double edges. A three-column explanation poster is NOT three separately usable RGBA assets.
+- Pillar base: 1×1 tile as an initial footprint limit; confirm actual contact shape against movement tests. Scale total visual height against the real protagonist, rather than assuming a universal 160px or 256px.
+- Wall pieces must connect horizontally, including straight middle units, left/right ends, inside/outside corners and door jambs. Verify each allowed connection at projected scale.
+- Use depth/visibility consciously: **do not force upper dark portions to the foreground** if doing so hides characters excessively. Corner walls and intersecting structures may need independent depth sections.
+- Teahouse path from dirt floor to raised timber uses the **approved stepping stone**. The rejected separate 「上がり框」 asset is NOT to be created.
+- Follow `docs/interior-pillar-asset-standard.md`, `docs/interior-architecture-asset-standard.md` and `skills/interior-occlusion-layers/SKILL.md` for full geometry and QA requirements.
+
+### 7. Mandatory preflight / acceptance checklist
+
+**Before any generation or editing**
+1. Read `AGENTS.md` and the appropriate art/occlusion/delivery SKILL.md, inspect currently approved reference sprites and renderer.
+2. Identify category, target 32px-based tile dimensions and footprint, viewpoint, actual alpha requirements and whether the image must tile or connect.
+3. Decide whether source regeneration is necessary; reuse/transform approved art when possible.
+4. Write down passability, contact footprint, depth anchor and occlusion treatment where relevant.
+
+**After generating, before presenting as completed**
+1. Verify actual PNG/atlas dimensions and RGBA alpha; detect painted fake transparency, excess blank margins and clipped contour.
+2. For tiles, verify grid, cell alignment, top/bottom/left/right edge joins and **a repeated multi-tile preview**. For connected architecture, verify part recomposition.
+3. Place in an actual 32px-grid prototype beside the production protagonist, using current game camera, and check scale, contact and projected placement.
+4. For independent objects/architecture, check contact-only collision and full-footstep blocking, front/behind occlusion, and actor visibility. For walkable floor objects, verify walking through without sorting them as tall sprites.
+5. Report individually whether the **source image**, **game-ready PNG**, **repetition/composite check**, **GitHub asset commit**, **Pages deploy**, **browser QA** and **iPhone Safari device QA** have each been done.
+6. If any gate is unverified, label the output **candidate / concept / prototype**, never completed or approved. If a required gate fails, fix it or explicitly stop—do not silently present a failed asset as final.
+
+### 8. Explicit prohibited shortcuts
+
+- Responding to a request for a **32×32 tile** with a large unsegmented repeating texture.
+- Generating a nonseamless floor image and calling it tile-ready without repetition tests.
+- Painting a solid background/checkerboard into an asset that requires genuine alpha.
+- Delivering artwork from a camera angle inconsistent with the approved room.
+- Ignoring the user's approved 1×1 / 2×1 world footprint.
+- Calling crude colored placement rectangles complete artwork.
+- Generating multiple speculative replacements where cropping/compositing the approved original would be sufficient.
+- Calling a concept sheet or rough layer sample **finished three-layer sprites** without separate source files and verified joins.
+- Claiming a file is integrated, the GitHub commit is deployed, or Safari passed without actually verifying those steps.
+
+**If a request conflicts with an existing rule:** explicitly flag the exact conflict, propose a compatible modification, and request confirmation only where the user's intent cannot be resolved from project history. A user may override a default deliberately; do not override silently.
