@@ -306,7 +306,7 @@ window.YK_LANDSCAPE=(()=>{
  function drawQuarter(c,map,actor,zoom=1.4,settings={}){
   if(!ready())return false;
   const camera={x:actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
-  c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;c.drawImage(art.horizon,0,0,640,top+80);
+  c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;if(settings.interiorBackdrop){c.fillStyle=settings.interiorBackdrop;c.fillRect(0,0,640,544);}else c.drawImage(art.horizon,0,0,640,top+80);
   const corners=[];for(let y=top;y<=544;y+=strip)for(const x of [0,640])corners.push(unproject(x,y,camera,zoom));
   const left=Math.max(gx,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(gx+ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
   const upper=Math.max(gy,Math.floor(Math.min(...corners.map(p=>p.y)))-4),lower=Math.min(gy+ground.height,Math.ceil(Math.max(...corners.map(p=>p.y)))+4);
@@ -336,7 +336,7 @@ window.YK_LANDSCAPE=(()=>{
    if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
   }
   if(!drawn)actor.draw(player.x,player.y,player.scale);
-  const haze=c.createLinearGradient(0,top-56,0,top+144);haze.addColorStop(0,'rgba(202,225,214,0)');haze.addColorStop(.38,'rgba(202,225,214,.34)');haze.addColorStop(1,'rgba(202,225,214,0)');c.fillStyle=haze;c.fillRect(0,top-56,640,200);
+  if(!settings.interiorBackdrop){const haze=c.createLinearGradient(0,top-56,0,top+144);haze.addColorStop(0,'rgba(202,225,214,0)');haze.addColorStop(.38,'rgba(202,225,214,.34)');haze.addColorStop(1,'rgba(202,225,214,0)');c.fillStyle=haze;c.fillRect(0,top-56,640,200);}
   c.restore();return true;
  }
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
