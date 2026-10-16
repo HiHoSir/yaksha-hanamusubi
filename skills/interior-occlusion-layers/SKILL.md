@@ -65,3 +65,16 @@ Repository: HiHoSir/yaksha-hanamusubi. Paths are repository-relative.
 - Scope and source notes: docs/interior-layers-v1.md
 
 The 1536x1024 source maps to room coordinates with x'=x/2, y'=128+y/2. The central counter has footprint [249,340,520,370] and depth anchor 370. These are room-specific measured values, not defaults for other furniture. The initial pilot separates only this counter; other objects/rooms are not yet layered.
+
+
+## Adopted upper-wall fade convention (2026-10-16, β15.57.125)
+
+The user accepted the actual iPhone Safari appearance as an **interim default for the uppermost wall tier**, not as final sign-off of every interior.
+
+- Build the uppermost band from the **same plaster tile as the middle wall**; do not substitute an opaque black beam/solid-color tile for its source.
+- Apply a black alpha-gradient **only to the top tier**, fading from black at its highest edge to fully transparent at the bottom of that tier. The middle plaster tier and lower wood wainscot must not receive this mask.
+- Current reference geometry in `js/interior-native-debug.js`: wall sprite 32×96px; upper plaster y=0..22 (23px), middle plaster y=23..78 (56px), lower wood y=79..95 (17px). This is the accepted tea-house prototype and **not** a requirement that every building use exactly 23/56/17px.
+- Current shade parameters: `YK_INTERIOR_WALL_SHADE.apply(ctx,0,0,32,23,{height:23,topAlpha:1,midAlpha:.52})` from `js/interior-wall-shade.js`. Make upper band height and mask strength configurable for other rooms.
+- Keep each wall's mask inside its own sprite/layer; do not darken the entire screen, furniture, characters, pillars or floor.
+- Maintain a smooth top-to-middle color transition without a dark seam; review after camera projection and at movement extremes. Reuse existing plaster/wainscot tiles; do not consume image generations for the fade.
+- This is the **default upper-wall convention** for tea-house and a starting point for inns/homes/shops; adjust per interior only after checking existing source artwork and the intended layering.
