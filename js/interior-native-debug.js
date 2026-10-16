@@ -12,6 +12,15 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  const road=new Image();let roadReady=false;
  road.onload=()=>{roadReady=true;groundsDirty=true};road.src='assets/terrain/landscape-v3/road.png?v=15.57.116';
  let ground=null,groundsDirty=true;
+ const wallImage=document.createElement('canvas');wallImage.width=32;wallImage.height=96;
+ {const c=wallImage.getContext('2d');
+  c.fillStyle='#69513b';c.fillRect(0,0,32,96);
+  c.fillStyle='#24201d';c.fillRect(0,0,32,23);
+  c.fillStyle='#866547';c.fillRect(0,23,32,56);
+  c.fillStyle='#503b2c';c.fillRect(0,79,32,17);
+  c.strokeStyle='#ab8157';c.beginPath();c.moveTo(4,23);c.lineTo(4,96);c.stroke();
+  c.strokeStyle='#392b23';c.beginPath();c.moveTo(30,23);c.lineTo(30,96);c.stroke();
+ }
  const cell=(x,y)=>[Math.floor((x-ox)/S),Math.floor((y-oy)/S)];
  function blocked(x,y){
   const [cx,cy]=cell(x,y);
@@ -51,6 +60,9 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
    for(const cx of [x-1,x+2])add('cushion',cx*32,y*32,32,32);
   }
   add('stone',4*32,6*32,64,32);
+  // Provisional north wall: 3 vertical bands in the village depth queue.
+  for(let tx=1;tx<=8;tx++)objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(wallImage,l,t,W,H)}});
+
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,160);
   const map=Array.from({length:H},()=>Array(W).fill('road'));
   g.fillStyle='#171416';g.fillRect(0,0,768,768);
