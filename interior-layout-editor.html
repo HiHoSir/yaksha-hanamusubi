@@ -17,12 +17,12 @@
 </main><script>
 (()=>{'use strict';
 const S=32,rooms={
-teahouse:{name:'茶屋',w:20,h:14,description:'板の間に4卓、入口土間・踏み石・上がり框。窓・カウンター・調理設備なし。'},
-inn:{name:'宿屋',w:24,h:18,description:'独立した畳客室2室、各2組の布団。山水・梅の掛け軸、小さな帳場、入口土間・踏み石。'},
-armory:{name:'兵具屋',w:22,h:16,description:'客用土間、壁際の武具、帳場背後の店員用板床と側面アクセス。'},
-home:{name:'住宅',w:18,h:14,description:'左は板の間、右は土間。畳なし、家具少数とかまど。'}
+teahouse:{name:'茶屋',w:10,h:8,description:'板の間に4卓、入口土間・踏み石・上がり框。窓・カウンター・調理設備なし。'},
+inn:{name:'宿屋',w:16,h:12,description:'独立した畳客室2室、各2組の布団。山水・梅の掛け軸、小さな帳場、入口土間・踏み石。'},
+armory:{name:'兵具屋',w:10,h:8,description:'客用土間、壁際の武具、帳場背後の店員用板床と側面アクセス。'},
+home:{name:'住宅',w:8,h:7,description:'左は板の間、右は土間。畳なし、家具少数とかまど。'}
 };
-let room='teahouse',W=20,H=14,N=W*H;
+let room='teahouse',W=10,H=8,N=W*H;
 const storageKey=id=>'yaksha.roomEditor.multi.v1.'+id;
 const types=[
 {id:'road',name:'土・道（既存）',color:'#a87f51',newArt:false,walk:true},
@@ -122,9 +122,10 @@ function template(id){
  for(let x=1;x<w-1;x++)if(x<mid-2||x>mid+1)put(x,h-1,'wall');
  rect(mid-1,h-1,mid,h-1,'entrance');
  if(id==='teahouse'){
-  rect(1,1,w-2,h-5,'wood');rect(1,h-5,w-2,h-5,'raised');
-  put(mid,h-3,'stone');
-  for(const [cx,cy] of [[5,4],[w-6,4],[5,8],[w-6,8]]){put(cx,cy,'table');for(const dx of [-1,1])put(cx+dx,cy,'cushion');}
+  rect(1,1,8,5,'wood');rect(1,5,8,5,'raised');
+  put(4,6,'stone');put(5,6,'stone');
+  // Four approved 2x1 tables. Cushions remain single cells either side.
+  for(const [cx,cy] of [[2,2],[6,2],[2,4],[6,4]]){put(cx,cy,'table');put(cx+1,cy,'table');put(cx-1,cy,'cushion');put(cx+2,cy,'cushion');}
  }else if(id==='inn'){
   rect(1,1,w-2,h-5,'wood');
   rect(2,2,mid-3,8,'tatami');rect(mid+3,2,w-3,8,'tatami');
@@ -133,11 +134,11 @@ function template(id){
   rect(1,h-5,w-2,h-5,'raised');
  }else if(id==='armory'){
   rect(1,1,w-2,4,'wood');rect(2,1,4,2,'weapon');rect(w-5,1,w-3,2,'weapon');
-  rect(7,5,w-7,5,'counter');put(6,4,'npc');put(6,5,'wood');
+  rect(3,3,w-4,3,'counter');put(4,2,'npc');put(4,3,'counter');
   put(mid,h-3,'stone');
  }else{
   rect(1,1,mid-1,h-2,'wood');rect(mid,1,mid,h-2,'raised');
-  put(4,4,'table');put(w-4,4,'hearth');put(mid,h-3,'stone');
+  put(3,3,'table');put(w-3,3,'hearth');put(mid,h-3,'stone');
  }
  return a;
 }
