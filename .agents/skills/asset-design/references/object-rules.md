@@ -22,3 +22,8 @@
 - Distinguish sprite bounds, visible silhouette, world foot, occupancy/collision and occlusion.
 - Reuse approved candidates before generating. Confirm exact scale via scene preview using current native hero, not made-up silhouettes.
 - If required source transparency cannot be obtained reliably by generation, treat source as a reference; perform deterministic cutout/alpha work where possible without spending another image call.
+
+## Upper-wall fade convention (adopted prototype)
+- For interior plaster walls, reuse the same plaster source on the top band and middle band. Overlay a black-to-transparent mask **only on the top band**; no mask on middle plaster or wood wainscot.
+- Source of truth for ratios and reference behavior: `skills/interior-occlusion-layers/SKILL.md`, section `Adopted upper-wall fade convention`; generic helper `js/interior-wall-shade.js`.
+- This visual effect is a render-time mask, not a new generated tile; do not use image generation for this effect.
