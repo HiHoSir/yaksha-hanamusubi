@@ -170,7 +170,12 @@ window.YK_AUDIO=(()=>{
  // Enable an explicit on-screen audio test only when ?audioDebug=1 is supplied.
  if(new URLSearchParams(location.search).get("audioDebug")==="1"||silentTest){
   const panel=document.createElement("div");
-  panel.style.cssText="position:fixed;top:70px;right:8px;z-index:99999;background:#141e23ee;color:white;border:1px solid #fff;padding:8px;font:12px monospace;max-width:85vw";
+  panel.style.cssText="position:fixed;top:calc(env(safe-area-inset-top) + 8px);right:8px;z-index:99999;background:#141e23ee;color:white;border:1px solid #fff;padding:6px;font:12px monospace;max-width:min(85vw,420px);max-height:75dvh;overflow:auto;border-radius:8px";
+  const togglePanel=document.createElement("button");togglePanel.textContent="音声診断を開く";
+  togglePanel.style.cssText="display:block;font-size:12px;padding:5px 9px;min-height:32px;background:#24344d;color:#fff;border:1px solid #baa26e;border-radius:5px";
+  const details=document.createElement("div");details.hidden=true;
+  togglePanel.onclick=()=>{details.hidden=!details.hidden;togglePanel.textContent=details.hidden?"音声診断を開く":"音声診断を閉じる"};
+  panel.append(togglePanel,details);
   const out=document.createElement("pre");out.style.cssText="white-space:pre-wrap;margin:5px 0";
   const button=document.createElement("button");button.textContent="BGM再生テスト";button.style.cssText="font-size:14px;padding:8px";
   const status=document.createElement("div");status.style.cssText="font-size:14px;font-weight:bold;padding:5px 0;color:#ffe5a7";
@@ -186,13 +191,13 @@ window.YK_AUDIO=(()=>{
    out.textContent=JSON.stringify(d,null,2);
   }
   button.onclick=()=>{unlock();if(!currentArea){syncBgm(window.gameState?.area||"village")}play();refreshStatus()};
-  panel.append(status,enable,button);
+  details.append(status,enable,button);
   if(bufferTest){
    const resumeButton=document.createElement("button");resumeButton.textContent="復帰後の音声を再開";
    resumeButton.style.cssText="font-size:14px;padding:8px";
-   resumeButton.onclick=forceResumeFromTap;panel.append(resumeButton);
+   resumeButton.onclick=forceResumeFromTap;details.append(resumeButton);
   }
-  panel.append(out);document.body.append(panel);
+  details.append(out);document.body.append(panel);
   refreshStatus();setInterval(refreshStatus,1500);
  }
  return {beep,syncBgm,unlock,talkChar,dialogEnd,diagnostics};
