@@ -188,6 +188,35 @@ window.YK_AUDIO=(()=>{
   }catch{}
  }
  function beep(freq=440,dur=.07,type="triangle"){sound(freq,dur,type,.027,1900)}
+ function horagai(){
+  // Conch-like harmonic horn, deliberately routed through the existing Web Audio
+  // context so in-game mute, background pause and the Safari audio session apply.
+  if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;
+  try{
+   ctx??=new(window.AudioContext||window.webkitAudioContext)();
+   if(ctx.state!=="running"){ctx.resume().catch(()=>{});return;}
+   const now=ctx.currentTime,master=ctx.createGain(),filter=ctx.createBiquadFilter();
+   filter.type="lowpass";filter.frequency.setValueAtTime(680,now);
+   filter.frequency.linearRampToValueAtTime(1230,now+.34);
+   filter.frequency.linearRampToValueAtTime(520,now+1.42);
+   master.gain.setValueAtTime(.0001,now);
+   master.gain.exponentialRampToValueAtTime(.058,now+.16);
+   master.gain.setValueAtTime(.052,now+.65);
+   master.gain.exponentialRampToValueAtTime(.0001,now+1.52);
+   filter.connect(master);master.connect(ctx.destination);
+   for(const [multiple,volume] of [[1,1],[2,.42],[3,.21],[4,.11]]){
+    const oscillator=ctx.createOscillator(),mix=ctx.createGain();
+    oscillator.type="sawtooth";
+    oscillator.frequency.setValueAtTime(159*multiple,now);
+    oscillator.frequency.exponentialRampToValueAtTime(181*multiple,now+.33);
+    oscillator.frequency.exponentialRampToValueAtTime(166*multiple,now+1.38);
+    mix.gain.value=volume/4;
+    oscillator.connect(mix);mix.connect(filter);
+    oscillator.start(now);oscillator.stop(now+1.55);
+   }
+  }catch(e){lastError="horagai "+String(e?.name||e)}
+ }
+
  const voices={child:[480,.047,1600,"triangle"],female:[345,.045,1400,"sine"],male:[215,.049,1000,"triangle"],elder:[245,.039,720,"sawtooth"],hostile:[174,.025,820,"sawtooth"],boss:[128,.052,680,"triangle"]};
  function talkChar(ch,voice="male",index=0){
   if(!/[ぁ-ゖァ-ヺー]/.test(ch)||!soundOn()||document.hidden||backgroundPaused)return;
@@ -233,5 +262,5 @@ window.YK_AUDIO=(()=>{
   details.append(out);document.body.append(panel);
   refreshStatus();setInterval(refreshStatus,1500);
  }
- return {beep,syncBgm,unlock,talkChar,dialogEnd,diagnostics};
+ return {beep,horagai,syncBgm,unlock,talkChar,dialogEnd,diagnostics};
 })();
