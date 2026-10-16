@@ -33,10 +33,14 @@
   <header>
     <div class="brand">鬼哭の花契り <small>β15.57.116 · 緋月4方向歩行</small></div>
     <div class="topBtns">
-      <button id="worldBtn">地図</button><button id="bookBtn">行動</button><button id="saveBtn">記録</button><button id="settingsBtn">設定</button>
+      <button id="interiorDebugBtn" type="button" aria-label="室内デバッグを開く">室内検証</button><button id="worldBtn">地図</button><button id="bookBtn">行動</button><button id="saveBtn">記録</button><button id="settingsBtn">設定</button>
     </div>
   </header>
 
+  <div id="interiorDebugPanel" role="dialog" aria-label="茶店・室内デバッグ" style="display:none;position:fixed;inset:0;z-index:9999;background:#101b20;color:white;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#1b3035;gap:8px"><strong>室内検証：柱・遮蔽・衝突</strong><button type="button" id="interiorDebugClose" style="padding:8px 14px;background:#36565c;border:1px solid #789;color:white;border-radius:8px">ゲームへ戻る</button></div>
+    <iframe id="interiorDebugFrame" title="茶店室内・操作検証" loading="lazy" style="width:100%;min-height:0;flex:1;border:0;background:#142026"></iframe>
+  </div>
   <main id="stage">
     <canvas id="game" width="768" height="768" aria-label="ゲーム画面"></canvas>
     <div id="hud"></div>
@@ -184,4 +188,14 @@
 
 
 
-</body></html>
+<script>
+(function(){
+ const btn=document.getElementById('interiorDebugBtn'),panel=document.getElementById('interiorDebugPanel'),frame=document.getElementById('interiorDebugFrame'),close=document.getElementById('interiorDebugClose');
+ let previousFocus=null;function toggle(open){
+  if(open){previousFocus=document.activeElement;frame.src='teahouse-scale-live.html?v=2ae20ed';panel.style.display='flex';close.focus()}
+  else{panel.style.display='none';frame.src='about:blank';previousFocus?.focus?.()}
+ }
+ btn.addEventListener('click',()=>toggle(true));close.addEventListener('click',()=>toggle(false));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.style.display==='flex'){e.preventDefault();toggle(false)}});
+})();
+</script></body></html>
