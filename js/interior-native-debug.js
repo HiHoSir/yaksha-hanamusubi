@@ -27,6 +27,25 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   c.strokeStyle='#ab8157';c.beginPath();c.moveTo(4,23);c.lineTo(4,96);c.stroke();
   c.strokeStyle='#392b23';c.beginPath();c.moveTo(30,23);c.lineTo(30,96);c.stroke();
  }
+ // Raised wood floor is visual only; collision remains unchanged.
+ const stepY=oy+6*S,stepHeight=7;
+ function elevation(x,y){
+  if(x<ox+S||x>ox+9*S)return 0;
+  // A narrow visual transition keeps free walking across the stepping stone.
+  return stepHeight*Math.max(0,Math.min(1,(stepY-y)/12));
+ }
+ function drawPlatformEdge(q,camera){
+  const left=YK_LANDSCAPE.project(ox+S,stepY,camera,1.4);
+  const right=YK_LANDSCAPE.project(ox+9*S,stepY,camera,1.4);
+  if(!left||!right)return;
+  const h=stepHeight*(left.scale+right.scale)/2;
+  // A narrow fascia painted over the ground, not a collision-bearing wall.
+  q.save();q.imageSmoothingEnabled=false;
+  q.fillStyle='#55381f';q.fillRect(left.x,left.y-h,right.x-left.x,h);
+  q.fillStyle='#a77b4b';q.fillRect(left.x,left.y-h,right.x-left.x,Math.max(1,h*.18));
+  q.fillStyle='#34251c';q.fillRect(left.x,left.y-1,right.x-left.x,Math.max(1,h*.16));
+  q.restore();
+ }
  const cell=(x,y)=>[Math.floor((x-ox)/S),Math.floor((y-oy)/S)];
  function blocked(x,y){
   const [cx,cy]=cell(x,y);
@@ -81,7 +100,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   // Indoor framing: fill more of the available stage while retaining the village projection.
   g.save();g.translate(-96,-95);g.scale(1.5,1.5);
   YK_LANDSCAPE.drawQuarter(g,map,{x:actorFoot.x,foot:actorFoot.y,draw:(x,y,z)=>heroDraw({x,y,z})},1.4,{
-   preset:3,ground:floor(),groundOrigin:{x:ox,y:oy},objects,edgeColor:'#211a17',interiorBackdrop:'#211a17'
+   preset:3,ground:floor(),groundOrigin:{x:ox,y:oy},objects,elevation,afterGround:drawPlatformEdge,edgeColor:'#211a17',interiorBackdrop:'#211a17'
   });
   g.restore();
   g.save();g.fillStyle='#ffffff';g.font='16px sans-serif';g.fillText('茶店・室内画角テスト／10×8',18,66);g.restore();
