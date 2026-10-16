@@ -978,6 +978,22 @@ function renderDialogPortrait(){
  const q=c.getContext("2d");q.clearRect(0,0,c.width,c.height);
  if(c.style.display!=="none")hero(q,90,160,"d",1,S.outfit,1.3);
 }
+// Short encounter wipe; no change to combat mechanics or saved state.
+function encounterWipe(){
+ document.getElementById("ykEncounterWipe")?.remove();
+ if(!document.getElementById("ykEncounterStyle")){
+  const style=document.createElement("style");style.id="ykEncounterStyle";
+  style.textContent="@keyframes yk-encounter-wipe{0%{opacity:0;transform:scale(1.16) rotate(-2deg)}18%{opacity:.65}38%{opacity:1;transform:scale(1)}58%{opacity:1}100%{opacity:0;transform:scale(1.04)}}#ykEncounterWipe{position:fixed;inset:0;z-index:100;pointer-events:none;background:repeating-conic-gradient(from 20deg at 50% 50%,#0a0d1a 0deg 12deg,#4e375a 13deg 18deg,#0a0d1a 19deg 30deg);animation:yk-encounter-wipe .65s ease-in-out both}@media(prefers-reduced-motion:reduce){#ykEncounterWipe{background:#101525;animation:none;opacity:0}}";
+  document.head.appendChild(style);
+ }
+ const veil=document.createElement("div");veil.id="ykEncounterWipe";veil.setAttribute("aria-hidden","true");document.body.appendChild(veil);
+ veil.addEventListener("animationend",()=>veil.remove(),{once:true});setTimeout(()=>veil.remove(),900);
+}
+function encounterChime(){
+ YK_AUDIO.beep(740,.095,"sawtooth");
+ battleLater(()=>YK_AUDIO.beep(510,.12,"triangle"),85);
+ battleLater(()=>YK_AUDIO.beep(270,.18,"sawtooth"),180);
+}
 function beginEncounter(){
  ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
@@ -989,10 +1005,13 @@ function beginEncounter(){
  const variant=D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
  const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
  fieldMotion=null;resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
- S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=false;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
+ S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
  YK_INPUT.stopAll();S.frame=1;
- $("battleText").textContent=battle.name+"が あらわれた！";$("battle").classList.add("show");
- selectCmd(0);renderBattle();YK_AUDIO.beep(220,.06);return true;
+ $("battleText").textContent=battle.name+"が あらわれた！";
+ encounterWipe();encounterChime();
+ battleLater(()=>{$("battle").classList.add("show");renderBattle()},250);
+ battleLater(()=>{battleLocked=false;selectCmd(0);renderBattle()},650);
+ return true;
 }
 function encounter(){return beginEncounter()}
 function inspectTargets(){
