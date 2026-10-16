@@ -305,7 +305,7 @@ window.YK_LANDSCAPE=(()=>{
  }
  function drawQuarter(c,map,actor,zoom=1.4,settings={}){
   if(!ready())return false;
-  const camera={x:actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0,horizontalScale:settings.horizontalScale||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
+  const camera={x:settings.cameraX??actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0,horizontalScale:settings.horizontalScale||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;if(settings.interiorBackdrop){c.fillStyle=settings.interiorBackdrop;c.fillRect(0,0,640,544);}else c.drawImage(art.horizon,0,0,640,top+80);
   const corners=[];for(let y=top;y<=544;y+=strip)for(const x of [0,640])corners.push(unproject(x,y,camera,zoom));
   const left=Math.max(gx,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(gx+ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
