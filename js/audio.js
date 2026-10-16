@@ -27,6 +27,29 @@ window.YK_AUDIO=(()=>{
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
  function zone(area){return area==="field"?"field":"village"}
  let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
+ let resumeSerial=0,restorePending=false;
+ function resumeContext(){
+  if(!enabledByGesture||document.hidden||backgroundPaused||!soundOn()||!ctx)return;
+  const serial=++resumeSerial;
+  try{
+   const p=ctx.resume();
+   if(p?.then)p.then(()=>{
+    if(serial!==resumeSerial||document.hidden||backgroundPaused)return;
+    restorePending=false;
+    if(bufferTest&&currentArea&&!bufferSource&&!bufferLoading)void playBuffer(currentArea);
+   },e=>{bufferError="resume "+String(e?.name||e)});
+  }catch(e){bufferError="resume "+String(e?.name||e)}
+ }
+ function bindContext(){
+  if(!ctx||ctx.__ykRecoveryBound)return;
+  ctx.__ykRecoveryBound=true;
+  ctx.addEventListener?.("statechange",()=>{
+   if(ctx.state==="running"&&!document.hidden&&!backgroundPaused&&soundOn()&&currentArea){
+    restorePending=false;
+    if(bufferTest&&!bufferSource&&!bufferLoading)void playBuffer(currentArea);
+   }
+  });
+ }
  const decodedBuffers={};
  function forceResumeFromTap(){
   enabledByGesture=true;bufferError="";
@@ -43,10 +66,10 @@ window.YK_AUDIO=(()=>{
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
   try{
-   ctx??=new(window.AudioContext||window.webkitAudioContext)();
+   ctx??=new(window.AudioContext||window.webkitAudioContext)();bindContext();
    // Safari may leave resume() pending after foreground. Do not block buffer reconstruction.
    // Do not await resume: iOS Safari may keep this promise pending until a later user gesture.
-   if(ctx.state!=="running"){try{ctx.resume().catch(e=>{bufferError="resume "+String(e)})}catch(e){bufferError="resume "+String(e)}}
+   if(ctx.state!=="running")resumeContext();
    let buffer=decodedBuffers[key];
    if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
     buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
@@ -94,15 +117,15 @@ window.YK_AUDIO=(()=>{
  player.addEventListener("canplay",()=>{if(player.paused)play()});
  function unlock(){if(document.hidden||backgroundPaused)return;applySessionTest();enabledByGesture=true;
   try{
-   ctx??=new(window.AudioContext||window.webkitAudioContext)();
-   if(ctx.state!=="running")ctx.resume().then(()=>{if(currentArea&&soundOn())play()},e=>{bufferError="unlock resume "+String(e?.name||e)});
+   ctx??=new(window.AudioContext||window.webkitAudioContext)();bindContext();
+   if(ctx.state!=="running")resumeContext();
   }catch(e){bufferError="unlock "+String(e)}
   play();
  }
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  function pauseForBackground(){
   if(backgroundPaused)return;
-  backgroundPaused=true;player.pause();
+  backgroundPaused=true;restorePending=false;resumeSerial++;player.pause();
   if(bufferTest){
    bufferGeneration++;bufferLoading="";
    if(bufferSource){
@@ -125,10 +148,12 @@ window.YK_AUDIO=(()=>{
   if(document.hidden)return;
   backgroundPaused=false;
   applySessionTest();
-  // A new gesture may still be needed after iOS background suspension.
-  try{if(enabledByGesture&&ctx?.state!=="running")ctx.resume().catch(e=>{bufferError="foreground resume "+String(e?.name||e)})}catch{}
-  play();
-  if(bufferTest&&currentArea&&enabledByGesture&&soundOn()&&!bufferSource)void playBuffer(currentArea);
+  if(!enabledByGesture||!soundOn())return;
+  // Rebuild the stopped node only when the context can run, rather than marking
+  // a silent source as active while Safari is still interrupted.
+  restorePending=true;
+  if(ctx?.state==="running"){restorePending=false;play();}
+  else resumeContext();
  }
  // Safari sometimes resumes page visibility before its audio context can run again.
  // Preserve the decoded track and retry reconstruction only on a subsequent gesture.
@@ -137,14 +162,14 @@ window.YK_AUDIO=(()=>{
   applySessionTest();
   if(!bufferTest){play();return;}
   if(!currentArea)return;
-  if(!bufferSource&&!bufferLoading)void playBuffer(currentArea);
-  if(ctx&&ctx.state!=="running")ctx.resume().catch(e=>{bufferError="gesture resume "+String(e?.name||e)});
+  if(ctx?.state==="running"){if(!bufferSource&&!bufferLoading)void playBuffer(currentArea);}
+  else resumeContext();
  }
  ["pointerup","keydown"].forEach(ev=>document.addEventListener(ev,recoverFromGesture,{passive:true}));
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,restorePending,contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
