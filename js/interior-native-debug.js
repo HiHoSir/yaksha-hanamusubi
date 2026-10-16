@@ -138,7 +138,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   if(!YK_LANDSCAPE.ready()){YK_LANDSCAPE.load();return}
   const objects=[];
   function add(kind,x,y,w,h,renderHeight=h){
-   const image=sprites[kind];if(!image?.complete||!image.naturalWidth)return;
+   const image=sprites[kind];if(!image||(!image.complete&&!(image instanceof HTMLCanvasElement))||!image.width&&!image.naturalWidth)return;
    objects.push({kind,x:x+ox,foot:y+oy+h,width:w,height:renderHeight,draw:(q,l,t,W,H,p)=>{
     q.imageSmoothingEnabled=false;
     if(kind==='table'){
