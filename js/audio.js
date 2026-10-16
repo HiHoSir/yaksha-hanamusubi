@@ -39,13 +39,14 @@ window.YK_AUDIO=(()=>{
  }
  async function playBuffer(key){
   if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn())return;
-  if(bufferKey===key&&bufferSource&&ctx?.state==="running")return;
+  if(bufferKey===key&&bufferSource)return;
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();
    // Safari may leave resume() pending after foreground. Do not block buffer reconstruction.
-   if(ctx.state!=="running"){try{await ctx.resume()}catch(e){bufferError="resume "+String(e)}}
+   // Do not await resume: iOS Safari may keep this promise pending until a later user gesture.
+   if(ctx.state!=="running"){try{ctx.resume().catch(e=>{bufferError="resume "+String(e)})}catch(e){bufferError="resume "+String(e)}}
    let buffer=decodedBuffers[key];
    if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
     buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
@@ -124,7 +125,8 @@ window.YK_AUDIO=(()=>{
   if(document.hidden)return;
   backgroundPaused=false;
   applySessionTest();
-  try{if(enabledByGesture&&ctx?.state==="suspended")ctx.resume().catch(e=>{bufferError="foreground resume "+String(e?.name||e)})}catch{}
+  // A new gesture may still be needed after iOS background suspension.
+  try{if(enabledByGesture&&ctx?.state!=="running")ctx.resume().catch(e=>{bufferError="foreground resume "+String(e?.name||e)})}catch{}
   play();
   if(bufferTest&&currentArea&&enabledByGesture&&soundOn()&&!bufferSource)void playBuffer(currentArea);
  }
