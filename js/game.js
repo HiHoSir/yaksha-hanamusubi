@@ -983,41 +983,38 @@ function encounterDissolve(){
  const old=$("ykEncounterFrame");if(old)old.remove();
  const source=$("game"),rect=source.getBoundingClientRect();
  const cover=document.createElement("div");cover.id="ykEncounterFrame";cover.setAttribute("aria-hidden","true");
- Object.assign(cover.style,{position:"fixed",inset:"0",zIndex:"65",pointerEvents:"none",opacity:"1",background:"rgba(7,11,25,.48)",transition:"none",willChange:"opacity"});
+ Object.assign(cover.style,{position:"fixed",inset:"0",zIndex:"65",pointerEvents:"none",opacity:"1",background:"rgba(8,8,12,.88)",transition:"none",willChange:"opacity"});
  try{
   const still=document.createElement("canvas");still.width=source.width;still.height=source.height;
   still.getContext("2d").drawImage(source,0,0);
-  Object.assign(still.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",imageRendering:"pixelated"});
+  Object.assign(still.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",imageRendering:"pixelated",filter:"grayscale(0) contrast(1)",transition:"filter 550ms ease-out,opacity 600ms ease-in"});
   cover.appendChild(still);
- }catch(e){ /* Keep the transition available if the field cannot be captured. */ }
- const grain=document.createElement("div");
- Object.assign(grain.style,{position:"absolute",inset:"0",background:"repeating-linear-gradient(0deg,transparent 0px,rgba(238,215,194,.12) 2px,transparent 4px,rgba(8,8,30,.2) 7px)",mixBlendMode:"screen",opacity:".35"});
- cover.appendChild(grain);
- // Large sequential brush lettering, kept above the outgoing screenshot.
+  // Color drains from the frozen field before the new battle image appears.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(still.isConnected)still.style.filter="grayscale(1) contrast(1.24) brightness(.83)"}));
+  battleLater(()=>{still.style.opacity="0"},1490);
+ }catch(e){ /* Field capture can fail; retain the ink transition. */ }
+ const ink=document.createElement("div");
+ Object.assign(ink.style,{position:"absolute",inset:"0",background:"radial-gradient(ellipse at center,transparent 28%,rgba(10,9,16,.33) 67%,rgba(5,4,9,.92) 100%)",opacity:"0",transition:"opacity 600ms ease-out"});
+ cover.appendChild(ink);
+ requestAnimationFrame(()=>{ink.style.opacity="1"});
  const words=document.createElement("div");
  Object.assign(words.style,{position:"absolute",inset:"0",display:"flex",alignItems:"center",justifyContent:"center",gap:"min(4vw,24px)",zIndex:"2",pointerEvents:"none"});
  for(const [i,char] of ["接","敵"].entries()){
   const glyph=document.createElement("span");glyph.textContent=char;
-  Object.assign(glyph.style,{display:"inline-block",fontFamily:'"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif',fontSize:"clamp(84px,18vmin,175px)",fontWeight:"900",lineHeight:"1",color:"#fff3d9",WebkitTextStroke:"1px #34202d",textShadow:"3px 4px 0 #3a1429,0 0 18px #dd6d6d,0 10px 25px #000",opacity:"0",transform:"scale(1.85) rotate("+(i?-7:5)+"deg)",transition:"opacity 130ms ease-out,transform 240ms cubic-bezier(.12,.8,.2,1)"});
+  Object.assign(glyph.style,{display:"inline-block",fontFamily:'"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif',fontSize:"clamp(84px,18vmin,175px)",fontWeight:"900",lineHeight:"1",color:"#f7eee0",WebkitTextStroke:"1px #221b1c",textShadow:"3px 5px 1px #150b12,0 0 16px rgba(206,49,51,.45)",opacity:"0",transform:"scale(1.75) rotate("+(i?-7:5)+"deg)",transition:"opacity 120ms ease-out,transform 260ms cubic-bezier(.12,.8,.2,1)"});
   words.appendChild(glyph);
-  battleLater(()=>{glyph.style.opacity="1";glyph.style.transform="scale(1) rotate("+(i?-7:5)+"deg)"},i*370+160);
-  battleLater(()=>{glyph.style.transition="opacity 230ms ease-in,transform 250ms ease-in";glyph.style.opacity="0";glyph.style.transform="scale(.96) translateY(-10px)"},1450+i*100);
+  battleLater(()=>{glyph.style.opacity="1";glyph.style.transform="scale(1) rotate("+(i?-7:5)+"deg)"},i*390+300);
+  battleLater(()=>{glyph.style.transition="opacity 320ms ease-in,transform 320ms ease-in";glyph.style.opacity="0";glyph.style.transform="scale(.97) translateY(-11px)"},1580+i*110);
  }
- cover.appendChild(words);
- document.body.appendChild(cover);
+ cover.appendChild(words);document.body.appendChild(cover);
  const panel=$("battle");panel.style.transition="none";panel.style.opacity="1";panel.classList.add("show");renderBattle();
- // Two animation frames ensure Safari paints the outgoing scene before the fade.
- requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  if(!cover.isConnected)return;
-  cover.style.transition="opacity 1950ms cubic-bezier(.38,0,.68,1)";
-  cover.style.opacity="0";
- }));
- battleLater(()=>{cover.remove();panel.style.transition="";panel.style.opacity="";},2050);
+ // Keep the monochrome scene in view; dissolve only after the second character lands.
+ battleLater(()=>{if(cover.isConnected){cover.style.transition="opacity 650ms ease-in-out";cover.style.opacity="0"}},1650);
+ battleLater(()=>{cover.remove();panel.style.transition="";panel.style.opacity=""},2380);
 }
 function encounterChime(){
- YK_AUDIO.beep(740,.095,"sawtooth");
- battleLater(()=>YK_AUDIO.beep(510,.12,"triangle"),85);
- battleLater(()=>YK_AUDIO.beep(270,.18,"sawtooth"),180);
+ // A short conch-horn approximation uses the approved audio graph and mute handling.
+ YK_AUDIO.horagai?.();
 }
 function beginEncounter(){
  ensureBattleAssets();
@@ -1034,7 +1031,7 @@ function beginEncounter(){
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent=battle.name+"が あらわれた！";
  encounterChime();encounterDissolve();
- battleLater(()=>{battleLocked=false;selectCmd(0);renderBattle()},2050);
+ battleLater(()=>{battleLocked=false;selectCmd(0);renderBattle()},2390);
  return true;
 }
 function encounter(){return beginEncounter()}
