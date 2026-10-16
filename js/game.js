@@ -978,18 +978,30 @@ function renderDialogPortrait(){
  const q=c.getContext("2d");q.clearRect(0,0,c.width,c.height);
  if(c.style.display!=="none")hero(q,90,160,"d",1,S.outfit,1.3);
 }
-// A one-second optical dissolve: the field remains visible as battle fades in.
+// Preserve the last field frame above the battle while both scenes cross-dissolve.
 function encounterDissolve(){
- const panel=$("battle");
- panel.style.transition="none";
- panel.style.opacity="0";
- panel.classList.add("show");
- renderBattle();
- // Force the initial frame before enabling the transition (including on Safari).
- void panel.offsetWidth;
- panel.style.transition="opacity 1000ms linear";
- panel.style.opacity="1";
- battleLater(()=>{panel.style.transition="";panel.style.opacity="";},1050);
+ const old=$("ykEncounterFrame");if(old)old.remove();
+ const source=$("game"),rect=source.getBoundingClientRect();
+ const cover=document.createElement("div");cover.id="ykEncounterFrame";cover.setAttribute("aria-hidden","true");
+ Object.assign(cover.style,{position:"fixed",inset:"0",zIndex:"65",pointerEvents:"none",opacity:"1",background:"rgba(7,11,25,.48)",transition:"none",willChange:"opacity"});
+ try{
+  const still=document.createElement("canvas");still.width=source.width;still.height=source.height;
+  still.getContext("2d").drawImage(source,0,0);
+  Object.assign(still.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",imageRendering:"pixelated"});
+  cover.appendChild(still);
+ }catch(e){ /* Keep the transition available if the field cannot be captured. */ }
+ const grain=document.createElement("div");
+ Object.assign(grain.style,{position:"absolute",inset:"0",background:"repeating-linear-gradient(0deg,transparent 0px,rgba(238,215,194,.12) 2px,transparent 4px,rgba(8,8,30,.2) 7px)",mixBlendMode:"screen",opacity:".35"});
+ cover.appendChild(grain);
+ document.body.appendChild(cover);
+ const panel=$("battle");panel.style.transition="none";panel.style.opacity="1";panel.classList.add("show");renderBattle();
+ // Two animation frames ensure Safari paints the outgoing scene before the fade.
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  if(!cover.isConnected)return;
+  cover.style.transition="opacity 1000ms cubic-bezier(.38,0,.68,1)";
+  cover.style.opacity="0";
+ }));
+ battleLater(()=>{cover.remove();panel.style.transition="";panel.style.opacity="";},1060);
 }
 function encounterChime(){
  YK_AUDIO.beep(740,.095,"sawtooth");
