@@ -37,6 +37,11 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  // Layered wall evaluation using preexisting 32px candidate textures.
  const plasterWall=new Image(),woodWainscot=new Image();
  let plasterReady=false,wainscotReady=false;
+ const fullBackWall=new Image();
+ let fullBackWallReady=false;
+ fullBackWall.onload=()=>{fullBackWallReady=fullBackWall.naturalWidth===256&&fullBackWall.naturalHeight===96};
+ fullBackWall.onerror=()=>{fullBackWallReady=false};
+ fullBackWall.src='assets/interiors/prototypes/teahouse-back-wall-panel-256x96-candidate.png?v=15.57.128';
  const wallImage=document.createElement('canvas');wallImage.width=32;wallImage.height=96;
  const wallEdges={left:document.createElement('canvas'),right:document.createElement('canvas')};
  for(const edge of Object.values(wallEdges)){edge.width=32;edge.height=96}
@@ -157,7 +162,12 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   }
 
   // Provisional north wall: 3 vertical bands in the village depth queue.
-  for(let tx=1;tx<=8;tx++){const tile=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(tile,l,t,W,H)}})}
+  if(fullBackWallReady){
+   // Single continuous rear wall. Visual-only, behind gameplay collision and pillars.
+   objects.push({kind:'wall-panel',x:ox+S,foot:oy+S,width:8*S,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(fullBackWall,l,t,W,H)}});
+  }else{
+   for(let tx=1;tx<=8;tx++){const tile=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(tile,l,t,W,H)}})}
+  }
 
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
   const map=Array.from({length:H},()=>Array(W).fill('road'));
