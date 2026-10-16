@@ -160,15 +160,27 @@ window.YK_AUDIO=(()=>{
   panel.style.cssText="position:fixed;top:70px;right:8px;z-index:99999;background:#141e23ee;color:white;border:1px solid #fff;padding:8px;font:12px monospace;max-width:85vw";
   const out=document.createElement("pre");out.style.cssText="white-space:pre-wrap;margin:5px 0";
   const button=document.createElement("button");button.textContent="BGM再生テスト";button.style.cssText="font-size:14px;padding:8px";
-  button.onclick=()=>{unlock();if(!currentArea){syncBgm(window.gameState?.area||"village")}play();out.textContent=JSON.stringify(diagnostics(),null,2)};
-  panel.append(button);
+  const status=document.createElement("div");status.style.cssText="font-size:14px;font-weight:bold;padding:5px 0;color:#ffe5a7";
+  const enable=document.createElement("button");enable.textContent="音声をONにする";enable.style.cssText="font-size:14px;padding:8px;background:#e9d49b;color:#172237";
+  enable.onclick=()=>{
+   if(window.gameState){window.gameState.sound=true;try{window.YK_SAVE?.auto?.(window.gameState)}catch{}}
+   const toggle=document.getElementById("soundToggle");if(toggle)toggle.checked=true;
+   unlock();syncBgm(window.gameState?.area||"field");beep(660,.14);refreshStatus();
+  };
+  function refreshStatus(){
+   const d=diagnostics();status.textContent=d.soundOn?"音声設定：ON":"音声設定：OFF（BGM・SEとも停止）";
+   enable.style.display=d.soundOn?"none":"inline-block";
+   out.textContent=JSON.stringify(d,null,2);
+  }
+  button.onclick=()=>{unlock();if(!currentArea){syncBgm(window.gameState?.area||"village")}play();refreshStatus()};
+  panel.append(status,enable,button);
   if(bufferTest){
    const resumeButton=document.createElement("button");resumeButton.textContent="復帰後の音声を再開";
    resumeButton.style.cssText="font-size:14px;padding:8px";
    resumeButton.onclick=forceResumeFromTap;panel.append(resumeButton);
   }
   panel.append(out);document.body.append(panel);
-  setInterval(()=>{out.textContent=JSON.stringify(diagnostics(),null,2)},1500);
+  refreshStatus();setInterval(refreshStatus,1500);
  }
  return {beep,syncBgm,unlock,talkChar,dialogEnd,diagnostics};
 })();
