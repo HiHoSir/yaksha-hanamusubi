@@ -163,8 +163,14 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
 
   // Provisional north wall: 3 vertical bands in the village depth queue.
   if(fullBackWallReady){
-   // Single continuous rear wall. Visual-only, behind gameplay collision and pillars.
-   objects.push({kind:'wall-panel',x:ox+S,foot:oy+S,width:8*S,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(fullBackWall,l,t,W,H)}});
+   // Project each 32px portion at its original wall tile anchor.
+   // Keep one artwork source but match the established tile-by-tile camera geometry.
+   for(let tx=1;tx<=8;tx++){
+    const sx=(tx-1)*S;
+    objects.push({kind:'wall-panel',x:ox+tx*S,foot:oy+S,width:S,height:96,draw:(q,l,t,W,H)=>{
+     q.imageSmoothingEnabled=false;q.drawImage(fullBackWall,sx,0,S,96,l,t,W,H);
+    }});
+   }
   }else{
    for(let tx=1;tx<=8;tx++){const tile=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;objects.push({kind:'wall',x:ox+tx*32,foot:oy+32,width:32,height:96,draw:(q,l,t,W,H)=>{q.imageSmoothingEnabled=false;q.drawImage(tile,l,t,W,H)}})}
   }
