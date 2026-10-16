@@ -161,24 +161,20 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
 
   }
 
-  // Rear wall is painted *behind* the two rear posts; depth sorting stays at
-  // the rear posts' shared contact plane. The visual panel's bottom edge is
-  // lowered independently to meet the visible base of the posts.
-  const rearPostFoot=oy+S;
-  const wallVisualDrop=18; // world pixels; independent of wall sprite height
-  function addBackWallTile(tx,source,sx){
-   objects.push({kind:'wall',x:ox+tx*S,foot:rearPostFoot-0.01,width:S,height:96,
-    draw:(q,l,t,W,H,p)=>{
+  // Textured wall plane: the existing wall tiles are the solid surface.
+  // Projected visual surface shares the rear pillars' floor-contact plane.
+  // The entire composition (plaster, paneling, lamps and hanging scroll) is
+  // a surface texture, not a separate depth-sorted background or decal.
+  const rearWallFoot=oy+S;
+  for(let tx=1;tx<=8;tx++){
+   const sx=(tx-1)*S;
+   const substrate=tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage;
+   objects.push({kind:'wall',x:ox+tx*S,foot:rearWallFoot-0.01,width:S,height:96,
+    draw:(q,l,t,W,H)=>{
      q.imageSmoothingEnabled=false;
-     const drop=wallVisualDrop*p.scale;
-     if(source===fullBackWall)q.drawImage(source,sx,0,S,96,l,t+drop,W,H);
-     else q.drawImage(source,l,t+drop,W,H);
+     q.drawImage(substrate,l,t,W,H);
+     if(fullBackWallReady)q.drawImage(fullBackWall,sx,0,S,96,l,t,W,H);
     }});
-  }
-  if(fullBackWallReady){
-   for(let tx=1;tx<=8;tx++)addBackWallTile(tx,fullBackWall,(tx-1)*S);
-  }else{
-   for(let tx=1;tx<=8;tx++)addBackWallTile(tx,tx===1?wallEdges.left:tx===8?wallEdges.right:wallImage,0);
   }
 
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
