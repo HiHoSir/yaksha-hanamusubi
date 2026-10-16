@@ -1000,8 +1000,8 @@ function encounterDissolve(){
   const glyph=document.createElement("span");glyph.textContent=char;
   Object.assign(glyph.style,{display:"inline-block",fontFamily:'"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif',fontSize:"clamp(84px,18vmin,175px)",fontWeight:"900",lineHeight:"1",color:"#fff3d9",WebkitTextStroke:"1px #34202d",textShadow:"3px 4px 0 #3a1429,0 0 18px #dd6d6d,0 10px 25px #000",opacity:"0",transform:"scale(1.85) rotate("+(i?-7:5)+"deg)",transition:"opacity 130ms ease-out,transform 240ms cubic-bezier(.12,.8,.2,1)"});
   words.appendChild(glyph);
-  battleLater(()=>{glyph.style.opacity="1";glyph.style.transform="scale(1) rotate("+(i?-7:5)+"deg)"},i*190+50);
-  battleLater(()=>{glyph.style.transition="opacity 230ms ease-in,transform 250ms ease-in";glyph.style.opacity="0";glyph.style.transform="scale(.96) translateY(-10px)"},690+i*70);
+  battleLater(()=>{glyph.style.opacity="1";glyph.style.transform="scale(1) rotate("+(i?-7:5)+"deg)"},i*370+160);
+  battleLater(()=>{glyph.style.transition="opacity 230ms ease-in,transform 250ms ease-in";glyph.style.opacity="0";glyph.style.transform="scale(.96) translateY(-10px)"},1450+i*100);
  }
  cover.appendChild(words);
  document.body.appendChild(cover);
@@ -1009,10 +1009,10 @@ function encounterDissolve(){
  // Two animation frames ensure Safari paints the outgoing scene before the fade.
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   if(!cover.isConnected)return;
-  cover.style.transition="opacity 1000ms cubic-bezier(.38,0,.68,1)";
+  cover.style.transition="opacity 1950ms cubic-bezier(.38,0,.68,1)";
   cover.style.opacity="0";
  }));
- battleLater(()=>{cover.remove();panel.style.transition="";panel.style.opacity="";},1060);
+ battleLater(()=>{cover.remove();panel.style.transition="";panel.style.opacity="";},2050);
 }
 function encounterChime(){
  YK_AUDIO.beep(740,.095,"sawtooth");
@@ -1034,7 +1034,7 @@ function beginEncounter(){
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent=battle.name+"が あらわれた！";
  encounterChime();encounterDissolve();
- battleLater(()=>{battleLocked=false;selectCmd(0);renderBattle()},1050);
+ battleLater(()=>{battleLocked=false;selectCmd(0);renderBattle()},2050);
  return true;
 }
 function encounter(){return beginEncounter()}
