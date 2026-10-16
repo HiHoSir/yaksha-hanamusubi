@@ -28,14 +28,20 @@ window.YK_AUDIO=(()=>{
  function zone(area){return area==="field"?"field":"village"}
  let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
  let resumeSerial=0,restorePending=false;
+ const lifecycleTrace=[];
+ function traceAudio(event){
+  lifecycleTrace.push({event,at:Math.round(performance.now()),hidden:document.hidden,paused:backgroundPaused,state:ctx?.state||"none",source:!!bufferSource,loading:bufferLoading,key:bufferKey,pending:restorePending});
+  if(lifecycleTrace.length>24)lifecycleTrace.shift();
+ }
+
  function resumeContext(){
   if(!enabledByGesture||document.hidden||backgroundPaused||!soundOn()||!ctx)return;
-  const serial=++resumeSerial;
+  const serial=++resumeSerial;traceAudio("resume-request");
   try{
    const p=ctx.resume();
    if(p?.then)p.then(()=>{
     if(serial!==resumeSerial||document.hidden||backgroundPaused)return;
-    restorePending=false;
+    restorePending=false;traceAudio("resume-resolved");
     if(bufferTest&&currentArea&&!bufferSource&&!bufferLoading)void playBuffer(currentArea);
    },e=>{bufferError="resume "+String(e?.name||e)});
   }catch(e){bufferError="resume "+String(e?.name||e)}
@@ -44,6 +50,7 @@ window.YK_AUDIO=(()=>{
   if(!ctx||ctx.__ykRecoveryBound)return;
   ctx.__ykRecoveryBound=true;
   ctx.addEventListener?.("statechange",()=>{
+   traceAudio("statechange");
    if(ctx.state==="running"&&!document.hidden&&!backgroundPaused&&soundOn()&&currentArea){
     restorePending=false;
     if(bufferTest&&!bufferSource&&!bufferLoading)void playBuffer(currentArea);
@@ -80,7 +87,7 @@ window.YK_AUDIO=(()=>{
    source.loopStart=tracks[key].loopStart;source.loopEnd=buffer.duration;
    source.connect(bufferGain);bufferGain.gain.value=performance.now()<duckUntil?.23:.4;
    const offset=Math.max(0,Math.min(bufferOffset,buffer.duration-.01));
-   source.start(0,offset);bufferStartedAt=ctx.currentTime;bufferSource=source;bufferKey=key;bufferError="";
+   source.start(0,offset);traceAudio("source-start");bufferStartedAt=ctx.currentTime;bufferSource=source;bufferKey=key;bufferError="";
   }catch(e){bufferError=String(e?.message||e)}
   finally{if(gen===bufferGeneration)bufferLoading=""}
  }
@@ -125,7 +132,7 @@ window.YK_AUDIO=(()=>{
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  function pauseForBackground(){
   if(backgroundPaused)return;
-  backgroundPaused=true;restorePending=false;resumeSerial++;player.pause();
+  backgroundPaused=true;restorePending=false;resumeSerial++;traceAudio("background");player.pause();
   if(bufferTest){
    bufferGeneration++;bufferLoading="";
    if(bufferSource){
@@ -146,6 +153,7 @@ window.YK_AUDIO=(()=>{
  }
  function resumeFromBackground(){
   if(document.hidden)return;
+  traceAudio("foreground");
   backgroundPaused=false;
   applySessionTest();
   if(!enabledByGesture||!soundOn())return;
@@ -169,7 +177,7 @@ window.YK_AUDIO=(()=>{
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,restorePending,contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
+ function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,restorePending,lifecycleTrace:lifecycleTrace.slice(),contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
