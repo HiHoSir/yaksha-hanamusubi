@@ -9,7 +9,7 @@ window.YK_AUDIO=(()=>{
  const audioParams=new URLSearchParams(location.search);
  const audioSessionTest=audioParams.get("audioSessionTest")||(
   audioParams.get("audioSilentTest")==="1"?"ambient":"auto");
- const bufferTest=audioParams.get("audioRouteTest")!=="html";
+ const bufferTest=audioParams.get("audioRouteTest")==="web";
  const silentTest=audioSessionTest!=="auto";
  let audioSessionResult="unchanged";
  function applySessionTest(){
