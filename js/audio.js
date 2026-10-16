@@ -33,19 +33,19 @@ window.YK_AUDIO=(()=>{
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();
    if(ctx.state==="suspended")ctx.resume().catch(e=>{bufferError="tap resume "+String(e?.name||e)});
-   if(bufferTest&&currentArea&&!bufferSource){bufferLoading="";void playBuffer(currentArea)}
+   if(bufferTest&&currentArea&&!bufferSource){if(!bufferLoading)void playBuffer(currentArea)}
    else play();
   }catch(e){bufferError="tap "+String(e)}
  }
  async function playBuffer(key){
   if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn())return;
-  if(bufferKey===key&&bufferSource)return;
+  if(bufferKey===key&&bufferSource&&ctx?.state==="running")return;
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();
    // Safari may leave resume() pending after foreground. Do not block buffer reconstruction.
-   if(ctx.state==="suspended"){try{ctx.resume().catch(e=>{bufferError="resume "+String(e?.name||e)})}catch(e){bufferError="resume "+String(e)}}
+   if(ctx.state!=="running"){try{await ctx.resume()}catch(e){bufferError="resume "+String(e)}}
    let buffer=decodedBuffers[key];
    if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
     buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
@@ -92,8 +92,11 @@ window.YK_AUDIO=(()=>{
  player.addEventListener("error",()=>{lastError="media error "+(player.error?.code||"unknown")+" "+currentArea});
  player.addEventListener("canplay",()=>{if(player.paused)play()});
  function unlock(){if(document.hidden||backgroundPaused)return;applySessionTest();enabledByGesture=true;
-  try{ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume().catch(()=>{})}catch{}
-  play()
+  try{
+   ctx??=new(window.AudioContext||window.webkitAudioContext)();
+   if(ctx.state!=="running")ctx.resume().then(()=>{if(currentArea&&soundOn())play()},e=>{bufferError="unlock resume "+String(e?.name||e)});
+  }catch(e){bufferError="unlock "+String(e)}
+  play();
  }
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  function pauseForBackground(){
@@ -123,6 +126,7 @@ window.YK_AUDIO=(()=>{
   applySessionTest();
   try{if(enabledByGesture&&ctx?.state==="suspended")ctx.resume().catch(e=>{bufferError="foreground resume "+String(e?.name||e)})}catch{}
   play();
+  if(bufferTest&&currentArea&&enabledByGesture&&soundOn()&&!bufferSource)void playBuffer(currentArea);
  }
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
