@@ -79,6 +79,15 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   if(sprites.stone.complete&&sprites.stone.naturalWidth)g.drawImage(sprites.stone,4*S,6*S,2*S,S);
   ground=c;groundsDirty=false;return ground;
  }
+ let horizontalCameraX=null;
+ function trackHorizontal(x){
+  // 18 world-pixel dead zone: preserve perspective; only camera translation changes.
+  if(horizontalCameraX===null)horizontalCameraX=x;
+  const slack=18;
+  if(x>horizontalCameraX+slack)horizontalCameraX=x-slack;
+  else if(x<horizontalCameraX-slack)horizontalCameraX=x+slack;
+  return horizontalCameraX;
+ }
  function render(g,heroDraw,actorFoot){
   if(!YK_LANDSCAPE.ready()){YK_LANDSCAPE.load();return}
   const objects=[];
@@ -110,7 +119,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   // Indoor framing: fill more of the available stage while retaining the village projection.
   g.save();g.translate(-96,-95);g.scale(1.5,1.5);
   YK_LANDSCAPE.drawQuarter(g,map,{x:actorFoot.x,foot:actorFoot.y,draw:(x,y,z)=>heroDraw({x,y,z})},1.4,{
-   preset:3,horizontalScale:1.25,ground:floor(),groundOrigin:{x:ox,y:oy},objects,elevation,afterGround:drawPlatformEdge,edgeColor:'#211a17',interiorBackdrop:'#211a17'
+   preset:3,cameraX:trackHorizontal(actorFoot.x),ground:floor(),groundOrigin:{x:ox,y:oy},objects,elevation,afterGround:drawPlatformEdge,edgeColor:'#211a17',interiorBackdrop:'#211a17'
   });
   g.restore();
   g.save();g.fillStyle='#ffffff';g.font='16px sans-serif';g.fillText('茶店・室内画角テスト／10×8',18,66);g.restore();
