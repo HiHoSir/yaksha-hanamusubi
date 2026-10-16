@@ -167,7 +167,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   const rearPostFoot=oy+S;
   const wallVisualDrop=18; // world pixels; independent of wall sprite height
   function addBackWallTile(tx,source,sx){
-   objects.push({kind:'wall',x:ox+tx*S,foot:rearPostFoot,width:S,height:96,
+   objects.push({kind:'wall',x:ox+tx*S,foot:rearPostFoot-0.01,width:S,height:96,
     draw:(q,l,t,W,H,p)=>{
      q.imageSmoothingEnabled=false;
      const drop=wallVisualDrop*p.scale;
