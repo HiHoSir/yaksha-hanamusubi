@@ -297,15 +297,15 @@ window.YK_LANDSCAPE=(()=>{
   // Invert the cached piecewise-linear curve directly. Avoid 24 scale/power
   // evaluations per object and terrain vertex on every animation frame.
   let lo=0,hi=800;while(hi-lo>1){const mid=(lo+hi)>>1;if(c.offset[mid]<=vy)lo=mid;else hi=mid;}
-  const sy=lo+(vy-c.offset[lo])/(c.offset[hi]-c.offset[lo]),l=lineAt(sy,zoom,camera.preset||0);return {x:320+vx*l.xScale,y:sy,scale:l.scale,xScale:l.xScale};
+  const sy=lo+(vy-c.offset[lo])/(c.offset[hi]-c.offset[lo]),l=lineAt(sy,zoom,camera.preset||0),xs=camera.horizontalScale||l.xScale;return {x:320+vx*xs,y:sy,scale:l.scale,xScale:xs};
  }
  function unproject(x,y,camera,zoom=1.4){
-  if(y<0||y>800)return null;const l=lineAt(y,zoom,camera.preset||0),vx=(x-320)/l.xScale,vy=l.offset,a=camera.angle||0,cs=Math.cos(a),sn=Math.sin(a);
+  if(y<0||y>800)return null;const l=lineAt(y,zoom,camera.preset||0),vx=(x-320)/(camera.horizontalScale||l.xScale),vy=l.offset,a=camera.angle||0,cs=Math.cos(a),sn=Math.sin(a);
   return {x:camera.x+cs*vx-sn*vy,y:camera.y+sn*vx+cs*vy,scale:l.scale};
  }
  function drawQuarter(c,map,actor,zoom=1.4,settings={}){
   if(!ready())return false;
-  const camera={x:actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
+  const camera={x:actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0,horizontalScale:settings.horizontalScale||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;if(settings.interiorBackdrop){c.fillStyle=settings.interiorBackdrop;c.fillRect(0,0,640,544);}else c.drawImage(art.horizon,0,0,640,top+80);
   const corners=[];for(let y=top;y<=544;y+=strip)for(const x of [0,640])corners.push(unproject(x,y,camera,zoom));
   const left=Math.max(gx,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(gx+ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
@@ -316,11 +316,11 @@ window.YK_LANDSCAPE=(()=>{
    c.fillStyle=settings.edgeColor||'#25869d';c.fillRect(0,sy,640,strip);
    if(!camera.angle){
     const sourceTop=Math.max(gy,camera.y+a.offset),bottom=Math.min(gy+ground.height,camera.y+b.offset);
-    if(bottom>sourceTop)c.drawImage(ground,left-gx,sourceTop-gy,right-left,bottom-sourceTop,320+(left-camera.x)*a.xScale,sy,(right-left)*a.xScale,strip+.5);
+    if(bottom>sourceTop)c.drawImage(ground,left-gx,sourceTop-gy,right-left,bottom-sourceTop,320+(left-camera.x)*(camera.horizontalScale||a.xScale),sy,(right-left)*(camera.horizontalScale||a.xScale),strip+.5);
    }else if(right>left&&lower>upper){
     const cs=Math.cos(camera.angle),sn=Math.sin(camera.angle),ys=strip/(b.offset-a.offset);
     c.save();c.beginPath();c.rect(0,sy,640,strip);c.clip();
-    c.transform(a.xScale*cs,-ys*sn,a.xScale*sn,ys*cs,320-a.xScale*(cs*camera.x+sn*camera.y),sy-ys*(-sn*camera.x+cs*camera.y+a.offset));
+    c.transform((camera.horizontalScale||a.xScale)*cs,-ys*sn,(camera.horizontalScale||a.xScale)*sn,ys*cs,320-(camera.horizontalScale||a.xScale)*(cs*camera.x+sn*camera.y),sy-ys*(-sn*camera.x+cs*camera.y+a.offset));
     c.drawImage(ground,left-gx,upper-gy,right-left,lower-upper,left,upper,right-left,lower-upper);c.restore();
    }
   }
@@ -331,7 +331,7 @@ window.YK_LANDSCAPE=(()=>{
   const player=raised(actor.x,actor.foot);let drawn=false;
   for(const {o,p} of projected){
    if(!drawn&&player.depth<p.depth){actor.draw(player.x,player.y,player.scale);drawn=true;}
-   const w=o.width*p.scale,h=o.height*p.scale,x=p.x-w/2,y=p.y-h;if(x+w<0||x>640)continue;
+   const w=o.width*(camera.horizontalScale||p.scale),h=o.height*p.scale,x=p.x-w/2,y=p.y-h;if(x+w<0||x>640)continue;
    c.globalAlpha=Math.min(1,Math.max(0,(p.y-top)/70));
    if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
   }
