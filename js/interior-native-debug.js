@@ -13,6 +13,11 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  const road=new Image();let roadReady=false;
  road.onload=()=>{roadReady=true;groundsDirty=true};road.src='assets/terrain/landscape-v3/road.png?v=15.57.116';
  let ground=null,groundsDirty=true;
+ // Evaluation-only 4x4/32px floor atlas. Original full-palette candidate is preserved locally.
+ const woodFloor=new Image();let woodReady=false;
+ woodFloor.onload=()=>{woodReady=true;groundsDirty=true};
+ woodFloor.onerror=()=>{woodReady=false};
+ woodFloor.src='assets/interiors/prototypes/teahouse-wood-floor-4x4-preview.png?v=83f83db';
  const wallImage=document.createElement('canvas');wallImage.width=32;wallImage.height=96;
  {const c=wallImage.getContext('2d');
   c.fillStyle='#69513b';c.fillRect(0,0,32,96);
@@ -38,9 +43,10 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
    if(roadReady)g.drawImage(road,(x%2)*32,(y%2)*32,32,32,X,Y,32,32);
    else {g.fillStyle='#95734e';g.fillRect(X,Y,32,32)}
    if(y>=1&&y<=5&&x>=1&&x<=8){
-    // DEBUG ART ONLY: wood floor until approved floor tiles exist.
-    g.fillStyle='#bc915c';g.fillRect(X,Y,32,32);
-    g.strokeStyle='#95693f';g.lineWidth=1;for(let yy=6;yy<=31;yy+=11){g.beginPath();g.moveTo(X,Y+yy);g.lineTo(X+32,Y+yy);g.stroke()}
+    // Real 32px atlas cells, repeating every four tiles in both axes.
+    if(woodReady)g.drawImage(woodFloor,(x%4)*S,(y%4)*S,S,S,X,Y,S,S);
+    else {g.fillStyle='#bc915c';g.fillRect(X,Y,S,S)}
+
    }
    if((y===0||y===7||x===0||x===9)){
     // DEBUG ART ONLY: wall contact cells. Real three-layer wall art pending.
