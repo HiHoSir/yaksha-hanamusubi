@@ -463,3 +463,6 @@ body:has(#title.show) #stage{min-height:0}
  #battle .battleCommands{grid-template-columns:repeat(3,minmax(0,1fr))}
  #battle .battlePartyCards{margin:auto 0 0}
 }
+
+/* Battle environment: reuse the existing approved grassland scene, no generated art. */
+#battle #battleCanvas{background-image:linear-gradient(180deg,rgba(8,22,35,.06),rgba(8,22,35,.22)),url('../assets/scenes/battle-field-v2.png');background-position:center center;background-size:cover;background-repeat:no-repeat}
