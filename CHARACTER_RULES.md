@@ -1,14 +1,9 @@
-> Current NPC refresh rules (2026-10-15): use [NPC v3](assets/characters/npc-v3/README.md), inheriting NPC v2 identities; mirrored walking is user-approved. Older conflicting NPC appearance notes below are historical. Hizuki uses the subsequently approved cyan bob; see docs/hizuki-bluebob-v1.md.
+# Character visual rules — current (2026-10-17)
 
-# Character visual rules
+**緋月の正式デザイン：** [HIZUKI_CANON.md](docs/characters/HIZUKI_CANON.md)。フィールド採用済みの水色ショートボブ、額中央上に金色一本角、赤桃色の瞳、赤白旅装。現行フィールドの頭身・帯・袖・短靴を固定。旧紫髪・旧長髪・巨大な赤髪リボンは過去仕様であり復活禁止。
 
-| Character | Hair / silhouette | Clothing | Forbidden overlap |
-|---|---|---|---|
-| 緋月（ひづき） | **single GOLD horn on upper center forehead**, purple hair, giant red bow. Short purple bob is the approved in-game hairstyle (confirmed 2026-10-10). Earlier long-hair concept art is historical reference only. | red/white Japanese fantasy; equipment independent of appearance | protagonist-only silhouette |
-| 里の女・お澄 | brown round bun + tiny flower | muted green/cream work kimono + apron | no purple, no giant red bow, no ponytail |
-| 茶屋娘・お団子 | dark-brown high ponytail + small camellia pin | maroon/ochre/cream + short apron, serving tray | no purple, no giant bow, no round bun |
+**移行状況：** 旧 `assets/characters/yashahime/**` はバトル実装の互換用。正式デザインと同一ではなく、今後作成する戦闘画像の基準ではない。新素材検証前に旧参照を削除しない。
 
-Acceptance test: all three must remain identifiable in grayscale silhouette at gameplay size and from the back view.
+**NPC：** [NPC v3](assets/characters/npc-v3/README.md) が現行正本。左右反転歩行は承認済み。旧NPCについては来歴保存。
 
-## Approved character-bible reference
-The authoritative AI-generation briefing is [docs/production-bible/CHARACTER_BIBLE.md](docs/production-bible/CHARACTER_BIBLE.md). **2026-10-10 decision:** the user formally approved the short purple bob as Hizuki's canonical hairstyle for the game. Earlier long-hair concept art is no longer authoritative for hairstyle. Preserve the established face, horn, bow and red/white travel clothing, and test all 8 directions at gameplay scale. Keep the single metallic-gold horn at the upper center of the forehead; energetic personality is required.
+詳細：[制作バイブル](docs/production-bible/CHARACTER_BIBLE.md)、[水色ボブ実装](docs/hizuki-bluebob-v1.md)。
