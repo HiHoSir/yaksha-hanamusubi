@@ -232,7 +232,7 @@ window.YK_SETTLEMENT=(()=>{
   };
   for(let y=176;y<1152;y+=32)for(let x=96;x<1440;x+=32){
    const seed=(Math.imul(x+17,73856093)^Math.imul(y+41,19349663))>>>0;
-   if(seed%100>=27||nearLane(x,y))continue;
+   if(seed%100>=54||nearLane(x,y))continue;
    if(mapData[Math.floor(y/32)]?.[Math.floor(x/32)]!=='grass')continue;
    if(bridges.some(b=>Math.abs(x-b.x)<(b.width||128)/2+28&&Math.abs(y-b.y)<(b.height||120)/2+32))continue;
    if(buildings.some(b=>Math.abs(x-b.x)<b.w*.48+22&&y>b.y-190&&y<b.y+24))continue;
