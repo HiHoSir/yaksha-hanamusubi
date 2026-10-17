@@ -1071,7 +1071,7 @@ function beginEncounter(force=false){
  $("battleText").textContent=battle.name+"が あらわれた！";
  YK_AUDIO.stopBgmForEncounter();encounterChime();
  // Register the unlock before drawing the transition: a rendering exception must never strand the field in busy mode.
- battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;battleTrace("unlock");try{selectCmd(0);renderBattle();battleTrace("unlock.render.ok")}catch(error){battleTrace("unlock.render.error",String(error));console.error("Battle entry final render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。コマンドを選んでください。"}},2390);
+ battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;battleTrace("unlock");YK_AUDIO.startBattleMusic?.();try{selectCmd(0);renderBattle();battleTrace("unlock.render.ok")}catch(error){battleTrace("unlock.render.error",String(error));console.error("Battle entry final render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。コマンドを選んでください。"}},2390);
  encounterDissolve();
  return true;
 }
