@@ -1248,7 +1248,7 @@ function move(dx,dy,dir){
 function renderBattle(){
  if(!battle)return;
  bg.clearRect(0,0,768,430);bg.imageSmoothingEnabled=false;
- const im=B9IMG.battle;if(im&&im.complete&&im.naturalWidth)bg.drawImage(im,0,0,768,430);else{bg.fillStyle="#14283d";bg.fillRect(0,0,768,430)}
+ // The approved grassland background is the full-viewport CSS stage behind this transparent actor canvas.
 
  // Rear-view foreground party, using the approved upward-facing atlas instead
  // of inventing or mirroring a new heroine design. Existing action art remains
