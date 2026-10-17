@@ -1222,7 +1222,7 @@ function renderBattle(){
   bg.save();bg.beginPath();bg.rect(0,195,300,235);bg.clip();
   bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
   // Atlas: row 1 faces away; neutral frame is column 1.
-  const size=260,scale=1.3,anchor=248;
+  const size=256,scale=1.3,anchor=248;
   bg.drawImage(portrait,size,256,256,256,135-128*scale,420-anchor*scale,256*scale,256*scale);
   bg.restore();
  }else hero(bg,145,345,"u",1,S.outfit,1.48);
