@@ -1042,7 +1042,7 @@ function beginEncounter(force=false){
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent=battle.name+"が あらわれた！";
  YK_AUDIO.stopBgmForEncounter();encounterChime();encounterDissolve();
- battleLater(()=>{battleLocked=false;selectCmd(0);renderBattle()},2390);
+ battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;selectCmd(0);renderBattle()},2390);
  return true;
 }
 function encounter(){return beginEncounter()}
