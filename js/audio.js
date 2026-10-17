@@ -299,5 +299,5 @@ window.YK_AUDIO=(()=>{
   details.append(out);document.body.append(panel);
   refreshStatus();setInterval(refreshStatus,1500);
  }
- return {beep,horagai,battleSe,startBattleMusic,stopBgmForEncounter,endEncounterAudio,unlock,talkChar,dialogEnd,diagnostics};
+ return {beep,horagai,battleSe,startBattleMusic,syncBgm,stopBgmForEncounter,endEncounterAudio,unlock,talkChar,dialogEnd,diagnostics};
 })();
