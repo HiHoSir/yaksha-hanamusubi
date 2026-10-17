@@ -221,9 +221,50 @@ window.YK_SETTLEMENT=(()=>{
   ground=document.createElement('canvas');ground.width=size[0]+1024;ground.height=size[1]+1024;const c=ground.getContext('2d');c.imageSmoothingEnabled=false;
   for(let y=0;y<ground.height;y+=256)for(let x=0;x<ground.width;x+=256)YK_LANDSCAPE.drawAsset(c,'grass',x,y,256,256);
   c.translate(512,512);const floorMap=mapData.map(row=>row.slice());floorMap.paths=mapData.paths;floorMap.decorations=[];c.drawImage(YK_LANDSCAPE.groundLayer(floorMap),0,0);
-  for(const [x,y] of [[242,966],[438,958],[632,974],[906,982],[1178,822],[1194,560],[1150,484],[876,626],[258,590],[584,354]])YK_LANDSCAPE.drawAsset(c,'flowers',x-24,y-16,48,28);
-  // Additional flower patches use existing walkable ground art; no collision changes.
-  for(const [x,y] of [[180,932],[276,906],[370,994],[508,1004],[798,1004],[1002,1012],[1100,872],[1254,854],[1220,720],[1320,668],[1274,530],[1206,442],[1090,402],[964,382],[864,378],[242,452],[288,400],[400,404],[510,398],[600,402],[764,424],[874,496],[184,804],[278,790],[350,756],[990,754],[1150,1040],[1244,1020]])YK_LANDSCAPE.drawAsset(c,'flowers',x-24,y-16,48,28);
+  // 32px original ground tiles, generated once without extra image requests.
+  // Transparent tiles contain only petals or recognizable flower heads and leaves.
+  const makeFlowerTile=(kind,variant)=>{
+   const cv=document.createElement('canvas');cv.width=cv.height=32;
+   const q=cv.getContext('2d');q.imageSmoothingEnabled=false;
+   let seed=(variant+1)*9137+(kind==='petal'?17:53);
+   const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+   const count=kind==='petal'?6+variant%4:3+variant%3;
+   for(let k=0;k<count;k++){
+    const x=4+Math.floor(rand()*24),y=5+Math.floor(rand()*22);
+    if(kind==='petal'){
+     q.fillStyle=['#f5a0c0','#f9bfd0','#e983ac','#ffe1df'][k%4];
+     q.fillRect(x,y,2+(k%2),2);q.fillRect(x+1,y-1,1,1);
+    }else{
+     q.fillStyle='#357b42';q.fillRect(x,y+1,2,4);q.fillRect(x-2,y+2,3,2);q.fillRect(x+1,y+2,3,2);
+     q.fillStyle=['#f7a0b8','#ffdf77','#ffe4e8','#c9a6f0'][k%4];
+     q.fillRect(x,y-2,2,2);q.fillRect(x-2,y,2,2);q.fillRect(x+2,y,2,2);q.fillRect(x,y+2,2,2);
+     q.fillStyle='#ffe47e';q.fillRect(x,y,2,2);
+    }
+   }
+   return cv;
+  };
+  const petalTiles=Array.from({length:4},(_,i)=>makeFlowerTile('petal',i));
+  const wildflowerTiles=Array.from({length:4},(_,i)=>makeFlowerTile('wildflower',i));
+  const nearPath=(x,y)=>{
+   // The town paths are 3 parallel 32px corridors; keep a generous clear margin.
+   for(const line of mapData.paths)for(let i=0;i<line.length-1;i++){
+    const a=line[i],b=line[i+1],dx=b[0]-a[0],dy=b[1]-a[1];
+    const t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));
+    if(Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)<48)return true;
+   }
+   return false;
+  };
+  // Deterministic scattering: grass only, outside roads, bridges and buildings.
+  for(let y=192;y<1152;y+=32)for(let x=96;x<1440;x+=32){
+   const hash=(Math.imul(x+37,73856093)^Math.imul(y+91,19349663))>>>0;
+   if(hash%100>=31||nearPath(x,y))continue;
+   if(mapData[Math.floor(y/32)]?.[Math.floor(x/32)]!=='grass')continue;
+   if(buildings.some(b=>Math.abs(x-b.x)<b.w*.48+24&&y>b.y-180&&y<b.y+28))continue;
+   if(gardens.some(a=>Math.abs(x-a.x)<a.w/2+12&&Math.abs(y-a.y+30)<58))continue;
+   if(trees.some(t=>Math.hypot(x-t.x,y-t.y)<24))continue;
+   const tiles=(hash%5===0)?petalTiles:wildflowerTiles;
+   c.drawImage(tiles[(hash>>>7)%tiles.length],x-16,y-16);
+  }
   for(const a of gardens){c.save();c.beginPath();c.rect(a.x-a.w/2,a.y-68,a.w,76);c.clip();for(let y=a.y-68;y<a.y+8;y+=64)for(let x=a.x-a.w/2;x<a.x+a.w/2;x+=64)YK_LANDSCAPE.drawAsset(c,'road',x,y,64,64);c.fillStyle='#4b301c88';c.fillRect(a.x-a.w/2,a.y-68,a.w,76);c.restore();}
   return ground;
  }
