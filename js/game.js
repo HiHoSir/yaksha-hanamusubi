@@ -1309,7 +1309,20 @@ function renderBattle(){
  const hitProgress=normalSlash?Math.max(0,(progress-2/3)*3):progress;
  const recoil=battleFx?.target==="enemy"&&!battleFx.reduced&&(!normalSlash||progress>=2/3)?Math.sin(hitProgress*Math.PI*8)*7*(1-hitProgress):0;
  // Defeated enemies must not leave a 25%-opacity ghost on the stage.
- if(battle.hp>0){bg.save();enemyArt(bg,483+recoil,224);bg.restore();}
+ // A lethal blow keeps the enemy visible through the hit, then fades it out.
+ // Never leave a persistent low-opacity ghost after the impact window.
+ const lethalFx=battle.hp<=0&&battleFx?.target==="enemy"&&battleFx.amount>0;
+ const lethalAge=lethalFx?performance.now()-battleFx.start:Infinity;
+ const dying=battle.hp<=0&&!battle.rewarded;
+ if(battle.hp>0||dying&&lethalAge<800){
+  bg.save();
+  if(dying){
+   const fade=Math.max(0,Math.min(1,(lethalAge-400)/400));
+   bg.globalAlpha=1-fade;
+   bg.translate(0,-fade*13);
+  }
+  enemyArt(bg,483+recoil,224);bg.restore();
+ }
  if(!normalSlash||progress>=2/3)drawBattleFx(bg,hitProgress);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
  $("enemyTargetInfo").hidden=!targeting;
