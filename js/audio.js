@@ -28,12 +28,40 @@ window.YK_AUDIO=(()=>{
  function zone(area){return area==="field"?"field":"village"}
  let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
  let resumeSerial=0,restorePending=false;
- let encounterMuted=false;
+ let encounterMuted=false,battleMusicTimer=null,battleMusicStep=0,battleMusicActive=false;
+ // Original lightweight battle motif. Scheduled only while a battle is active;
+ // a dedicated mastered soundtrack can replace this without changing game events.
+ function stopBattleMusic(){battleMusicActive=false;clearTimeout(battleMusicTimer);battleMusicTimer=null;}
+ function battleMusicTick(){
+  if(!battleMusicActive)return;
+  if(soundOn()&&enabledByGesture&&!document.hidden&&!backgroundPaused){
+   const melody=[330,392,440,523,440,392,330,294,330,392,494,587,523,440,392,330];
+   const n=battleMusicStep++%melody.length;
+   sound(melody[n],.15,"triangle",.016,1250);
+   if(n%4===0)sound([110,130.81,146.83,98][Math.floor(n/4)],.29,"sine",.026,470);
+  }
+  battleMusicTimer=setTimeout(battleMusicTick,215);
+ }
+ function startBattleMusic(){
+  if(battleMusicActive)return;
+  stopBattleMusic();battleMusicActive=true;battleMusicStep=0;battleMusicTick();
+ }
+ function battleSe(kind){
+  const effects={
+   slash:[[720,.075,"sawtooth"],[300,.11,"triangle"]],
+   skill:[[680,.18,"sine"],[880,.14,"triangle"]],
+   hit:[[145,.18,"sawtooth"],[85,.11,"triangle"]],
+   guard:[[240,.15,"triangle"]],
+   heal:[[540,.17,"sine"],[810,.22,"sine"]],
+   victory:[[523,.14,"triangle"],[659,.22,"triangle"]]
+  };
+  const notes=effects[kind]||[];for(const [freq,dur,type] of notes)sound(freq,dur,type,.034,1500);
+ }
  function stopBgmForEncounter(){
   encounterMuted=true;requestId++;playPending=false;player.pause();
   if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0;}
  }
- function endEncounterAudio(){encounterMuted=false;if(currentArea&&soundOn())play();}
+ function endEncounterAudio(){stopBattleMusic();encounterMuted=false;if(currentArea&&soundOn())play();}
 
  const lifecycleTrace=[];
  function traceAudio(event){
@@ -142,7 +170,7 @@ window.YK_AUDIO=(()=>{
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  function pauseForBackground(){
   if(backgroundPaused)return;
-  backgroundPaused=true;restorePending=false;resumeSerial++;traceAudio("background");player.pause();
+  backgroundPaused=true;clearTimeout(battleMusicTimer);battleMusicTimer=null;restorePending=false;resumeSerial++;traceAudio("background");player.pause();
   if(bufferTest){
    bufferGeneration++;bufferLoading="";
    if(bufferSource){
@@ -165,6 +193,7 @@ window.YK_AUDIO=(()=>{
   if(document.hidden)return;
   traceAudio("foreground");
   backgroundPaused=false;
+  if(battleMusicActive&&!battleMusicTimer)battleMusicTick();
   applySessionTest();
   if(!enabledByGesture||!soundOn())return;
   // Rebuild the stopped node only when the context can run, rather than marking
@@ -270,5 +299,5 @@ window.YK_AUDIO=(()=>{
   details.append(out);document.body.append(panel);
   refreshStatus();setInterval(refreshStatus,1500);
  }
- return {beep,horagai,syncBgm,stopBgmForEncounter,endEncounterAudio,unlock,talkChar,dialogEnd,diagnostics};
+ return {beep,horagai,battleSe,startBattleMusic,stopBgmForEncounter,endEncounterAudio,unlock,talkChar,dialogEnd,diagnostics};
 })();
