@@ -171,6 +171,7 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
+const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 const HIZUKI_BATTLE_IDLE=new Image();
 HIZUKI_BATTLE_IDLE.onload=assetLoaded;
 HIZUKI_BATTLE_IDLE.src="assets/characters/hizuki/battle-v1/idle-rear-pixel.png?v=15.57.157";
@@ -1222,6 +1223,12 @@ function renderBattle(){
   const box=battleSpriteLayout(sprite,S.outfit,battlePose);
   bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
   bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
+ }else if(layerReady(HIZUKI_BATTLE_FRAMES[0])){
+  const phase=battleFx?.source==="hero"&&battleFx?.target==="enemy"?Math.min(2,Math.floor((performance.now()-battleFx.start)/Math.max(1,battleFx.duration)*3)):0;
+  const image=layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
+  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
+  const height=316,width=height*image.naturalWidth/image.naturalHeight;
+  bg.drawImage(image,150-width/2,430-height,width,height);bg.restore();
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
   // Character art is independent RGBA, not an enlarged field sprite.
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();
