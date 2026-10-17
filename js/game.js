@@ -1254,8 +1254,10 @@ function renderBattle(){
  // of inventing or mirroring a new heroine design. Existing action art remains
  // available during explicit attack/skill/hit/victory poses.
  const normalSlash=battleFx?.kind==="slash"&&battleFx?.target==="enemy";
- const actionPose=!["idle","guard"].includes(battlePose);
- const sprite=BATTLE_SPRITES[S.outfit]?.[battlePose];
+ // The old Yashahime pose sprites do not match the current blue-bob Hizuki.
+ // Reuse the approved battle-v2 actor until dedicated hit/victory art is approved.
+ const actionPose=false;
+ const sprite=null;
  const portrait=layerReady(HIZUKI_4DIR)?HIZUKI_4DIR:null;
  if(actionPose&&!normalSlash&&layerReady(sprite)){
   const box=battleSpriteLayout(sprite,S.outfit,battlePose);
@@ -1266,7 +1268,12 @@ function renderBattle(){
   const image=layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
   const height=316,width=height*image.naturalWidth/image.naturalHeight;
-  bg.drawImage(image,150-width/2,430-height,width,height);bg.restore();
+  const hit=battlePose==="hit",victory=battlePose==="victory";
+  const x=150-width/2+(hit?12:0),y=430-height+(hit?9:victory?-9:0);
+  if(hit){bg.globalAlpha=.8;bg.filter="sepia(.45) saturate(1.5) hue-rotate(305deg)";}
+  bg.drawImage(image,x,y,width,height);bg.restore();
+  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
+  if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
   // Character art is independent RGBA, not an enlarged field sprite.
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();
@@ -1355,8 +1362,8 @@ function cmd(n){
  n=check.action;
  battleLocked=true;
  renderBattleCommands();
- if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();battleLater(foe,420);return;}
- if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);renderBattle();battleLater(foe,480);return;}
+ if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();YK_AUDIO.battleSe?.("guard");battleLater(foe,420);return;}
+ if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,480);return;}
  if(n==="attack"||n==="skill"){
   const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random);
   if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,420);return;}
@@ -1364,7 +1371,7 @@ function cmd(n){
   battle.hp-=d;battlePose=n==="skill"?"skill":"attack";
   // Rare enemy damage no longer changes outfit sprites.
   $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
-  YK_AUDIO.beep(n==="skill"?720:330,.08);startBattleFx(n==="skill"?"petals":"slash","enemy",d);renderBattle();
+  YK_AUDIO.battleSe?.(n==="skill"?"skill":"slash");startBattleFx(n==="skill"?"petals":"slash","enemy",d);renderBattle();
   battleLater(()=>{battlePose="idle";renderBattle()},320);
   if(battle.hp<=0){battleLater(win,480);return;}
   battleLater(foe,480);
@@ -1383,7 +1390,7 @@ function foe(){
  const foxfire=battle.rareTrait==="foxfire"&&Math.random()<battle.rareTraitChance;
  const d=YK_BATTLE_RULES.foeDamage(battle.atk,S.def+relicBonus("def"),variance,foxfire,battle.guarding,Math.random);battle.guarding=false;
  S.hp=Math.max(0,S.hp-d);$("battleText").textContent=foxfire?`${battle.name}の妖火！ ${d}ダメージ`:`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
- startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.beep(foxfire?520:(profile?.style==="trickster"?180:110),.08);
+ startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.battleSe?.("hit");
  battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;YK_BATTLE_RULES.nextTurn(battle);renderBattle()},600);
 }
 function win(){
@@ -1393,7 +1400,7 @@ function win(){
  const equipmentDrop=E.drop(S,battle.baseName);if(equipmentDrop)loot+=` ／ ${E.items[equipmentDrop].name}を入手！`;
  battle.rewardText=`${battle.name}を こらしめた！ 心の数 ${battle.xp} ／ ${battle.gold}両${loot}`;
  if(YK_BATTLE_RULES.applyLevelUps(S))battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
- $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;battlePose='victory';battleCursor=0;
+ $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.("victory");
  YK_SAVE.auto(S);renderBattle();
 }
 function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(reward)message(reward,4500)}
