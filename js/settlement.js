@@ -222,6 +222,8 @@ window.YK_SETTLEMENT=(()=>{
   for(let y=0;y<ground.height;y+=256)for(let x=0;x<ground.width;x+=256)YK_LANDSCAPE.drawAsset(c,'grass',x,y,256,256);
   c.translate(512,512);const floorMap=mapData.map(row=>row.slice());floorMap.paths=mapData.paths;floorMap.decorations=[];c.drawImage(YK_LANDSCAPE.groundLayer(floorMap),0,0);
   for(const [x,y] of [[242,966],[438,958],[632,974],[906,982],[1178,822],[1194,560],[1150,484],[876,626],[258,590],[584,354]])YK_LANDSCAPE.drawAsset(c,'flowers',x-24,y-16,48,28);
+  // Additional flower patches use existing walkable ground art; no collision changes.
+  for(const [x,y] of [[180,932],[276,906],[370,994],[508,1004],[798,1004],[1002,1012],[1100,872],[1254,854],[1220,720],[1320,668],[1274,530],[1206,442],[1090,402],[964,382],[864,378],[242,452],[288,400],[400,404],[510,398],[600,402],[764,424],[874,496],[184,804],[278,790],[350,756],[990,754],[1150,1040],[1244,1020]])YK_LANDSCAPE.drawAsset(c,'flowers',x-24,y-16,48,28);
   for(const a of gardens){c.save();c.beginPath();c.rect(a.x-a.w/2,a.y-68,a.w,76);c.clip();for(let y=a.y-68;y<a.y+8;y+=64)for(let x=a.x-a.w/2;x<a.x+a.w/2;x+=64)YK_LANDSCAPE.drawAsset(c,'road',x,y,64,64);c.fillStyle='#4b301c88';c.fillRect(a.x-a.w/2,a.y-68,a.w,76);c.restore();}
   return ground;
  }
@@ -354,7 +356,7 @@ function floweringTree(kind){
  function draw(c,state,actors,doorState,time=performance.now()){
   load();YK_LANDSCAPE.load();YK_AUTOTILE.load();if(!ready()||!YK_LANDSCAPE.ready()||!YK_AUTOTILE.ready())return false;
   const sprite=(key,x,y,width,draw)=>({kind:key,x:x-width/2,foot:y,width,height:width*art[key].height/art[key].width*(key==='fence'?.5:1),draw:draw||((q,l,t,w,h)=>q.drawImage(art[key],l,t,w,h))});
-  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map((t,i)=>{const variant=i===1||i===4?'sakura':i===3?'white':null;const ob=sprite('tree',t.x,t.y,t.w);if(variant)ob.draw=(q,x,y,w,h)=>q.drawImage(floweringTree(variant),x,y,w,h);return ob;}),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite,camera(state.x,state.y)),sprite('well',well.x,well.y,well.w),
+  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map((t,i)=>{const variant=i===0||i===1||i===3||i===4?'sakura':null;const ob=sprite('tree',t.x,t.y,t.w);if(variant)ob.draw=(q,x,y,w,h)=>q.drawImage(floweringTree(variant),x,y,w,h);return ob;}),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite,camera(state.x,state.y)),sprite('well',well.x,well.y,well.w),
    ...buildings.map(b=>b.kind==='shrine'?{kind:'shrine',x:b.x-b.w/2,foot:b.y,width:b.w,height:b.w}:sprite(b.kind,b.x,b.y,b.w,(q,x,y,w,h)=>{q.drawImage(art[b.kind],x,y,w,h);drawDoor(q,b,x,y,w,h,doorState?.id===b.id?doorState.open:0);})),
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();
