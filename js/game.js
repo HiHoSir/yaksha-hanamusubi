@@ -170,6 +170,10 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 // The withheld stardust artwork is intentionally not loaded in public builds.
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
+// Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
+const HIZUKI_BATTLE_IDLE=new Image();
+HIZUKI_BATTLE_IDLE.onload=assetLoaded;
+HIZUKI_BATTLE_IDLE.src="assets/characters/hizuki/battle-v1/idle-rear-pixel.png?v=15.57.157";
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
 HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.116";
@@ -1180,7 +1184,7 @@ function move(dx,dy,dir){
 }function renderBattlePartyCards(){
  const root=$("battlePartyCards");if(!root)return;
  const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
- const src=BATTLE_SPRITES[S.outfit]?.idle?.src||"";
+ const src=HIZUKI_BATTLE_IDLE.complete&&HIZUKI_BATTLE_IDLE.naturalWidth?HIZUKI_BATTLE_IDLE.src:(BATTLE_SPRITES[S.outfit]?.idle?.src||"");
  const fragment=document.createDocumentFragment();
  for(let i=0;i<4;i++){
   const member=members[i],card=document.createElement("div");
@@ -1218,6 +1222,13 @@ function renderBattle(){
   const box=battleSpriteLayout(sprite,S.outfit,battlePose);
   bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
   bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
+ }else if(layerReady(HIZUKI_BATTLE_IDLE)){
+  // Character art is independent RGBA, not an enlarged field sprite.
+  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();
+  bg.imageSmoothingEnabled=false;
+  const height=316,width=height*HIZUKI_BATTLE_IDLE.naturalWidth/HIZUKI_BATTLE_IDLE.naturalHeight;
+  bg.drawImage(HIZUKI_BATTLE_IDLE,150-width/2,430-height,width,height);
+  bg.restore();
  }else if(portrait){
   bg.save();bg.beginPath();bg.rect(0,195,300,235);bg.clip();
   bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
