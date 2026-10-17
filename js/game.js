@@ -1281,7 +1281,10 @@ function renderBattle(){
   const w=width*(1+breath*.32),h=height*(1+breath);
   const x=150-w/2+shake+(hit?impact*9:0);
   const y=430-h+(hit?impact*7:0)+(victory?-7:0);
-  if(hit){bg.globalAlpha=1-impact*.25;bg.filter="sepia(.25) saturate(1.3) hue-rotate(320deg)";}
+  // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
+  // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
+  bg.filter=hit?"drop-shadow(1px 2px 2px rgba(18,22,36,.78)) sepia(.25) saturate(1.3) hue-rotate(320deg)":"drop-shadow(1px 2px 2px rgba(18,22,36,.78))";
+  if(hit)bg.globalAlpha=1-impact*.25;
   bg.drawImage(image,x,y,w,h);bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
@@ -1303,7 +1306,8 @@ function renderBattle(){
  const progress=battleFx?Math.min(1,(performance.now()-battleFx.start)/battleFx.duration):1;
  const hitProgress=normalSlash?Math.max(0,(progress-2/3)*3):progress;
  const recoil=battleFx?.target==="enemy"&&!battleFx.reduced&&(!normalSlash||progress>=2/3)?Math.sin(hitProgress*Math.PI*8)*7*(1-hitProgress):0;
- bg.save();if(battle.hp<=0)bg.globalAlpha=.25;enemyArt(bg,483+recoil,224);bg.restore();
+ // Defeated enemies must not leave a 25%-opacity ghost on the stage.
+ if(battle.hp>0){bg.save();enemyArt(bg,483+recoil,224);bg.restore();}
  if(!normalSlash||progress>=2/3)drawBattleFx(bg,hitProgress);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
  $("enemyTargetInfo").hidden=!targeting;
