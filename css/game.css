@@ -311,3 +311,17 @@ body:has(#title.show) #stage{min-height:0}
 }
 #dialogNext.hasNextLine{opacity:1;animation:dialog-next-pulse .9s steps(2,end) infinite}
 @media(prefers-reduced-motion:reduce){#dialogNext.hasNextLine{opacity:1;animation:none}}
+
+
+/* Battle renewal phase 1: four scalable portrait/status slots, no invented allies. */
+#battle .battlePartyCards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:5px 4% 0;flex:none}
+#battle .battlePartyCard{min-width:0;min-height:54px;display:flex;gap:5px;align-items:center;padding:4px;border:1px solid #ac9264;background:#152138;border-radius:5px;color:#fff1d5}
+#battle .battlePartyCard.is-empty{opacity:.35;border-style:dashed}
+#battle .battlePartyPortrait{width:39px;height:43px;flex:none;border:1px solid #b9a178;background:#24344b;object-fit:cover;object-position:center top}
+#battle .battlePartyPortraitFallback{display:grid;place-items:center;font-weight:700;font-size:16px}
+#battle .battlePartySummary{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:11px;line-height:1.2}
+#battle .battlePartySummary strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+#battle .battlePartySummary span{white-space:nowrap;font-variant-numeric:tabular-nums}
+#battle .battleTop #enemyTargetInfo[hidden]{display:none}
+@media(max-width:520px){#battle .battlePartyCard{padding:3px;gap:3px;min-height:48px}#battle .battlePartyPortrait{width:28px;height:37px}#battle .battlePartySummary{font-size:10px}#battle .battlePartySummary strong{font-size:11px}}
+@media(max-height:720px){#battle .battlePartyCards{margin-top:2px}#battle .battlePartyCard{min-height:42px}#battle .battlePartyPortrait{height:33px}}
