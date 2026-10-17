@@ -1018,7 +1018,8 @@ function encounterDissolve(){
   battleLater(()=>{glyph.style.transition="opacity 320ms ease-in,transform 320ms ease-in";glyph.style.opacity="0";glyph.style.transform="scale(.97) translateY(-11px)"},1580+i*110);
  }
  cover.appendChild(words);document.body.appendChild(cover);
- const panel=$("battle");panel.style.transition="none";panel.style.opacity="1";panel.classList.add("show");renderBattle();
+ const panel=$("battle");panel.style.transition="none";panel.style.opacity="1";panel.classList.add("show");
+ try{renderBattle()}catch(error){console.error("Battle entry render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。操作は継続できます。"}
  // Keep the monochrome scene in view; dissolve only after the second character lands.
  battleLater(()=>{if(cover.isConnected){cover.style.transition="opacity 650ms ease-in-out";cover.style.opacity="0"}},1650);
  battleLater(()=>{cover.remove();panel.style.transition="";panel.style.opacity=""},2380);
@@ -1041,8 +1042,10 @@ function beginEncounter(force=false){
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent=battle.name+"が あらわれた！";
- YK_AUDIO.stopBgmForEncounter();encounterChime();encounterDissolve();
- battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;selectCmd(0);renderBattle()},2390);
+ YK_AUDIO.stopBgmForEncounter();encounterChime();
+ // Register the unlock before drawing the transition: a rendering exception must never strand the field in busy mode.
+ battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;try{selectCmd(0);renderBattle()}catch(error){console.error("Battle entry final render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。コマンドを選んでください。"}},2390);
+ encounterDissolve();
  return true;
 }
 function encounter(){return beginEncounter()}
