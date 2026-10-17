@@ -28,6 +28,13 @@ window.YK_AUDIO=(()=>{
  function zone(area){return area==="field"?"field":"village"}
  let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
  let resumeSerial=0,restorePending=false;
+ let encounterMuted=false;
+ function stopBgmForEncounter(){
+  encounterMuted=true;requestId++;playPending=false;player.pause();
+  if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0;}
+ }
+ function endEncounterAudio(){encounterMuted=false;if(currentArea&&soundOn())play();}
+
  const lifecycleTrace=[];
  function traceAudio(event){
   lifecycleTrace.push({event,at:Math.round(performance.now()),hidden:document.hidden,paused:backgroundPaused,state:ctx?.state||"none",source:!!bufferSource,loading:bufferLoading,key:bufferKey,pending:restorePending});
@@ -68,7 +75,7 @@ window.YK_AUDIO=(()=>{
   }catch(e){bufferError="tap "+String(e)}
  }
  async function playBuffer(key){
-  if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn())return;
+  if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn()||encounterMuted)return;
   if(bufferKey===key&&bufferSource)return;
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
@@ -93,6 +100,7 @@ window.YK_AUDIO=(()=>{
  }
  function attenuate(){if(bufferTest){if(bufferGain)bufferGain.gain.value=performance.now()<duckUntil?.23:.4;}else player.volume=performance.now()<duckUntil?.23:.4}
  function play(){
+  if(encounterMuted)return;
   if(bufferTest){if(currentArea)void playBuffer(currentArea);return}
   if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused||!currentArea||!player.paused||playPending)return;
   const id=requestId;playPending=true;
@@ -109,6 +117,7 @@ window.YK_AUDIO=(()=>{
   attenuate();play();
  }
  function syncBgm(area){
+  if(encounterMuted)return;
   const key=zone(area);if(key!==currentArea)setTrack(key);
   if(!soundOn()){player.pause();if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0}return}
   attenuate();play()
@@ -269,5 +278,5 @@ window.YK_AUDIO=(()=>{
   details.append(out);document.body.append(panel);
   refreshStatus();setInterval(refreshStatus,1500);
  }
- return {beep,horagai,syncBgm,unlock,talkChar,dialogEnd,diagnostics};
+ return {beep,horagai,syncBgm,stopBgmForEncounter,endEncounterAudio,unlock,talkChar,dialogEnd,diagnostics};
 })();
