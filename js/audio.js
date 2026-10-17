@@ -208,9 +208,9 @@ window.YK_AUDIO=(()=>{
    const horn=(delay,length,fundamental,level)=>{
     const t=now+delay,end=t+length;
     const output=ctx.createGain(),tone=ctx.createBiquadFilter();
-    tone.type="lowpass";tone.frequency.setValueAtTime(780,t);
-    tone.frequency.linearRampToValueAtTime(1380,t+.28);
-    tone.frequency.exponentialRampToValueAtTime(690,end);
+    tone.type="lowpass";tone.frequency.setValueAtTime(940,t);
+    tone.frequency.linearRampToValueAtTime(1850,t+.28);
+    tone.frequency.exponentialRampToValueAtTime(950,end);
     output.gain.setValueAtTime(.0001,t);
     output.gain.exponentialRampToValueAtTime(level,t+.19);
     output.gain.setValueAtTime(level*.86,t+length*.53);
@@ -228,8 +228,10 @@ window.YK_AUDIO=(()=>{
      o.connect(g);g.connect(tone);o.start(t);o.stop(end+.025);
     }
    };
-   horn(0,1.05,177,.066);
-   horn(.83,.95,208,.054);
+   // Low opening call followed by a clearly higher, louder answering call.
+   // Peak master gains remain conservative to avoid clipping on phone speakers.
+   horn(0,1.05,155,.14);
+   horn(.85,1.0,238,.19);
   }catch(e){lastError="horagai "+String(e?.name||e)}
  }
 
