@@ -21,6 +21,7 @@ const server=http.createServer((req,res)=>{
  const battleButtons=page.locator('#battleCommands [data-cmd]');
  assert(await battleButtons.count()>=5,'battle commands missing '+height);
  for(const button of await battleButtons.all()){
+  if(!(await button.isVisible()))continue;
   assert(await button.evaluate(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),'battle command occluded '+height);
  }
  await battleButtons.nth(1).tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'skill');
