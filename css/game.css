@@ -364,7 +364,7 @@ body:has(#title.show) #stage{min-height:0}
 }
 
 /* Battle UI v3: floating glass HUD and full-stage presentation during actions. */
-#battle.show{position:relative;background:#0b1b2b;isolation:isolate}
+#battle.show{position:fixed;inset:0;z-index:70;background:#0b1b2b;isolation:isolate}
 #battle #battleCanvas{border:0;border-radius:0}
 #battle .battleTop,#battle .battleInfo,#battle .battlePartyCard{background:rgba(12,27,44,.50);border-color:rgba(226,199,148,.46);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 10px #0003}
 #battle .battleCommands button{background:rgba(20,43,66,.64);border-color:rgba(225,199,149,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
