@@ -987,7 +987,8 @@ function renderDialogPortrait(){
 function encounterDissolve(){
  battleTrace("dissolve.start");
  const old=$("ykEncounterFrame");if(old)old.remove();
- const source=$("game"),rect=source.getBoundingClientRect();
+ const source=$("game");
+ const rect=typeof source?.getBoundingClientRect==="function"?source.getBoundingClientRect():{left:0,top:0,width:source?.width||0,height:source?.height||0};
  const cover=document.createElement("div");cover.id="ykEncounterFrame";cover.setAttribute("aria-hidden","true");
  Object.assign(cover.style,{position:"fixed",inset:"0",zIndex:"90",pointerEvents:"none",opacity:"1",background:"rgba(8,8,12,.88)",transition:"none",willChange:"opacity"});
  try{
