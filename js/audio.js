@@ -189,31 +189,38 @@ window.YK_AUDIO=(()=>{
  }
  function beep(freq=440,dur=.07,type="triangle"){sound(freq,dur,type,.027,1900)}
  function horagai(){
-  // Conch-like harmonic horn, deliberately routed through the existing Web Audio
-  // context so in-game mute, background pause and the Safari audio session apply.
+  // Two breath-shaped calls, with unstable lip pitch and restrained harmonics.
+  // Reuse the approved AudioContext/session; no BGM route or lifecycle changes.
   if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();
    if(ctx.state!=="running"){ctx.resume().catch(()=>{});return;}
-   const now=ctx.currentTime,master=ctx.createGain(),filter=ctx.createBiquadFilter();
-   filter.type="lowpass";filter.frequency.setValueAtTime(680,now);
-   filter.frequency.linearRampToValueAtTime(1230,now+.34);
-   filter.frequency.linearRampToValueAtTime(520,now+1.42);
-   master.gain.setValueAtTime(.0001,now);
-   master.gain.exponentialRampToValueAtTime(.058,now+.16);
-   master.gain.setValueAtTime(.052,now+.65);
-   master.gain.exponentialRampToValueAtTime(.0001,now+1.52);
-   filter.connect(master);master.connect(ctx.destination);
-   for(const [multiple,volume] of [[1,1],[2,.42],[3,.21],[4,.11]]){
-    const oscillator=ctx.createOscillator(),mix=ctx.createGain();
-    oscillator.type="sawtooth";
-    oscillator.frequency.setValueAtTime(159*multiple,now);
-    oscillator.frequency.exponentialRampToValueAtTime(181*multiple,now+.33);
-    oscillator.frequency.exponentialRampToValueAtTime(166*multiple,now+1.38);
-    mix.gain.value=volume/4;
-    oscillator.connect(mix);mix.connect(filter);
-    oscillator.start(now);oscillator.stop(now+1.55);
-   }
+   const now=ctx.currentTime;
+   const horn=(delay,length,fundamental,level)=>{
+    const t=now+delay,end=t+length;
+    const output=ctx.createGain(),tone=ctx.createBiquadFilter();
+    tone.type="lowpass";tone.frequency.setValueAtTime(780,t);
+    tone.frequency.linearRampToValueAtTime(1380,t+.28);
+    tone.frequency.exponentialRampToValueAtTime(690,end);
+    output.gain.setValueAtTime(.0001,t);
+    output.gain.exponentialRampToValueAtTime(level,t+.19);
+    output.gain.setValueAtTime(level*.86,t+length*.53);
+    output.gain.exponentialRampToValueAtTime(.0001,end);
+    tone.connect(output);output.connect(ctx.destination);
+    for(const [harmonic,mix,kind] of [[1,.54,"sine"],[2,.26,"triangle"],[3,.13,"sine"],[4,.07,"triangle"]]){
+     const o=ctx.createOscillator(),g=ctx.createGain();
+     o.type=kind;
+     const f=fundamental*harmonic;
+     o.frequency.setValueAtTime(f*.87,t);
+     o.frequency.exponentialRampToValueAtTime(f*1.045,t+.22);
+     o.frequency.setValueAtTime(f*1.045,t+.26);
+     o.frequency.exponentialRampToValueAtTime(f*.985,end);
+     g.gain.value=mix;
+     o.connect(g);g.connect(tone);o.start(t);o.stop(end+.025);
+    }
+   };
+   horn(0,1.05,177,.066);
+   horn(.83,.95,208,.054);
   }catch(e){lastError="horagai "+String(e?.name||e)}
  }
 
