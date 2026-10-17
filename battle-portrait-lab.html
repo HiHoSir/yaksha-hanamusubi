@@ -23,6 +23,12 @@ header{position:relative;z-index:5;flex:none;margin-bottom:5px}
 .commands button{background:rgba(12,31,52,.36);border:1px solid rgba(232,207,164,.62);box-shadow:inset 0 1px 0 #ffffff12;color:#fff4dd;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .commands button.selected{background:rgba(114,56,83,.47);outline:1px solid rgba(248,213,154,.85)}
 .commands button:active{background:rgba(177,132,91,.52)}
+
+main{position:relative;isolation:isolate;min-height:100dvh;background:#263d50 url("assets/scenes/battle-grass-v1.png") center center / cover no-repeat}
+.arena{background:transparent!important}
+.arena:after{background:transparent!important}
+.note{display:none}
+header{background:rgba(8,23,39,.3);border-radius:8px}
 </style></head><body><main><header><div><b>草原戦闘背景・縦横検証</b><br><small>草原背景候補／本編には未適用</small></div><a href="index.html">ゲームへ</a></header><div class="arena"><img class="hero" src="assets/characters/hizuki/battle-v1/idle-rear-pixel.png" alt="緋月の戦闘待機姿"><img role="button" tabindex="0" aria-label="鬼を選択" class="enemy" src="assets/enemies/hd512/oni-intact-512.png" alt="鬼"><div id="target" class="target" hidden>鬼　体 36/36</div></div><div class="party"><div class="member"><strong>緋月</strong><small>体 44/55<br>技 12/20</small><div class="bar"><i></i></div></div><div class="member empty"><strong>仲間2</strong><small>未加入</small></div><div class="member empty"><strong>仲間3</strong><small>未加入</small></div><div class="member empty"><strong>仲間4</strong><small>未加入</small></div></div><div id="log" class="log">どうする？</div><div class="commands" id="commands"><button data-cmd="戦う" class="selected">戦う</button><button data-cmd="術">術</button><button data-cmd="道具">道具</button><button data-cmd="守る">守る</button><button data-cmd="逃げる">逃げる</button><button data-cmd="戻る">戻る</button></div><p class="note">コマンドをタップすると選択表示が変わります。戦闘・セーブ・報酬は動作しません。攻撃・被弾は表示演出のみです。新しい正方形の草原背景と既存の緋月・敵のPNGを使用しています。</p></main><script>
 const buttons=[...document.querySelectorAll('[data-cmd]')],log=document.getElementById('log'),target=document.getElementById('target'),enemy=document.querySelector('.enemy'),commands=document.getElementById('commands');let acting=false,selected=false;
 function selectEnemy(){if(acting)return;selected=true;enemy.classList.add('targeted');target.hidden=false;log.textContent='鬼を選択中　「戦う」で攻撃演出';}
