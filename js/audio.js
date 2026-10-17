@@ -132,6 +132,7 @@ window.YK_AUDIO=(()=>{
  player.addEventListener("error",()=>{lastError="media error "+(player.error?.code||"unknown")+" "+currentArea});
  player.addEventListener("canplay",()=>{if(player.paused)play()});
  function unlock(){if(document.hidden||backgroundPaused)return;applySessionTest();enabledByGesture=true;
+  void preloadHoragai();
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();bindContext();
    if(ctx.state!=="running")resumeContext();
@@ -197,42 +198,31 @@ window.YK_AUDIO=(()=>{
   }catch{}
  }
  function beep(freq=440,dur=.07,type="triangle"){sound(freq,dur,type,.027,1900)}
+ let horagaiBuffer=null,horagaiLoading=null;
+ function preloadHoragai(){
+  if(horagaiBuffer)return Promise.resolve(horagaiBuffer);
+  if(horagaiLoading)return horagaiLoading;
+  horagaiLoading=fetch("audio/horagai-encounter.mp3?v=15.57.154")
+   .then(r=>{if(!r.ok)throw Error("horagai HTTP "+r.status);return r.arrayBuffer()})
+   .then(bytes=>{ctx??=new(window.AudioContext||window.webkitAudioContext)();bindContext();return ctx.decodeAudioData(bytes)})
+   .then(b=>{horagaiBuffer=b;return b})
+   .catch(e=>{lastError="horagai load "+String(e?.message||e);horagaiLoading=null;return null});
+  return horagaiLoading;
+ }
  function horagai(){
-  // Two breath-shaped calls, with unstable lip pitch and restrained harmonics.
-  // Reuse the approved AudioContext/session; no BGM route or lifecycle changes.
   if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;
-  try{
-   ctx??=new(window.AudioContext||window.webkitAudioContext)();
-   if(ctx.state!=="running"){ctx.resume().catch(()=>{});return;}
-   const now=ctx.currentTime;
-   const horn=(delay,length,fundamental,level)=>{
-    const t=now+delay,end=t+length;
-    const output=ctx.createGain(),tone=ctx.createBiquadFilter();
-    tone.type="lowpass";tone.frequency.setValueAtTime(940,t);
-    tone.frequency.linearRampToValueAtTime(1850,t+.28);
-    tone.frequency.exponentialRampToValueAtTime(950,end);
-    output.gain.setValueAtTime(.0001,t);
-    output.gain.exponentialRampToValueAtTime(level,t+.19);
-    output.gain.setValueAtTime(level*.86,t+length*.53);
-    output.gain.exponentialRampToValueAtTime(.0001,end);
-    tone.connect(output);output.connect(ctx.destination);
-    for(const [harmonic,mix,kind] of [[1,.54,"sine"],[2,.26,"triangle"],[3,.13,"sine"],[4,.07,"triangle"]]){
-     const o=ctx.createOscillator(),g=ctx.createGain();
-     o.type=kind;
-     const f=fundamental*harmonic;
-     o.frequency.setValueAtTime(f*.87,t);
-     o.frequency.exponentialRampToValueAtTime(f*1.045,t+.22);
-     o.frequency.setValueAtTime(f*1.045,t+.26);
-     o.frequency.exponentialRampToValueAtTime(f*.985,end);
-     g.gain.value=mix;
-     o.connect(g);g.connect(tone);o.start(t);o.stop(end+.025);
-    }
-   };
-   // Low opening call followed by a clearly higher, louder answering call.
-   // Peak master gains remain conservative to avoid clipping on phone speakers.
-   horn(0,1.05,155,.14);
-   horn(.85,1.0,238,.19);
-  }catch(e){lastError="horagai "+String(e?.name||e)}
+  const start=()=>{
+   if(!horagaiBuffer||!soundOn()||document.hidden||backgroundPaused||ctx?.state!=="running")return;
+   try{
+    const src=ctx.createBufferSource(),gain=ctx.createGain();
+    src.buffer=horagaiBuffer;gain.gain.value=1;
+    src.connect(gain);gain.connect(ctx.destination);
+    src.onended=()=>{try{src.disconnect();gain.disconnect()}catch{}};
+    src.start();
+   }catch(e){lastError="horagai play "+String(e?.name||e)}
+  };
+  if(horagaiBuffer){start();return;}
+  void preloadHoragai().then(start);
  }
 
  const voices={child:[480,.047,1600,"triangle"],female:[345,.045,1400,"sine"],male:[215,.049,1000,"triangle"],elder:[245,.039,720,"sawtooth"],hostile:[174,.025,820,"sawtooth"],boss:[128,.052,680,"triangle"]};
