@@ -1208,15 +1208,27 @@ function renderBattle(){
  bg.clearRect(0,0,768,430);bg.imageSmoothingEnabled=false;
  const im=B9IMG.battle;if(im&&im.complete&&im.naturalWidth)bg.drawImage(im,0,0,768,430);else{bg.fillStyle="#14283d";bg.fillRect(0,0,768,430)}
 
+ // Rear-view foreground party, using the approved upward-facing atlas instead
+ // of inventing or mirroring a new heroine design. Existing action art remains
+ // available during explicit attack/skill/hit/victory poses.
+ const actionPose=!["idle","guard"].includes(battlePose);
  const sprite=BATTLE_SPRITES[S.outfit]?.[battlePose];
- if(layerReady(sprite)){
+ const portrait=layerReady(HIZUKI_4DIR)?HIZUKI_4DIR:null;
+ if(actionPose&&layerReady(sprite)){
   const box=battleSpriteLayout(sprite,S.outfit,battlePose);
-  shadow(bg,box.x,box.foot,31*1.48,10*1.48,.32);bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
-  bg.drawImage(sprite,box.left,box.top,box.width,box.height);bg.restore();
- }else hero(bg,170,310,"r",1,S.outfit,1.48);
+  bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
+  bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
+ }else if(portrait){
+  bg.save();bg.beginPath();bg.rect(0,195,300,235);bg.clip();
+  bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
+  // Atlas: row 1 faces away; neutral frame is column 1.
+  const size=260,scale=1.3,anchor=248;
+  bg.drawImage(portrait,size,256,256,256,135-128*scale,420-anchor*scale,256*scale,256*scale);
+  bg.restore();
+ }else hero(bg,145,345,"u",1,S.outfit,1.48);
  const progress=battleFx?Math.min(1,(performance.now()-battleFx.start)/battleFx.duration):1;
  const recoil=battleFx?.target==="enemy"&&!battleFx.reduced?Math.sin(progress*Math.PI*8)*7*(1-progress):0;
- bg.save();if(battle.hp<=0)bg.globalAlpha=.25;enemyArt(bg,585+recoil,255);bg.restore();
+ bg.save();if(battle.hp<=0)bg.globalAlpha=.25;enemyArt(bg,483+recoil,224);bg.restore();
  drawBattleFx(bg,progress);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
  $("enemyTargetInfo").hidden=!targeting;
