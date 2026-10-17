@@ -1,7 +1,7 @@
 // Shared settlement kit: world coordinates, separate ground/objects/actors and reusable roles.
 window.YK_SETTLEMENT=(()=>{
  const size=[1536,1280],revision=4,spawn=[768,1176],art={},errors={};
- const paths={home:'home',inn:'inn',shop:'shop',tea:'tea',tree:'tree',well:'well',door:'door',rocks:'rocks',fence:'fence',crates:'crates',basket:'basket',crops:'crops',hozuki:'hozuki',wall:'wall',stairs:'stairs'};
+ const paths={home:'home',inn:'inn',shop:'shop',tea:'tea',tree:'tree',well:'well',door:'door',rocks:'rocks',fence:'fence',crates:'crates',basket:'basket',crops:'crops',hozuki:'hozuki',sakuraPetals:'sakura-petals-4x4',wildflowers:'wildflowers-4x4',wall:'wall',stairs:'stairs'};
  let started=false;
  function load(change=()=>{}){if(started)return;started=true;for(const [k,file] of Object.entries(paths)){const im=art[k]=new Image();im.onload=change;im.onerror=()=>{errors[k]=true;change();};im.src=`assets/settlements/common-v1/${file}.png`;}}
  const ready=()=>Object.keys(paths).every(k=>art[k]?.complete&&art[k].naturalWidth&&!errors[k]);
@@ -221,6 +221,28 @@ window.YK_SETTLEMENT=(()=>{
   ground=document.createElement('canvas');ground.width=size[0]+1024;ground.height=size[1]+1024;const c=ground.getContext('2d');c.imageSmoothingEnabled=false;
   for(let y=0;y<ground.height;y+=256)for(let x=0;x<ground.width;x+=256)YK_LANDSCAPE.drawAsset(c,'grass',x,y,256,256);
   c.translate(512,512);const floorMap=mapData.map(row=>row.slice());floorMap.paths=mapData.paths;floorMap.decorations=[];c.drawImage(YK_LANDSCAPE.groundLayer(floorMap),0,0);
+  // Pre-painted 32x32 RGBA tiles: grass only, never on village roads or bridges.
+  const nearLane=(x,y)=>{
+   for(const line of mapData.paths)for(let i=1;i<line.length;i++){
+    const a=line[i-1],b=line[i],dx=b[0]-a[0],dy=b[1]-a[1];
+    const t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));
+    if(Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)<55)return true;
+   }
+   return false;
+  };
+  for(let y=176;y<1152;y+=32)for(let x=96;x<1440;x+=32){
+   const seed=(Math.imul(x+17,73856093)^Math.imul(y+41,19349663))>>>0;
+   if(seed%100>=27||nearLane(x,y))continue;
+   if(mapData[Math.floor(y/32)]?.[Math.floor(x/32)]!=='grass')continue;
+   if(bridges.some(b=>Math.abs(x-b.x)<(b.width||128)/2+28&&Math.abs(y-b.y)<(b.height||120)/2+32))continue;
+   if(buildings.some(b=>Math.abs(x-b.x)<b.w*.48+22&&y>b.y-190&&y<b.y+24))continue;
+   if(gardens.some(a=>Math.abs(x-a.x)<a.w/2+16&&y>a.y-90&&y<a.y+24))continue;
+   if(trees.some(t=>Math.hypot(x-t.x,y-t.y)<24))continue;
+   const img=seed%4===0?art.sakuraPetals:art.wildflowers;
+   if(!img?.naturalWidth)continue;
+   const index=(seed>>>9)%16;
+   c.drawImage(img,(index%4)*32,Math.floor(index/4)*32,32,32,x-16,y-16,32,32);
+  }
   for(const a of gardens){c.save();c.beginPath();c.rect(a.x-a.w/2,a.y-68,a.w,76);c.clip();for(let y=a.y-68;y<a.y+8;y+=64)for(let x=a.x-a.w/2;x<a.x+a.w/2;x+=64)YK_LANDSCAPE.drawAsset(c,'road',x,y,64,64);c.fillStyle='#4b301c88';c.fillRect(a.x-a.w/2,a.y-68,a.w,76);c.restore();}
   return ground;
  }
