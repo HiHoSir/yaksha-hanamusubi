@@ -375,7 +375,29 @@ function floweringTree(kind){
  function draw(c,state,actors,doorState,time=performance.now()){
   load();YK_LANDSCAPE.load();YK_AUTOTILE.load();if(!ready()||!YK_LANDSCAPE.ready()||!YK_AUTOTILE.ready())return false;
   const sprite=(key,x,y,width,draw)=>({kind:key,x:x-width/2,foot:y,width,height:width*art[key].height/art[key].width*(key==='fence'?.5:1),draw:draw||((q,l,t,w,h)=>q.drawImage(art[key],l,t,w,h))});
-  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map((t,i)=>{const variant=i===0||i===1||i===3||i===4?'sakura':null;const ob=sprite('tree',t.x,t.y,t.w);if(variant)ob.draw=(q,x,y,w,h)=>q.drawImage(floweringTree(variant),x,y,w,h);return ob;}),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite,camera(state.x,state.y)),sprite('well',well.x,well.y,well.w),
+  // Village-only sakura canopy derived from the existing forest crown art.
+ // Keep each forest object's geometry, depth order and collision unchanged.
+ let sakuraForestCrown=null;
+ function drawSakuraForest(q,x,y,w,h){
+  if(!sakuraForestCrown){
+   const cv=document.createElement('canvas');cv.width=cv.height=80;
+   const cx=cv.getContext('2d',{willReadFrequently:true});cx.imageSmoothingEnabled=false;
+   if(!YK_AUTOTILE.drawCrown(cx,0,0,80,80))return;
+   const frame=cx.getImageData(0,0,80,80),d=frame.data;
+   for(let k=0;k<d.length;k+=4){
+    if(d[k+3]<16)continue;
+    const r=d[k],g=d[k+1],b=d[k+2];
+    if(g<=r*1.07||g<=b*1.02)continue;
+    const light=Math.min(1,Math.max(0,(r+g+b-105)/405));
+    d[k]=Math.round(181+72*light);
+    d[k+1]=Math.round(88+112*light);
+    d[k+2]=Math.round(119+98*light);
+   }
+   cx.putImageData(frame,0,0);sakuraForestCrown=cv;
+  }
+  q.drawImage(sakuraForestCrown,x,y,w,h);
+ }
+ const objects=[...YK_LANDSCAPE.objects(mapData).map(o=>o.kind==='forest'?{...o,draw:drawSakuraForest}:o),...trees.map((t,i)=>{const variant=i===0||i===1||i===3||i===4?'sakura':null;const ob=sprite('tree',t.x,t.y,t.w);if(variant)ob.draw=(q,x,y,w,h)=>q.drawImage(floweringTree(variant),x,y,w,h);return ob;}),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite,camera(state.x,state.y)),sprite('well',well.x,well.y,well.w),
    ...buildings.map(b=>b.kind==='shrine'?{kind:'shrine',x:b.x-b.w/2,foot:b.y,width:b.w,height:b.w}:sprite(b.kind,b.x,b.y,b.w,(q,x,y,w,h)=>{q.drawImage(art[b.kind],x,y,w,h);drawDoor(q,b,x,y,w,h,doorState?.id===b.id?doorState.open:0);})),
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();
