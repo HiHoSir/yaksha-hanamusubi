@@ -985,6 +985,7 @@ function renderDialogPortrait(){
 }
 // Preserve the last field frame above the battle while both scenes cross-dissolve.
 function encounterDissolve(){
+ battleTrace("dissolve.start");
  const old=$("ykEncounterFrame");if(old)old.remove();
  const source=$("game"),rect=source.getBoundingClientRect();
  const cover=document.createElement("div");cover.id="ykEncounterFrame";cover.setAttribute("aria-hidden","true");
@@ -1019,7 +1020,8 @@ function encounterDissolve(){
  }
  cover.appendChild(words);document.body.appendChild(cover);
  const panel=$("battle");panel.style.transition="none";panel.style.opacity="1";panel.classList.add("show");
- try{renderBattle()}catch(error){console.error("Battle entry render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。操作は継続できます。"}
+ battleTrace("dissolve.panelShown");
+ try{renderBattle();battleTrace("dissolve.render.ok")}catch(error){battleTrace("dissolve.render.error",String(error));console.error("Battle entry render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。操作は継続できます。"}
  // Keep the monochrome scene in view; dissolve only after the second character lands.
  battleLater(()=>{if(cover.isConnected){cover.style.transition="opacity 650ms ease-in-out";cover.style.opacity="0"}},1650);
  battleLater(()=>{cover.remove();panel.style.transition="";panel.style.opacity=""},2380);
@@ -1028,7 +1030,32 @@ function encounterChime(){
  // A short conch-horn approximation uses the approved audio graph and mute handling.
  YK_AUDIO.horagai?.();
 }
+// Opt-in Safari battle diagnostics; no network transmission or save-data collection.
+const battleTraceEnabled=new URLSearchParams(location.search).get("battleTrace")==="1";
+const battleTraceLines=[];
+function battleTrace(event,detail=""){
+ if(!battleTraceEnabled)return;
+ const panel=$("battle");
+ const line=[new Date().toISOString(),event,detail,"battle="+!!battle,"locked="+battleLocked,"busy="+busy,"panel="+!!panel?.classList.contains("show"),"display="+(panel?getComputedStyle(panel).display:"missing"),"cover="+!!$("ykEncounterFrame")].join(" | ");
+ battleTraceLines.push(line);if(battleTraceLines.length>100)battleTraceLines.shift();
+ const out=$("ykBattleTraceText");if(out)out.value=battleTraceLines.join("\n");
+}
+if(battleTraceEnabled){
+ const box=document.createElement("section");box.id="ykBattleTrace";
+ box.style.cssText="position:fixed;bottom:8px;right:8px;z-index:9999;width:min(92vw,480px);max-height:45dvh;overflow:auto;background:#071320f5;color:#fff;padding:10px;border:2px solid #e3bf7d;border-radius:8px;font:12px sans-serif";
+ const heading=document.createElement("div");heading.textContent="戦闘診断ログ（端末内のみ）";
+ const out=document.createElement("textarea");out.id="ykBattleTraceText";out.readOnly=true;out.rows=7;out.style.cssText="width:100%;font:11px monospace;background:#fff;color:#111";
+ const copy=document.createElement("button");copy.type="button";copy.textContent="ログをコピー";copy.style.cssText="padding:9px;margin:4px";
+ copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(out.value);copy.textContent="コピーしました"}catch(e){out.focus();out.select();copy.textContent="選択したログをコピーしてください"}});
+ const close=document.createElement("button");close.type="button";close.textContent="最小化";close.style.cssText="padding:9px;margin:4px";
+ close.addEventListener("click",()=>{out.hidden=!out.hidden;close.textContent=out.hidden?"ログを表示":"最小化"});
+ box.append(heading,out,copy,close);document.body.appendChild(box);
+ window.addEventListener("error",e=>battleTrace("window.error",String(e.message)+" @"+e.filename+":"+e.lineno));
+ window.addEventListener("unhandledrejection",e=>battleTrace("promise.rejection",String(e.reason)));
+ battleTrace("ready","BETA 15.57.166");
+}
 function beginEncounter(force=false){
+ battleTrace("beginEncounter",String(force));
  ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
  if(!area||!pool?.length||(!force&&area.encounter<=0))return false;
@@ -1044,7 +1071,7 @@ function beginEncounter(force=false){
  $("battleText").textContent=battle.name+"が あらわれた！";
  YK_AUDIO.stopBgmForEncounter();encounterChime();
  // Register the unlock before drawing the transition: a rendering exception must never strand the field in busy mode.
- battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;try{selectCmd(0);renderBattle()}catch(error){console.error("Battle entry final render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。コマンドを選んでください。"}},2390);
+ battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;battleTrace("unlock");try{selectCmd(0);renderBattle();battleTrace("unlock.render.ok")}catch(error){battleTrace("unlock.render.error",String(error));console.error("Battle entry final render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。コマンドを選んでください。"}},2390);
  encounterDissolve();
  return true;
 }
@@ -1369,8 +1396,8 @@ function win(){
  $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;battlePose='victory';battleCursor=0;
  YK_SAVE.auto(S);renderBattle();
 }
-function endBattle(){YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(reward)message(reward,4500)}
-function defeat(){YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
+function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(reward)message(reward,4500)}
+function defeat(){battleTrace("defeat");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
 function renderRelics(){
  const owned=Object.entries(D.relics).filter(([id])=>S.relics[id]);
  $("itemsPanel").innerHTML=`<button id="fieldHerb">薬草を使う</button><p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
