@@ -362,3 +362,18 @@ body:has(#title.show) #stage{min-height:0}
  #battle .battlePartyPortrait{width:30px;height:36px}
  #battle .battlePartySummary{font-size:10px}
 }
+
+/* Battle UI v3: floating glass HUD and full-stage presentation during actions. */
+#battle.show{position:relative;background:#0b1b2b;isolation:isolate}
+#battle #battleCanvas{border:0;border-radius:0}
+#battle .battleTop,#battle .battleInfo,#battle .battlePartyCard{background:rgba(12,27,44,.50);border-color:rgba(226,199,148,.46);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 10px #0003}
+#battle .battleCommands button{background:rgba(20,43,66,.64);border-color:rgba(225,199,149,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#battle .battleCommands.battleActing{visibility:hidden;pointer-events:none}
+#battle.show:has(.battleCommands.battleActing) #battleCanvas{filter:none}
+@media(orientation:portrait){
+ #battle.show{grid-template-rows:30px minmax(150px,1fr) auto auto auto auto}
+ #battle .battleCommands.battleActing{min-height:0;max-height:0;overflow:hidden;grid-row:5}
+}
+@media(orientation:landscape){
+ #battle .battleCommands.battleActing{visibility:hidden}
+}
