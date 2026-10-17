@@ -1321,7 +1321,7 @@ function renderBattle(){
 }
 // Enemy artwork stays a single still; brief overlays carry each impact.
 function startBattleFx(kind,target,amount=null){
- const fx=battleFx={kind,target,amount,source:amount<0?"hero":target==="hero"?"enemy":"hero",start:performance.now(),duration:320,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
+ const fx=battleFx={kind,target,amount,source:amount<0?"hero":target==="hero"?"enemy":"hero",start:performance.now(),duration:540,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
  const tick=()=>{if(battleFx!==fx)return;if(performance.now()-fx.start>=fx.duration){battleFx=null;renderBattle();return;}renderBattle();battleLater(tick,16);};
  battleLater(tick,16);
 }
@@ -1379,22 +1379,22 @@ function cmd(n){
  n=check.action;
  battleLocked=true;
  renderBattleCommands();
- if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();YK_AUDIO.battleSe?.("guard");battleLater(foe,420);return;}
- if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,480);return;}
+ if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();YK_AUDIO.battleSe?.("guard");battleLater(foe,750);return;}
+ if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,820);return;}
  if(n==="attack"||n==="skill"){
   const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random);
-  if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,420);return;}
-  if(battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance){const guarded=YK_BATTLE_RULES.shellDamage(d);battle.hp-=guarded;battlePose="attack";$("battleText").textContent=`${battle.name}は大鋏で防いだ！ ${guarded}ダメージ`;startBattleFx("impact","enemy",guarded);renderBattle();battleLater(()=>{battlePose="idle";if(battle.hp<=0)return win();battleLater(foe,260)},320);return;}
+  if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,750);return;}
+  if(battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance){const guarded=YK_BATTLE_RULES.shellDamage(d);battle.hp-=guarded;battlePose="attack";$("battleText").textContent=`${battle.name}は大鋏で防いだ！ ${guarded}ダメージ`;startBattleFx("impact","enemy",guarded);renderBattle();battleLater(()=>{battlePose="idle";if(battle.hp<=0)return win();battleLater(foe,390)},510);return;}
   battle.hp-=d;battlePose=n==="skill"?"skill":"attack";
   // Rare enemy damage no longer changes outfit sprites.
   $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
   YK_AUDIO.battleSe?.(n==="skill"?"skill":"slash");startBattleFx(n==="skill"?"petals":"slash","enemy",d);renderBattle();
-  battleLater(()=>{battlePose="idle";renderBattle()},320);
-  if(battle.hp<=0){battleLater(win,480);return;}
-  battleLater(foe,480);
+  battleLater(()=>{battlePose="idle";renderBattle()},580);
+  if(battle.hp<=0){battleLater(win,940);return;}
+  battleLater(foe,930);
  }else if(n==="item"){
   if(S.potions<=0){battleLocked=false;return $("battleText").textContent="薬草がない！"}
-  S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;$("battleText").textContent=`体を${healed}回復！`;renderBattle();battleLater(foe,300);
+  S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;$("battleText").textContent=`体を${healed}回復！`;renderBattle();battleLater(foe,760);
  }else{
   if(Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;renderBattle()}
   else{$("battleText").textContent="逃げられない！";battleLater(foe,300)}
@@ -1408,7 +1408,7 @@ function foe(){
  const d=YK_BATTLE_RULES.foeDamage(battle.atk,S.def+relicBonus("def"),variance,foxfire,battle.guarding,Math.random);battle.guarding=false;
  S.hp=Math.max(0,S.hp-d);$("battleText").textContent=foxfire?`${battle.name}の妖火！ ${d}ダメージ`:`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
  startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.battleSe?.("hit");
- battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;YK_BATTLE_RULES.nextTurn(battle);renderBattle()},600);
+ battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;YK_BATTLE_RULES.nextTurn(battle);renderBattle()},1000);
 }
 function win(){
  if(!battle||battle.rewarded)return;
@@ -1417,10 +1417,10 @@ function win(){
  const equipmentDrop=E.drop(S,battle.baseName);if(equipmentDrop)loot+=` ／ ${E.items[equipmentDrop].name}を入手！`;
  battle.rewardText=`${battle.name}を こらしめた！ 心の数 ${battle.xp} ／ ${battle.gold}両${loot}`;
  if(YK_BATTLE_RULES.applyLevelUps(S))battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
- $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.("victory");
+ $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),1100);battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.("victory");
  YK_SAVE.auto(S);renderBattle();
 }
-function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(reward)message(reward,4500)}
+function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud()}
 function defeat(){battleTrace("defeat");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
 function renderRelics(){
  const owned=Object.entries(D.relics).filter(([id])=>S.relics[id]);
