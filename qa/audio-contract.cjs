@@ -72,6 +72,6 @@ const tick=async()=>{for(let i=0;i<8;i++)await Promise.resolve()};
  assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'delayed Safari resume has exactly one source');
  for(const fn of docListeners.pointerup||[])fn();await tick();
  assert.equal(sources.filter(x=>x.started&&!x.stopped).length,1,'foreground gesture does not duplicate playback');
- assert.ok(fetched.some(x=>x.includes('field-v10.mp3'))&&fetched.some(x=>x.includes('hoozuki-v13.mp3')));
+ assert.ok(fetched.some(x=>x.includes('kikoku-field-v11.mp3'))&&fetched.some(x=>x.includes('hoozuki-v13.mp3')));
  console.log('Audio field/village switching, SE, mute, and background resume contracts OK');
 })().catch(e=>{console.error(e);process.exitCode=1});
