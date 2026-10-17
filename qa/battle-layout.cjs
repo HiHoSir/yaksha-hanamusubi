@@ -13,7 +13,7 @@ const server=http.createServer((req,res)=>{
  const context=await browser.newContext({viewport:{width:393,height},isMobile:true,hasTouch:true,deviceScaleFactor:1});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());
  await page.evaluate(()=>{window.__qaEval('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;S.encounterGrace=0;S.encounterSteps=100;Math.random=()=>0;beginEncounter();battle.hp=battle.max=999;');});
- await page.waitForFunction(()=>window.__qaEval('layerReady(B9EN.redoni)'));await page.waitForFunction(()=>window.__qaEval('!battleLocked'),{timeout:6000});await page.evaluate(()=>window.__qaEval('renderBattle()'));
+ await page.waitForFunction(()=>window.__qaEval('layerReady(B9EN.redoni)'));await page.waitForFunction(()=>window.__qaEval('!battleLocked'),null,{timeout:6000});await page.evaluate(()=>window.__qaEval('renderBattle()'));
  for(const id of ['virtualStick','ok','cancel']){assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' occluded '+height);}
  await page.locator('#virtualStick').tap({position:{x:125,y:73}});await page.locator('#ok').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'skill');await page.locator('#cancel').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'root');
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
