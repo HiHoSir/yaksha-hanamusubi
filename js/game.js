@@ -1269,9 +1269,20 @@ function renderBattle(){
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
   const height=316,width=height*image.naturalWidth/image.naturalHeight;
   const hit=battlePose==="hit",victory=battlePose==="victory";
-  const x=150-width/2+(hit?12:0),y=430-height+(hit?9:victory?-9:0);
-  if(hit){bg.globalAlpha=.8;bg.filter="sepia(.45) saturate(1.5) hue-rotate(305deg)";}
-  bg.drawImage(image,x,y,width,height);bg.restore();
+  // A single approved illustration is animated with gentle breathing and a brief hit impulse.
+  // Preserve the foot anchor: scaling expands upward from the same bottom baseline.
+  const now=performance.now(),hpRatio=Math.max(0,Math.min(1,S.hp/Math.max(1,S.maxhp)));
+  const breathPeriod=hpRatio>.6?2700:hpRatio>.3?1900:1250;
+  const breathStrength=hpRatio>.6?.006:hpRatio>.3?.011:.017;
+  const breath=Math.sin(now*Math.PI*2/breathPeriod)*breathStrength;
+  const hitAge=hit?Math.max(0,now-(battleFx?.start||now)):0;
+  const impact=hit?Math.exp(-hitAge/135):0;
+  const shake=impact*Math.sin(hitAge*.14)*10;
+  const w=width*(1+breath*.32),h=height*(1+breath);
+  const x=150-w/2+shake+(hit?impact*9:0);
+  const y=430-h+(hit?impact*7:0)+(victory?-7:0);
+  if(hit){bg.globalAlpha=1-impact*.25;bg.filter="sepia(.25) saturate(1.3) hue-rotate(320deg)";}
+  bg.drawImage(image,x,y,w,h);bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
@@ -1616,7 +1627,8 @@ function publishProbe(t){
  p.element.textContent='FPS '+(p.frames*1000/(t-p.last)).toFixed(0)+'  '+S.area+'  busy:'+busy+'\n描画 '+avg(p.draw,p.drawCount)+'ms 最大'+p.drawPeak.toFixed(0)+'ms\nNPC '+avg(p.npc,p.npcCount)+'ms 最大'+p.npcPeak.toFixed(0)+'ms\n描画回数 '+p.drawCount+' /秒  移動:'+!!fieldMotion;
  p.draw=p.npc=p.drawPeak=p.npcPeak=p.drawCount=p.npcCount=p.frames=0;p.last=t;
 }
-function loop(t){publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>125;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
+let lastBattleMotionPaint=0;
+function loop(t){if(battle&&t-lastBattleMotionPaint>=33){lastBattleMotionPaint=t;renderBattle();}publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>125;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
  const deadline=fieldMotion.at+144;fieldMotion=null;
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
