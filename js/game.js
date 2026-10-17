@@ -1216,15 +1216,16 @@ function renderBattle(){
  // Rear-view foreground party, using the approved upward-facing atlas instead
  // of inventing or mirroring a new heroine design. Existing action art remains
  // available during explicit attack/skill/hit/victory poses.
+ const normalSlash=battleFx?.kind==="slash"&&battleFx?.target==="enemy";
  const actionPose=!["idle","guard"].includes(battlePose);
  const sprite=BATTLE_SPRITES[S.outfit]?.[battlePose];
  const portrait=layerReady(HIZUKI_4DIR)?HIZUKI_4DIR:null;
- if(actionPose&&layerReady(sprite)){
+ if(actionPose&&!normalSlash&&layerReady(sprite)){
   const box=battleSpriteLayout(sprite,S.outfit,battlePose);
   bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
   bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
  }else if(layerReady(HIZUKI_BATTLE_FRAMES[0])){
-  const phase=battleFx?.source==="hero"&&battleFx?.target==="enemy"?Math.min(2,Math.floor((performance.now()-battleFx.start)/Math.max(1,battleFx.duration)*3)):0;
+  const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/Math.max(1,battleFx.duration)*3)):0;
   const image=layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
   const height=316,width=height*image.naturalWidth/image.naturalHeight;
@@ -1245,9 +1246,10 @@ function renderBattle(){
   bg.restore();
  }else hero(bg,145,345,"u",1,S.outfit,1.48);
  const progress=battleFx?Math.min(1,(performance.now()-battleFx.start)/battleFx.duration):1;
- const recoil=battleFx?.target==="enemy"&&!battleFx.reduced?Math.sin(progress*Math.PI*8)*7*(1-progress):0;
+ const hitProgress=normalSlash?Math.max(0,(progress-2/3)*3):progress;
+ const recoil=battleFx?.target==="enemy"&&!battleFx.reduced&&(!normalSlash||progress>=2/3)?Math.sin(hitProgress*Math.PI*8)*7*(1-hitProgress):0;
  bg.save();if(battle.hp<=0)bg.globalAlpha=.25;enemyArt(bg,483+recoil,224);bg.restore();
- drawBattleFx(bg,progress);
+ if(!normalSlash||progress>=2/3)drawBattleFx(bg,hitProgress);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
  $("enemyTargetInfo").hidden=!targeting;
  $("battlePhaseLabel").textContent=targeting?"標的を選ぶ":battle.phase==="result"?"戦闘結果":"戦闘";
