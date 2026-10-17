@@ -40,16 +40,35 @@ window.YK_AUDIO=(()=>{
   battlePlayer.volume=.43;
   const p=battlePlayer.play();if(p?.catch)p.catch(e=>{lastError="battle play "+String(e?.name||e)});
  }
+ // Layered percussion and filtered noise: softer and less oscillator-like than the old SE.
  function battleSe(kind){
+  if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;
   const effects={
-   slash:[[720,.075,"sawtooth"],[300,.11,"triangle"]],
-   skill:[[680,.18,"sine"],[880,.14,"triangle"]],
-   hit:[[145,.18,"sawtooth"],[85,.11,"triangle"]],
-   guard:[[240,.15,"triangle"]],
-   heal:[[540,.17,"sine"],[810,.22,"sine"]],
-   victory:[[523,.14,"triangle"],[659,.22,"triangle"]]
+   slash:{length:.24,pitch:830,noise:.09,low:2400,drop:.35},
+   skill:{length:.38,pitch:690,noise:.055,low:3200,drop:1.38},
+   hit:{length:.29,pitch:170,noise:.18,low:1100,drop:.28},
+   guard:{length:.25,pitch:310,noise:.12,low:1800,drop:.60},
+   heal:{length:.50,pitch:570,noise:.024,low:3800,drop:1.5},
+   victory:{length:.54,pitch:660,noise:.035,low:3900,drop:1.3}
   };
-  const notes=effects[kind]||[];for(const [freq,dur,type] of notes)sound(freq,dur,type,.034,1500);
+  const p=effects[kind];if(!p)return;
+  try{
+   ctx??=new(window.AudioContext||window.webkitAudioContext)();
+   if(ctx.state!=="running")void ctx.resume();
+   const t=ctx.currentTime,d=p.length;
+   const out=ctx.createGain();out.gain.setValueAtTime(.0001,t);out.gain.exponentialRampToValueAtTime(.22,t+.012);out.gain.exponentialRampToValueAtTime(.0001,t+d);out.connect(ctx.destination);
+   const oscillator=ctx.createOscillator();oscillator.type=kind==="hit"?"sine":"triangle";
+   oscillator.frequency.setValueAtTime(p.pitch,t);oscillator.frequency.exponentialRampToValueAtTime(Math.max(60,p.pitch*p.drop),t+d*.76);
+   const tone=ctx.createGain();tone.gain.value=kind==="hit"?.13:.095;oscillator.connect(tone).connect(out);oscillator.start(t);oscillator.stop(t+d);
+   const count=Math.ceil(ctx.sampleRate*d),buffer=ctx.createBuffer(1,count,ctx.sampleRate),data=buffer.getChannelData(0);
+   // Deterministic short transient avoids repeating pitched electronic beeps.
+   let seed=kind.length*214013+2531011;
+   for(let j=0;j<count;j++){seed=(Math.imul(seed,1664525)+1013904223)|0;data[j]=((seed>>>8)/8388608-1)*Math.exp(-j/ctx.sampleRate*(kind==="slash"?19:kind==="hit"?12:15));}
+   const noise=ctx.createBufferSource();noise.buffer=buffer;
+   const filter=ctx.createBiquadFilter();filter.type="lowpass";filter.frequency.setValueAtTime(p.low,t);filter.frequency.exponentialRampToValueAtTime(Math.max(180,p.low*.28),t+d);
+   const level=ctx.createGain();level.gain.value=p.noise;noise.connect(filter).connect(level).connect(out);noise.start(t);
+   noise.onended=()=>{try{noise.disconnect();filter.disconnect();level.disconnect();oscillator.disconnect();tone.disconnect();out.disconnect()}catch{}};
+  }catch(e){lastError="battle SE "+String(e?.name||e)}
  }
  function stopBgmForEncounter(){
   encounterMuted=true;requestId++;playPending=false;player.pause();
