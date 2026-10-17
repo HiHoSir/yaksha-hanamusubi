@@ -16,6 +16,12 @@ const server=http.createServer((req,res)=>{
  await page.waitForFunction(()=>window.__qaEval('layerReady(B9EN.redoni)'));await page.waitForFunction(()=>window.__qaEval('!battleLocked'),null,{timeout:6000});await page.evaluate(()=>window.__qaEval('renderBattle()'));
  for(const id of ['virtualStick','ok','cancel']){assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' occluded '+height);}
  await page.locator('#virtualStick').tap({position:{x:125,y:73}});await page.locator('#ok').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'skill');await page.locator('#cancel').tap();assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'root');
+ await page.evaluate(()=>window.__qaEval('cmd("attack")'));
+ assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'target','attack must enter target selection');
+ assert(await page.locator('#enemyTargetInfo').isVisible(),'enemy name should appear during targeting');
+ await page.evaluate(()=>window.__qaEval('cmd("back")'));
+ assert.equal(await page.evaluate(()=>window.__qaEval('battle.menu')),'root');
+ assert(!(await page.locator('#enemyTargetInfo').isVisible()),'enemy name hidden outside targeting');
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
  await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});
  await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=400;S.dir="u";S.gold=1000;action();'));
