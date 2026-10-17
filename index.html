@@ -129,8 +129,9 @@
  </div>
 </div>
 <div id="battle" class="overlay" aria-label="戦闘">
-  <div class="battleTop"><span id="enemyName"></span><span>体 <b id="enemyHp"></b></span></div>
+  <div class="battleTop"><span id="battlePhaseLabel">戦闘</span><span id="enemyTargetInfo" hidden><span id="enemyName"></span>　体 <b id="enemyHp"></b></span></div>
   <canvas id="battleCanvas" width="768" height="430" aria-label="緋月と敵の戦闘"></canvas>
+  <div id="battlePartyCards" class="battlePartyCards" aria-label="味方の戦闘状態"></div>
   <div class="battleVitals"><strong>緋月 <span id="battleLevel"></span>段</strong><span>体 <b id="battleHp"></b></span><span>技 <b id="battleMp"></b></span></div>
   <div class="battleMeters"><div><i id="battleHpBar"></i></div><div><i id="battleMpBar"></i></div></div>
   <div class="battleInfo"><span id="battleText" role="status" aria-live="polite">どうする？</span></div>
