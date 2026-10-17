@@ -377,3 +377,26 @@ body:has(#title.show) #stage{min-height:0}
 @media(orientation:landscape){
  #battle .battleCommands.battleActing{visibility:hidden}
 }
+
+/* Battle UI v4: keep the 768:430 scene at its native ratio on portrait phones.
+   The former 1fr grid row stretched the canvas box vertically; object-fit then
+   letterboxed the actual battlefield and left a large empty region above it. */
+@media(orientation:portrait){
+ #battle.show{
+  grid-template-rows:30px auto auto auto auto auto;
+  align-content:center;
+  gap:6px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+ }
+ #battle #battleCanvas{
+  display:block;
+  width:100%;
+  height:auto;
+  min-height:0;
+  max-height:none;
+  aspect-ratio:768 / 430;
+  object-fit:contain;
+  flex:none;
+ }
+}
