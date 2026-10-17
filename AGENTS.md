@@ -155,3 +155,7 @@ A footprint (world cells), a sprite's rendered pixel rectangle, its visual silho
 - For any user-requested tile/object illustration, follow `.agents/skills/asset-design/SKILL.md` **before invoking image generation**. Use its category templates and preflight reuse decision. Never bypass its pre-generation contract just because the user says 'make it'.
 - This repository skill is not guaranteed to auto-load in ordinary ChatGPT chats: explicitly read it each time. On compatible coding clients invoke `$asset-design`; in ChatGPT users may explicitly ask 'asset-design スキルに従って'.
 - The validator is a structural support tool, not a replacement for the generation-time contract or gameplay QA. Use it for file metadata after deterministic processing.
+
+## Mandatory image upload preflight
+- For every generated PNG/ZIP GitHub delivery, **first read** `skills/github-image-atlas/SKILL.md` and `.agents/skills/github-artifact-delivery/SKILL.md`. The proven route is local PNG → Base64 `.b64` → temporary Library upload/read → GitHub `create_blob` (base64) → `create_tree` → `create_commit` → `update_ref` with expected head → remote SHA verification. Do not stop at a local-file access limitation or ask for manual upload before trying this workflow.
+- After uploading, separately verify actual runtime asset references, Actions, Pages, and user-performed iPhone Safari QA. Do not conflate them.
