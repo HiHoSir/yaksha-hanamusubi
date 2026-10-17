@@ -991,7 +991,7 @@ function encounterDissolve(){
   cover.appendChild(still);
   // Color drains from the frozen field before the new battle image appears.
   battleLater(()=>{if(still.isConnected)still.style.filter="grayscale(1) contrast(1.24) brightness(.83)"},125);
-  battleLater(()=>{still.style.opacity="0"},1490);
+  // Keep the frozen monochrome field until the entire overlay dissolves.
  }catch(e){ /* Field capture can fail; retain the ink transition. */ }
  // Brief white flash masks the freeze while preserving the canvas aspect ratio.
  const flash=document.createElement("div");flash.setAttribute("aria-hidden","true");
