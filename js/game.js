@@ -989,7 +989,7 @@ function encounterDissolve(){
  const old=$("ykEncounterFrame");if(old)old.remove();
  const source=$("game"),rect=source.getBoundingClientRect();
  const cover=document.createElement("div");cover.id="ykEncounterFrame";cover.setAttribute("aria-hidden","true");
- Object.assign(cover.style,{position:"fixed",inset:"0",zIndex:"65",pointerEvents:"none",opacity:"1",background:"rgba(8,8,12,.88)",transition:"none",willChange:"opacity"});
+ Object.assign(cover.style,{position:"fixed",inset:"0",zIndex:"90",pointerEvents:"none",opacity:"1",background:"rgba(8,8,12,.88)",transition:"none",willChange:"opacity"});
  try{
   const still=document.createElement("canvas");still.width=source.width;still.height=source.height;
   still.getContext("2d").drawImage(source,0,0);
