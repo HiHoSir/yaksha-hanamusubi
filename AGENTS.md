@@ -1,4 +1,4 @@
-# 夜叉姫の花結び奇譚 — Project agent instructions
+# 鬼哭の花契り — Project agent instructions
 
 This repository contains reusable task skills in `.agents/skills/`. Read relevant SKILL.md files **before** coding, creating images or changing deployed assets.
 
@@ -19,6 +19,7 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Paired intact/worn enemy preprocessing and atlas build | [enemy-atlas-pipeline](skills/enemy-atlas-pipeline/SKILL.md) |
 
 ## Standing rules
+- **現行緋月の単一正本（2026-10-17）:** `docs/characters/HIZUKI_CANON.md`。正式外見は現行フィールドの水色ショートボブ（`assets/characters/hizuki/bluebob-v1/walk-atlas-256.png`）。旧紫髪・長髪の設定画、旧 `yashahime` 戦闘画像は歴史資料・移行待ち。新素材の外見参照に使わず、ゲームの既存参照はQAなしに削除しない。
 - Repository: `HiHoSir/yaksha-hanamusubi`, production branch `main`. Preserve existing save data, maps, controls and game-start flow.
 - For any game asset task, read **github-artifact-delivery** and the relevant art/QA skill together. Do not automatically ask the user to upload files manually; verify the actual remote PNG and commit before declaring implementation complete.
 - For battle-only work, do not modify heroine field movement sheets, world tiles or unrelated enemy graphics.
