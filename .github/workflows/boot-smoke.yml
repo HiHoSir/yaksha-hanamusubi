@@ -151,7 +151,9 @@ jobs:
       - name: Story event progression contract
         run: node qa/story-events-unit.cjs
       - name: Battle arithmetic contract
-        run: node qa/battle-rules-unit.cjs
+        run: |
+          node qa/battle-rules-unit.cjs
+          node qa/battle-tempo.cjs
       - name: Architecture baseline guard
         run: node qa/architecture-guard.cjs
       - name: Runtime state module contract

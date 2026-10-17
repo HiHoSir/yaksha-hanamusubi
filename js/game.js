@@ -1264,11 +1264,11 @@ function renderBattle(){
   bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
   bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
  }else if(layerReady(HIZUKI_BATTLE_FRAMES[0])){
-  const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/Math.max(1,battleFx.duration)*3)):0;
+  const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/(BATTLE_PACE.windup/2))):0;
   const image=layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
   const height=316,width=height*image.naturalWidth/image.naturalHeight;
-  const hit=battlePose==="hit",victory=battlePose==="victory";
+  const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
   // A single approved illustration is animated with gentle breathing and a brief hit impulse.
   // Preserve the foot anchor: scaling expands upward from the same bottom baseline.
   const now=performance.now(),hpRatio=Math.max(0,Math.min(1,S.hp/Math.max(1,S.maxhp)));
@@ -1305,25 +1305,24 @@ function renderBattle(){
   bg.drawImage(portrait,size,256,256,256,135-128*scale,420-anchor*scale,256*scale,256*scale);
   bg.restore();
  }else hero(bg,145,345,"u",1,S.outfit,1.48);
- const progress=battleFx?Math.min(1,(performance.now()-battleFx.start)/battleFx.duration):1;
- const hitProgress=normalSlash?Math.max(0,(progress-2/3)*3):progress;
- const recoil=battleFx?.target==="enemy"&&!battleFx.reduced&&(!normalSlash||progress>=2/3)?Math.sin(hitProgress*Math.PI*8)*7*(1-hitProgress):0;
- // Defeated enemies must not leave a 25%-opacity ghost on the stage.
- // A lethal blow keeps the enemy visible through the hit, then fades it out.
- // Never leave a persistent low-opacity ghost after the impact window.
- const lethalFx=battle.hp<=0&&battleFx?.target==="enemy"&&battleFx.amount>0;
- const lethalAge=lethalFx?performance.now()-battleFx.start:Infinity;
- const dying=battle.hp<=0&&!battle.rewarded;
- if(battle.hp>0||dying&&lethalAge<800){
+ const age=battleFx?Math.max(0,performance.now()-battleFx.start):0;
+ const impactDelay=battleFx?.impactDelay||0;
+ const hitProgress=battleFx?Math.min(1,Math.max(0,(age-impactDelay)/(battleFx.duration-impactDelay))):1;
+ const impactVisible=!!battleFx&&age>=impactDelay;
+ const recoil=impactVisible&&battleFx.target==="enemy"&&!battleFx.reduced?Math.sin(hitProgress*Math.PI*8)*7*(1-hitProgress):0;
+ // Death owns its clock: clearing an impact effect must never truncate the fade.
+ const deathAge=battle.defeatedAt==null?0:Math.max(0,performance.now()-battle.defeatedAt);
+ const dying=battle.hp<=0&&battle.defeatedAt!=null;
+ if(battle.hp>0||dying&&deathAge<BATTLE_PACE.deathHold+BATTLE_PACE.deathFade){
   bg.save();
   if(dying){
-   const fade=Math.max(0,Math.min(1,(lethalAge-400)/400));
+   const fade=Math.max(0,Math.min(1,(deathAge-BATTLE_PACE.deathHold)/BATTLE_PACE.deathFade));
    bg.globalAlpha=1-fade;
-   bg.translate(0,-fade*13);
+   if(!battle.deathReduced)bg.translate(0,-fade*13);
   }
   enemyArt(bg,483+recoil,224);bg.restore();
  }
- if(!normalSlash||progress>=2/3)drawBattleFx(bg,hitProgress);
+ if(impactVisible)drawBattleFx(bg,hitProgress);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
  $("enemyTargetInfo").hidden=!targeting;
  $("battlePhaseLabel").textContent=targeting?"標的を選ぶ":battle.phase==="result"?"戦闘結果":"戦闘";
@@ -1333,10 +1332,12 @@ function renderBattle(){
  $("battleHpBar").style.background=S.hp/S.maxhp<.25?"#e27268":"#8bc88a";renderBattlePartyCards();renderBattleCommands();
 }
 // Enemy artwork stays a single still; brief overlays carry each impact.
-function startBattleFx(kind,target,amount=null){
- const fx=battleFx={kind,target,amount,source:amount<0?"hero":target==="hero"?"enemy":"hero",start:performance.now(),duration:540,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
+const BATTLE_PACE=Object.freeze({windup:360,impact:740,actionRead:1250,enemyWindup:450,deathHold:500,deathFade:450,deathRest:300});
+function startBattleFx(kind,target,amount=null,impactDelay=0){
+ const fx=battleFx={kind,target,amount,impactDelay,source:amount<0?"hero":target==="hero"?"enemy":"hero",start:performance.now(),duration:impactDelay+BATTLE_PACE.impact,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
  const tick=()=>{if(battleFx!==fx)return;if(performance.now()-fx.start>=fx.duration){battleFx=null;renderBattle();return;}renderBattle();battleLater(tick,16);};
  battleLater(tick,16);
+ return fx;
 }
 function drawBattleFx(c,p){
  if(!battleFx||p>=1)return;
@@ -1392,37 +1393,55 @@ function cmd(n){
  n=check.action;
  battleLocked=true;
  renderBattleCommands();
- if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();YK_AUDIO.battleSe?.("guard");battleLater(foe,750);return;}
- if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,820);return;}
+ if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();YK_AUDIO.battleSe?.("guard");battleLater(foe,BATTLE_PACE.actionRead);return;}
+ if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);return;}
  if(n==="attack"||n==="skill"){
-  const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random);
-  if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){$("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;startBattleFx("petals","enemy");renderBattle();battleLater(foe,750);return;}
-  if(battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance){const guarded=YK_BATTLE_RULES.shellDamage(d);battle.hp-=guarded;battlePose="attack";$("battleText").textContent=`${battle.name}は大鋏で防いだ！ ${guarded}ダメージ`;startBattleFx("impact","enemy",guarded);renderBattle();battleLater(()=>{battlePose="idle";if(battle.hp<=0)return win();battleLater(foe,390)},510);return;}
-  battle.hp-=d;battlePose=n==="skill"?"skill":"attack";
-  // Rare enemy damage no longer changes outfit sprites.
-  $("battleText").textContent=(n==="skill"?"花結び！ ":"")+`${d}ダメージ！`;
-  YK_AUDIO.battleSe?.(n==="skill"?"skill":"slash");startBattleFx(n==="skill"?"petals":"slash","enemy",d);renderBattle();
-  battleLater(()=>{battlePose="idle";renderBattle()},580);
-  if(battle.hp<=0){battleLater(win,940);return;}
-  battleLater(foe,930);
+  battlePose=n==="skill"?"skill":"attack";
+  $("battleText").textContent=n==="skill"?"緋月の 花結び！":"緋月の攻撃！";
+  // Wind-up art is shown first; HP, damage text and sound start on contact.
+  const fx=startBattleFx(n==="skill"?"petals":"slash","enemy",null,BATTLE_PACE.windup);
+  renderBattle();
+  battleLater(()=>{
+   const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random);
+   if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){
+    $("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;
+    battlePose="idle";startBattleFx("petals","enemy");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);return;
+   }
+   const guarded=battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance;
+   const amount=guarded?YK_BATTLE_RULES.shellDamage(d):d;
+   battle.hp=Math.max(0,battle.hp-amount);fx.amount=amount;
+   $("battleText").textContent=guarded?`${battle.name}は大鋏で防いだ！ ${amount}ダメージ`:`${battle.name}に ${amount}ダメージ！`;
+   YK_AUDIO.battleSe?.(n==="skill"?"skill":"slash");
+   if(battle.hp<=0){battle.defeatedAt=performance.now();battle.deathReduced=fx.reduced;}
+   renderBattle();
+   battleLater(()=>{battlePose="idle";renderBattle()},BATTLE_PACE.impact);
+   // Guarded lethal hits use the same complete death sequence as ordinary hits.
+   battleLater(battle.hp<=0?win:foe,battle.hp<=0?BATTLE_PACE.deathHold+BATTLE_PACE.deathFade+BATTLE_PACE.deathRest:BATTLE_PACE.actionRead);
+  },BATTLE_PACE.windup);
  }else if(n==="item"){
-  if(S.potions<=0){battleLocked=false;return $("battleText").textContent="薬草がない！"}
-  S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;$("battleText").textContent=`体を${healed}回復！`;renderBattle();battleLater(foe,760);
+  S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;
+  $("battleText").textContent=`薬草で 体を${healed}回復！`;startBattleFx("petals","hero",-healed);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);
  }else{
-  if(Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";YK_BATTLE_RULES.enterResult(battle,performance.now(),400);battleLocked=false;renderBattle()}
-  else{$("battleText").textContent="逃げられない！";battleLater(foe,300)}
+  if(Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";YK_BATTLE_RULES.enterResult(battle,performance.now(),800);battleLocked=false;renderBattle()}
+  else{$("battleText").textContent="逃げられない！";battleLater(foe,BATTLE_PACE.actionRead)}
  }
 }
 function foe(){
  if(!battle)return;
- battleLocked=true;battlePose="hit";
+ battleLocked=true;battlePose=battle.guarding?"guard":"idle";
  const profile=D.enemyProfiles?.[battle.baseName],variance=profile?.variance??5;
  const foxfire=battle.rareTrait==="foxfire"&&Math.random()<battle.rareTraitChance;
- const d=YK_BATTLE_RULES.foeDamage(battle.atk,S.def+relicBonus("def"),variance,foxfire,battle.guarding,Math.random);battle.guarding=false;
- S.hp=Math.max(0,S.hp-d);$("battleText").textContent=foxfire?`${battle.name}の妖火！ ${d}ダメージ`:`${battle.name}の${profile?.attack||"攻撃"}！ ${d}ダメージ`;
- startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.battleSe?.("hit");
- battleLater(()=>{if(S.hp<=0)return defeat();battlePose="idle";battleLocked=false;YK_BATTLE_RULES.nextTurn(battle);renderBattle()},1000);
+ const action=foxfire?`${battle.name}の妖火！`:`${battle.name}の${profile?.attack||"攻撃"}！`;
+ $("battleText").textContent=action;renderBattle();
+ battleLater(()=>{
+  const d=YK_BATTLE_RULES.foeDamage(battle.atk,S.def+relicBonus("def"),variance,foxfire,battle.guarding,Math.random);battle.guarding=false;
+  S.hp=Math.max(0,S.hp-d);battlePose="hit";$("battleText").textContent=action+` 緋月に ${d}ダメージ`;
+  startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.battleSe?.("hit");
+  battleLater(()=>{battlePose="idle";renderBattle()},BATTLE_PACE.impact);
+  battleLater(()=>{if(S.hp<=0)return defeat();battleLocked=false;YK_BATTLE_RULES.nextTurn(battle);renderBattle()},BATTLE_PACE.actionRead);
+ },BATTLE_PACE.enemyWindup);
 }
+
 function win(){
  if(!battle||battle.rewarded)return;
  battle.rewarded=true;YK_BATTLE_RULES.grantVictoryBase(S,battle);
@@ -2105,3 +2124,4 @@ if(villageTestWarpBtn){
 }
 
 })();
+
