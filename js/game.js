@@ -987,12 +987,18 @@ function encounterDissolve(){
  try{
   const still=document.createElement("canvas");still.width=source.width;still.height=source.height;
   still.getContext("2d").drawImage(source,0,0);
-  Object.assign(still.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",imageRendering:"pixelated",filter:"grayscale(0) contrast(1)",transition:"filter 550ms ease-out,opacity 600ms ease-in"});
+  Object.assign(still.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",objectFit:"contain",imageRendering:"pixelated",filter:"grayscale(0) contrast(1)",transition:"filter 320ms ease-out,opacity 600ms ease-in"});
   cover.appendChild(still);
   // Color drains from the frozen field before the new battle image appears.
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(still.isConnected)still.style.filter="grayscale(1) contrast(1.24) brightness(.83)"}));
+  battleLater(()=>{if(still.isConnected)still.style.filter="grayscale(1) contrast(1.24) brightness(.83)"},125);
   battleLater(()=>{still.style.opacity="0"},1490);
  }catch(e){ /* Field capture can fail; retain the ink transition. */ }
+ // Brief white flash masks the freeze while preserving the canvas aspect ratio.
+ const flash=document.createElement("div");flash.setAttribute("aria-hidden","true");
+ Object.assign(flash.style,{position:"absolute",inset:"0",zIndex:"1",background:"#fffaf1",opacity:"0",pointerEvents:"none",transition:"opacity 160ms ease-out"});
+ cover.appendChild(flash);
+ battleLater(()=>{flash.style.transition="none";flash.style.opacity=".94"},25);
+ battleLater(()=>{flash.style.transition="opacity 210ms ease-out";flash.style.opacity="0"},125);
  const ink=document.createElement("div");
  Object.assign(ink.style,{position:"absolute",inset:"0",background:"radial-gradient(ellipse at center,transparent 28%,rgba(10,9,16,.33) 67%,rgba(5,4,9,.92) 100%)",opacity:"0",transition:"opacity 600ms ease-out"});
  cover.appendChild(ink);
