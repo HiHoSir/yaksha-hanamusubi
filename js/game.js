@@ -1027,13 +1027,13 @@ function encounterChime(){
  // A short conch-horn approximation uses the approved audio graph and mute handling.
  YK_AUDIO.horagai?.();
 }
-function beginEncounter(){
+function beginEncounter(force=false){
  ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
- if(!area||!pool?.length||area.encounter<=0)return false;
- if(S.area==="field"&&YK_WORLD.near(S.x,S.y))return false;
- if(S.encounterGrace>0||S.encounterSteps<(area.min||12))return false;
- if(Math.random()>=area.encounter)return false;
+ if(!area||!pool?.length||(!force&&area.encounter<=0))return false;
+ if(!force&&S.area==="field"&&YK_WORLD.near(S.x,S.y))return false;
+ if(!force&&(S.encounterGrace>0||S.encounterSteps<(area.min||12)))return false;
+ if(!force&&Math.random()>=area.encounter)return false;
  const e=pool[Math.floor(Math.random()*pool.length)];
  const variant=D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
  const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
@@ -1046,6 +1046,13 @@ function beginEncounter(){
  return true;
 }
 function encounter(){return beginEncounter()}
+// Explicit QA-only encounter entry. Normal gameplay rules are unchanged.
+if(new URLSearchParams(location.search).get("battleTest")==="1"){
+ const testButton=document.createElement("button");testButton.type="button";testButton.textContent="戦闘テスト";
+ testButton.style.cssText="position:fixed;right:12px;top:calc(env(safe-area-inset-top, 0px) + 12px);z-index:90;padding:10px 14px;border:1px solid #d9ba78;border-radius:12px;background:#162438;color:#fff;font-weight:bold";
+ testButton.addEventListener("click",()=>{if(!busy&&!battle)beginEncounter(true)});
+ document.body.appendChild(testButton);
+}
 function inspectTargets(){
  const texts={rocks:'苔むした岩だ。雨風に削られ、角が丸くなっている。',fence:'木を組んだ柵だ。丁寧に縄が巻かれている。',crates:'旅の荷箱だ。乾いた藁と木の香りがする。',basket:'編み目の細かい籠だ。里の人の手仕事が伝わってくる。',hozuki:'鬼灯の実が、風に揺れて小さな灯りのように見える。'};
  if(S.area==='village'){const v=YK_SETTLEMENT;return [
