@@ -1,0 +1,238 @@
+{
+  "title": "鬼哭の花契り",
+  "kind": "opening-production-assets",
+  "version": 1,
+  "durationSeconds": 90,
+  "frameSize": [
+    1920,
+    1080
+  ],
+  "fps": 30,
+  "canon": "docs/characters/HIZUKI_CANON.md",
+  "rules": {
+    "sourceFirst": true,
+    "generateOnlyMissing": true,
+    "transparentCharacters": true,
+    "independentLayers": true,
+    "doNotTreatStoryboardAsCanon": true,
+    "noUnconfirmedStoryRevelations": true
+  },
+  "reusable": {
+    "hizukiSprite": "assets/characters/hizuki/bluebob-v1/walk-atlas-256.png",
+    "hizukiManifest": "assets/characters/hizuki/bluebob-v1/manifest.json",
+    "logo": "assets/ui/kikoku-title-logo.png"
+  },
+  "shots": [
+    {
+      "id": "01",
+      "seconds": [
+        0,
+        8
+      ],
+      "location": "鬼灯の里",
+      "layers": [
+        "sky",
+        "distantMountains",
+        "village",
+        "foreground",
+        "petals"
+      ],
+      "motion": "slow-parallax",
+      "needs": [
+        "approvedVillageBackground"
+      ]
+    },
+    {
+      "id": "02",
+      "seconds": [
+        8,
+        15
+      ],
+      "layers": [
+        "bellBackground",
+        "bell",
+        "cord",
+        "petals"
+      ],
+      "motion": "bell-swing-then-stop",
+      "needs": [
+        "bellIsolated"
+      ]
+    },
+    {
+      "id": "03",
+      "seconds": [
+        15,
+        22
+      ],
+      "layers": [
+        "village",
+        "residents",
+        "jizo",
+        "foreground"
+      ],
+      "motion": "character-looks-around",
+      "needs": [
+        "existingNpcPortraits"
+      ]
+    },
+    {
+      "id": "04",
+      "seconds": [
+        22,
+        30
+      ],
+      "layers": [
+        "village",
+        "hizukiBack",
+        "hizukiSide",
+        "hairOverlay"
+      ],
+      "motion": "turn-and-hair-sway",
+      "needs": [
+        "hizukiCutinTurn"
+      ]
+    },
+    {
+      "id": "05",
+      "seconds": [
+        30,
+        38
+      ],
+      "layers": [
+        "hizukiFace",
+        "eyelids",
+        "eyeHighlights",
+        "hairFront"
+      ],
+      "motion": "blink-open-zoom",
+      "needs": [
+        "hizukiFaceCanonical",
+        "eyelidLayer"
+      ]
+    },
+    {
+      "id": "06",
+      "seconds": [
+        38,
+        45
+      ],
+      "layers": [
+        "darkBackdrop",
+        "knotTag",
+        "redThread",
+        "glow"
+      ],
+      "motion": "tag-light-and-thread",
+      "needs": [
+        "knotTagDesign"
+      ]
+    },
+    {
+      "id": "07",
+      "seconds": [
+        45,
+        53
+      ],
+      "layers": [
+        "characterPanels",
+        "panelWipes"
+      ],
+      "motion": "diagonal-wipes",
+      "needs": [
+        "shirotae",
+        "shiotaira",
+        "herbalist",
+        "takido"
+      ]
+    },
+    {
+      "id": "08",
+      "seconds": [
+        53,
+        61
+      ],
+      "layers": [
+        "forest",
+        "hizukiSprite",
+        "yokaiSilhouette",
+        "slash"
+      ],
+      "motion": "tracking-and-swipe",
+      "needs": [
+        "approvedForest"
+      ]
+    },
+    {
+      "id": "09",
+      "seconds": [
+        61,
+        69
+      ],
+      "layers": [
+        "shrine",
+        "sea",
+        "forest",
+        "waterfall"
+      ],
+      "motion": "multi-panel-travel",
+      "needs": [
+        "approvedLandscapeSources"
+      ]
+    },
+    {
+      "id": "10",
+      "seconds": [
+        69,
+        77
+      ],
+      "layers": [
+        "waterReflection",
+        "nineTailSilhouette",
+        "mist"
+      ],
+      "motion": "reflection-reveal",
+      "needs": [
+        "approvedNineTailSource"
+      ]
+    },
+    {
+      "id": "11",
+      "seconds": [
+        77,
+        84
+      ],
+      "layers": [
+        "sunriseSky",
+        "mountains",
+        "hizukiBack",
+        "petals"
+      ],
+      "motion": "slow-pullback",
+      "needs": [
+        "approvedSunriseBackdrop"
+      ]
+    },
+    {
+      "id": "12",
+      "seconds": [
+        84,
+        90
+      ],
+      "layers": [
+        "sky",
+        "mountains",
+        "petals",
+        "titleLogo"
+      ],
+      "motion": "logo-fade",
+      "needs": []
+    }
+  ],
+  "delivery": {
+    "root": "assets/opening/v1/",
+    "stage": "source-audit-and-layer-contract",
+    "approvedNewImages": 0,
+    "verifiedSafari": false
+  }
+}
