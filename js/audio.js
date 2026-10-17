@@ -29,22 +29,16 @@ window.YK_AUDIO=(()=>{
  let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
  let resumeSerial=0,restorePending=false;
  let encounterMuted=false,battleMusicTimer=null,battleMusicStep=0,battleMusicActive=false;
- // Original lightweight battle motif. Scheduled only while a battle is active;
- // a dedicated mastered soundtrack can replace this without changing game events.
- function stopBattleMusic(){battleMusicActive=false;clearTimeout(battleMusicTimer);battleMusicTimer=null;}
- function battleMusicTick(){
-  if(!battleMusicActive)return;
-  if(soundOn()&&enabledByGesture&&!document.hidden&&!backgroundPaused){
-   const melody=[330,392,440,523,440,392,330,294,330,392,494,587,523,440,392,330];
-   const n=battleMusicStep++%melody.length;
-   sound(melody[n],.15,"triangle",.016,1250);
-   if(n%4===0)sound([110,130.81,146.83,98][Math.floor(n/4)],.29,"sine",.026,470);
-  }
-  battleMusicTimer=setTimeout(battleMusicTick,215);
- }
+ // Dedicated battle track. Keep it isolated from field/village playback.
+ const battlePlayer=new Audio("audio/kikoku-battle-hybrid-fm-v4.mp3?v=15.57.182");
+ battlePlayer.preload="auto";battlePlayer.loop=true;battlePlayer.playsInline=true;
+ function stopBattleMusic(){battleMusicActive=false;clearTimeout(battleMusicTimer);battleMusicTimer=null;battlePlayer.pause();battlePlayer.currentTime=0;}
  function startBattleMusic(){
   if(battleMusicActive)return;
-  stopBattleMusic();battleMusicActive=true;battleMusicStep=0;battleMusicTick();
+  battleMusicActive=true;
+  if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;
+  battlePlayer.volume=.43;
+  const p=battlePlayer.play();if(p?.catch)p.catch(e=>{lastError="battle play "+String(e?.name||e)});
  }
  function battleSe(kind){
   const effects={
@@ -165,12 +159,13 @@ window.YK_AUDIO=(()=>{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();bindContext();
    if(ctx.state!=="running")resumeContext();
   }catch(e){bufferError="unlock "+String(e)}
+  if(battleMusicActive&&soundOn()&&!document.hidden){const p=battlePlayer.play();if(p?.catch)p.catch(()=>{})}
   play();
  }
  ["pointerdown","touchend","keydown"].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
  function pauseForBackground(){
   if(backgroundPaused)return;
-  backgroundPaused=true;clearTimeout(battleMusicTimer);battleMusicTimer=null;restorePending=false;resumeSerial++;traceAudio("background");player.pause();
+  backgroundPaused=true;clearTimeout(battleMusicTimer);battleMusicTimer=null;battlePlayer.pause();restorePending=false;resumeSerial++;traceAudio("background");player.pause();
   if(bufferTest){
    bufferGeneration++;bufferLoading="";
    if(bufferSource){
@@ -193,7 +188,7 @@ window.YK_AUDIO=(()=>{
   if(document.hidden)return;
   traceAudio("foreground");
   backgroundPaused=false;
-  if(battleMusicActive&&!battleMusicTimer)battleMusicTick();
+  if(battleMusicActive&&soundOn()&&enabledByGesture){const p=battlePlayer.play();if(p?.catch)p.catch(e=>{lastError="battle resume "+String(e?.name||e)})}
   applySessionTest();
   if(!enabledByGesture||!soundOn())return;
   // Rebuild the stopped node only when the context can run, rather than marking
@@ -208,6 +203,7 @@ window.YK_AUDIO=(()=>{
   if(document.hidden||backgroundPaused||!soundOn()||!enabledByGesture)return;
   applySessionTest();
   if(!bufferTest){play();return;}
+  if(battleMusicActive){const p=battlePlayer.play();if(p?.catch)p.catch(()=>{});return;}
   if(!currentArea)return;
   if(ctx?.state==="running"){if(!bufferSource&&!bufferLoading)void playBuffer(currentArea);}
   else resumeContext();
@@ -216,7 +212,7 @@ window.YK_AUDIO=(()=>{
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,restorePending,lifecycleTrace:lifecycleTrace.slice(),contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
+ function diagnostics(){return {battleMusicActive,battlePaused:battlePlayer.paused,battleTime:battlePlayer.currentTime,area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,restorePending,lifecycleTrace:lifecycleTrace.slice(),contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
