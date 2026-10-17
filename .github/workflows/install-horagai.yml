@@ -12,17 +12,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Download approved recording and verify exact original
+      - name: Transfer exactly approved preview MP3 and verify SHA-256
         shell: bash
         run: |
           set -euo pipefail
-          curl --retry 3 -fL --connect-timeout 15 --max-time 90 'https://esffects.net/data/93.mp3' -o /tmp/horagai.mp3
-          echo 'eaf92e8f329b09e781cd9555197619a7fcb82ebdc12522cac77ba4f7ee3f9420  /tmp/horagai.mp3' | sha256sum -c -
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
           mkdir -p audio
-          ffmpeg -hide_banner -loglevel error -y -i /tmp/horagai.mp3 -t 2.25 -af 'afade=t=out:st=1.85:d=0.40' -c:a libmp3lame -b:a 160k audio/horagai-encounter.mp3
-          test "$(stat -c %s audio/horagai-encounter.mp3)" -gt 25000
+          curl --retry 2 -fL --connect-timeout 15 --max-time 60 'https://cdn.openart.ai/openart-uploads/production/attachment-transfers/08295b0d4c157bcde8673b670a4ba00d9fd4400c30c75675feac6d619120fc25.mp3' -o audio/horagai-encounter.mp3
+          echo 'e38961a4915a3686bef44ddad07fa8f8b7b75a15e467cbcc056e038e93aaefb1  audio/horagai-encounter.mp3' | sha256sum -c -
+          test "$(stat -c %s audio/horagai-encounter.mp3)" -eq 46542
       - name: Commit verified audio file
         run: |
           git config user.name 'github-actions[bot]'
