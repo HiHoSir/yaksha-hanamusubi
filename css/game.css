@@ -325,3 +325,40 @@ body:has(#title.show) #stage{min-height:0}
 #battle .battleTop #enemyTargetInfo[hidden]{display:none}
 @media(max-width:520px){#battle .battlePartyCard{padding:3px;gap:3px;min-height:48px}#battle .battlePartyPortrait{width:28px;height:37px}#battle .battlePartySummary{font-size:10px}#battle .battlePartySummary strong{font-size:11px}}
 @media(max-height:720px){#battle .battlePartyCards{margin-top:2px}#battle .battlePartyCard{min-height:42px}#battle .battlePartyPortrait{height:33px}}
+
+
+/* Battle UI v2: responsive translucent overlay; battle state and controls unchanged. */
+#battle.show{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:30px minmax(100px,1fr) auto auto auto auto;align-content:stretch;gap:5px;padding:7px 9px 4px;overflow:hidden;background:#102337}
+#battle .battleTop{grid-row:1;height:auto;padding:4px 8px;z-index:2;background:#0b2037b8;border:1px solid #d0b27a77;border-radius:7px}
+#battle #battleCanvas{grid-row:2;width:100%;height:100%;min-height:0;max-height:none;object-fit:contain;border-radius:8px;background:radial-gradient(ellipse at center,#385e68,#102337);image-rendering:pixelated}
+#battle .battlePartyCards{grid-row:3;margin:0;gap:5px;z-index:2}
+#battle .battlePartyCard{background:#10263bc4;border-color:#cbb18a99;backdrop-filter:blur(3px);border-radius:8px}
+#battle .battleInfo{grid-row:4;margin:0;min-height:36px;padding:6px 10px;background:#0b1b31c9;border:1px solid #ddc797a6;border-radius:8px;z-index:2}
+#battle .battleCommands{grid-row:5;margin:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;z-index:2}
+#battle .battleCommands button{min-height:43px;padding:6px 10px;background:#1b324bd9;border:1px solid #cfb4839e;border-radius:8px;text-align:center;font-size:15px;backdrop-filter:blur(3px)}
+#battle .battleHelp{grid-row:6;margin:0;font-size:10px;text-align:center;line-height:1.2}
+#battle .battleVitals,#battle .battleMeters{display:none}
+@media(orientation:portrait){
+ #battle .battlePartyPortrait,#battle .battlePartyPortraitFallback{display:none}
+ #battle .battlePartyCard{justify-content:center;padding:4px 3px;min-height:47px}
+ #battle .battlePartySummary{font-size:11px}
+ #battle .battlePartySummary strong{font-size:12px}
+}
+@media(orientation:landscape){
+ body:has(#battle.show) #pad{display:none}
+ #battle.show{bottom:0;grid-template-columns:minmax(0,1fr) minmax(130px,22%);grid-template-rows:32px minmax(0,1fr) auto auto;gap:6px;padding:8px}
+ #battle #battleCanvas{grid-column:1;grid-row:1 / 4;object-fit:contain}
+ #battle .battleTop{grid-column:1;grid-row:1;align-self:start;justify-self:start;min-width:42%}
+ #battle .battleCommands{grid-column:2;grid-row:1 / 4;display:flex;flex-direction:column;gap:5px;align-self:stretch}
+ #battle .battleCommands button{flex:1;min-height:34px;font-size:14px}
+ #battle .battlePartyCards{grid-column:1 / 3;grid-row:4}
+ #battle .battlePartyCard{min-height:48px}
+ #battle .battleInfo{grid-column:1;grid-row:3;align-self:end;margin-right:6px}
+ #battle .battleHelp{display:none}
+ #battle .battlePartyPortrait{display:block}
+}
+@media(orientation:landscape) and (max-height:430px){
+ #battle .battlePartyCard{min-height:40px}
+ #battle .battlePartyPortrait{width:30px;height:36px}
+ #battle .battlePartySummary{font-size:10px}
+}
