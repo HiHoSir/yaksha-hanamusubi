@@ -1177,7 +1177,33 @@ function move(dx,dy,dir){
    walkPhase=0;YK_INPUT.stopAll();message(D.areas[ex].name);YK_SAVE.auto(S)
  }else if(!indoorNativeDebug)encounter();
  hud(!fieldStyle);if(!indoorNativeDebug&&S.walk%10===0)YK_SAVE.auto(S)
-}function renderBattle(){
+}function renderBattlePartyCards(){
+ const root=$("battlePartyCards");if(!root)return;
+ const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
+ const src=BATTLE_SPRITES[S.outfit]?.idle?.src||"";
+ const fragment=document.createDocumentFragment();
+ for(let i=0;i<4;i++){
+  const member=members[i],card=document.createElement("div");
+  card.className="battlePartyCard"+(member?"":" is-empty");
+  if(member){
+   const portrait=src?document.createElement("img"):document.createElement("div");
+   portrait.className="battlePartyPortrait"+(src?"":" battlePartyPortraitFallback");
+   if(src){portrait.src=src;portrait.alt="";portrait.setAttribute("aria-hidden","true");}
+   else portrait.textContent="緋";
+   const info=document.createElement("div");info.className="battlePartySummary";
+   const name=document.createElement("strong");name.textContent=member.name;
+   const hp=document.createElement("span");hp.textContent="体 "+member.hp+"/"+member.maxhp;
+   const mp=document.createElement("span");mp.textContent="技 "+member.mp+"/"+member.maxmp;
+   info.append(name,hp,mp);card.append(portrait,info);
+  }else{
+   const info=document.createElement("div");info.className="battlePartySummary";
+   info.textContent="—";card.append(info);card.setAttribute("aria-label","空き枠");
+  }
+  fragment.append(card);
+ }
+ root.replaceChildren(fragment);
+}
+function renderBattle(){
  if(!battle)return;
  bg.clearRect(0,0,768,430);bg.imageSmoothingEnabled=false;
  const im=B9IMG.battle;if(im&&im.complete&&im.naturalWidth)bg.drawImage(im,0,0,768,430);else{bg.fillStyle="#14283d";bg.fillRect(0,0,768,430)}
@@ -1192,10 +1218,13 @@ function move(dx,dy,dir){
  const recoil=battleFx?.target==="enemy"&&!battleFx.reduced?Math.sin(progress*Math.PI*8)*7*(1-progress):0;
  bg.save();if(battle.hp<=0)bg.globalAlpha=.25;enemyArt(bg,585+recoil,255);bg.restore();
  drawBattleFx(bg,progress);
- $("enemyName").textContent=battle.name+(battle.rareId?"【特異種】":"");$("enemyHp").textContent=Math.max(0,battle.hp)+"/"+battle.max;$("battleHp").textContent=S.hp+"/"+S.maxhp;
+ const targeting=battle.menu==="target"&&battle.phase!=="result";
+ $("enemyTargetInfo").hidden=!targeting;
+ $("battlePhaseLabel").textContent=targeting?"標的を選ぶ":battle.phase==="result"?"戦闘結果":"戦闘";
+ $("enemyName").textContent=targeting?battle.name+(battle.rareId?"【特異種】":""):"";$("enemyHp").textContent=targeting?Math.max(0,battle.hp)+"/"+battle.max:"";$("battleHp").textContent=S.hp+"/"+S.maxhp;
  $("battleMp").textContent=S.mp+"/"+S.maxmp;$("battleLevel").textContent=S.lv;
  $("battleHpBar").style.width=(100*S.hp/S.maxhp)+"%";$("battleMpBar").style.width=(100*S.mp/S.maxmp)+"%";
- $("battleHpBar").style.background=S.hp/S.maxhp<.25?"#e27268":"#8bc88a";renderBattleCommands();
+ $("battleHpBar").style.background=S.hp/S.maxhp<.25?"#e27268":"#8bc88a";renderBattlePartyCards();renderBattleCommands();
 }
 // Enemy artwork stays a single still; brief overlays carry each impact.
 function startBattleFx(kind,target,amount=null){
@@ -1223,6 +1252,7 @@ function drawBattleFx(c,p){
 const BATTLE_ROOT=[['attack','戦う','武器で攻撃する'],['skill','術','技を使う術を選ぶ'],['item','道具','回復の道具を選ぶ'],['guard','守る','次の敵の一撃を半減する'],['escape','逃げる','戦いから離れる（失敗することもある）']];
 function battleChoices(){
  if(battle?.phase==='result')return [['finish','旅を続ける','A / B：結果を閉じる']];
+ if(battle?.menu==='target')return [['target-0',battle.name,'標的を決定して攻撃'],['back','戻る','選択を取り消す']];
  if(battle?.menu==='skill')return [['bloom','花結び　技4','花びらの力で敵に攻撃'],['heal','花癒し　技3','体を30＋段×2回復'],['back','戻る','コマンドに戻る']];
  if(battle?.menu==='item')return [['herb','薬草　×'+S.potions,'体を35回復（お守りで増加）'],['back','戻る','コマンドに戻る']];
  return BATTLE_ROOT;
@@ -1236,7 +1266,7 @@ function selectCmd(i){if(!battle||battleLocked)return;const n=battleChoices().le
 function battleBack(){
  if(!battle||battleLocked)return;
  if(battle.phase==='result'){if(performance.now()>=battle.readyAt)endBattle();return;}
- battle.menu='root';battleCursor=0;renderBattleCommands();
+ battle.menu=battle.menu==='target'&&battle.targetFrom==='bloom'?'skill':'root';battleCursor=0;renderBattle();
 }
 function battleConfirm(){if(battle)cmd(battleChoices()[battleCursor]?.[0]);}
 function cmd(n){
@@ -1244,6 +1274,9 @@ function cmd(n){
  if(battle.phase==='result'){if(performance.now()>=battle.readyAt)endBattle();return;}
  if(n==='back'){battleBack();return;}
  if(n==='skill'||n==='item'){battle.menu=n;battleCursor=0;renderBattleCommands();return;}
+ if(n==='attack'||n==='bloom'){battle.targetFrom=n;battle.menu='target';battleCursor=0;renderBattle();return;}
+ if(n==='target-0'){n=battle.targetFrom||'attack';}
+
  if(!['attack','bloom','heal','herb','guard','escape'].includes(n))return;
  const check=YK_BATTLE_RULES.validateCommand(n,S);
  if(!check.ok){$('battleText').textContent=check.message;return;}
