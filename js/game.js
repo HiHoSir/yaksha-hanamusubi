@@ -1283,7 +1283,9 @@ function renderBattle(){
   const y=430-h+(hit?impact*7:0)+(victory?-7:0);
   // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
   // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
-  bg.filter=hit?"drop-shadow(1px 2px 2px rgba(18,22,36,.78)) sepia(.25) saturate(1.3) hue-rotate(320deg)":"drop-shadow(1px 2px 2px rgba(18,22,36,.78))";
+  // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
+  const edge="drop-shadow(1px 0 0 rgba(18,22,36,.72)) drop-shadow(-1px 0 0 rgba(18,22,36,.72)) drop-shadow(0 1px 0 rgba(18,22,36,.72)) drop-shadow(0 -1px 0 rgba(18,22,36,.72))";
+  bg.filter=edge+" drop-shadow(1px 2px 2px rgba(18,22,36,.55))"+(hit?" sepia(.25) saturate(1.3) hue-rotate(320deg)":"");
   if(hit)bg.globalAlpha=1-impact*.25;
   bg.drawImage(image,x,y,w,h);bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
