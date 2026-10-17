@@ -1281,6 +1281,8 @@ function battleChoices(){
  return BATTLE_ROOT;
 }
 function renderBattleCommands(){
+ const commandsEl=document.querySelector('#battle .battleCommands');
+ if(commandsEl){const acting=!!battleLocked;commandsEl.classList.toggle('battleActing',acting);commandsEl.setAttribute('aria-hidden',String(acting));}
  const choices=battleChoices();battleCursor=Math.min(battleCursor,choices.length-1);
  document.querySelectorAll('[data-cmd]').forEach((b,n)=>{const choice=choices[n];b.style.display=choice?'':'none';b.disabled=battleLocked;b.classList.toggle('selected',n===battleCursor);if(choice)b.textContent=choice[1];});
  $('battleHelp').textContent=battleLocked?'行動中…':choices[battleCursor][2]+' ／ A：決定　B：戻る';
