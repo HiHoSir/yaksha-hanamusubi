@@ -332,10 +332,29 @@ window.YK_SETTLEMENT=(()=>{
   }
   return changed;
  }
+
+const floweringTreeCache={};
+function floweringTree(kind){
+ if(!kind)return art.tree;
+ if(floweringTreeCache[kind])return floweringTreeCache[kind];
+ const source=art.tree;
+ if(!source||!source.naturalWidth)return source;
+ const cv=document.createElement('canvas');cv.width=source.naturalWidth;cv.height=source.naturalHeight;
+ const ctx=cv.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0);
+ const frame=ctx.getImageData(0,0,cv.width,cv.height),d=frame.data;
+ for(let y=0;y<cv.height*.79;y++)for(let x=0;x<cv.width;x++){
+  const i=(y*cv.width+x)*4,r=d[i],g=d[i+1],b=d[i+2];
+  if(d[i+3]<32||g<r*1.12||g<b*1.06||g<52)continue;
+  const light=Math.max(0,Math.min(1,(r+g+b-145)/390));
+  if(kind==='sakura'){d[i]=Math.round(183+65*light);d[i+1]=Math.round(92+91*light);d[i+2]=Math.round(125+75*light);}
+  else {d[i]=Math.round(188+53*light);d[i+1]=Math.round(168+64*light);d[i+2]=Math.round(155+77*light);}
+ }
+ ctx.putImageData(frame,0,0);floweringTreeCache[kind]=cv;return cv;
+}
  function draw(c,state,actors,doorState,time=performance.now()){
   load();YK_LANDSCAPE.load();YK_AUTOTILE.load();if(!ready()||!YK_LANDSCAPE.ready()||!YK_AUTOTILE.ready())return false;
   const sprite=(key,x,y,width,draw)=>({kind:key,x:x-width/2,foot:y,width,height:width*art[key].height/art[key].width*(key==='fence'?.5:1),draw:draw||((q,l,t,w,h)=>q.drawImage(art[key],l,t,w,h))});
-  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map(t=>sprite('tree',t.x,t.y,t.w)),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite,camera(state.x,state.y)),sprite('well',well.x,well.y,well.w),
+  const objects=[...YK_LANDSCAPE.objects(mapData),...trees.map((t,i)=>{const variant=i===1||i===4?'sakura':i===3?'white':null;const ob=sprite('tree',t.x,t.y,t.w);if(variant)ob.draw=(q,x,y,w,h)=>q.drawImage(floweringTree(variant),x,y,w,h);return ob;}),...props.map(p=>sprite(p.kind,p.x,p.y,p.w)),...gardens.flatMap(a=>[-42,-20,2].map(d=>sprite('crops',a.x,a.y+d,a.w*.92))),...gardens.map(a=>sprite('hozuki',a.x+a.w/2+12,a.y-6,34)),...bridgeObjects(sprite,camera(state.x,state.y)),sprite('well',well.x,well.y,well.w),
    ...buildings.map(b=>b.kind==='shrine'?{kind:'shrine',x:b.x-b.w/2,foot:b.y,width:b.w,height:b.w}:sprite(b.kind,b.x,b.y,b.w,(q,x,y,w,h)=>{q.drawImage(art[b.kind],x,y,w,h);drawDoor(q,b,x,y,w,h,doorState?.id===b.id?doorState.open:0);})),
    ...actors.filter(a=>!a.hero).map(a=>({x:a.x-36,foot:a.y,width:72,height:80,draw:(q,x,y,w,h,p)=>a.draw(p.x,p.y,p.scale)}))];
   const hero=actors.find(a=>a.hero);projectionRows.clear();
