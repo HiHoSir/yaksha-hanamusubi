@@ -473,3 +473,6 @@ body:has(#title.show) #stage{min-height:0}
 
 /* Result illustrations retain their placement before the normal battle portrait was lowered. */
 #battle #battleHeroOverlay.battleHeroResult{left:50%;bottom:0;width:min(88vw,610px);height:100%;object-position:center center;transform-origin:center center;}
+
+/* Victory pose: dramatic bottom-left crop conceals the unfinished lower edge; level-up remains centered. */
+#battle #battleHeroOverlay.battleHeroVictory{left:-12vw;bottom:-29vh;width:min(88vw,610px);height:105vh;object-position:left bottom;transform-origin:30% 75%;}
