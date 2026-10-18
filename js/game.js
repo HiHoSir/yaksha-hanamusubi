@@ -1287,8 +1287,8 @@ function renderBattle(){
   const skillArt=skillCast?HIZUKI_SKILL_FRAMES[skillPhase]:null;
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
   const image=layerReady(resultArt)?resultArt:layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
-  bg.save();bg.beginPath();bg.rect(0,80,520,480);bg.clip();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
-  // Foreground waist-up framing: scale approved poses uniformly and crop below the waist.
+  bg.save();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
+  // Foreground waist-up framing: scale approved poses uniformly; let the canvas bounds alone crop artwork.
   const resultPose=battlePose==="victory"&&image===resultArt;
   const height=resultPose?Math.min(660,580*image.naturalHeight/image.naturalWidth):660;
   const width=height*image.naturalWidth/image.naturalHeight;
@@ -1316,13 +1316,13 @@ function renderBattle(){
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
   // Character art is independent RGBA, not an enlarged field sprite.
-  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();
+  bg.save();
   bg.imageSmoothingEnabled=false;
   const height=316,width=height*HIZUKI_BATTLE_IDLE.naturalWidth/HIZUKI_BATTLE_IDLE.naturalHeight;
   bg.drawImage(HIZUKI_BATTLE_IDLE,150-width/2,430-height,width,height);
   bg.restore();
  }else if(portrait){
-  bg.save();bg.beginPath();bg.rect(0,195,300,235);bg.clip();
+  bg.save();
   bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
   // Atlas: row 1 faces away; neutral frame is column 1.
   const size=256,scale=1.3,anchor=248;
