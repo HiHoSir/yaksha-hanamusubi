@@ -470,3 +470,6 @@ body:has(#title.show) #stage{min-height:0}
 /* BETA 15.57.230: large left-side actor independently fills the portrait viewport. */
 #battle #battleHeroOverlay{position:absolute;z-index:1;left:-12vw;bottom:-27vh;width:min(88vw,610px);height:105vh;object-fit:contain;object-position:left bottom;pointer-events:none;filter:drop-shadow(1px 2px 3px rgba(18,22,36,.6));transform-origin:30% 75%;}
 @media(orientation:landscape){#battle #battleHeroOverlay{left:-4vw;bottom:-26vh;width:50vw;height:125vh}}
+
+/* Result illustrations retain their placement before the normal battle portrait was lowered. */
+#battle #battleHeroOverlay.battleHeroResult{left:-7vw;bottom:-20vh;}
