@@ -172,6 +172,11 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
 const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
+const HIZUKI_BATTLE_EXPRESSIONS={};
+for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
+ const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
+ HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
+}
 const HIZUKI_BATTLE_IDLE=new Image();
 HIZUKI_BATTLE_IDLE.onload=assetLoaded;
 HIZUKI_BATTLE_IDLE.src="assets/characters/hizuki/battle-v1/idle-rear-pixel.png?v=15.57.157";
@@ -1266,7 +1271,8 @@ function renderBattle(){
   bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
  }else if(layerReady(HIZUKI_BATTLE_FRAMES[0])){
   const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/(BATTLE_PACE.windup/2))):0;
-  const image=layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
+  const resultArt=battlePose==="victory"?(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory):null;
+  const image=layerReady(resultArt)?resultArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
   const height=316,width=height*image.naturalWidth/image.naturalHeight;
   const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
@@ -1449,7 +1455,8 @@ function win(){
  let loot=YK_BATTLE_RULES.grantRareLoot(S,battle,D.rareRules,D.relics,Math.random);
  const equipmentDrop=E.drop(S,battle.baseName);if(equipmentDrop)loot+=` ／ ${E.items[equipmentDrop].name}を入手！`;
  battle.rewardText=`${battle.name}を こらしめた！ 心の数 ${battle.xp} ／ ${battle.gold}両${loot}`;
- if(YK_BATTLE_RULES.applyLevelUps(S))battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
+ battle.levelUpResult=!!YK_BATTLE_RULES.applyLevelUps(S);
+ if(battle.levelUpResult)battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
  $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),1100);battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.("victory");
  YK_SAVE.auto(S);renderBattle();
 }
