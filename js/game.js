@@ -1300,14 +1300,15 @@ function renderBattle(){
   const hitAge=hit?Math.max(0,now-(battleFx?.start||now)):0;
   const impact=hit?Math.exp(-hitAge/135):0;
   const shake=impact*Math.sin(hitAge*.14)*10;
-  const targetHeight=660;
-  const height=targetHeight,width=height*sourceWidth/sourceHeight;
+  // Full-body portrait mode: contain the entire original image inside the
+  // actual 768x430 canvas, leaving margins for breathing and hit shake.
+  // Never position the source at a negative Y or clip it with a mask.
+  const availableWidth=450,availableHeight=390;
+  const fit=Math.min(availableWidth/sourceWidth,availableHeight/sourceHeight);
+  const width=sourceWidth*fit,height=sourceHeight*fit;
   const w=width*(1+breath*.32),h=height*(1+breath);
-  const x=12+shake+(hit?impact*9:0);
-  // With a 660px-tall sprite, y=115 showed only its transparent upper area
-  // inside the 430px actor canvas. Shift the source upward so its face and torso
-  // occupy the visible viewport while its lower body can extend offscreen.
-  const y=-115+(hit?impact*7:0)+(victory?-7:0);
+  const x=Math.max(8,Math.min(768-w-8,16+shake+(hit?impact*9:0)));
+  const y=Math.max(8,Math.min(430-h-8,430-h-12+(hit?impact*7:0)+(victory?-3:0)));
   // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
   // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
   // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
