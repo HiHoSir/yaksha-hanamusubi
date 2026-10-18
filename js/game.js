@@ -171,7 +171,7 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
-const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
+const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.src=p==="idle"?"assets/characters/hizuki/battle-v2/idle-approved-original.png?v=15.57.214":`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 // User-approved original HD attack triptych; keep full-resolution RGBA originals.
 const HIZUKI_SKILL_FRAMES=["skill-01.PNG","skill-02.PNG","skill-03.png"].map(file=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-skill-v1/${file}?v=15.57.213`;return im;});
 const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
