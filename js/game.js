@@ -1288,10 +1288,10 @@ function renderBattle(){
   const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/(BATTLE_PACE.windup/2))):0;
   const resultArt=battlePose==="victory"?(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory):null;
   const attackElapsed=normalSlash?Math.max(0,performance.now()-battleFx.start):0;
-  const attackPhase=Math.min(2,Math.floor(attackElapsed/((BATTLE_PACE.windup+BATTLE_PACE.impact)/3)));
+  const attackPhase=attackElapsed<500?0:attackElapsed<600?1:2;
   const skillCast=battlePose==="skill"&&battleFx?.kind==="petals"&&battleFx?.target==="enemy";
   const skillElapsed=skillCast?Math.max(0,performance.now()-battleFx.start):0;
-  const skillPhase=Math.min(2,Math.floor(skillElapsed/(Math.max(1,BATTLE_PACE.windup)/3)));
+  const skillPhase=skillElapsed<500?0:skillElapsed<600?1:2;
   const skillArt=skillCast?HIZUKI_SKILL_FRAMES[skillPhase]:null;
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
   const image=layerReady(resultArt)?resultArt:layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
@@ -1381,7 +1381,7 @@ function renderBattle(){
  $("battleHpBar").style.background=S.hp/S.maxhp<.25?"#e27268":"#8bc88a";renderBattlePartyCards();renderBattleCommands();
 }
 // Enemy artwork stays a single still; brief overlays carry each impact.
-const BATTLE_PACE=Object.freeze({windup:360,impact:740,actionRead:1250,enemyWindup:450,deathHold:500,deathFade:450,deathRest:300});
+const BATTLE_PACE=Object.freeze({windup:600,impact:500,actionRead:1250,enemyWindup:450,deathHold:500,deathFade:450,deathRest:300});
 function startBattleFx(kind,target,amount=null,impactDelay=0){
  const fx=battleFx={kind,target,amount,impactDelay,source:amount<0?"hero":target==="hero"?"enemy":"hero",start:performance.now(),duration:impactDelay+BATTLE_PACE.impact,reduced:!!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches};
  const tick=()=>{if(battleFx!==fx)return;if(performance.now()-fx.start>=fx.duration){battleFx=null;renderBattle();return;}renderBattle();battleLater(tick,16);};
