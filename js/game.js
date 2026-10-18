@@ -1274,7 +1274,7 @@ function renderBattle(){
   const resultArt=battlePose==="victory"?(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory):null;
   const image=layerReady(resultArt)?resultArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
-  const height=316,width=height*image.naturalWidth/image.naturalHeight;
+  // Result illustrations are wider than idle art: contain them in the actor viewport without cropping.\n  const resultPose=battlePose==="victory"&&image===resultArt;\n  const height=resultPose?Math.min(316,300*image.naturalHeight/image.naturalWidth):316;\n  const width=height*image.naturalWidth/image.naturalHeight;
   const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
   // A single approved illustration is animated with gentle breathing and a brief hit impulse.
   // Preserve the foot anchor: scaling expands upward from the same bottom baseline.
