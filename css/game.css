@@ -466,3 +466,7 @@ body:has(#title.show) #stage{min-height:0}
 
 /* Battle environment: reuse the existing approved grassland scene, no generated art. */
 #battle #battleCanvas{background-image:linear-gradient(180deg,rgba(8,22,35,.06),rgba(8,22,35,.22)),url('../assets/scenes/battle-field-v2.png');background-position:center center;background-size:cover;background-repeat:no-repeat}
+
+/* BETA 15.57.230: large left-side actor independently fills the portrait viewport. */
+#battle #battleHeroOverlay{position:absolute;z-index:1;left:-7vw;bottom:-20vh;width:min(88vw,610px);height:105vh;object-fit:contain;object-position:left bottom;pointer-events:none;filter:drop-shadow(1px 2px 3px rgba(18,22,36,.6));transform-origin:30% 75%;}
+@media(orientation:landscape){#battle #battleHeroOverlay{left:-4vw;bottom:-26vh;width:50vw;height:125vh}}
