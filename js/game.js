@@ -1288,13 +1288,13 @@ function renderBattle(){
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
   const image=layerReady(resultArt)?resultArt:layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
   bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
-  // Result illustrations are wider than idle art: contain them in the actor viewport without cropping.
+  // Foreground waist-up framing: scale approved poses uniformly and crop below the waist.
   const resultPose=battlePose==="victory"&&image===resultArt;
-  const height=resultPose?Math.min(316,300*image.naturalHeight/image.naturalWidth):316;
+  const height=resultPose?Math.min(470,410*image.naturalHeight/image.naturalWidth):470;
   const width=height*image.naturalWidth/image.naturalHeight;
   const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
   // A single approved illustration is animated with gentle breathing and a brief hit impulse.
-  // Preserve the foot anchor: scaling expands upward from the same bottom baseline.
+  // Preserve the head near the top of the actor viewport while cropping the lower body.
   const now=performance.now(),hpRatio=Math.max(0,Math.min(1,S.hp/Math.max(1,S.maxhp)));
   const breathPeriod=hpRatio>.6?2700:hpRatio>.3?1900:1250;
   const breathStrength=hpRatio>.6?.006:hpRatio>.3?.011:.017;
@@ -1304,7 +1304,7 @@ function renderBattle(){
   const shake=impact*Math.sin(hitAge*.14)*10;
   const w=width*(1+breath*.32),h=height*(1+breath);
   const x=150-w/2+shake+(hit?impact*9:0);
-  const y=430-h+(hit?impact*7:0)+(victory?-7:0);
+  const y=94+(hit?impact*7:0)+(victory?-7:0);
   // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
   // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
   // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
