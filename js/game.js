@@ -1325,6 +1325,7 @@ function renderBattle(){
     document.getElementById("battle").appendChild(actor);
   }
   if(actor.src!==image.src)actor.src=image.src;
+  actor.classList.toggle("battleHeroResult",!!resultArt&&image===resultArt);
   actor.style.transform="translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
