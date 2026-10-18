@@ -1301,33 +1301,19 @@ function renderBattle(){
   const hitAge=hit?Math.max(0,now-(battleFx?.start||now)):0;
   const impact=hit?Math.exp(-hitAge/135):0;
   const shake=impact*Math.sin(hitAge*.14)*10;
-  const maxHeight=410,maxWidth=450;
+  const maxHeight=390,maxWidth=450;
   const scale=Math.min(maxHeight/sourceHeight,maxWidth/sourceWidth);
   const width=sourceWidth*scale,height=sourceHeight*scale;
   const w=width*(1+breath*.32),h=height*(1+breath);
   const x=Math.max(4,Math.min(768-w-4,8+shake+(hit?impact*9:0)));
-  const y=Math.max(4,Math.min(430-h-4,430-h-6+(hit?impact*7:0)+(victory?-3:0)));
+  const y=Math.max(4,Math.min(430-h-12,418-h+(hit?impact*7:0)+(victory?-3:0)));
   // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
   // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
   // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
   const edge="drop-shadow(1px 0 0 rgba(18,22,36,.72)) drop-shadow(-1px 0 0 rgba(18,22,36,.72)) drop-shadow(0 1px 0 rgba(18,22,36,.72)) drop-shadow(0 -1px 0 rgba(18,22,36,.72))";
   bg.filter=edge+" drop-shadow(1px 2px 2px rgba(18,22,36,.55))"+(hit?" sepia(.25) saturate(1.3) hue-rotate(320deg)":"");
   if(hit)bg.globalAlpha=1-impact*.25;
-  // Fade the lower edge into the battlefield instead of cutting the body at a hard horizontal line.
-  // Apply the mask to an isolated sprite surface so enemies and other canvas elements stay intact.
-  const actorLayer=document.createElement("canvas");
-  actorLayer.width=Math.max(1,Math.ceil(w));actorLayer.height=Math.max(1,Math.ceil(h));
-  const actorCtx=actorLayer.getContext("2d");
-  actorCtx.imageSmoothingEnabled=bg.imageSmoothingEnabled;
-  actorCtx.drawImage(image,0,0,actorLayer.width,actorLayer.height);
-  actorCtx.globalCompositeOperation="destination-in";
-  const fade=actorCtx.createLinearGradient(0,actorLayer.height*.72,0,actorLayer.height);
-  fade.addColorStop(0,"rgba(255,255,255,1)");
-  fade.addColorStop(1,"rgba(255,255,255,0)");
-  actorCtx.fillStyle=fade;actorCtx.fillRect(0,0,actorLayer.width,actorLayer.height);
-  actorCtx.globalCompositeOperation="source-over";
-  bg.drawImage(actorLayer,x,y,w,h);bg.restore();
-  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
+  // The original PNG already contains the full silhouette. Never mask its lower half.\n  bg.drawImage(image,x,y,w,h);bg.restore();\n  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
   // Character art is independent RGBA, not an enlarged field sprite.
