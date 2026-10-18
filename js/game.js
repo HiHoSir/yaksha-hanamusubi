@@ -1332,37 +1332,7 @@ function renderBattle(){
     actor.alt="";actor.setAttribute("aria-hidden","true");
     document.getElementById("battle").appendChild(actor);
   }
-  // Keep the approved portrait's CSS geometry unchanged. Blend only a very short
-  // interval around pose changes; no scaling, mesh distortion or new image assets.
-  const motionFrames=normalSlash?HIZUKI_ATTACK_FRAMES:skillCast?HIZUKI_SKILL_FRAMES:null;
-  const motionPhase=normalSlash?attackPhase:skillCast?skillPhase:-1;
-  const motionElapsed=normalSlash?attackElapsed:skillCast?skillElapsed:0;
-  const motionSpan=normalSlash?(BATTLE_PACE.windup+BATTLE_PACE.impact)/3:Math.max(1,BATTLE_PACE.windup)/3;
-  let previous=null,blend=1;
-  if(motionFrames&&motionPhase>0&&motionPhase<3){
-   const age=motionElapsed-motionPhase*motionSpan;
-   const duration=Math.min(75,motionSpan*.32);
-   if(age>=0&&age<duration&&layerReady(motionFrames[motionPhase-1])){
-    previous=motionFrames[motionPhase-1];
-    const t=age/duration;blend=t*t*(3-2*t);
-   }
-  }
   if(actor.src!==image.src)actor.src=image.src;
-  let outgoing=document.getElementById("battleHeroOutgoing");
-  if(previous){
-   if(!outgoing){
-    outgoing=document.createElement("img");outgoing.id="battleHeroOutgoing";
-    outgoing.alt="";outgoing.setAttribute("aria-hidden","true");
-    document.getElementById("battle").appendChild(outgoing);
-   }
-   if(outgoing.src!==previous.src)outgoing.src=previous.src;
-   outgoing.style.opacity=String(1-blend);
-   outgoing.style.visibility="visible";
-   actor.style.opacity=String(blend);
-  }else{
-   actor.style.opacity="1";
-   if(outgoing)outgoing.style.visibility="hidden";
-  }
   actor.classList.toggle("battleHeroVictory",battlePose==="victory"&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
   actor.classList.toggle("battleHeroResult",!!resultArt&&image===resultArt);
   actor.style.transform=(actor.classList.contains("battleHeroResult")&&!actor.classList.contains("battleHeroVictory")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";

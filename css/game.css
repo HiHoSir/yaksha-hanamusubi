@@ -476,7 +476,3 @@ body:has(#title.show) #stage{min-height:0}
 
 /* Victory pose: dramatic bottom-left crop conceals the unfinished lower edge; level-up remains centered. */
 #battle #battleHeroOverlay.battleHeroVictory{left:-12vw;bottom:-29vh;width:min(88vw,610px);height:105vh;object-position:left bottom;transform-origin:30% 75%;}
-
-/* BETA 15.57.242: outgoing cel shares the exact same geometry as the hero. */
-#battle #battleHeroOutgoing{position:absolute;z-index:1;left:-12vw;bottom:-27vh;width:min(88vw,610px);height:105vh;object-fit:contain;object-position:left bottom;pointer-events:none;filter:drop-shadow(1px 2px 3px rgba(18,22,36,.6));transform-origin:30% 75%;visibility:hidden}
-@media(orientation:landscape){#battle #battleHeroOutgoing{left:-4vw;bottom:-26vh;width:50vw;height:125vh}}
