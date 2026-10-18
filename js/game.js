@@ -192,7 +192,7 @@ HIZUKI_4DIR.onload=assetLoaded;
 HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.116";
 const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
-HIZUKI_PIXEL.src="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.116";
+HIZUKI_PIXEL.datasetSrc="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.116";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
@@ -214,7 +214,7 @@ npcArtSelect.addEventListener("change",()=>{
 const HIZUKI_8DIR=new Image();
 HIZUKI_8DIR.onload=assetLoaded;
 HIZUKI_8DIR.onerror=()=>{HIZUKI_8DIR.datasetFailed="1";};
-HIZUKI_8DIR.src="assets/characters/hizuki/shortbob-8dir/walk-atlas-128.png";
+HIZUKI_8DIR.datasetSrc="assets/characters/hizuki/shortbob-8dir/walk-atlas-128.png";
 const HIZUKI_ATLAS_DIR={d:0,dl:1,l:2,ul:3,u:4,ur:5,r:6,dr:7};
 let hizukiFacing8=null;
 const LAYERED_SPRITES={};
@@ -223,7 +223,7 @@ for(const [outfit,folder] of Object.entries(HERO_FOLDERS)){
  for(const [dir,prefix] of Object.entries({d:"front",u:"back",l:"left",r:"right"})){
   set[dir]=["right-leg-up","neutral","left-leg-up"].map(phase=>{
    const im=new Image();im.onload=assetLoaded;
-   im.src=`assets/characters/yashahime/${folder}/${prefix}-${phase}.png`;return im;
+   im.datasetSrc=`assets/characters/yashahime/${folder}/${prefix}-${phase}.png`;return im;
   });
  }
 }
@@ -231,7 +231,7 @@ const NPC_ROLES=["woman","teagirl","man","child","elder","merchant","ferryman","
 const B9NPC={};
 NPC_ROLES.forEach(n=>{
   B9NPC[n]={legacy:null,frames:{}};
-  const legacy=new Image(); legacy.src=`assets/characters/npc/${n}.png`; B9NPC[n].legacy=legacy;
+  const legacy=new Image(); legacy.datasetSrc=`assets/characters/npc/${n}.png`; B9NPC[n].legacy=legacy;
   ["down","left","right","up"].forEach(d=>{
     B9NPC[n].frames[d]=[];
     for(let i=0;i<3;i++){
@@ -720,7 +720,8 @@ function villageDoorAction(){
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  z*=characterScale();
- const pixelArt=hizukiArt==="pixel"&&layerReady(HIZUKI_PIXEL);
+ if(hizukiArt==="pixel")ensureImage(HIZUKI_PIXEL);
+  const pixelArt=hizukiArt==="pixel"&&layerReady(HIZUKI_PIXEL);
  const walkArt=pixelArt?HIZUKI_PIXEL:HIZUKI_4DIR;
  if(outfit==="normal"&&hizukiArt!=="legacy"&&layerReady(walkArt)){
   const row=HIZUKI_4DIR_ROW[dir]??0;
