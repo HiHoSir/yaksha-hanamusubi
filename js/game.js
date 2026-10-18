@@ -173,6 +173,7 @@ let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSiz
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
 const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 // User-approved original HD attack triptych; keep full-resolution RGBA originals.
+const HIZUKI_SKILL_FRAMES=["skill-01.PNG","skill-02.PNG","skill-03.png"].map(file=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-skill-v1/${file}?v=15.57.213`;return im;});
 const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
  const im=new Image();im.onload=assetLoaded;
  im.src=`assets/characters/hizuki/battle-attack-v1/attack-0${i}.png?v=15.57.209`;
@@ -1280,9 +1281,13 @@ function renderBattle(){
   const resultArt=battlePose==="victory"?(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory):null;
   const attackElapsed=normalSlash?Math.max(0,performance.now()-battleFx.start):0;
   const attackPhase=Math.min(2,Math.floor(attackElapsed/((BATTLE_PACE.windup+BATTLE_PACE.impact)/3)));
+  const skillCast=battlePose==="skill"&&battleFx?.kind==="petals"&&battleFx?.target==="enemy";
+  const skillElapsed=skillCast?Math.max(0,performance.now()-battleFx.start):0;
+  const skillPhase=Math.min(2,Math.floor(skillElapsed/(Math.max(1,BATTLE_PACE.windup)/3)));
+  const skillArt=skillCast?HIZUKI_SKILL_FRAMES[skillPhase]:null;
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
-  const image=layerReady(resultArt)?resultArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
-  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=image===attackArt;
+  const image=layerReady(resultArt)?resultArt:layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
+  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
   // Result illustrations are wider than idle art: contain them in the actor viewport without cropping.
   const resultPose=battlePose==="victory"&&image===resultArt;
   const height=resultPose?Math.min(316,300*image.naturalHeight/image.naturalWidth):316;
