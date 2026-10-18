@@ -1,7 +1,9 @@
 // Pure battle arithmetic, independent from sprites, windows, timers and saving.
 window.YK_BATTLE_RULES=(()=>{
- function allyDamage(kind,level,attack,bonus,random=Math.random){
-  return kind==="skill"?20+level*3+bonus+Math.floor(random()*12):attack+bonus+Math.floor(random()*8);
+ function allyDamage(kind,level,attack,bonus,random=Math.random,enemyDefense=0){
+  const raw=kind==="skill"?20+level*3+bonus+Math.floor(random()*12):attack+bonus+Math.floor(random()*8);
+  // Physical defense only: skills bypass armor; old callers remain compatible.
+  return kind==="skill"?raw:Math.max(1,raw-Math.floor(Math.max(0,enemyDefense)/2));
  }
  function shellDamage(amount){return Math.max(1,Math.ceil(amount*.35));}
  function foeDamage(attack,defense,variance,foxfire,guarding,random=Math.random){
