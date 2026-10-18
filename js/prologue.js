@@ -1,7 +1,7 @@
 // Approved movie player. No save or quest mutation; completion is owned by game.js.
 window.YK_PROLOGUE=(()=>{
  'use strict';let active=false;
- const SRC='assets/prologue/pixel-v2/prologue-pixel-v2-complete.mp4?v=15.57.201';
+ const SRC='assets/prologue/pixel-v2/prologue-pixel-v2-complete.mp4?v=15.57.202';
  function play({sound=true,onComplete}){
   if(active)return false;active=true;
   const layer=document.createElement('section');layer.id='prologuePlayer';layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');layer.setAttribute('aria-label','序章');

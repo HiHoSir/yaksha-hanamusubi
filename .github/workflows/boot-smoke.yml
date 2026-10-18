@@ -274,6 +274,7 @@ jobs:
           node qa/autotile-smoke.cjs
 
       - name: Title entrance and affected browser tests
+        if: ${{ !cancelled() }}
         run: |
           npm install --no-save --package-lock=false playwright@1.51.1
           npx playwright install chromium
