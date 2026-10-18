@@ -1288,10 +1288,9 @@ function renderBattle(){
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
   const image=layerReady(resultArt)?resultArt:layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
   bg.save();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
-  // Foreground waist-up framing: scale approved poses uniformly; let the canvas bounds alone crop artwork.
-  // Fit the entire approved PNG within the fixed 768x430 actor canvas.
-  // On portrait Safari, the canvas is CSS-scaled; positioning outside this canvas
-  // caused the heroine's hair, sleeves and arms to disappear at its left edge.
+  // Portrait composition: a large heroine on the LEFT, with her face fully visible.
+  // The lower body may extend beyond the scene; do not mask or fade the source PNG.
+  // Keep the top/left silhouette within the canvas while allowing overlap with HUD.
   const sourceWidth=Math.max(1,image.naturalWidth),sourceHeight=Math.max(1,image.naturalHeight);
   const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
   const now=performance.now(),hpRatio=Math.max(0,Math.min(1,S.hp/Math.max(1,S.maxhp)));
@@ -1301,12 +1300,11 @@ function renderBattle(){
   const hitAge=hit?Math.max(0,now-(battleFx?.start||now)):0;
   const impact=hit?Math.exp(-hitAge/135):0;
   const shake=impact*Math.sin(hitAge*.14)*10;
-  const maxHeight=390,maxWidth=450;
-  const scale=Math.min(maxHeight/sourceHeight,maxWidth/sourceWidth);
-  const width=sourceWidth*scale,height=sourceHeight*scale;
+  const targetHeight=660;
+  const height=targetHeight,width=height*sourceWidth/sourceHeight;
   const w=width*(1+breath*.32),h=height*(1+breath);
-  const x=Math.max(4,Math.min(768-w-4,8+shake+(hit?impact*9:0)));
-  const y=Math.max(4,Math.min(430-h-12,418-h+(hit?impact*7:0)+(victory?-3:0)));
+  const x=12+shake+(hit?impact*9:0);
+  const y=115+(hit?impact*7:0)+(victory?-7:0);
   // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
   // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
   // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
