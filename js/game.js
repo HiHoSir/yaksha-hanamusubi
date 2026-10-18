@@ -1313,7 +1313,20 @@ function renderBattle(){
   const edge="drop-shadow(1px 0 0 rgba(18,22,36,.72)) drop-shadow(-1px 0 0 rgba(18,22,36,.72)) drop-shadow(0 1px 0 rgba(18,22,36,.72)) drop-shadow(0 -1px 0 rgba(18,22,36,.72))";
   bg.filter=edge+" drop-shadow(1px 2px 2px rgba(18,22,36,.55))"+(hit?" sepia(.25) saturate(1.3) hue-rotate(320deg)":"");
   if(hit)bg.globalAlpha=1-impact*.25;
-  bg.drawImage(image,x,y,w,h);bg.restore();
+  // Fade the lower edge into the battlefield instead of cutting the body at a hard horizontal line.
+  // Apply the mask to an isolated sprite surface so enemies and other canvas elements stay intact.
+  const actorLayer=document.createElement("canvas");
+  actorLayer.width=Math.max(1,Math.ceil(w));actorLayer.height=Math.max(1,Math.ceil(h));
+  const actorCtx=actorLayer.getContext("2d");
+  actorCtx.imageSmoothingEnabled=bg.imageSmoothingEnabled;
+  actorCtx.drawImage(image,0,0,actorLayer.width,actorLayer.height);
+  actorCtx.globalCompositeOperation="destination-in";
+  const fade=actorCtx.createLinearGradient(0,actorLayer.height*.72,0,actorLayer.height);
+  fade.addColorStop(0,"rgba(255,255,255,1)");
+  fade.addColorStop(1,"rgba(255,255,255,0)");
+  actorCtx.fillStyle=fade;actorCtx.fillRect(0,0,actorLayer.width,actorLayer.height);
+  actorCtx.globalCompositeOperation="source-over";
+  bg.drawImage(actorLayer,x,y,w,h);bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
