@@ -1304,7 +1304,10 @@ function renderBattle(){
   const height=targetHeight,width=height*sourceWidth/sourceHeight;
   const w=width*(1+breath*.32),h=height*(1+breath);
   const x=12+shake+(hit?impact*9:0);
-  const y=115+(hit?impact*7:0)+(victory?-7:0);
+  // With a 660px-tall sprite, y=115 showed only its transparent upper area
+  // inside the 430px actor canvas. Shift the source upward so its face and torso
+  // occupy the visible viewport while its lower body can extend offscreen.
+  const y=-115+(hit?impact*7:0)+(victory?-7:0);
   // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
   // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
   // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
