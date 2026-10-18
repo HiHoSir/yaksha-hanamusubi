@@ -1316,7 +1316,17 @@ function renderBattle(){
   bg.filter=edge+" drop-shadow(1px 2px 2px rgba(18,22,36,.55))"+(hit?" sepia(.25) saturate(1.3) hue-rotate(320deg)":"");
   if(hit)bg.globalAlpha=1-impact*.25;
   // The original PNG already contains the full silhouette. Never mask its lower half.
-  bg.drawImage(image,x,y,w,h);bg.restore();
+  // Render the heroine on a separate full-viewport layer, independent of
+  // the 768x430 battle effects canvas and its object-fit letterboxing.
+  let actor=document.getElementById("battleHeroOverlay");
+  if(!actor){
+    actor=document.createElement("img");actor.id="battleHeroOverlay";
+    actor.alt="";actor.setAttribute("aria-hidden","true");
+    document.getElementById("battle").appendChild(actor);
+  }
+  if(actor.src!==image.src)actor.src=image.src;
+  actor.style.transform="translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
+  bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
