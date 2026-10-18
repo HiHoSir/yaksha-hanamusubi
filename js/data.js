@@ -17,13 +17,15 @@ const areas={
 fox:{name:"九尾の祠",ground:"#665f4f",path:"#9e8965",water:"#526f78",encounter:.048,min:14,grace:12}
 };
 const enemies={
- field:[["野の小鬼",42,8,10,8],["化け狸",48,9,12,9]],
- shrine:[["灯火狐",58,11,16,12]],
- cove:[["磯妖",62,12,18,13],["泡くらげ",54,10,15,11]],
- forest:[["木霊",70,13,22,15],["迷い蜘蛛",76,14,25,16]],
- waterfall:[["水蛇",86,16,30,20],["滝童",80,15,28,18]],
- fox:[["妖狐",98,18,38,25],["影九尾",120,20,48,32]]
+ field:[["野の小鬼",24,7,8,8],["化け狸",30,8,10,9]],
+ shrine:[["灯火狐",40,10,15,12]],
+ cove:[["磯妖",48,12,20,13],["泡くらげ",38,10,17,11]],
+ forest:[["木霊",62,14,27,15],["迷い蜘蛛",55,15,29,16]],
+ waterfall:[["水蛇",78,18,38,20],["滝童",68,16,35,18]],
+ fox:[["妖狐",92,20,48,25],["影九尾",120,20,48,32]]
 };
+// Physical defense by normal enemy name; boss tuning is deliberately excluded.
+const enemyDefense={"野の小鬼":1,"化け狸":2,"灯火狐":3,"磯妖":5,"泡くらげ":2,"木霊":6,"迷い蜘蛛":3,"水蛇":7,"滝童":4,"妖狐":6};
 const enemyProfiles={
  "野の小鬼":{atlas:0,fallback:"redoni",style:"bruiser",scale:1.04,attack:"角突進",fx:"impact",variance:3,yOffset:14,shadowScale:.82,shadowYOffset:10},
  "化け狸":{atlas:1,fallback:"crowtengu",style:"trickster",scale:.94,attack:"木の葉ばらまき",fx:"petals",variance:5},
@@ -76,5 +78,5 @@ const story=[
 ];
 const objectives=[...story.map(s=>s.objective),"手がかりを得た。各地を探索する（物語の続きは制作中）"];
 const vegetables={radish:{name:'だいこん',hp:18,mp:0},carrot:{name:'にんじん',hp:12,mp:0},cucumber:{name:'きゅうり',hp:8,mp:2}};
-return {vegetables,outfits,areas,enemies,enemyProfiles,objectives,story,rareKinds,relics,rareRules};
+return {vegetables,outfits,areas,enemies,enemyDefense,enemyProfiles,objectives,story,rareKinds,relics,rareRules};
 })();
