@@ -1,0 +1,21 @@
+{
+  "version": "15.57.206",
+  "description": "Approved original full-resolution Hizuki battle end and level-up illustrations; no additional generation.",
+  "assets": [
+    {
+      "pose": "battle-end",
+      "path": "assets/characters/hizuki/battle-expressions-v1/battle-end.png",
+      "sha": "50ec4a684e2934267e4d9f0b700aef2b4fe436b1",
+      "width": 1347,
+      "height": 1168
+    },
+    {
+      "pose": "level-up",
+      "path": "assets/characters/hizuki/battle-expressions-v1/level-up.png",
+      "sha": "1a7b6789f1f41096d00a715731b0dc65ea6dab90",
+      "width": 1346,
+      "height": 1168
+    }
+  ],
+  "runtime_integrated": false
+}
