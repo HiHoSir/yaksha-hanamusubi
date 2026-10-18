@@ -134,9 +134,9 @@ let npcArt=charSizeParams.get("npcArt")==="legacy"?"legacy":"illustration";
 const NPC_ASSETS={};
 function loadNpcAssetSet(){
  for(const [type,folder] of Object.entries(NPC_ASSET_TYPES)){
-  const atlas=new Image();atlas.onload=assetLoaded;atlas.src=`${NPC_ASSET_ROOT}/${folder}.webp`;const refreshed=["elder","satoko","merchant","osumi","teagirl"].includes(folder)?new Image():null;
-  if(refreshed){refreshed.onload=assetLoaded;refreshed.src=`assets/characters/npc-v3/${folder}.png?v=15.57.116`;}
-  NPC_ASSETS[type]={atlas,refreshed};
+  const atlas=new Image();atlas.onload=assetLoaded;
+  atlas.src=npcArt==="legacy"?`${NPC_ASSET_ROOT}/${folder}.webp`:`assets/characters/npc-v3/${folder}.png?v=15.57.116`;
+  NPC_ASSETS[type]={atlas,refreshed:null};
  }
 }
 let npcAssetsLoaded=false;
@@ -206,6 +206,7 @@ const npcArtSelect=$("npcArtSelect");
 npcArtSelect.value=npcArt;
 npcArtSelect.addEventListener("change",()=>{
  npcArt=npcArtSelect.value;
+ npcAssetsLoaded=false;for(const key of Object.keys(NPC_ASSETS))delete NPC_ASSETS[key];ensureNpcAssets();
  const url=new URL(location.href);url.searchParams.set("npcArt",npcArt);
  history.replaceState(null,"",url.pathname+url.search+url.hash);
  map();
