@@ -267,7 +267,11 @@ const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
 function ensureBattleAssets(){
- ensureImage(HIZUKI_BATTLE_FRAMES[0]);
+ // Preload every approved heroine animation before the encounter transition.
+ for(const im of HIZUKI_BATTLE_FRAMES)ensureImage(im);
+ for(const im of HIZUKI_SKILL_FRAMES)ensureImage(im);
+ for(const im of HIZUKI_ATTACK_FRAMES)ensureImage(im);
+ for(const im of Object.values(HIZUKI_BATTLE_EXPRESSIONS))ensureImage(im);
  ensureImage(HIZUKI_BATTLE_IDLE);
  const set=BATTLE_SPRITES[S.outfit]||BATTLE_SPRITES.normal;if(set)for(const im of Object.values(set))ensureImage(im);
  for(const im of Object.values(B9EN))ensureImage(im);
@@ -1270,12 +1274,6 @@ function renderBattle(){
  // Rear-view foreground party, using the approved upward-facing atlas instead
  // of inventing or mirroring a new heroine design. Existing action art remains
  // available during explicit attack/skill/hit/victory poses.
- if(battlePose==="victory")ensureImage(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory);
- if(battlePose==="skill"&&battleFx?.kind==="petals"&&battleFx?.target==="enemy")for(const im of HIZUKI_SKILL_FRAMES)ensureImage(im);
- if(battleFx?.kind==="slash"&&battleFx?.target==="enemy"){
-  for(const im of HIZUKI_ATTACK_FRAMES)ensureImage(im);
-  for(const im of HIZUKI_BATTLE_FRAMES.slice(1))ensureImage(im);
- }
  const normalSlash=battleFx?.kind==="slash"&&battleFx?.target==="enemy";
  // The old Yashahime pose sprites do not match the current blue-bob Hizuki.
  // Reuse the approved battle-v2 actor until dedicated hit/victory art is approved.
