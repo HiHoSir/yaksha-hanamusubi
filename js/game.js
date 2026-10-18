@@ -1311,7 +1311,9 @@ function renderBattle(){
   const edge="drop-shadow(1px 0 0 rgba(18,22,36,.72)) drop-shadow(-1px 0 0 rgba(18,22,36,.72)) drop-shadow(0 1px 0 rgba(18,22,36,.72)) drop-shadow(0 -1px 0 rgba(18,22,36,.72))";
   bg.filter=edge+" drop-shadow(1px 2px 2px rgba(18,22,36,.55))"+(hit?" sepia(.25) saturate(1.3) hue-rotate(320deg)":"");
   if(hit)bg.globalAlpha=1-impact*.25;
-  // The original PNG already contains the full silhouette. Never mask its lower half.\n  bg.drawImage(image,x,y,w,h);bg.restore();\n  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
+  // The original PNG already contains the full silhouette. Never mask its lower half.
+  bg.drawImage(image,x,y,w,h);bg.restore();
+  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }else if(layerReady(HIZUKI_BATTLE_IDLE)){
   // Character art is independent RGBA, not an enlarged field sprite.
