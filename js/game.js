@@ -1086,7 +1086,7 @@ function beginEncounter(force=false){
  const e=pool[Math.floor(Math.random()*pool.length)];
  const variant=D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
  const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
- fieldMotion=null;resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
+ fieldMotion=null;resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,def:D.enemyDefense?.[e[0]]||0,xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent=battle.name+"が あらわれた！";
@@ -1451,7 +1451,7 @@ function cmd(n){
   const fx=startBattleFx(n==="skill"?"petals":"slash","enemy",null,BATTLE_PACE.windup);
   renderBattle();
   battleLater(()=>{
-   const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random);
+   const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random,battle.def||0);
    if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){
     $("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;
     battlePose="idle";startBattleFx("petals","enemy");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);return;
