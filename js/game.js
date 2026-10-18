@@ -1287,10 +1287,10 @@ function renderBattle(){
   const skillArt=skillCast?HIZUKI_SKILL_FRAMES[skillPhase]:null;
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
   const image=layerReady(resultArt)?resultArt:layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
-  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
+  bg.save();bg.beginPath();bg.rect(0,80,520,480);bg.clip();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
   // Foreground waist-up framing: scale approved poses uniformly and crop below the waist.
   const resultPose=battlePose==="victory"&&image===resultArt;
-  const height=resultPose?Math.min(470,410*image.naturalHeight/image.naturalWidth):470;
+  const height=resultPose?Math.min(660,580*image.naturalHeight/image.naturalWidth):660;
   const width=height*image.naturalWidth/image.naturalHeight;
   const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
   // A single approved illustration is animated with gentle breathing and a brief hit impulse.
@@ -1303,8 +1303,8 @@ function renderBattle(){
   const impact=hit?Math.exp(-hitAge/135):0;
   const shake=impact*Math.sin(hitAge*.14)*10;
   const w=width*(1+breath*.32),h=height*(1+breath);
-  const x=150-w/2+shake+(hit?impact*9:0);
-  const y=94+(hit?impact*7:0)+(victory?-7:0);
+  const x=205-w/2+shake+(hit?impact*9:0);
+  const y=82+(hit?impact*7:0)+(victory?-7:0);
   // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
   // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
   // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
