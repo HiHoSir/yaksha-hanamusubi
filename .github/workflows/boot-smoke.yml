@@ -117,6 +117,8 @@ jobs:
           }
           console.log('HTML and VM harness module order OK');
           NODE
+      - name: Prologue completion and save safety
+        run: node qa/prologue-unit.cjs
       - name: Field message priority contract
         run: node qa/field-hint-unit.cjs
       - name: Camera interpolation contract

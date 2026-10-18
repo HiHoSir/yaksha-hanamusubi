@@ -1,0 +1,26 @@
+{
+  "hero": {
+    "source_size": [
+      2172,
+      724
+    ],
+    "cell_canvas": [
+      1040,
+      1040
+    ],
+    "body_fixed_for_mouth": true,
+    "mirror": false
+  },
+  "child": {
+    "source_size": [
+      2172,
+      724
+    ],
+    "cell_canvas": [
+      1040,
+      1040
+    ],
+    "body_fixed_for_mouth": true,
+    "mirror": true
+  }
+}

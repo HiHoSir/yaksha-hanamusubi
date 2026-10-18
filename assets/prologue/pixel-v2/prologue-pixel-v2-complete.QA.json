@@ -1,0 +1,33 @@
+{
+  "bytes": 7699533,
+  "sha256": "b9e5f6879c2d74ffb6de039f49b7b9d39a13f351a5615e698cdb65fd55ae4315",
+  "moov_before_mdat": true,
+  "full_decode": "passed",
+  "iphone_safari": "not tested",
+  "github": "See main commit and deployment status; this file records local preflight.",
+  "audio": {
+    "input_i": "-18.37",
+    "input_tp": "-1.86",
+    "input_lra": "14.30",
+    "input_thresh": "-29.08",
+    "output_i": "-18.94",
+    "output_tp": "-2.00",
+    "output_lra": "13.70",
+    "output_thresh": "-29.53",
+    "normalization_type": "dynamic",
+    "target_offset": "0.94"
+  },
+  "duration": 106.1,
+  "visual_checks": [
+    "NPC composite and pointing pose inspected",
+    "Hizuki thought/speech/resolve facial patches inspected",
+    "subtitles and eyelines inspected"
+  ],
+  "limitations": [
+    "No iPhone device test",
+    "Male voice only for opening narration; character dialogue unvoiced",
+    "Background remains one scenery layer with separate actors, not full foreground decomposition",
+    "Runtime unit tests passed; actual browser and device checks are tracked separately."
+  ],
+  "audio_repair": "two-pass loudness normalization after detected overpeak"
+}
