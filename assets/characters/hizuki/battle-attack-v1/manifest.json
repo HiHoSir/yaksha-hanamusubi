@@ -1,0 +1,21 @@
+{
+  "version": "15.57.209",
+  "description": "User-approved original HD attack triptych, preserved unchanged",
+  "source": "hizuki_attack_motion_set(1).zip",
+  "width": 1024,
+  "height": 1536,
+  "files": [
+    {
+      "name": "attack-01.png",
+      "sha": "53e10c8e612a887c8f5350d11825ef2b74aba3d1"
+    },
+    {
+      "name": "attack-02.png",
+      "sha": "9f16e58bba7d2b490ae8e6d4309a2381bbbaae79"
+    },
+    {
+      "name": "attack-03.png",
+      "sha": "12fb72af66a1c624e1880d094fbf7d8ba912da14"
+    }
+  ]
+}

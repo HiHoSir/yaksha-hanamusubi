@@ -172,6 +172,12 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
 const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
+// User-approved original HD attack triptych; keep full-resolution RGBA originals.
+const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
+ const im=new Image();im.onload=assetLoaded;
+ im.src=`assets/characters/hizuki/battle-attack-v1/attack-0${i}.png?v=15.57.209`;
+ return im;
+});
 const HIZUKI_BATTLE_EXPRESSIONS={};
 for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
  const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
@@ -1272,9 +1278,15 @@ function renderBattle(){
  }else if(layerReady(HIZUKI_BATTLE_FRAMES[0])){
   const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/(BATTLE_PACE.windup/2))):0;
   const resultArt=battlePose==="victory"?(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory):null;
-  const image=layerReady(resultArt)?resultArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
-  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=false;
-  // Result illustrations are wider than idle art: contain them in the actor viewport without cropping.\n  const resultPose=battlePose==="victory"&&image===resultArt;\n  const height=resultPose?Math.min(316,300*image.naturalHeight/image.naturalWidth):316;\n  const width=height*image.naturalWidth/image.naturalHeight;
+  const attackElapsed=normalSlash?Math.max(0,performance.now()-battleFx.start):0;
+  const attackPhase=Math.min(2,Math.floor(attackElapsed/((BATTLE_PACE.windup+BATTLE_PACE.impact)/3)));
+  const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
+  const image=layerReady(resultArt)?resultArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
+  bg.save();bg.beginPath();bg.rect(0,92,330,338);bg.clip();bg.imageSmoothingEnabled=image===attackArt;
+  // Result illustrations are wider than idle art: contain them in the actor viewport without cropping.
+  const resultPose=battlePose==="victory"&&image===resultArt;
+  const height=resultPose?Math.min(316,300*image.naturalHeight/image.naturalWidth):316;
+  const width=height*image.naturalWidth/image.naturalHeight;
   const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
   // A single approved illustration is animated with gentle breathing and a brief hit impulse.
   // Preserve the foot anchor: scaling expands upward from the same bottom baseline.
