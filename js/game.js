@@ -171,22 +171,22 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
 let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
-const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.src=p==="idle"?"assets/characters/hizuki/battle-v2/hizuki_battle_idle_approved.png?v=15.57.215":`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
+const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=p==="idle"?"assets/characters/hizuki/battle-v2/hizuki_battle_idle_approved.png?v=15.57.215":`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 // User-approved original HD attack triptych; keep full-resolution RGBA originals.
-const HIZUKI_SKILL_FRAMES=["skill-01.PNG","skill-02.PNG","skill-03.png"].map(file=>{const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-skill-v1/${file}?v=15.57.213`;return im;});
+const HIZUKI_SKILL_FRAMES=["skill-01.PNG","skill-02.PNG","skill-03.png"].map(file=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/hizuki/battle-skill-v1/${file}?v=15.57.213`;return im;});
 const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
  const im=new Image();im.onload=assetLoaded;
- im.src=`assets/characters/hizuki/battle-attack-v1/attack-0${i}.png?v=15.57.209`;
+ im.datasetSrc=`assets/characters/hizuki/battle-attack-v1/attack-0${i}.png?v=15.57.209`;
  return im;
 });
 const HIZUKI_BATTLE_EXPRESSIONS={};
 for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
- const im=new Image();im.onload=assetLoaded;im.src=`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
 const HIZUKI_BATTLE_IDLE=new Image();
 HIZUKI_BATTLE_IDLE.onload=assetLoaded;
-HIZUKI_BATTLE_IDLE.src="assets/characters/hizuki/battle-v1/idle-rear-pixel.png?v=15.57.157";
+HIZUKI_BATTLE_IDLE.datasetSrc="assets/characters/hizuki/battle-v1/idle-rear-pixel.png?v=15.57.157";
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
 HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.116";
@@ -267,6 +267,11 @@ const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
 function ensureBattleAssets(){
+ for(const im of HIZUKI_BATTLE_FRAMES)ensureImage(im);
+ for(const im of HIZUKI_SKILL_FRAMES)ensureImage(im);
+ for(const im of HIZUKI_ATTACK_FRAMES)ensureImage(im);
+ for(const im of Object.values(HIZUKI_BATTLE_EXPRESSIONS))ensureImage(im);
+ ensureImage(HIZUKI_BATTLE_IDLE);
  const set=BATTLE_SPRITES[S.outfit]||BATTLE_SPRITES.normal;if(set)for(const im of Object.values(set))ensureImage(im);
  for(const im of Object.values(B9EN))ensureImage(im);
  for(const im of Object.values(ENEMY_ART))ensureImage(im);
