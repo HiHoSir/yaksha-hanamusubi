@@ -271,8 +271,7 @@ function ensureBattleAssets(){
  for(const im of HIZUKI_SKILL_FRAMES)ensureImage(im);
  for(const im of HIZUKI_ATTACK_FRAMES)ensureImage(im);
  for(const im of Object.values(HIZUKI_BATTLE_EXPRESSIONS))ensureImage(im);
- ensureImage(HIZUKI_BATTLE_IDLE);
- const set=BATTLE_SPRITES[S.outfit]||BATTLE_SPRITES.normal;if(set)for(const im of Object.values(set))ensureImage(im);
+ // Legacy Yashahime sprites are not part of the active battle preload.
  for(const im of Object.values(B9EN))ensureImage(im);
  for(const im of Object.values(ENEMY_ART))ensureImage(im);
  ensureImage(ENEMY_ATLAS);
@@ -1341,13 +1340,6 @@ function renderBattle(){
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
- }else if(false){
-  // Character art is independent RGBA, not an enlarged field sprite.
-  bg.save();
-  bg.imageSmoothingEnabled=false;
-  const height=316,width=height*HIZUKI_BATTLE_IDLE.naturalWidth/HIZUKI_BATTLE_IDLE.naturalHeight;
-  bg.drawImage(HIZUKI_BATTLE_IDLE,150-width/2,430-height,width,height);
-  bg.restore();
  }else if(portrait){
   bg.save();
   bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
