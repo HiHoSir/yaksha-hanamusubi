@@ -46,7 +46,7 @@ const chests=[
 ];
 const drops={
  '野の小鬼':{id:'red_band',chance:.10},'化け狸':{id:'rabbit_tabi',chance:.10},
- '灯火狐':{id:'plum_staff',chance:.08},'磯妖':{id:'tide_tabi',chance:.12},
+ '鬼火':{id:'plum_staff',chance:.08},'磯妖':{id:'tide_tabi',chance:.12},
  '泡くらげ':{id:'tide_tabi',chance:.12},'木霊':{id:'leaf_comb',chance:.14},
  '迷い蜘蛛':{id:'silk_robe',chance:.08},'水蛇':{id:'silver_band',chance:.10},
  '滝童':{id:'lion_tabi',chance:.10},'妖狐':{id:'foxfire_blade',chance:.12},
