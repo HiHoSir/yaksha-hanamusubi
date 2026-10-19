@@ -1377,7 +1377,7 @@ function startBattleFx(kind,target,amount=null,impactDelay=0){
 }
 function drawBattleFx(c,p){
  if(!battleFx||p>=1)return;
- const f=battleFx,x=f.target==="enemy"?585:170,y=205;
+ const f=battleFx,x=f.target==="enemy"?483:170,y=f.target==="enemy"?190:205;
  c.save();
  if(f.amount!==null){c.font='bold 42px sans-serif';c.textAlign='center';c.lineWidth=5;c.strokeStyle='#132136';const label=f.amount<0?'+'+(-f.amount):String(f.amount),fy=y-72-(f.reduced?0:18*p);c.strokeText(label,x,fy);c.fillStyle=f.amount<0?'#aff0bb':'#fff2c6';c.fillText(label,x,fy);}
  c.globalAlpha=(1-p)*.85;c.strokeStyle=f.kind==="petals"?"#ffd0e7":"#fff0b2";c.lineWidth=5;
