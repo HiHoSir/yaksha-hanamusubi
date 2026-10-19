@@ -1340,14 +1340,7 @@ function renderBattle(){
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
- }else if(portrait){
-  bg.save();
-  bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
-  // Atlas: row 1 faces away; neutral frame is column 1.
-  const size=256,scale=1.3,anchor=248;
-  bg.drawImage(portrait,size,256,256,256,135-128*scale,420-anchor*scale,256*scale,256*scale);
-  bg.restore();
- }else hero(bg,145,345,"u",1,S.outfit,1.48);
+ }
  const age=battleFx?Math.max(0,performance.now()-battleFx.start):0;
  const impactDelay=battleFx?.impactDelay||0;
  const hitProgress=battleFx?Math.min(1,Math.max(0,(age-impactDelay)/(battleFx.duration-impactDelay))):1;
