@@ -3,19 +3,6 @@
 "use strict";
 const $=id=>document.getElementById(id),C=$("game"),g=C.getContext("2d"),BC=$("battleCanvas"),bg=BC.getContext("2d"),WC=$("worldCanvas"),wg=WC.getContext("2d");
 window.gameState=YK_GAME_STATE.fresh();let S=window.gameState,busy=true,battle=null,battleCursor=0,battleLocked=false,dialogQueue=[],dialogAfter=null,msgTimer=0,last=performance.now();
-let indoorNativeDebug=false,indoorNativeBackup=null;
-window.YK_toggleIndoorDebug=function(enable){
- if(enable===indoorNativeDebug)return true;
- if(enable){
-  if(busy||battle)return false;
-  indoorNativeBackup={area:S.area,x:S.x,y:S.y,dir:S.dir,frame:S.frame,lastInterior:S.lastInterior,walk:S.walk,encounterSteps:S.encounterSteps};
-  fieldMotion=null;YK_INPUT.stopAll();indoorNativeDebug=true;S.area='teahouse';[S.x,S.y]=YK_INDOOR_NATIVE_DEBUG.spawn();S.dir='u';S.frame=1;
- }else{
-  fieldMotion=null;YK_INPUT.stopAll();if(indoorNativeBackup)Object.assign(S,indoorNativeBackup);
-  indoorNativeDebug=false;indoorNativeBackup=null;
- }
- hud();map();return true;
-};
 let dialogTyping=null,dialogTypingTimer=null;
 function stopDialogTyping(){clearTimeout(dialogTypingTimer);dialogTypingTimer=null;dialogTyping=null;YK_AUDIO?.dialogEnd?.();}
 function updateDialogIndicator(){
@@ -663,7 +650,7 @@ function drawInterior(c,kind){
  // subtle room vignette
  const grd=c.createRadialGradient(384,390,170,384,390,520);grd.addColorStop(0,"rgba(255,220,145,0)");grd.addColorStop(1,"rgba(20,10,12,.28)");c.fillStyle=grd;c.fillRect(42,48,684,656);
 }
-function interiorBlocked(x,y){if(indoorNativeDebug)return YK_INDOOR_NATIVE_DEBUG.blocked(x,y);
+function interiorBlocked(x,y){if(S.area==="teahouse")return YK_INDOOR_NATIVE_DEBUG.blocked(x,y);
  if(YK_INTERIOR_BASE.area(S))return YK_INTERIOR_BASE.blocked(S,x,y);
  if(x<72||x>696||y<195||y>704)return true;
  // Counter/hearth/furniture collision uses the same rectangles as drawInterior().
@@ -678,7 +665,7 @@ function interiorBlocked(x,y){if(indoorNativeDebug)return YK_INDOOR_NATIVE_DEBUG
  // Keep the bottom-center doorway usable.
  return false;
 }
-function enterInterior(area){fieldMotion=null;YK_INPUT.stopAll();S.area=area;[S.x,S.y]=YK_INTERIOR_BASE.spawn(S);S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
+function enterInterior(area){fieldMotion=null;YK_INPUT.stopAll();S.area=area;[S.x,S.y]=area==="teahouse"?YK_INDOOR_NATIVE_DEBUG.spawn():YK_INTERIOR_BASE.spawn(S);S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
 function leaveInterior(){
  if(villageDoorMotion)return;
  fieldMotion=null;YK_INPUT.stopAll();S.area="village";
@@ -851,12 +838,12 @@ function map(frameTime=performance.now()){
  g.clearRect(0,0,768,768);g.fillStyle="#102635";g.fillRect(0,0,768,768);g.imageSmoothingEnabled=false;
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="debugField"){drawDebugField(g);return;}
- if(indoorNativeDebug){
+ if(S.area==="teahouse"){
   const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
   const px=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
   const py=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
-  YK_INDOOR_NATIVE_DEBUG.render(g,p=>hero(g,p.x,p.y-9*.56*p.z,S.dir,S.frame,S.outfit,.56*p.z),{x:px,y:py});
-  worldHint('室内検証：四隅の柱と卓を避けて歩く');return;
+  YK_INDOOR_NATIVE_DEBUG.render(g,p=>hero(g,p.x,p.y-9*.56*p.z,S.dir,S.frame,S.outfit,.56*p.z),{x:px,y:py},areaNPCs(),(c,n,p)=>npc(c,p.x,p.y,n.type,n.name,n.dir||"d",n.frame??1));
+  worldHint(YK_INDOOR_NATIVE_DEBUG.exit(S.x,S.y)?"A：鬼灯の里へ戻る":"花見茶屋・茶屋娘に話しかけよう");return;
  }
 
  if(S.area==="field"){
@@ -929,9 +916,10 @@ function map(frameTime=performance.now()){
  fox:[{x:535,y:650,type:"traveler",name:"白狐の使い",talk:["ようやく来たね、緋月。","忘れた約束を思い出す時だ。"]}],
  hotspring:[{x:620,y:650,type:"hotkeeper",name:"湯守・お糸",talk:["月見の湯へようこそ。","今夜は花びらの香りがよく立っていますよ。","温泉では、忘れたことまでふっと思い出す人がいるの。不思議でしょう？"]}]
 };
-function areaNPCs(){if(indoorNativeDebug)return [];
+function areaNPCs(){
  if(S.area==="village")return YK_SETTLEMENT.residents;
- if(["villageRoom","teahouse","osumiHome"].includes(S.area))return YK_INTERIOR_BASE.residents(S,YK_SETTLEMENT.insideResidents(S.lastInterior||S.area));
+ if(S.area==="teahouse"){const people=YK_SETTLEMENT.insideResidents("teahouse");for(const person of people){person.x=368;person.y=336;person.stationary=true;}return people;}
+  if(["villageRoom","osumiHome"].includes(S.area))return YK_INTERIOR_BASE.residents(S,YK_SETTLEMENT.insideResidents(S.lastInterior||S.area));
  return NPCS[S.area]||[];
 }
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
@@ -1142,7 +1130,7 @@ function action(){
  if(openNearbyChest())return true;
  if(villageDoorAction())return true;
  if(S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom"){
-  if(YK_INTERIOR_BASE.exit(S)){leaveInterior();return true}
+  if((S.area==="teahouse"?YK_INDOOR_NATIVE_DEBUG.exit(S.x,S.y):YK_INTERIOR_BASE.exit(S))){leaveInterior();return true}
  }
  const n=nearestNPC(YK_INTERIOR_BASE.area(S)&&["inn","armory"].includes(YK_INTERIOR_BASE.kind(S))?140:100);
  if(n){faceNPC(n);n.frame=1;
@@ -1197,7 +1185,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
 function collision(x,y,ignoreNPC=false){return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
-function exitArea(){if(indoorNativeDebug)return false;return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
+function exitArea(){return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 function move(dx,dy,dir){
  if(busy)return;
  if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
@@ -1238,8 +1226,8 @@ function move(dx,dy,dir){
    fieldMotion=null;
    YK_AREA_TRANSITIONS.apply(S,ex,YK_WORLD,D.areas);
    walkPhase=0;YK_INPUT.stopAll();message(D.areas[ex].name);YK_SAVE.auto(S)
- }else if(!indoorNativeDebug)encounter();
- hud(!fieldStyle);if(!indoorNativeDebug&&S.walk%10===0)YK_SAVE.auto(S)
+ }else encounter();
+ hud(!fieldStyle);if(S.walk%10===0)YK_SAVE.auto(S)
 }function renderBattlePartyCards(){
  const root=$("battlePartyCards");if(!root)return;
  const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
