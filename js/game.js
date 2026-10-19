@@ -184,9 +184,8 @@ for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"
  const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
-const HIZUKI_BATTLE_IDLE=new Image();
-HIZUKI_BATTLE_IDLE.onload=assetLoaded;
-HIZUKI_BATTLE_IDLE.datasetSrc="assets/characters/hizuki/battle-v1/idle-rear-pixel.png?v=15.57.157";
+// Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
+const HIZUKI_BATTLE_IDLE=HIZUKI_BATTLE_FRAMES[0];
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
 HIZUKI_4DIR.src="assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=15.57.116";
@@ -1243,7 +1242,7 @@ function move(dx,dy,dir){
 }function renderBattlePartyCards(){
  const root=$("battlePartyCards");if(!root)return;
  const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
- const src=HIZUKI_BATTLE_IDLE.complete&&HIZUKI_BATTLE_IDLE.naturalWidth?HIZUKI_BATTLE_IDLE.src:(BATTLE_SPRITES[S.outfit]?.idle?.src||"");
+ const src=layerReady(HIZUKI_BATTLE_FRAMES[0])?HIZUKI_BATTLE_FRAMES[0].src:"";
  const fragment=document.createDocumentFragment();
  for(let i=0;i<4;i++){
   const member=members[i],card=document.createElement("div");
@@ -1284,7 +1283,7 @@ function renderBattle(){
   const box=battleSpriteLayout(sprite,S.outfit,battlePose);
   bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
   bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
- }else if(layerReady(HIZUKI_BATTLE_FRAMES[0])){
+ }else{
   const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/(BATTLE_PACE.windup/2))):0;
   const resultArt=battlePose==="victory"?(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory):null;
   const attackElapsed=normalSlash?Math.max(0,performance.now()-battleFx.start):0;
@@ -1294,7 +1293,9 @@ function renderBattle(){
   const skillPhase=skillElapsed<500?0:skillElapsed<600?1:2;
   const skillArt=skillCast?HIZUKI_SKILL_FRAMES[skillPhase]:null;
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
-  const image=layerReady(resultArt)?resultArt:layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0];
+  // Never show the idle pose while a result asset is loading.
+  const image=resultArt?resultArt:(layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0]);
+  if(!layerReady(image)){const stale=document.getElementById("battleHeroOverlay");if(stale)stale.style.visibility="hidden";return;}
   bg.save();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
   // Portrait composition: a large heroine on the LEFT, with her face fully visible.
   // The lower body may extend beyond the scene; do not mask or fade the source PNG.
@@ -1333,13 +1334,14 @@ function renderBattle(){
     document.getElementById("battle").appendChild(actor);
   }
   if(actor.src!==image.src)actor.src=image.src;
+  actor.style.visibility="visible";
   actor.classList.toggle("battleHeroVictory",battlePose==="victory"&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
   actor.classList.toggle("battleHeroResult",!!resultArt&&image===resultArt);
   actor.style.transform=(actor.classList.contains("battleHeroResult")&&!actor.classList.contains("battleHeroVictory")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
- }else if(layerReady(HIZUKI_BATTLE_IDLE)){
+ }else if(false){
   // Character art is independent RGBA, not an enlarged field sprite.
   bg.save();
   bg.imageSmoothingEnabled=false;
