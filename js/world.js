@@ -25,10 +25,6 @@ window.YK_WORLD=(()=>{
  // Height metadata is independent of the player's authored terrain.
  // Terrain type does not imply elevation: only explicitly authored height zones rise.
  mapData.heights=window.YK_FIELD_TERRAIN.heights?.map(row=>row.slice())||mapData.map(row=>row.map(()=>0));
- // Ryujin Falls: a stepped escarpment behind the waterfall, with a higher source.
- for(let y=10;y<=13;y++)for(let x=64;x<=68;x++){
-  if(mapData[y][x]!=='sea'&&mapData[y][x]!=='river')mapData.heights[y][x]=Math.max(mapData.heights[y][x],y<=11?3:2);
- }
  mapData.heightTransitions=[];
  mapData.projectedHeights=true;
  mapData.paths=roads;mapData.decorations=[];
@@ -72,9 +68,6 @@ window.YK_WORLD=(()=>{
   {id:'forest-tea',name:'木漏れ日の茶屋',cell:[54,37],type:'tea'},
   {id:'highland-inn',name:'峠の旅籠',cell:[34,13],type:'inn'}
  ].map(o=>({...o,point:center(o.cell)}));
- const open=(cx,cy,r=2)=>{for(let y=cy-r;y<=cy+r;y++)for(let x=cx-r;x<=cx+r;x++)if(mapData[y]?.[x]&&!['sea','river'].includes(mapData[y][x]))mapData[y][x]='grass';};
- for(const p of Object.values(places))open(Math.floor(p.point[0]/32),Math.floor(p.point[1]/32),4);
- for(const g of guides)open(Math.floor(g.x/32),Math.floor(g.y/32),2);
  for(const stop of restStops){
   // Preserve authored tiles.
   const [x,y]=stop.point;
