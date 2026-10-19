@@ -398,7 +398,15 @@ window.YK_LANDSCAPE=(()=>{
    if(!drawn&&player.depth<p.depth){actor.draw(player.x,player.y,player.scale);drawn=true;}
    const w=o.width*(camera.horizontalScale||p.scale),h=o.height*p.scale,x=p.x-w/2,y=p.y-h;if(x+w<0||x>640)continue;
    c.globalAlpha=Math.min(1,Math.max(0,(p.y-top)/70));
-   if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
+   if(o.tileImage){
+    const im=o.tileImage;
+    if(im.complete&&im.naturalWidth)for(let yy=0;yy<o.height;yy+=4){
+     const dy=Math.min(4,o.height-yy),p1=project(o.x,o.y+yy,camera,zoom),p2=project(o.x+o.width,o.y+yy+dy,camera,zoom);
+     if(!p1||!p2||p2.y<=p1.y)continue;
+     const srcY=o.tileSourceY||0,srcH=o.tileSourceH||im.naturalHeight;
+     c.drawImage(im,0,srcY+srcH*yy/o.height,im.naturalWidth,srcH*dy/o.height,p1.x,p1.y,p2.x-p1.x,p2.y-p1.y+.5);
+    }
+   }else if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
   }
   if(!drawn)actor.draw(player.x,player.y,player.scale);
   if(!settings.interiorBackdrop){const haze=c.createLinearGradient(0,top-56,0,top+144);haze.addColorStop(0,'rgba(202,225,214,0)');haze.addColorStop(.38,'rgba(202,225,214,.34)');haze.addColorStop(1,'rgba(202,225,214,0)');c.fillStyle=haze;c.fillRect(0,top-56,640,200);}
