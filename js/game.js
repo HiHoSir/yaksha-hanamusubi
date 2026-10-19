@@ -1348,7 +1348,7 @@ function renderBattle(){
   }
   enemyArt(bg,483+recoil,224);bg.restore();
  }
- if(impactVisible)drawBattleFx(bg,hitProgress);
+ drawViewportBattleFx(impactVisible?hitProgress:null);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
  $("enemyTargetInfo").hidden=!targeting;
  $("battlePhaseLabel").textContent=targeting?"標的を選ぶ":battle.phase==="result"?"戦闘結果":"戦闘";
@@ -1365,9 +1365,49 @@ function startBattleFx(kind,target,amount=null,impactDelay=0){
  battleLater(tick,16);
  return fx;
 }
-function drawBattleFx(c,p){
+// Effects use the actual on-screen target positions rather than legacy 768x430 coordinates.
+function drawViewportBattleFx(progress){
+ let layer=document.getElementById("ykBattleFxViewport");
+ const panel=$("battle");
+ if(progress===null||!battleFx||!panel.classList.contains("show")){
+  if(layer)layer.style.display="none";
+  return;
+ }
+ if(!layer){
+  layer=document.createElement("canvas");layer.id="ykBattleFxViewport";
+  layer.setAttribute("aria-hidden","true");
+  Object.assign(layer.style,{position:"absolute",inset:"0",width:"100%",height:"100%",zIndex:"3",pointerEvents:"none"});
+  panel.appendChild(layer);
+ }
+ layer.style.display="block";
+ const bounds=panel.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
+ const w=Math.max(1,Math.round(bounds.width*dpr)),h=Math.max(1,Math.round(bounds.height*dpr));
+ if(layer.width!==w||layer.height!==h){layer.width=w;layer.height=h;}
+ const ctx=layer.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,bounds.width,bounds.height);
+ const fx=battleFx;
+ let x,y,scale=1;
+ if(fx.target==="enemy"){
+  const canvasRect=BC.getBoundingClientRect();
+  // The battle canvas is 768x430 with object-fit:contain: account for its letterbox.
+  const fit=Math.min(canvasRect.width/BC.width,canvasRect.height/BC.height);
+  const contentW=BC.width*fit,contentH=BC.height*fit;
+  x=canvasRect.left-bounds.left+(canvasRect.width-contentW)/2+483*fit;
+  y=canvasRect.top-bounds.top+(canvasRect.height-contentH)/2+185*fit;
+  scale=Math.max(.7,Math.min(1.65,fit));
+ }else{
+  const actor=document.getElementById("battleHeroOverlay");
+  const rect=actor?.getBoundingClientRect();
+  x=rect?rect.left-bounds.left+rect.width*.48:bounds.width*.25;
+  y=rect?rect.top-bounds.top+rect.height*.42:bounds.height*.55;
+  scale=Math.max(.8,Math.min(1.5,bounds.height/430));
+ }
+ ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
+ drawBattleFx(ctx,progress,0,0);
+ ctx.restore();
+}
+function drawBattleFx(c,p,anchorX=null,anchorY=null){
  if(!battleFx||p>=1)return;
- const f=battleFx,x=f.target==="enemy"?483:170,y=f.target==="enemy"?190:205;
+ const f=battleFx,x=anchorX??(f.target==="enemy"?483:170),y=anchorY??(f.target==="enemy"?190:205);
  c.save();
  if(f.amount!==null){c.font='bold 42px sans-serif';c.textAlign='center';c.lineWidth=5;c.strokeStyle='#132136';const label=f.amount<0?'+'+(-f.amount):String(f.amount),fy=y-72-(f.reduced?0:18*p);c.strokeText(label,x,fy);c.fillStyle=f.amount<0?'#aff0bb':'#fff2c6';c.fillText(label,x,fy);}
  c.globalAlpha=(1-p)*.85;c.strokeStyle=f.kind==="petals"?"#ffd0e7":"#fff0b2";c.lineWidth=5;
