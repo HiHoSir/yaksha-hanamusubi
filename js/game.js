@@ -2056,6 +2056,15 @@ window.YKDebugField=(enabled=true)=>{
  if(canvas.parentNode&&typeof canvas.parentNode.insertBefore==="function")canvas.parentNode.insertBefore(smoothingLabel,canvas);
 
  if(!openBtn||!panel||!picker||!variant||!canvas)return;
+ // Expose every currently implemented animation frame in the inspector.
+ if(pose){
+  const labels={idle:"待機（現行）",attack:"攻撃 1",attack2:"攻撃 2",attack3:"攻撃 3",skill:"術 1",skill2:"術 2",skill3:"術 3",hit:"被弾（待機絵）",guard:"防御（待機絵）",victory:"勝利",levelup:"レベルアップ"};
+  pose.replaceChildren();
+  for(const [value,label] of Object.entries(labels)){
+   const option=document.createElement("option");option.value=value;option.textContent=label;pose.appendChild(option);
+  }
+ }
+ if(outfit){outfit.disabled=true;outfit.title="現行の緋月戦闘素材は衣装切り替え非対応";outfit.value="normal";}
  const entries=new Map();
  for(const [area,pool] of Object.entries(D.enemies))for(const e of pool||[])if(!entries.has(e[0]))entries.set(e[0],e);
  for(const [name,e] of entries){
@@ -2071,14 +2080,23 @@ window.YKDebugField=(enabled=true)=>{
   // Checkerboard reveals unintended translucency in opaque enemy body regions.
   c.fillStyle="#28485a";c.fillRect(0,0,640,360);
   for(let y=0;y<360;y+=32)for(let x=0;x<640;x+=32)if(((x+y)/32)%2===0){c.fillStyle="#597267";c.fillRect(x,y,32,32);}
-  const selectedOutfit=outfit?.value||"normal",selectedPose=pose?.value||"idle";
-  const heroSprite=BATTLE_SPRITES[selectedOutfit]?.[selectedPose];
+  const selectedPose=pose?.value||"idle";
+  const currentArt={
+   idle:HIZUKI_BATTLE_IDLE,
+   attack:HIZUKI_ATTACK_FRAMES[0],attack2:HIZUKI_ATTACK_FRAMES[1],attack3:HIZUKI_ATTACK_FRAMES[2],
+   skill:HIZUKI_SKILL_FRAMES[0],skill2:HIZUKI_SKILL_FRAMES[1],skill3:HIZUKI_SKILL_FRAMES[2],
+   victory:HIZUKI_BATTLE_EXPRESSIONS.victory,levelup:HIZUKI_BATTLE_EXPRESSIONS.levelup,
+   hit:HIZUKI_BATTLE_IDLE,guard:HIZUKI_BATTLE_IDLE
+  };
+  const heroSprite=currentArt[selectedPose]||HIZUKI_BATTLE_IDLE;
   ensureImage(heroSprite);
   if(layerReady(heroSprite)){
-   const box=battleSpriteLayout(heroSprite,selectedOutfit,selectedPose);
-   const k=.82,offsetX=105-box.x*k,offsetY=265-box.foot*k;
-   c.save();c.imageSmoothingEnabled=false;
-   c.drawImage(heroSprite,box.left*k+offsetX,box.top*k+offsetY,box.width*k,box.height*k);
+   // Current battle art is drawn as an independent full-resolution overlay,
+   // not with the retired Yashahime sprite metrics.
+   const maxW=260,maxH=300,scale=Math.min(maxW/heroSprite.naturalWidth,maxH/heroSprite.naturalHeight);
+   const w=heroSprite.naturalWidth*scale,h=heroSprite.naturalHeight*scale;
+   c.save();c.imageSmoothingEnabled=true;
+   c.drawImage(heroSprite,Math.round((290-w)/2),Math.round(345-h),w,h);
    c.restore();
   }
   const previous=battle;
