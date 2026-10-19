@@ -260,13 +260,23 @@ window.YK_LANDSCAPE=(()=>{
  function drawHeightFaces(c,map){
   const heights=map.heights;if(!heights)return;
   c.save();c.imageSmoothingEnabled=false;
+  // Cliff frontage projects into the lower tile. The height map never changes passability.
   for(let y=0;y<heights.length-1;y++)for(let x=0;x<heights[y].length;x++){
-   const drop=heights[y][x]-heights[y+1][x];if(drop<=0)continue;
-   const px=x*32,py=(y+1)*32,depth=Math.min(32,drop*12);
-   c.fillStyle='#423f39';c.fillRect(px,py-depth,32,depth);
-   c.fillStyle='#6e6657';c.fillRect(px,py-depth,32,4);
-   c.fillStyle='#91836a';c.fillRect(px+3,py-depth+4,3,Math.max(1,depth-7));
-   c.fillStyle='#302f2d';c.fillRect(px+27,py-depth+5,3,Math.max(1,depth-5));
+   const high=heights[y][x],low=heights[y+1][x],drop=high-low;
+   if(drop<=0)continue;
+   const px=x*32,py=(y+1)*32,depth=Math.min(30,9+drop*7);
+   const rocky=map[y][x]==='rockMountain'||map[y][x]==='mountain';
+   c.fillStyle=rocky?'#514b48':'#675943';c.fillRect(px,py-depth,32,depth);
+   c.fillStyle=rocky?'#b0a396':'#b2a07a';c.fillRect(px,py-depth,32,4);
+   c.fillStyle='#343537';c.fillRect(px,py-3,32,3);
+   for(let k=0;k<4;k++){
+    const xx=px+((x*7+y*11+k*13)%27)+2;
+    c.fillStyle=k%2?'#817c72':'#383a3b';
+    c.fillRect(xx,py-depth+5+(k%2)*3,2,Math.max(2,depth-10-(k%3)*3));
+   }
+   // Side seams are shaded to emphasize adjacent height steps.
+   if(x===0||heights[y][x-1]<high){c.fillStyle='#302f31';c.fillRect(px,py-depth,3,depth);}
+   if(x===heights[y].length-1||heights[y][x+1]<high){c.fillStyle='#9a9180';c.fillRect(px+29,py-depth,3,depth);}
   }
   c.restore();
  }

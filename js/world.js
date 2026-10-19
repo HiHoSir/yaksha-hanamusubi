@@ -1,6 +1,6 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=100;
+ const tileSize=32,size=2560,viewSize=640,revision=101;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
   village:[[37,70],'鬼灯の里','南の半島から北へ。草原を抜けて天妖の社を探そう。'],
@@ -22,10 +22,14 @@ window.YK_WORLD=(()=>{
  // Exact user-authored terrain. No procedural coastline or biome repaint.
  const snowy=()=>false;
  const mapData=window.YK_FIELD_TERRAIN.tiles.map(row=>row.slice());
- // Independent height grid: existing authored biome cells are never overwritten.
- mapData.heights=Array.from({length:80},()=>Array(80).fill(0));
- // Small prototype plateau behind Ryujin Falls; level 2 drops to level 0.
- for(let y=11;y<=13;y++)for(let x=64;x<=68;x++)mapData.heights[y][x]=2;
+ // Height metadata is independent of the player's authored terrain.
+ // Rock peaks stand at 3, wooded mountains at 2; lower surrounding ground stays at 0.
+ const H=mapData.length,W=mapData[0].length;
+ mapData.heights=mapData.map(row=>row.map(t=>t==='rockMountain'?3:t==='mountain'?2:0));
+ // Ryujin Falls: a stepped escarpment behind the waterfall, with a higher source.
+ for(let y=10;y<=13;y++)for(let x=64;x<=68;x++){
+  if(mapData[y][x]!=='sea'&&mapData[y][x]!=='river')mapData.heights[y][x]=Math.max(mapData.heights[y][x],y<=11?3:2);
+ }
  mapData.heightTransitions=[];
  mapData.paths=roads;mapData.decorations=[];
  // Two modest bridges are scenery at the designated river crossings.
