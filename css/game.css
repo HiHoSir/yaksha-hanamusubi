@@ -558,3 +558,23 @@ body:has(#title.show) #stage{min-height:0}
 #app>header .topBtns .navIconButton svg{display:block;pointer-events:none}
 #app>header .topBtns .navIconButton:active{background:rgba(128,97,63,.75)}
 @media(max-width:440px){#app>header{justify-content:flex-end}#app>header .topBtns{width:auto;justify-content:flex-end}#app>header .topBtns .navIconButton{width:42px;height:42px;min-width:42px;min-height:42px}}
+
+/* Result portrait: keep the complete level-up silhouette inside the visible viewport.
+   Earlier left:-3vw/-8vw and translateX(-50%) pushed the actor offscreen. */
+#battle #battleHeroOverlay.battleHeroResult{
+ left:0;right:auto;bottom:0;
+ width:min(54vw,560px);height:calc(100% - 58px);
+ max-width:none;object-fit:contain;object-position:left bottom;
+ transform-origin:left bottom;
+}
+#battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
+ left:0;width:min(54vw,560px);height:calc(100% - 58px);
+ object-position:left bottom;
+}
+@media(orientation:portrait){
+ #battle #battleHeroOverlay.battleHeroResult,
+ #battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
+  left:0;bottom:0;width:min(68vw,460px);height:calc(100% - 80px);
+  object-fit:contain;object-position:left bottom;
+ }
+}
