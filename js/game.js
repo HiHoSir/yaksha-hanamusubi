@@ -171,6 +171,37 @@ for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"
  const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
+// Match the visible (nontransparent) victory silhouette to the final attack frame.
+// Both poses then use the same overlay element AND the same visible anchor/scale.
+let victoryAlignedSrc=null;
+function alphaBounds(image){
+ const canvas=document.createElement("canvas");canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+ const ctx=canvas.getContext("2d",{willReadFrequently:true});ctx.drawImage(image,0,0);
+ const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+ let left=canvas.width,top=canvas.height,right=-1,bottom=-1;
+ for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
+  if(data[(y*canvas.width+x)*4+3]<16)continue;
+  left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
+ }
+ return right<left?null:{left,top,width:right-left+1,height:bottom-top+1};
+}
+function alignedVictorySource(){
+ if(victoryAlignedSrc)return victoryAlignedSrc;
+ const victory=HIZUKI_BATTLE_EXPRESSIONS.victory,reference=HIZUKI_ATTACK_FRAMES[2];
+ if(!layerReady(victory)||!layerReady(reference))return null;
+ try{
+  const vb=alphaBounds(victory),rb=alphaBounds(reference);
+  if(!vb||!rb)return null;
+  const out=document.createElement("canvas");out.width=reference.naturalWidth;out.height=reference.naturalHeight;
+  const ctx=out.getContext("2d");
+  const scale=Math.min(rb.width/vb.width,rb.height/vb.height);
+  const w=vb.width*scale,h=vb.height*scale;
+  const dx=rb.left+(rb.width-w)/2,dy=rb.top+(rb.height-h)/2;
+  ctx.drawImage(victory,vb.left,vb.top,vb.width,vb.height,dx,dy,w,h);
+  victoryAlignedSrc=out.toDataURL("image/png");
+ }catch(error){console.warn("Victory pose alignment unavailable",error);return null;}
+ return victoryAlignedSrc;
+}
 // Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
 const HIZUKI_BATTLE_IDLE=HIZUKI_BATTLE_FRAMES[0];
 const HIZUKI_4DIR=new Image();
@@ -1322,7 +1353,8 @@ function renderBattle(){
     actor.alt="";actor.setAttribute("aria-hidden","true");
     document.getElementById("battle").appendChild(actor);
   }
-  if(actor.src!==image.src)actor.src=image.src;
+  const displaySrc=image===HIZUKI_BATTLE_EXPRESSIONS.victory?(alignedVictorySource()||image.src):image.src;
+  if(actor.src!==displaySrc)actor.src=displaySrc;
   actor.style.visibility="visible";
   actor.classList.remove("battleHeroVictory","battleHeroResult");
   actor.classList.toggle("battleHeroLevelUp",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.levelup);
