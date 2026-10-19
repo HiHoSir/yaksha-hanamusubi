@@ -1,6 +1,6 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=88;
+ const tileSize=32,size=2560,viewSize=640,revision=89;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
   village:[[17,62],'鬼灯の里','里から北へ。西の山裾の道をたどって天妖の社へ。'],
@@ -27,7 +27,7 @@ window.YK_WORLD=(()=>{
  const inside=(x,y)=>{let hit=false;for(let i=0,j=outline.length-1;i<outline.length;j=i++){
   const [ax,ay]=outline[i],[bx,by]=outline[j];if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)hit=!hit;
  }return hit;};
- const snowy=(x,y)=>((x-49)/18)**2+((y-12)/13)**2<1;
+ const snowy=()=>false;
  const mapData=Array.from({length:80},(_,y)=>Array.from({length:80},(_,x)=>{
   if(!inside(x,y))return 'sea';
   if([[2,0],[-2,0],[0,2],[0,-2]].some(([dx,dy])=>!inside(x+dx,y+dy)))return 'sand';
@@ -35,7 +35,7 @@ window.YK_WORLD=(()=>{
  }));
  const paint=(kind,cx,cy,rx,ry)=>{for(let y=Math.max(5,cy-ry);y<=Math.min(72,cy+ry);y++)for(let x=Math.max(6,cx-rx);x<=Math.min(70,cx+rx);x++)if(((x-cx)/rx)**2+((y-cy)/ry)**2<1&&mapData[y][x]!=='sea')mapData[y][x]=kind;};
  // Broad masses frame open basins, with deliberately authored passes below.
- for(const [x,y,rx,ry] of [[10,44,4,15],[30,43,5,17],[31,23,5,9],[22,8,9,3],[51,39,7,5],[52,16,11,5]])paint(y<20&&x>40?'snowMountain':'mountain',x,y,rx,ry);
+ for(const [x,y,rx,ry] of [[10,44,4,15],[30,43,5,17],[31,23,5,9],[22,8,9,3],[51,39,7,5],[52,16,11,5]])paint('mountain',x,y,rx,ry);
  for(const p of [[13,54,4,4],[24,65,5,4],[23,35,4,5],[56,48,5,8],[64,43,4,7],[51,58,3,3],[16,17,4,5]])paint('forest',...p);
  paint('barren',34,66,5,5);paint('rockMountain',34,66,3,3);
  // Two continuous waterways; crossings are actual bridge decks, not grass gaps.
@@ -118,6 +118,38 @@ window.YK_WORLD=(()=>{
    }if(connected)break;
   }
  }
+ // The first chapter is a guided journey, with short optional side clearings.
+ const travelCells=new Set(),travelKey=(x,y)=>x+','+y;
+ const reserve=(x,y,r=1)=>{for(let oy=-r;oy<=r;oy++)for(let ox=-r;ox<=r;ox++)if(x+ox>0&&x+ox<79&&y+oy>0&&y+oy<79)travelCells.add(travelKey(x+ox,y+oy));};
+ for(const route of routes)for(let i=1;i<route.length;i++){
+  const a=route[i-1],b=route[i],dx=Math.sign(b[0]-a[0]),dy=Math.sign(b[1]-a[1]);
+  for(let n=0;n<=Math.abs(b[0]-a[0])+Math.abs(b[1]-a[1]);n++)reserve(a[0]+dx*n,a[1]+dy*n,1);
+ }
+ for(const p of Object.values(places))reserve(Math.floor(p.point[0]/32),Math.floor(p.point[1]/32),3);
+ for(const g of guides)reserve(Math.floor(g.x/32),Math.floor(g.y/32),2);
+ for(const o of landmarks)reserve(Math.floor((o.x+o.width/2)/32),Math.floor(o.foot/32),3);
+ for(const path of roads)for(let i=1;i<path.length;i++){
+  const a=path[i-1],b=path[i],dx=Math.sign(b[0]-a[0]),dy=Math.sign(b[1]-a[1]);
+  for(let n=0;n<=Math.round((Math.abs(b[0]-a[0])+Math.abs(b[1]-a[1]))/32);n++)reserve(Math.floor((a[0]+dx*n*32)/32),Math.floor((a[1]+dy*n*32)/32),1);
+ }
+ // Flower patches double as discoverable roadside inns and teahouses.
+ // These are independent of story entrances and require no new graphics.
+ const restStops=[
+  {id:'roadside-tea',name:'花かげ茶屋',cell:[21,52],type:'tea'},
+  {id:'bridge-inn',name:'渡しの旅籠',cell:[44,56],type:'inn'},
+  {id:'forest-tea',name:'木漏れ日の茶屋',cell:[62,35],type:'tea'},
+  {id:'highland-inn',name:'峠の旅籠',cell:[36,28],type:'inn'}
+ ].map(o=>({...o,point:center(o.cell)}));
+ for(const stop of restStops){
+  const [cx,cy]=stop.cell;reserve(cx,cy,2);
+  for(let y=cy-2;y<=cy+2;y++)for(let x=cx-2;x<=cx+2;x++)if(mapData[y]?.[x]&&!['sea','river'].includes(mapData[y][x]))mapData[y][x]='grass';
+  const [x,y]=stop.point;
+  mapData.decorations.push({kind:'flowers',x:x-20,y:y-18,width:40,height:24,foot:y+6,ground:true});
+ }
+ for(let y=1;y<79;y++)for(let x=1;x<79;x++){
+  if(travelCells.has(travelKey(x,y))||['sea','river'].includes(mapData[y][x]))continue;
+  if(['grass','sand','barren','snow'].includes(mapData[y][x]))mapData[y][x]=(x*13+y*7)%9<4?'forest':'mountain';
+ }
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
  const tileAt=(x,y)=>mapData[Math.floor(y/32)]?.[Math.floor(x/32)]||'sea';
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=36)||null;
@@ -130,5 +162,5 @@ window.YK_WORLD=(()=>{
   const id=Object.keys(legacy).sort((a,b)=>Math.hypot(point[0]-legacy[a][0],point[1]-legacy[a][1])-Math.hypot(point[0]-legacy[b][0],point[1]-legacy[b][1]))[0];
   return places[id].point.slice();
  }
- return {start,hub,places,roads,guides,guideRoute,worldObjects,mapData,walkable,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition};
+ return {start,hub,places,roads,restStops,guides,guideRoute,worldObjects,mapData,walkable,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition};
 })();
