@@ -263,6 +263,7 @@ const ENEMY_ART={};
 [...new Set(Object.values(YK_DATA.enemyProfiles||{}).map(p=>p.art).filter(Boolean))].forEach(n=>{
  const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/standard/${n}.png`;ENEMY_ART[n]=im;
 });
+const KAGEKYUBI_ART=new Image();KAGEKYUBI_ART.onload=assetLoaded;KAGEKYUBI_ART.onerror=()=>{KAGEKYUBI_ART.datasetFailed="1"};KAGEKYUBI_ART.datasetSrc="assets/enemies/redesign-v1/011-kagekyubi/kagekyubi-intact-512.png?v=15.57.283";
 const ENEMY_ATLAS=new Image();ENEMY_ATLAS.onload=assetLoaded;ENEMY_ATLAS.datasetSrc="assets/enemies/enemy-standard-atlas-128.png?v=15.55.47";
 const ENEMY_ATLAS_CELL=128,ENEMY_ATLAS_COLS=4;
 const VARIANT_ATLAS=new Image();VARIANT_ATLAS.onload=assetLoaded;VARIANT_ATLAS.datasetSrc="assets/enemies/enemy-variant-atlas-128.png?v=15.57.27";
@@ -293,6 +294,7 @@ function ensureBattleAssets(){
  for(const im of Object.values(B9EN))ensureImage(im);
  for(const im of Object.values(ENEMY_ART))ensureImage(im);
  ensureImage(ENEMY_ATLAS);
+ ensureImage(KAGEKYUBI_ART);
  ensureImage(VARIANT_ATLAS);
  // Worn imagery retired: never request the damaged atlas.
  for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
@@ -316,8 +318,9 @@ function enemyArt(c,x,y,debugSmoothing=null){
  const variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
  const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.intact:null;
  const hd=HD_RARE_ART[battle?.rareId]?.intact;
- const highResReady=!!hd&&layerReady(hd);
- const im=highResReady?hd:(battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback)));if(!layerReady(im))return;
+ const bossArt=battle?.boss?KAGEKYUBI_ART:null;
+ const highResReady=(!!bossArt&&layerReady(bossArt))||(!!hd&&layerReady(hd));
+ const im=highResReady?(bossArt&&layerReady(bossArt)?bossArt:hd):(battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback)));if(!layerReady(im))return;
  const bakedAtlas=!highResReady&&(wornVariantReady||variantReady||atlasReady);
  const cell=bakedAtlas?128:null;
  const scale=bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);
@@ -1092,7 +1095,7 @@ if(battleTraceEnabled){
  window.addEventListener("unhandledrejection",e=>battleTrace("promise.rejection",String(e.reason)));
  battleTrace("ready","BETA 15.57.166");
 }
-function beginEncounter(force=false){
+function beginEncounter(force=false,boss=false){
  battleTrace("beginEncounter",String(force));
  ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
@@ -1100,10 +1103,10 @@ function beginEncounter(force=false){
  if(!force&&S.area==="field"&&YK_WORLD.near(S.x,S.y))return false;
  if(!force&&(S.encounterGrace>0||S.encounterSteps<(area.min||12)))return false;
  if(!force&&Math.random()>=area.encounter)return false;
- const e=pool[Math.floor(Math.random()*pool.length)];
- const variant=D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
+ const e=boss?["影九尾",320,24,180,120]:pool[Math.floor(Math.random()*pool.length)];
+ const variant=boss?null:D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
  const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
- fieldMotion=null;resetBattleAnimation();battle={name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,def:D.enemyDefense?.[e[0]]||0,xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
+ fieldMotion=null;resetBattleAnimation();battle={boss:!!boss,name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,def:boss?10:(D.enemyDefense?.[e[0]]||0),xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
  YK_INPUT.stopAll();S.frame=1;
  $("battleText").textContent=battle.name+"が あらわれた！";
@@ -1169,6 +1172,7 @@ function action(){
   if(n.service==="rest")return talk({n:n.name,t:["旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();},120);
   const event=YK_STORY_EVENTS.match(S,D.story,n.name);
   if(event){const stage=S.quest;
+   if(S.area==="fox"&&n.name==="白狐の使い")return talk({n:n.name,t:["影九尾を退ければ、忘れた約束の続きを話そう。"]},()=>beginEncounter(true,true),120);
    return talk({n:n.name,t:event.lines},()=>{if(!YK_STORY_EVENTS.complete(S,event,stage))return;YK_SAVE.auto(S);message(event.unlock,4200);},120);
   }
   return talk({n:n.name,t:n.talk},null,120);
@@ -1520,15 +1524,15 @@ function cmd(n){
   S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;
   $("battleText").textContent=`薬草で 体を${healed}回復！`;startBattleFx("petals","hero",-healed);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);
  }else{
-  if(Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";YK_BATTLE_RULES.enterResult(battle,performance.now(),800);battleLocked=false;renderBattle()}
-  else{$("battleText").textContent="逃げられない！";battleLater(foe,BATTLE_PACE.actionRead)}
+  if(!battle.boss&&Math.random()<Math.min(.95,.78+E.bonus(S,"escape")/100)){$("battleText").textContent="うまく逃げ切った！";YK_BATTLE_RULES.enterResult(battle,performance.now(),800);battleLocked=false;renderBattle()}
+  else{$("battleText").textContent=battle.boss?"影九尾の結界で逃げられない！":"逃げられない！";battleLater(foe,BATTLE_PACE.actionRead)}
  }
 }
 function foe(){
  if(!battle)return;
  battleLocked=true;battlePose=battle.guarding?"guard":"idle";
  const profile=D.enemyProfiles?.[battle.baseName],variance=profile?.variance??5;
- const foxfire=battle.rareTrait==="foxfire"&&Math.random()<battle.rareTraitChance;
+ const foxfire=(battle.boss&&Math.random()<(battle.hp<=battle.maxhp*.5?.55:.3))||(battle.rareTrait==="foxfire"&&Math.random()<battle.rareTraitChance);
  const action=foxfire?`${battle.name}の妖火！`:`${battle.name}の${profile?.attack||"攻撃"}！`;
  $("battleText").textContent=action;renderBattle();
  battleLater(()=>{
@@ -1551,7 +1555,7 @@ function win(){
  $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),1100);battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.("victory");
  YK_SAVE.auto(S);renderBattle();
 }
-function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud()}
+function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText,wasBoss=!!battle?.boss;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(wasBoss&&reward){const event=D.story[S.quest];if(event?.area==="fox"){const stage=S.quest;talk({n:"白狐の使い",t:event.lines},()=>{if(YK_STORY_EVENTS.complete(S,event,stage)){YK_SAVE.auto(S);message(event.unlock,4200)}},120)}}}
 function defeat(){battleTrace("defeat");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
 function renderRelics(){
  const owned=Object.entries(D.relics).filter(([id])=>S.relics[id]);
