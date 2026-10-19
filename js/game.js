@@ -1165,6 +1165,15 @@ function action(){
  if($("dialog").classList.contains("show")){nextDialog();return true;}
  if(busy)return false;
  if(guideTalk())return true;
+ if(S.area==="field"&&YK_WORLD.restStops){
+  const stop=YK_WORLD.restStops.find(o=>Math.hypot(S.x-o.point[0],S.y-o.point[1])<=48);
+  if(stop){
+   const missing=S.hp<S.maxhp||S.mp<S.maxmp;
+   return talk({n:stop.name,t:[stop.type==='inn'?'花の向こうに小さな旅籠があった。':'花畑の奥に茶屋の灯りが見える。',missing?'旅の疲れを癒やし、体と技が全回復した。':'温かな茶をいただいた。いつでも休んでいくとよい。']},()=>{
+    S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();renderStatus();
+   },120);
+  }
+ }
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}if(inspectObject())return true;openCommands();return true;}
  if(openNearbyChest())return true;
  if(villageDoorAction())return true;
