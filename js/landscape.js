@@ -166,7 +166,7 @@ window.YK_LANDSCAPE=(()=>{
   const bridge=(px,py)=>(map.decorations||[]).some(o=>(o.kind==='bridge'&&px>=o.x&&px<o.x+o.width&&py>=o.y+o.height*.30&&py<=o.y+o.height*.82||o.kind==='bridgeNS'&&px>=o.x+o.width*.22&&px<=o.x+o.width*.78&&py>=o.y&&py<o.y+o.height));
   for(const [dx,dy] of [[0,0],[-r,0],[r,0],[0,-r],[0,r],[-r*.7,-r*.7],[r*.7,-r*.7],[-r*.7,r*.7],[r*.7,r*.7]]){
    const px=x+dx,py=y+dy,t=map[Math.floor(py/32)]?.[Math.floor(px/32)];
-   if(water(t)?!bridge(px,py):!['grass','forest','sand','snow','barren'].includes(t))return false;
+   if(water(t)?!bridge(px,py):!['grass','forest','sand','snow','barren','road','bridge'].includes(t))return false;
   }
   const hit=(l,t,w,h)=>Math.hypot(x-Math.max(l,Math.min(x,l+w)),y-Math.max(t,Math.min(y,t+h)))<r;
   for(const o of map.decorations||[]){
