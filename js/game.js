@@ -1326,7 +1326,7 @@ function renderBattle(){
   actor.style.visibility="visible";
   actor.classList.toggle("battleHeroVictory",battlePose==="victory"&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
   actor.classList.toggle("battleHeroResult",!!resultArt&&image===resultArt);
-  actor.style.transform=(actor.classList.contains("battleHeroResult")&&!actor.classList.contains("battleHeroVictory")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
+  actor.style.transform=""+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
