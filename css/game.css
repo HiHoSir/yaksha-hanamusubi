@@ -518,3 +518,8 @@ body:has(#title.show) #stage{min-height:0}
    Existing world coordinates, tile collisions and hero scale remain unchanged. */
 #stage{overflow:hidden}
 #stage #game{width:100%;height:100%;object-fit:cover;object-position:center center}
+
+/* BETA 15.57.264: field hints in viewport coordinates, clear of thumb controls. */
+#fieldGuide{position:absolute;z-index:5;left:50%;bottom:calc(184px + env(safe-area-inset-bottom));transform:translateX(-50%);width:max-content;max-width:min(72vw,460px);padding:6px 12px;text-align:center;font:clamp(11px,2.8vw,14px)/1.4 sans-serif;color:#fff0ca;background:rgba(7,19,31,.65);border:1px solid rgba(201,173,120,.7);border-radius:9px;pointer-events:none;box-shadow:0 2px 9px #0005;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+@media(orientation:landscape){#fieldGuide{bottom:calc(137px + env(safe-area-inset-bottom));max-width:50vw}}
+@media(max-width:440px){#app>header .brand{display:none}#app>header{justify-content:center}#app>header .topBtns{width:100%;justify-content:space-around}#app>header .topBtns button{font-size:11px;min-width:0;padding:6px 5px}}
