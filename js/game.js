@@ -1098,9 +1098,11 @@ function encounter(){return beginEncounter()}
 // Explicit QA-only encounter entry. Normal gameplay rules are unchanged.
 if(new URLSearchParams(location.search).get("battleTest")==="1"){
  const testButton=document.createElement("button");testButton.type="button";testButton.textContent="戦闘テスト";
- testButton.style.cssText="position:fixed;right:12px;top:calc(env(safe-area-inset-top, 0px) + 12px);z-index:90;padding:10px 14px;border:1px solid #d9ba78;border-radius:12px;background:#162438;color:#fff;font-weight:bold";
+ testButton.style.cssText="position:fixed;right:max(12px,env(safe-area-inset-right));bottom:calc(190px + env(safe-area-inset-bottom));top:auto;z-index:65;padding:8px 12px;border:1px solid #d9ba78;border-radius:12px;background:rgba(22,36,56,.78);color:#fff;font-size:12px;font-weight:bold;max-width:120px;box-shadow:0 2px 8px #0007";
  testButton.addEventListener("click",()=>{if(!busy&&!battle)beginEncounter(true)});
  document.body.appendChild(testButton);
+ const placeTestButton=()=>{testButton.style.bottom=(matchMedia("(orientation:landscape)").matches?"calc(145px + env(safe-area-inset-bottom))":"calc(190px + env(safe-area-inset-bottom))");};
+ placeTestButton();window.addEventListener("resize",placeTestButton);
 }
 function inspectTargets(){
  const texts={rocks:'苔むした岩だ。雨風に削られ、角が丸くなっている。',fence:'木を組んだ柵だ。丁寧に縄が巻かれている。',crates:'旅の荷箱だ。乾いた藁と木の香りがする。',basket:'編み目の細かい籠だ。里の人の手仕事が伝わってくる。',hozuki:'鬼灯の実が、風に揺れて小さな灯りのように見える。'};
