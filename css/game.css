@@ -475,4 +475,6 @@ body:has(#title.show) #stage{min-height:0}
 #battle #battleHeroOverlay.battleHeroResult{z-index:3;left:50%;bottom:0;width:min(88vw,610px);height:100%;object-position:center center;transform-origin:center center;}
 
 /* Result art stays inside the visible battle viewport; normal portraits keep their own placement. */
-#battle #battleHeroOverlay.battleHeroVictory{left:50%;bottom:0;width:min(88vw,610px);height:100%;object-position:center center;transform-origin:center center;}
+#battle #battleHeroOverlay.battleHeroVictory{left:50%;bottom:-12vh;width:min(94vw,680px);height:104vh;object-fit:contain;object-position:center center;transform-origin:center center;}
+@media(orientation:portrait){#battle #battleHeroOverlay.battleHeroVictory{bottom:-12vh;width:94vw;height:104vh;}}
+@media(orientation:landscape){#battle #battleHeroOverlay.battleHeroVictory{bottom:-8vh;width:min(55vw,680px);height:110vh;}}
