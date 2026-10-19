@@ -376,7 +376,7 @@ function stabilizeLoadedState(){
  S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
  S.encounterGrace=Math.max(Number(S.encounterGrace)||0,D.areas[area]?.grace||0);
  if(area==="field"){
-   if(!YK_WORLD.walkable(S.x,S.y))[S.x,S.y]=YK_WORLD.start;
+   if(!fieldCollisionDebugOff&&!YK_WORLD.walkable(S.x,S.y))[S.x,S.y]=YK_WORLD.start;
  }else if(area==="village"){
    S.x=clamp(Number(S.x)||768,32,1504);S.y=clamp(Number(S.y)||1190,40,1248);
    if(YK_SETTLEMENT.blocked(S.x,S.y)||npcBlocked(S.x,S.y))[S.x,S.y]=YK_SETTLEMENT.spawn;
@@ -1100,6 +1100,10 @@ if(battleTraceEnabled){
  window.addEventListener("unhandledrejection",e=>battleTrace("promise.rejection",String(e.reason)));
  battleTrace("ready","BETA 15.57.166");
 }
+const fieldCollisionDebugKey="yk.debug.fieldCollisionOff";
+let fieldCollisionDebugOff=false;
+try{fieldCollisionDebugOff=localStorage.getItem(fieldCollisionDebugKey)==="1";}catch(_){}
+function setFieldCollisionDebugOff(value){fieldCollisionDebugOff=!!value;try{localStorage.setItem(fieldCollisionDebugKey,fieldCollisionDebugOff?"1":"0");}catch(_){}const input=$("fieldCollisionDebugOff");if(input)input.checked=fieldCollisionDebugOff;}
 const encounterDebugKey="yk.debug.encounterOff";
 let encounterDebugOff=false;
 try{encounterDebugOff=localStorage.getItem(encounterDebugKey)==="1";}catch(_){}
@@ -1246,7 +1250,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
  exit:{to:"field",rect:[720,1230,816,1280]},northExit:{to:"field",rect:[710,0,830,58]}};
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
-function collision(x,y,ignoreNPC=false){return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
+function collision(x,y,ignoreNPC=false){if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
 function exitArea(){return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 function move(dx,dy,dir){
  if(busy)return;
@@ -1739,6 +1743,8 @@ document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S);YK_AUDIO.syncBgm(S.area)});
 syncEncounterDebug();
+setFieldCollisionDebugOff(fieldCollisionDebugOff);
+$("fieldCollisionDebugOff")?.addEventListener("change",e=>setFieldCollisionDebugOff(e.target.checked));
 $("encounterDebugOff")?.addEventListener("change",e=>setEncounterDebugOff(e.target.checked));
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
 let startingNewGame=false;
