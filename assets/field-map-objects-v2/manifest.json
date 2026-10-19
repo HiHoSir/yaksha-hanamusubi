@@ -1,0 +1,200 @@
+[
+  {
+    "name": "house",
+    "file": "house.png",
+    "ground_cells": [
+      1,
+      1
+    ],
+    "collision_px": [
+      32,
+      32
+    ],
+    "render_px": [
+      40,
+      38
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "village",
+    "file": "village.png",
+    "ground_cells": [
+      2,
+      1
+    ],
+    "collision_px": [
+      64,
+      32
+    ],
+    "render_px": [
+      84,
+      44
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "torii",
+    "file": "torii.png",
+    "ground_cells": [
+      1,
+      1
+    ],
+    "collision_px": [
+      32,
+      32
+    ],
+    "render_px": [
+      40,
+      45
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "trees",
+    "file": "trees.png",
+    "ground_cells": [
+      1,
+      1
+    ],
+    "collision_px": [
+      32,
+      32
+    ],
+    "render_px": [
+      43,
+      33
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "mountain-small",
+    "file": "mountain-small.png",
+    "ground_cells": [
+      1,
+      1
+    ],
+    "collision_px": [
+      32,
+      32
+    ],
+    "render_px": [
+      43,
+      26
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "mountain-large",
+    "file": "mountain-large.png",
+    "ground_cells": [
+      4,
+      2
+    ],
+    "collision_px": [
+      128,
+      64
+    ],
+    "render_px": [
+      136,
+      57
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "cave-small",
+    "file": "cave-small.png",
+    "ground_cells": [
+      1,
+      1
+    ],
+    "collision_px": [
+      32,
+      32
+    ],
+    "render_px": [
+      38,
+      33
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "cave-large",
+    "file": "cave-large.png",
+    "ground_cells": [
+      2,
+      1
+    ],
+    "collision_px": [
+      64,
+      32
+    ],
+    "render_px": [
+      63,
+      45
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "hole",
+    "file": "hole.png",
+    "ground_cells": [
+      1,
+      1
+    ],
+    "collision_px": [
+      32,
+      32
+    ],
+    "render_px": [
+      32,
+      19
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "pagoda",
+    "file": "pagoda.png",
+    "ground_cells": [
+      1,
+      2
+    ],
+    "collision_px": [
+      32,
+      64
+    ],
+    "render_px": [
+      54,
+      56
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  },
+  {
+    "name": "fort",
+    "file": "fort.png",
+    "ground_cells": [
+      2,
+      1
+    ],
+    "collision_px": [
+      64,
+      32
+    ],
+    "render_px": [
+      108,
+      38
+    ],
+    "anchor": "bottom-center",
+    "visual_only": true
+  }
+]
