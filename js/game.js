@@ -1557,7 +1557,12 @@ function renderShop(){
 function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n);return `<div class="slot"><b>${n}番</b>　${i?`${i.lv}段 / ${i.area}`:"記録なし"}<div class="slotBtns"><button data-save="${n}">記録する</button><button data-load="${n}">記録から再開</button></div></div>`}).join("");document.querySelectorAll("[data-save]").forEach(b=>YK_INPUT.tap(b,()=>{YK_SAVE.saveSlot(+b.dataset.save,S);slots()}));document.querySelectorAll("[data-load]").forEach(b=>YK_INPUT.tap(b,()=>{const v=YK_SAVE.loadSlot(+b.dataset.load);if(v){restoreState(v);close("saveMenu")}}))}
 function close(id){YK_INPUT.stopAll();$(id).classList.remove("show");busy=false;hud()}
 function worldMap(){if(busy)return;YK_INPUT.stopAll();busy=true;$("worldMap").classList.add("show");drawWorld()}
-function worldHint(text){rr(g,114,724,540,30,8,"#07131fe8","#c9ad78");g.font="16px sans-serif";g.textAlign="center";g.fillStyle="#fff0ca";g.fillText(text,384,745);}
+function worldHint(text){
+ // Keep guidance in viewport space, not at the bottom of the cropped 768px scene.
+ let el=$("fieldGuide");
+ if(!el){el=document.createElement("div");el.id="fieldGuide";el.setAttribute("aria-live","off");$("stage").appendChild(el);}
+ if(el.textContent!==text)el.textContent=text;
+}
 function enterWorldPlace(k){
  const p=YK_WORLD.places[k];if(!p)return;
  fieldMotion=null;S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
