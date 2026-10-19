@@ -1,6 +1,6 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=95;
+ const tileSize=32,size=2560,viewSize=640,revision=96;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
   village:[[17,62],'鬼灯の里','里を出たら北の草原を探索し、森の西側にある天妖の社を探そう。'],
@@ -22,6 +22,7 @@ window.YK_WORLD=(()=>{
  // Coastal silhouette traced from the approved first-area concept (80x80 cells).
  const outline=[[32,3],[40,2],[48,4],[56,3],[65,8],[72,13],[74,22],[69,29],[74,35],[70,41],[65,43],[59,43],[55,47],[60,51],[58,56],[52,57],[48,54],[43,55],[39,59],[36,63],[32,65],[29,69],[27,73],[24,76],[20,75],[17,71],[15,68],[12,66],[10,61],[7,58],[10,54],[8,49],[12,44],[9,40],[12,34],[9,29],[13,24],[10,18],[15,13],[21,10],[26,7]];
  const inside=(x,y)=>{let hit=false;for(let i=0,j=outline.length-1;i<outline.length;j=i++){const [ax,ay]=outline[i],[bx,by]=outline[j];if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)hit=!hit;}return hit;};
+ const snowy=()=>false; // Snow terrain is intentionally absent in the opening region.
  const mapData=Array.from({length:80},(_,y)=>Array.from({length:80},(_,x)=>inside(x,y)?'grass':'sea'));
  const paint=(kind,cx,cy,rx,ry)=>{for(let y=Math.max(1,cy-ry);y<Math.min(79,cy+ry);y++)for(let x=Math.max(1,cx-rx);x<Math.min(79,cx+rx);x++)if(mapData[y][x]!=='sea'&&((x-cx)/rx)**2+((y-cy)/ry)**2<1)mapData[y][x]=kind;};
  const chain=(kind,points,r=2)=>{for(const [x,y] of points)paint(kind,x,y,r,r);};
