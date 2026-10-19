@@ -1,6 +1,6 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=89;
+ const tileSize=32,size=2560,viewSize=640,revision=90;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
   village:[[17,62],'鬼灯の里','里から北へ。西の山裾の道をたどって天妖の社へ。'],
@@ -9,7 +9,7 @@ window.YK_WORLD=(()=>{
   forest:[[62,44],'忘れの森','森から北へ進み、川の縦橋を渡って龍神の滝へ。'],
   waterfall:[[60,24],'龍神の滝','西の高原へ。月見の湯に寄り道し、峠を越えて九尾の祠へ。'],
   hotspring:[[44,22],'月見の湯','高原の湯宿。南の街道へ戻り、西の峠から北の祠へ。'],
-  fox:[[23,13],'九尾の祠','山間の旅路の終点。雪峰と緑の山に囲まれた祠。']
+  fox:[[23,13],'九尾の祠','山間の旅路の終点。緑の山々に囲まれた祠。']
  };
  const places=Object.fromEntries(Object.entries(definitions).map(([id,[cell,name,note]])=>[id,{point:center(cell),name,note}]));
  const start=center([17,65]),hub=start;
@@ -33,6 +33,13 @@ window.YK_WORLD=(()=>{
   if([[2,0],[-2,0],[0,2],[0,-2]].some(([dx,dy])=>!inside(x+dx,y+dy)))return 'sand';
   return snowy(x,y)?'snow':'grass';
  }));
+ // Southern peninsula around Hozuki: open sea on both sides, one northbound neck.
+ for(let y=57;y<=76;y++)for(let x=0;x<80;x++){
+  if(mapData[y][x]==='sea')continue;
+  const half=y<61?10:y<65?8:y<69?7:y<72?5:Math.max(1,5-(y-71));
+  if(x<19-half||x>19+half||y>72)mapData[y][x]='sea';
+ }
+ for(let y=59;y<=66;y++)for(let x=15;x<=22;x++)if(mapData[y]?.[x]==='sea')mapData[y][x]='grass';
  const paint=(kind,cx,cy,rx,ry)=>{for(let y=Math.max(5,cy-ry);y<=Math.min(72,cy+ry);y++)for(let x=Math.max(6,cx-rx);x<=Math.min(70,cx+rx);x++)if(((x-cx)/rx)**2+((y-cy)/ry)**2<1&&mapData[y][x]!=='sea')mapData[y][x]=kind;};
  // Broad masses frame open basins, with deliberately authored passes below.
  for(const [x,y,rx,ry] of [[10,44,4,15],[30,43,5,17],[31,23,5,9],[22,8,9,3],[51,39,7,5],[52,16,11,5]])paint('mountain',x,y,rx,ry);
