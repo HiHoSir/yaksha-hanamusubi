@@ -1,6 +1,6 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=97;
+ const tileSize=32,size=2560,viewSize=640,revision=98;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
   village:[[37,70],'鬼灯の里','南の半島から北へ。草原を抜けて天妖の社を探そう。'],
@@ -45,6 +45,11 @@ window.YK_WORLD=(()=>{
  // Forest belts and smaller groves leave large walkable grassland clearings.
  chain('forest',[[17,55],[21,54],[25,52],[20,37],[23,34],[25,30],[29,23],[29,19],[33,16],[39,16],[38,24],[43,27],[46,29],[49,32],[53,34],[57,35],[61,36],[65,36],[55,40],[50,42],[30,58],[27,61]],3);
  chain('forest',[[17,25],[20,23],[24,22],[42,17],[45,18],[48,20]],2);
+ // Exploration pockets: several broad clearings and side passages instead of a
+ // single straight corridor. These areas are optional and have no painted road.
+ for(const [cx,cy,rx,ry] of [[15,49,5,5],[24,58,6,5],[38,56,6,4],[49,58,5,4],[30,42,5,4],[45,37,5,4],[58,45,5,5],[24,26,5,4],[44,22,5,4],[53,25,4,4],[34,12,4,3]])paint('grass',cx,cy,rx,ry);
+ // A few wooded islets in the clearings invite detours without blocking travel.
+ chain('forest',[[27,55],[33,52],[44,52],[57,44],[40,44],[24,28],[50,24]],2);
  // River fords: traversable crossings, with bridge decorations placed below.
  for(const [cx,cy] of [[39,35],[42,43]])for(let y=cy-1;y<=cy+1;y++)for(let x=cx-1;x<=cx+1;x++)if(mapData[y]?.[x]==='river')mapData[y][x]='grass';
  // The southern peninsula is a meadow with accessible shore on either side.
