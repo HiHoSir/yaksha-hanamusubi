@@ -1,10 +1,5 @@
-# Field Map Objects v2
+# Field map objects v2
 
-New isolated field symbols (11 PNG sprites), independent from existing `assets/field-map-objects-v1/` and `assets/terrain/places-v1/`.
+11 RGBA map symbols, each strictly contained within its assigned 32px grid footprint. Original v1 sprites remain unchanged. PNG canvas size = ground_cells × 32px; silhouettes preserve aspect ratio, with transparent padding and bottom-center anchor.
 
-- 1 world tile = 32x32 px; sprite image size is separate from ground footprint.
-- All images are RGBA with transparent backgrounds; use bottom-center anchor.
-- This is an **asset archive / visual candidate**, not wired into runtime. Existing assets and gameplay remain unchanged.
-- Source: user-reviewed ChatGPT-generated sprite sheet, cropped and scaled deterministically.
-- Known QA limitations: pagoda top and multi-peak large mountain need further review.
-- See `manifest.json` for ground cells, render size and collision footprint.
+This is an asset archive; runtime references and collision logic are not yet changed. Large mountain planned rule: bottom row impassable, top row passable and supports overlay/occlusion, pending implementation.
