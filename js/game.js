@@ -842,7 +842,7 @@ function map(frameTime=performance.now()){
   const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
   const px=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
   const py=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
-  YK_INDOOR_NATIVE_DEBUG.render(g,p=>hero(g,p.x,p.y-9*.56*p.z,S.dir,S.frame,S.outfit,.56*p.z),{x:px,y:py},areaNPCs(),(c,n,p)=>npc(c,p.x,p.y,n.type,n.name,n.dir||"d",n.frame??1));
+  YK_INDOOR_NATIVE_DEBUG.render(g,p=>hero(g,p.x,p.y-9*.56*p.z,S.dir,S.frame,S.outfit,.56*p.z),{x:px,y:py},areaNPCs(),(c,n,p)=>{c.save();c.translate(p.x,p.y);c.scale(p.z/.56,p.z/.56);npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();});
   worldHint(YK_INDOOR_NATIVE_DEBUG.exit(S.x,S.y)?"A：鬼灯の里へ戻る":"花見茶屋・茶屋娘に話しかけよう");return;
  }
 
