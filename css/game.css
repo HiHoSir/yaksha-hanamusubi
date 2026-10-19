@@ -471,11 +471,11 @@ body:has(#title.show) #stage{min-height:0}
 #battle #battleHeroOverlay{position:absolute;z-index:1;left:-12vw;bottom:-27vh;width:min(88vw,610px);height:105vh;object-fit:contain;object-position:left bottom;pointer-events:none;filter:drop-shadow(1px 2px 3px rgba(18,22,36,.6));transform-origin:30% 75%;}
 @media(orientation:landscape){#battle #battleHeroOverlay{left:-4vw;bottom:-26vh;width:50vw;height:125vh}}
 
-/* Battle result portraits use the same lower-left anchor and scale as attack art.
-   Hide the unfinished victory lower edge below the viewport, not at the PNG seam. */
-#battle #battleHeroOverlay.battleHeroResult{z-index:3;left:-12vw;bottom:-27vh;width:min(88vw,610px);height:105vh;object-fit:contain;object-position:left bottom;transform-origin:30% 75%;}
-#battle #battleHeroOverlay.battleHeroVictory{left:-12vw;bottom:-27vh;width:min(88vw,610px);height:105vh;object-position:left bottom;transform-origin:30% 75%;}
+/* Victory art has a different transparent canvas from attack frames.
+   Anchor it independently so the face and torso stay in the visible portrait area. */
+#battle #battleHeroOverlay.battleHeroResult{z-index:3;left:-8vw;bottom:4vh;width:min(96vw,680px);height:100vh;object-fit:contain;object-position:left bottom;transform-origin:30% 75%;}
+#battle #battleHeroOverlay.battleHeroVictory{left:-8vw;bottom:4vh;width:min(96vw,680px);height:100vh;object-position:left bottom;transform-origin:30% 75%;}
 @media(orientation:landscape){
  #battle #battleHeroOverlay.battleHeroResult,
- #battle #battleHeroOverlay.battleHeroVictory{left:-4vw;bottom:-26vh;width:50vw;height:125vh;}
+ #battle #battleHeroOverlay.battleHeroVictory{left:-3vw;bottom:0;width:56vw;height:100vh;}
 }
