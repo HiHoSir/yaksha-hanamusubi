@@ -472,16 +472,12 @@ body:has(#title.show) #stage{min-height:0}
 @media(orientation:landscape){#battle #battleHeroOverlay{left:-4vw;bottom:-26vh;width:50vw;height:125vh}}
 
 /* Victory/level-up illustrations remain behind the result HUD and slightly lower. */
-#battle #battleHeroOverlay.battleHeroResult{z-index:1;left:-8vw;bottom:0;width:min(96vw,680px);height:100vh;object-fit:contain;object-position:left bottom;transform-origin:30% 75%;}
-#battle #battleHeroOverlay.battleHeroVictory{left:-8vw;bottom:0;width:min(96vw,680px);height:100vh;object-position:left bottom;transform-origin:30% 75%;}
 #battle.show:has(.battleHeroResult) .battleTop,
 #battle.show:has(.battleHeroResult) .battlePartyCards,
 #battle.show:has(.battleHeroResult) .battleInfo,
 #battle.show:has(.battleHeroResult) .battleCommands,
 #battle.show:has(.battleHeroResult) .battleHelp{position:relative;z-index:4;}
 @media(orientation:landscape){
- #battle #battleHeroOverlay.battleHeroResult,
- #battle #battleHeroOverlay.battleHeroVictory{left:-3vw;bottom:-4vh;width:56vw;height:100vh;}
 }
 
 /* BETA 15.57.261: edge-to-edge field with touch controls over the scene.
@@ -559,26 +555,16 @@ body:has(#title.show) #stage{min-height:0}
 #app>header .topBtns .navIconButton:active{background:rgba(128,97,63,.75)}
 @media(max-width:440px){#app>header{justify-content:flex-end}#app>header .topBtns{width:auto;justify-content:flex-end}#app>header .topBtns .navIconButton{width:42px;height:42px;min-width:42px;min-height:42px}}
 
-/* 15.57.276: victory follows the existing attack actor's exact positioning and scale.
-   Level-up alone is centered and larger, with its lower portion intentionally cropped. */
-#battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
- left:-12vw;right:auto;top:auto;bottom:-27vh;
- width:min(88vw,610px);height:105vh;
- object-fit:contain;object-position:left bottom;transform-origin:30% 75%;
-}
-@media(orientation:landscape){
- #battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
-  left:-4vw;bottom:-26vh;width:50vw;height:125vh;
- }
-}
-#battle #battleHeroOverlay.battleHeroResult:not(.battleHeroVictory){
+/* Level-up is a distinct centered celebration; victory inherits the exact
+   same base #battleHeroOverlay layout as idle and attack frames. */
+#battle #battleHeroOverlay.battleHeroLevelUp{
  left:50%;right:auto;top:4%;bottom:auto;
  width:min(125vw,1150px);height:125%;
  object-fit:contain;object-position:center top;
  transform-origin:center top;
 }
 @media(orientation:portrait){
- #battle #battleHeroOverlay.battleHeroResult:not(.battleHeroVictory){
+ #battle #battleHeroOverlay.battleHeroLevelUp{
   left:50%;top:7%;width:150vw;height:112%;
  }
 }
