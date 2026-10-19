@@ -1488,15 +1488,13 @@ function renderRelics(){
  YK_INPUT.tap($('fieldHerb'),()=>{if(S.potions<=0)return message('薬草を持っていない。',1400);if(S.hp>=S.maxhp)return message('体は満ちている。',1400);S.potions--;S.hp=Math.min(S.maxhp,S.hp+35+relicBonus('heal'));YK_SAVE.auto(S);renderStatus();renderRelics();hud(false);});
  document.querySelectorAll("[data-relic]").forEach(b=>YK_INPUT.tap(b,()=>{const id=b.dataset.relic;S.equippedRelic=Object.hasOwn(D.relics,id)&&S.relics[id]?id:null;YK_SAVE.auto(S);busy=false;menu("items");}));
 }
-const FIELD_COMMANDS=[['talk','はなす','近くの人や地蔵に話しかける'],['search','しらべる','足元のつづらや入口を調べる'],['skill','じゅつ','花癒し：技3で体を32回復'],['items','どうぐ','薬草やお守りを確かめる'],['equipment','そうび','武器や防具を身につける'],['status','つよさ','段・体・技と旅の目的を確かめる'],['map','ちず','目的地と街道を確かめる'],['save','きろく','旅の記録を残す'],['outfits','おまけ','衣装を選ぶ'],['exit','もどる','旅へ戻る']];
+const FIELD_COMMANDS=[['skill','じゅつ','花癒し：技3で体を32回復'],['items','どうぐ','薬草やお守りを確かめる'],['equipment','そうび','武器や防具を身につける'],['status','つよさ','段・体・技と旅の目的を確かめる'],['map','ちず','目的地と街道を確かめる'],['save','きろく','旅の記録を残す'],['outfits','おまけ','衣装を選ぶ'],['exit','もどる','旅へ戻る']];
 let fieldCursor=0;
 function openCommands(){if(busy)return false;YK_INPUT.stopAll();fieldMotion=null;S.frame=1;busy=true;fieldCursor=0;$('commandMenu').classList.add('show');renderCommands();return true;}
 function renderCommands(){$('commandStatus').textContent=`緋月　${S.lv}段　${S.gold}両`;$('fieldCommands').innerHTML=FIELD_COMMANDS.map(([id,label],i)=>`<button data-field-command="${id}" class="${i===fieldCursor?'selected':''}">${i===fieldCursor?'▶ ':''}${label}</button>`).join('');document.querySelectorAll('[data-field-command]').forEach((b,i)=>YK_INPUT.tap(b,()=>{fieldCursor=i;fieldConfirm();}));$('commandHelp').textContent=FIELD_COMMANDS[fieldCursor][2]+' ／ A 決定・B 戻る';}
 function fieldPad(dir){if(!$('commandMenu').classList.contains('show'))return false;const row=Math.floor(fieldCursor/2),next=dir==='u'?fieldCursor-2:dir==='d'?fieldCursor+2:row*2+(dir==='l'?0:1);if(next>=0&&next<FIELD_COMMANDS.length)fieldCursor=next;renderCommands();return true;}
 function fieldConfirm(){const id=FIELD_COMMANDS[fieldCursor][0];close('commandMenu');
  if(id==='exit')return;
- if(id==='talk'){if(guideTalk())return;if(nearestNPC(100)){action();return;}message('近くには話せる相手がいない。',1400);return;}
- if(id==='search'){if(guideTalk()||openNearbyChest()||villageDoorAction())return;if(S.area==='field'&&YK_WORLD.near(S.x,S.y)){enterWorldPlace(YK_WORLD.near(S.x,S.y));return;}if(inspectObject())return;message('足元には特に何もない。',1400);return;}
  if(id==='skill'){if(S.hp>=S.maxhp)return message('体は満ちている。',1400);if(S.mp<3)return message('技が足りない。',1400);S.mp-=3;S.hp=Math.min(S.maxhp,S.hp+32+relicBonus('heal'));YK_SAVE.auto(S);hud();message('花癒しの術で体が回復した。',1800);return;}
  if(id==='map')return worldMap();if(id==='save'){busy=true;slots();$('saveMenu').classList.add('show');return;}menu(id);
 }
@@ -1548,11 +1546,13 @@ function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n
 function close(id){YK_INPUT.stopAll();$(id).classList.remove("show");busy=false;hud()}
 function worldMap(){if(busy)return;YK_INPUT.stopAll();busy=true;$("worldMap").classList.add("show");drawWorld()}
 function worldHint(text){
- // Keep guidance in viewport space, not at the bottom of the cropped 768px scene.
- let el=$("fieldGuide");
- if(!el){el=document.createElement("div");el.id="fieldGuide";el.setAttribute("aria-live","off");$("stage").appendChild(el);}
- if(el.textContent!==text)el.textContent=text;
+ // The A button already prioritizes nearby interactions; no persistent action guide.
+ const old=$("fieldGuide");if(old)old.remove();
+ if(S.area!=="debugField")return;
+ const el=document.createElement("div");el.id="fieldGuide";el.setAttribute("aria-live","off");
+ el.textContent=text;$("stage").appendChild(el);
 }
+
 function enterWorldPlace(k){
  const p=YK_WORLD.places[k];if(!p)return;
  fieldMotion=null;S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
