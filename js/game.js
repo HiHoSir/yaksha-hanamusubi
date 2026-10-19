@@ -1610,7 +1610,7 @@ function renderEquipment(){
  document.querySelectorAll('[data-equip-slot]').forEach(el=>el.addEventListener('change',()=>{if(E.equip(S,el.dataset.equipSlot,el.value||null)){YK_SAVE.auto(S);renderStatus();renderEquipment();}}));
 }
 let shopMode='buy';
-function openShop(){if(busy)return;YK_INPUT.stopAll();busy=true;shopMode='buy';$('shopNotice').textContent='旅が進むと品ぞろえが増えます。買った品は「行動 → そうび」で身につけられます。';renderShop();$('shop').classList.add('show');}
+function openShop(){if(busy)return;YK_INPUT.stopAll();busy=true;shopMode='buy';$('shopNotice').textContent='この店の品ぞろえは固定です。旅先の店では別の品を扱います。買った品は「行動 → そうび」で身につけられます。';renderShop();$('shop').classList.add('show');}
 function renderShop(){
  $('shopGold').textContent=`所持金：${S.gold}両`;
  const list=shopMode==='buy'?E.stock(S):Object.values(E.items).filter(i=>S.equipmentInventory[i.id]>0);
