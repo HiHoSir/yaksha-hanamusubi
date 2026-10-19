@@ -1,6 +1,6 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=94;
+ const tileSize=32,size=2560,viewSize=640,revision=95;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
   village:[[17,62],'鬼灯の里','里を出たら北の草原を探索し、森の西側にある天妖の社を探そう。'],
@@ -19,37 +19,27 @@ window.YK_WORLD=(()=>{
   [[51,36],[51,33]],[[54,25],[54,22]],[[39,20],[39,17]],[[42,11],[42,8]]
  ];
  const roads=routes.map(r=>r.map(center));
- const outline=[[26,4],[43,5],[54,3],[64,7],[65,15],[72,22],[69,31],[74,40],[70,48],[72,57],[67,68],[61,74],[57,74],[57,69],[49,69],[47,76],[36,73],[24,76],[13,71],[9,66],[7,58],[10,49],[6,41],[9,31],[12,25],[9,19],[15,12],[19,7]];
- const inside=(x,y)=>{let hit=false;for(let i=0,j=outline.length-1;i<outline.length;j=i++){
-  const [ax,ay]=outline[i],[bx,by]=outline[j];if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)hit=!hit;
- }return hit;};
- const snowy=()=>false;
- const mapData=Array.from({length:80},(_,y)=>Array.from({length:80},(_,x)=>{
-  if(!inside(x,y))return 'sea';
-  if([[2,0],[-2,0],[0,2],[0,-2]].some(([dx,dy])=>!inside(x+dx,y+dy)))return 'sand';
-  return snowy(x,y)?'snow':'grass';
- }));
- // Rebuild the first chapter from geographic regions rather than road corridors.
- // Southern peninsula opens into a broad, mostly roadless interior.
- for(let y=0;y<80;y++)for(let x=0;x<80;x++){
-  if(y>=55){
-   const half=y<60?13:y<65?10:y<69?8:y<73?5:0;
-   if(x<19-half||x>19+half||y>=73)mapData[y][x]='sea';
-   else mapData[y][x]='grass';
-  }
- }
- const paint=(kind,cx,cy,rx,ry)=>{for(let y=Math.max(2,cy-ry);y<Math.min(78,cy+ry);y++)for(let x=Math.max(2,cx-rx);x<Math.min(78,cx+rx);x++)if(mapData[y][x]!=='sea'&&((x-cx)/rx)**2+((y-cy)/ry)**2<1)mapData[y][x]=kind;};
- // First-area exploration: gentle irregular forest edges, not wall-to-wall mountains.
- const patch=(kind,points,r=2)=>{for(const [x,y] of points)paint(kind,x,y,r,r);};
- // Mountains frame distant valleys; central plains and coasts stay open.
- for(const p of [[10,36,4,9],[68,35,4,12],[18,17,4,8],[61,12,5,7],[29,27,3,4],[48,14,3,4]])paint('mountain',...p);
- for(const p of [[14,48,3,4],[29,48,4,3],[47,48,4,5],[58,39,4,4],[34,31,3,4],[53,29,4,4],[31,11,3,3]])paint('forest',...p);
- // Short wooded pockets and open meadows provide readable optional detours.
- patch('forest',[[11,54],[27,54],[33,58],[38,52],[42,47],[23,37],[27,33],[39,26],[46,23],[35,12]],2);
- patch('grass',[[16,53],[21,52],[26,57],[30,46],[39,45],[45,39],[46,32],[40,28],[35,20],[43,15]],3);
- // River valleys require a crossing, but broad plains are not walled off.
- for(let x=25;x<=64;x++)if(mapData[37][x]!=='sea')mapData[37][x]='river';
- for(let y=21;y<=37;y++)if(mapData[y][60]!=='sea')mapData[y][60]='river';
+ // Coastal silhouette traced from the approved first-area concept (80x80 cells).
+ const outline=[[32,3],[40,2],[48,4],[56,3],[65,8],[72,13],[74,22],[69,29],[74,35],[70,41],[65,43],[59,43],[55,47],[60,51],[58,56],[52,57],[48,54],[43,55],[39,59],[36,63],[32,65],[29,69],[27,73],[24,76],[20,75],[17,71],[15,68],[12,66],[10,61],[7,58],[10,54],[8,49],[12,44],[9,40],[12,34],[9,29],[13,24],[10,18],[15,13],[21,10],[26,7]];
+ const inside=(x,y)=>{let hit=false;for(let i=0,j=outline.length-1;i<outline.length;j=i++){const [ax,ay]=outline[i],[bx,by]=outline[j];if((ay>y)!==(by>y)&&x<(bx-ax)*(y-ay)/(by-ay)+ax)hit=!hit;}return hit;};
+ const mapData=Array.from({length:80},(_,y)=>Array.from({length:80},(_,x)=>inside(x,y)?'grass':'sea'));
+ const paint=(kind,cx,cy,rx,ry)=>{for(let y=Math.max(1,cy-ry);y<Math.min(79,cy+ry);y++)for(let x=Math.max(1,cx-rx);x<Math.min(79,cx+rx);x++)if(mapData[y][x]!=='sea'&&((x-cx)/rx)**2+((y-cy)/ry)**2<1)mapData[y][x]=kind;};
+ const chain=(kind,points,r=2)=>{for(const [x,y] of points)paint(kind,x,y,r,r);};
+ // The south is forgiving: meadow and gentle groves; the north gains rocky ridges.
+ chain('mountain',[[25,34],[28,32],[31,30],[34,28],[36,26],[43,11],[47,10],[51,9],[55,11],[59,14],[62,17],[60,20],[57,23]],3);
+ chain('rockMountain',[[52,16],[55,17],[57,18],[61,24],[64,25]],2);
+ chain('forest',[[15,54],[18,52],[22,51],[24,49],[19,43],[21,39],[26,39],[30,43],[33,46],[42,37],[45,34],[49,32],[53,31],[59,33],[63,36],[32,21],[35,20],[37,18],[29,14],[26,17],[22,23],[19,27]],3);
+ // Meandering river, with two broad crossings rather than a straight blue wall.
+ const stream=(points)=>{for(let i=1;i<points.length;i++){const [ax,ay]=points[i-1],[bx,by]=points[i];const n=Math.max(Math.abs(bx-ax),Math.abs(by-ay));for(let j=0;j<=n;j++){const x=Math.round(ax+(bx-ax)*j/n),y=Math.round(ay+(by-ay)*j/n);if(mapData[y]?.[x]!=='sea')mapData[y][x]='river';}}};
+ stream([[55,24],[52,27],[49,30],[46,34],[44,37],[40,39],[37,42],[35,45],[32,47],[28,49],[24,50],[20,51],[16,53]]);
+ // Sheltered inlet and a small northern lake (water stays impassable).
+ paint('sea',45,46,5,4);
+ paint('sea',44,20,5,3);
+ // Coastline sand is computed last, and does not replace river banks.
+ const snapshot=mapData.map(row=>row.slice());
+ for(let y=1;y<79;y++)for(let x=1;x<79;x++)if(snapshot[y][x]==='grass'&&[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>snapshot[y+dy]?.[x+dx]==='sea'))mapData[y][x]='sand';
+ // A few natural clearings create optional detours.
+ for(const [x,y,r] of [[20,58,4],[17,46,3],[35,52,3],[39,36,3],[46,28,3],[36,15,3]])paint('grass',x,y,r,r);
  mapData.paths=roads;mapData.decorations=[];
  const crossings=new Set();
  for(const route of routes)for(let i=1;i<route.length;i++){
@@ -148,8 +138,8 @@ window.YK_WORLD=(()=>{
   const half=y<60?13:y<65?10:y<69?8:5;
   mapData[y][x]=Math.abs(x-19)>=half-2?'sand':'grass';
  }
- // Guarantee a traversable route through the river at the intended ford.
- for(let x=32;x<=38;x++)mapData[37][x]='grass';
+ // Shallow ford and a small bridge at the natural central crossing.
+ for(let x=35;x<=39;x++)if(mapData[42]?.[x]==='river')mapData[42][x]='grass';
  // No continuous road drawing across wilderness.
  mapData.paths=roads;
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
