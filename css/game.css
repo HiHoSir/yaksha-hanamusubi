@@ -549,3 +549,12 @@ body:has(#title.show) #stage{min-height:0}
 @media(orientation:portrait) and (max-height:720px){
  #dialog .dialogWindow{bottom:calc(150px + env(safe-area-inset-bottom));max-height:32dvh}
 }
+
+/* BETA 15.57.270: four compact, accessible menu icons, aligned at top-right. */
+#app>header{justify-content:flex-end;pointer-events:none;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+#app>header .brand{margin-right:auto;pointer-events:none}
+#app>header .topBtns{width:auto;flex:none;display:flex;justify-content:flex-end;gap:5px;margin-left:auto;padding:4px;border:1px solid rgba(201,173,120,.45);border-radius:15px;background:rgba(8,23,40,.63);box-shadow:0 3px 12px #0005;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);pointer-events:auto}
+#app>header .topBtns .navIconButton{box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:1px solid rgba(220,187,128,.48);border-radius:10px;color:#f5e5c8;background:rgba(26,48,70,.65);touch-action:manipulation}
+#app>header .topBtns .navIconButton svg{display:block;pointer-events:none}
+#app>header .topBtns .navIconButton:active{background:rgba(128,97,63,.75)}
+@media(max-width:440px){#app>header{justify-content:flex-end}#app>header .topBtns{width:auto;justify-content:flex-end}#app>header .topBtns .navIconButton{width:42px;height:42px;min-width:42px;min-height:42px}}
