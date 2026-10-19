@@ -1100,8 +1100,21 @@ if(battleTraceEnabled){
  window.addEventListener("unhandledrejection",e=>battleTrace("promise.rejection",String(e.reason)));
  battleTrace("ready","BETA 15.57.166");
 }
+const encounterDebugKey="yk.debug.encounterOff";
+let encounterDebugOff=false;
+try{encounterDebugOff=localStorage.getItem(encounterDebugKey)==="1";}catch(_){}
+function syncEncounterDebug(){
+ const input=$("encounterDebugOff");
+ if(input)input.checked=encounterDebugOff;
+}
+function setEncounterDebugOff(value){
+ encounterDebugOff=!!value;
+ try{localStorage.setItem(encounterDebugKey,encounterDebugOff?"1":"0");}catch(_){}
+ syncEncounterDebug();
+}
 function beginEncounter(force=false,boss=false){
  battleTrace("beginEncounter",String(force));
+ if(!force&&encounterDebugOff)return false;
  ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
  if(!area||!pool?.length||(!force&&area.encounter<=0))return false;
@@ -1717,6 +1730,8 @@ document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shop
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{if(!battle||battleLocked)return;selectCmd(i);battleConfirm()}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
 $("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S);YK_AUDIO.syncBgm(S.area)});
+syncEncounterDebug();
+$("encounterDebugOff")?.addEventListener("change",e=>setEncounterDebugOff(e.target.checked));
 YK_INPUT.tap($("resetBtn"),()=>{if(confirm("セーブデータをすべて初期化しますか？"))YK_SAVE.reset()});
 let startingNewGame=false;
 function startNewGame(){
