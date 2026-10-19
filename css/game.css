@@ -472,7 +472,7 @@ body:has(#title.show) #stage{min-height:0}
 @media(orientation:landscape){#battle #battleHeroOverlay{left:-4vw;bottom:-26vh;width:50vw;height:125vh}}
 
 /* Result illustrations retain their placement before the normal battle portrait was lowered. */
-#battle #battleHeroOverlay.battleHeroResult{left:50%;bottom:0;width:min(88vw,610px);height:100%;object-position:center center;transform-origin:center center;}
+#battle #battleHeroOverlay.battleHeroResult{z-index:3;left:50%;bottom:0;width:min(88vw,610px);height:100%;object-position:center center;transform-origin:center center;}
 
-/* Victory pose: dramatic bottom-left crop conceals the unfinished lower edge; level-up remains centered. */
-#battle #battleHeroOverlay.battleHeroVictory{left:-12vw;bottom:-29vh;width:min(88vw,610px);height:105vh;object-position:left bottom;transform-origin:30% 75%;}
+/* Result art stays inside the visible battle viewport; normal portraits keep their own placement. */
+#battle #battleHeroOverlay.battleHeroVictory{left:50%;bottom:0;width:min(88vw,610px);height:100%;object-position:center center;transform-origin:center center;}
