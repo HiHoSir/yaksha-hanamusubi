@@ -1658,6 +1658,14 @@ function worldHint(text){
 
 function enterWorldPlace(k){
  const p=YK_WORLD.places[k];if(!p)return;
+ // First-area destinations may be discovered freely, but entering later
+ // chapters requires reaching their predecessor. Prevents skipping the story.
+ const order=['village','shrine','cove','forest','waterfall','hotspring','fox'];
+ const index=order.indexOf(k),previous=order[index-1];
+ if(index>1&&!S.visitedAreas?.[previous]&&S.area==='field'){
+  message('この先へ進む前に、'+YK_WORLD.places[previous].name+'を訪ねよう。',2200);
+  return;
+ }
  fieldMotion=null;S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
  [S.x,S.y]=k==="village"?YK_SETTLEMENT.spawn.slice():k==="waterfall"?[70,600]:[70,430];
  S.dir=k==="village"?"u":"r";S.frame=1;walkPhase=0;
