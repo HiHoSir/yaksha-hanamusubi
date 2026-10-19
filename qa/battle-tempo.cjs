@@ -25,24 +25,24 @@ function scenario({hp=100,trait=null,chance=0,random=0.5,playerHp=100}={}){
 {
  const {c,until,draw,text}=scenario();c.cmd('target-0');
  assert.equal(c.battle.hp,100);assert.match(text(),/緋月の攻撃/);
- until(359);assert.equal(c.battle.hp,100);until(360);assert.equal(c.battle.hp,76);assert.equal(c.battleFx.amount,24);
- until(1000);assert.ok(c.battleFx,'damage stays visible well after impact');assert.equal(c.S.hp,100);
- until(1610);assert.match(text(),/敵の攻撃/);assert.equal(c.S.hp,100);
- until(2059);assert.equal(c.S.hp,100);until(2060);assert.equal(c.S.hp,88);
- until(3309);assert.equal(c.battleLocked,true);until(3310);assert.equal(c.battleLocked,false);assert.equal(c.battle.turn,2);assert.equal(draw(),1);
+ until(599);assert.equal(c.battle.hp,100);until(600);assert.equal(c.battle.hp,76);assert.equal(c.battleFx.amount,24);
+ until(1240);assert.ok(c.battleFx,'damage stays visible well after impact');assert.equal(c.S.hp,100);
+ until(1850);assert.match(text(),/敵の攻撃/);assert.equal(c.S.hp,100);
+ until(2299);assert.equal(c.S.hp,100);until(2300);assert.equal(c.S.hp,88);
+ until(3549);assert.equal(c.battleLocked,true);until(3550);assert.equal(c.battleLocked,false);assert.equal(c.battle.turn,2);assert.equal(draw(),1);
 }
 for(const trait of [null,'shellGuard']){
  const {c,until,draw}=scenario({hp:1,trait,chance:1});c.cmd('target-0');
- until(359);assert.equal(draw(),1);until(360);assert.equal(c.battle.hp,0);assert.equal(draw(),1);
- until(859);assert.equal(draw(),1);until(1085);assert.ok(Math.abs(draw()-.5)<.001);
- until(1120);assert.equal(c.battleFx,null);assert.ok(draw()>0,'fade survives effect teardown');
- until(1310);assert.equal(draw(),null);assert.equal(c.S.wins,0);
- until(1610);assert.equal(c.S.wins,1);assert.equal(c.battle.phase,'result');assert.equal(c.S.hp,100);
+ until(599);assert.equal(draw(),1);until(600);assert.equal(c.battle.hp,0);assert.equal(draw(),1);
+ until(1099);assert.equal(draw(),1);until(1325);assert.ok(Math.abs(draw()-.5)<.001);
+ until(1360);assert.equal(c.battleFx,null);assert.ok(draw()>0,'fade survives effect teardown');
+ until(1550);assert.equal(draw(),null);assert.equal(c.S.wins,0);
+ until(1850);assert.equal(c.S.wins,1);assert.equal(c.battle.phase,'result');assert.equal(c.S.hp,100);
  c.win();assert.equal(c.S.wins,1);c.cmd('finish');assert.ok(c.battle,'result lock prevents accidental dismissal');
- until(2710);c.cmd('finish');assert.equal(c.battle,null);
+ until(2950);c.cmd('finish');assert.equal(c.battle,null);
 }
 {
- const {c,until}=scenario({trait:'leafDodge',chance:1});c.cmd('target-0');until(360);assert.equal(c.battle.hp,100);until(3310);assert.equal(c.battleLocked,false);
+ const {c,until}=scenario({trait:'leafDodge',chance:1});c.cmd('target-0');until(600);assert.equal(c.battle.hp,100);until(3550);assert.equal(c.battleLocked,false);
 }
 for(const command of ['heal','herb','guard','escape']){
  const {c,until}=scenario({playerHp:50,random:.99});c.cmd(command);until(2950);assert.equal(c.battleLocked,false,command+' finishes');assert.equal(c.battle.turn,2);
