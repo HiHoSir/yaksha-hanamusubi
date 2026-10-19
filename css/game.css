@@ -559,40 +559,26 @@ body:has(#title.show) #stage{min-height:0}
 #app>header .topBtns .navIconButton:active{background:rgba(128,97,63,.75)}
 @media(max-width:440px){#app>header{justify-content:flex-end}#app>header .topBtns{width:auto;justify-content:flex-end}#app>header .topBtns .navIconButton{width:42px;height:42px;min-width:42px;min-height:42px}}
 
-/* Result portrait: keep the complete level-up silhouette inside the visible viewport.
-   Earlier left:-3vw/-8vw and translateX(-50%) pushed the actor offscreen. */
-#battle #battleHeroOverlay.battleHeroResult{
- left:0;right:auto;bottom:0;
- width:min(54vw,560px);height:calc(100% - 58px);
- max-width:none;object-fit:contain;object-position:left bottom;
- transform-origin:left bottom;
-}
+/* 15.57.276: victory follows the existing attack actor's exact positioning and scale.
+   Level-up alone is centered and larger, with its lower portion intentionally cropped. */
 #battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
- left:0;width:min(54vw,560px);height:calc(100% - 58px);
- object-position:left bottom;
+ left:-12vw;right:auto;top:auto;bottom:-27vh;
+ width:min(88vw,610px);height:105vh;
+ object-fit:contain;object-position:left bottom;transform-origin:30% 75%;
 }
-@media(orientation:portrait){
- #battle #battleHeroOverlay.battleHeroResult,
+@media(orientation:landscape){
  #battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
-  left:0;bottom:0;width:min(68vw,460px);height:calc(100% - 80px);
-  object-fit:contain;object-position:left bottom;
+  left:-4vw;bottom:-26vh;width:50vw;height:125vh;
  }
 }
-
-/* 15.57.275: result art uses the same dramatic bust-up scale as attack poses.
-   Keep the head near the top of the visible scene; crop the lower body instead. */
-#battle #battleHeroOverlay.battleHeroResult,
-#battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
- left:0;bottom:auto;top:clamp(42px,9dvh,76px);
- width:min(100vw,1100px);height:calc(145dvh - 50px);
- max-width:none;object-fit:contain;object-position:left top;
- transform-origin:left top;
+#battle #battleHeroOverlay.battleHeroResult:not(.battleHeroVictory){
+ left:50%;right:auto;top:4%;bottom:auto;
+ width:min(125vw,1150px);height:125%;
+ object-fit:contain;object-position:center top;
+ transform-origin:center top;
 }
 @media(orientation:portrait){
- #battle #battleHeroOverlay.battleHeroResult,
- #battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
-  left:0;top:clamp(52px,10dvh,90px);
-  width:110vw;height:calc(150dvh - 50px);
-  object-fit:contain;object-position:left top;
+ #battle #battleHeroOverlay.battleHeroResult:not(.battleHeroVictory){
+  left:50%;top:7%;width:150vw;height:112%;
  }
 }
