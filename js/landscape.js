@@ -256,10 +256,24 @@ window.YK_LANDSCAPE=(()=>{
   return m;
  }
  const grounds=new WeakMap();
+ // Draw cliff faces at height boundaries without altering the authored ground tiles.
+ function drawHeightFaces(c,map){
+  const heights=map.heights;if(!heights)return;
+  c.save();c.imageSmoothingEnabled=false;
+  for(let y=0;y<heights.length-1;y++)for(let x=0;x<heights[y].length;x++){
+   const drop=heights[y][x]-heights[y+1][x];if(drop<=0)continue;
+   const px=x*32,py=(y+1)*32,depth=Math.min(32,drop*12);
+   c.fillStyle='#423f39';c.fillRect(px,py-depth,32,depth);
+   c.fillStyle='#6e6657';c.fillRect(px,py-depth,32,4);
+   c.fillStyle='#91836a';c.fillRect(px+3,py-depth+4,3,Math.max(1,depth-7));
+   c.fillStyle='#302f2d';c.fillRect(px+27,py-depth+5,3,Math.max(1,depth-5));
+  }
+  c.restore();
+ }
  function groundLayer(map){
   if(grounds.has(map))return grounds.get(map);
   const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
-  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);
+  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);drawHeightFaces(c,map);c.drawImage(shadowLayer(map),0,0);
   for(const o of (map.decorations||[]).filter(o=>o.ground)){
    if(o.kind==='wildflowers'){
     // Same 32px cells as Hozuki village, placed sparsely without a square backdrop.
