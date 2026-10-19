@@ -1,6 +1,6 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=92;
+ const tileSize=32,size=2560,viewSize=640,revision=93;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
   village:[[17,62],'鬼灯の里','里から北へ。西の山裾の道をたどって天妖の社へ。'],
@@ -90,7 +90,7 @@ window.YK_WORLD=(()=>{
   for(let i=1;i<path.length;i++){const [x,y]=path[i],[px,py]=path[i-1],d=x>px?'東':x<px?'西':y>py?'南':'北';if(turns.at(-1)!==d)turns.push(d);}
   return turns.length?'そばの街道に出たら、まず'+turns.slice(0,3).join('、次の曲がり角で')+'へ進むのじゃ。':'目的地はこの近くじゃ。入口でAを押すのじゃ。';
  }
- for(const [tx,ty] of [[15,61],[20,60],[45,63],[54,63],[58,46],[43,25]]){const [x,y]=center([tx,ty]);mapData.decorations.push({kind:'flowers',x,y,width:40,height:24,foot:y+24,ground:true});}
+ for(const [tx,ty] of [[15,61],[20,60],[45,63],[54,63],[58,46],[43,25]]){const [x,y]=center([tx,ty]);mapData.decorations.push({kind:'wildflowers',x,y,width:40,height:24,foot:y+24,ground:true});}
  // Small clearings reserve the foreground as well as the object's footprint:
  // forest crowns and mountains extend above their ground cells in quarter view.
  const landmarks=mapData.decorations.filter(o=>['jizo','cave','castle','lantern','flowers'].includes(o.kind));
@@ -134,7 +134,7 @@ window.YK_WORLD=(()=>{
  for(const stop of restStops){
   open(...stop.cell,2);
   const [x,y]=stop.point;
-  mapData.decorations.push({kind:'flowers',x:x-20,y:y-18,width:40,height:24,foot:y+6,ground:true});
+  mapData.decorations.push({kind:'wildflowers',x:x-20,y:y-18,width:40,height:24,foot:y+6,ground:true});
  }
  // Coastal access around the starting village.
  for(let y=59;y<=71;y++)for(let x=8;x<=30;x++){
