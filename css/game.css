@@ -512,3 +512,9 @@ body:has(#title.show) #stage{min-height:0}
  #pad #cancel{bottom:calc(46px + env(safe-area-inset-bottom))}
  #message{bottom:calc(135px + env(safe-area-inset-bottom))}
 }
+
+/* BETA 15.57.263: preserve square world-space proportions on tall/wide phones.
+   Crop the field viewport instead of stretching the 768x768 camera image.
+   Existing world coordinates, tile collisions and hero scale remain unchanged. */
+#stage{overflow:hidden}
+#stage #game{width:100%;height:100%;object-fit:cover;object-position:center center}
