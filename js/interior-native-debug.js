@@ -139,7 +139,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   else if(x<horizontalCameraX-slack)horizontalCameraX=x+slack;
   return horizontalCameraX;
  }
- function render(g,heroDraw,actorFoot){
+ function render(g,heroDraw,actorFoot,npcActors=[],npcDraw=null){
   if(!YK_LANDSCAPE.ready()){YK_LANDSCAPE.load();return}
   const objects=[];
   function add(kind,x,y,w,h,renderHeight=h){
@@ -172,6 +172,10 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   });
 
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
+  if(npcDraw)for(const resident of npcActors){
+   objects.push({kind:'resident',x:resident.x-.5,foot:resident.y,width:1,height:1,
+    draw:(q,l,t,w,h,p)=>npcDraw(q,resident,{x:l+w/2,y:t+h,z:.56*p.scale})});
+  }
   const map=Array.from({length:H},()=>Array(W).fill('road'));
   g.fillStyle='#171416';g.fillRect(0,0,768,768);
   // Indoor framing: fill more of the available stage while retaining the village projection.
@@ -180,7 +184,7 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
    preset:3,cameraX:trackHorizontal(actorFoot.x),ground:floor(),groundOrigin:{x:ox,y:oy},objects,elevation,afterGround:drawPlatformEdge,edgeColor:'#211a17',interiorBackdrop:'#211a17'
   });
   g.restore();
-  g.save();g.fillStyle='#ffffff';g.font='16px sans-serif';g.fillText('茶店・室内画角テスト／10×8',18,66);g.restore();
+
  }
- return {blocked,render,spawn:()=>[ox+4.5*S,oy+6.5*S],pillars};
+ return {blocked,render,spawn:()=>[ox+4.5*S,oy+6.5*S],exit:(x,y)=>y>=oy+6.5*S&&x>=ox+4*S&&x<=ox+6*S,pillars};
 })();
