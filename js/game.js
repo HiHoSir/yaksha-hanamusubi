@@ -1000,7 +1000,7 @@ function encounterDissolve(){
  try{
   const still=document.createElement("canvas");still.width=source.width;still.height=source.height;
   still.getContext("2d").drawImage(source,0,0);
-  Object.assign(still.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",objectFit:"contain",imageRendering:"pixelated",filter:"grayscale(0) contrast(1)",transition:"filter 320ms ease-out,opacity 600ms ease-in"});
+  Object.assign(still.style,{position:"absolute",left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px",objectFit:getComputedStyle(source).objectFit||"cover",objectPosition:getComputedStyle(source).objectPosition||"center center",imageRendering:"pixelated",filter:"grayscale(0) contrast(1)",transition:"filter 320ms ease-out,opacity 600ms ease-in"});
   cover.appendChild(still);
   // Color drains from the frozen field before the new battle image appears.
   battleLater(()=>{if(still.isConnected)still.style.filter="grayscale(1) contrast(1.24) brightness(.83)"},125);
