@@ -31,6 +31,7 @@ window.YK_WORLD=(()=>{
   if(mapData[y][x]!=='sea'&&mapData[y][x]!=='river')mapData.heights[y][x]=Math.max(mapData.heights[y][x],y<=11?3:2);
  }
  mapData.heightTransitions=[];
+ mapData.projectedHeights=true;
  mapData.paths=roads;mapData.decorations=[];
  // Two modest bridges are scenery at the designated river crossings.
 

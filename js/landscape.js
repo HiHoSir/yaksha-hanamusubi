@@ -294,7 +294,7 @@ window.YK_LANDSCAPE=(()=>{
  function groundLayer(map){
   if(grounds.has(map))return grounds.get(map);
   const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
-  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);drawHeightFaces(c,map);
+  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);if(!map.projectedHeights)drawHeightFaces(c,map);
   for(const o of (map.decorations||[]).filter(o=>o.ground)){
    if(o.kind==='wildflowers'){
     // Same 32px cells as Hozuki village, placed sparsely without a square backdrop.
