@@ -17,7 +17,7 @@ const defs=[
  ['fort',2,1,[[0,0,2,1]]]
 ];
 const images=new Map();
-for(const [name] of defs){const im=new Image();im.src='assets/field-map-objects-v2/'+name+'.png?v=16.0.35';images.set(name,im);}
+for(const [name] of defs){const im=new Image();im.src='assets/field-map-objects-v2/'+name+'.png?v=16.0.36';images.set(name,im);}
 const valid=(x,y,w,h)=>{for(let yy=y-1;yy<y+h+1;yy++)for(let xx=x-1;xx<x+w+1;xx++)if(map[yy]?.[xx]!=='grass')return false;return true;};
 const occupied=new Set();
 const fits=(x,y,w,h)=>{if(!valid(x,y,w,h))return false;for(let yy=y-1;yy<y+h+1;yy++)for(let xx=x-1;xx<x+w+1;xx++)if(occupied.has(xx+','+yy))return false;return true;};
@@ -31,16 +31,8 @@ for(const [name,w,h,solid] of defs){
  const [cx,cy]=found;
  for(let yy=cy;yy<cy+h;yy++)for(let xx=cx;xx<cx+w;xx++)occupied.add(xx+','+yy);
  const im=images.get(name);
- const o={kind:'tiletest-'+name,x:cx*unit,y:cy*unit,width:w*unit,height:h*unit,foot:(cy+h)*unit,tileFootprints:solid,tileImage:im};
+ const o={kind:'tiletest-'+name,x:cx*unit,y:cy*unit,width:w*unit,height:h*unit,foot:(cy+h)*unit,tileFootprints:solid,draw:(c,x,y,w,h)=>{if(im.complete&&im.naturalWidth)c.drawImage(im,x,y,w,h);},tileImage:name==='hole'?im:null};
  map.decorations.push(o);placed.push({name,cell:[cx,cy],size:[w,h],blocked:solid});
-}
-// Split large mountain into depth-ordered 32px map rows.
-const mountain=map.decorations.find(o=>o.kind==='tiletest-mountain-large');
-if(mountain){
- const im=images.get('mountain-large');
- mountain.y+=32;mountain.height=32;mountain.tileSourceY=32;mountain.tileSourceH=32;
- mountain.tileFootprints=[[0,0,4,1]];
- map.decorations.push({kind:'tiletest-mountain-upper',x:mountain.x,y:mountain.y-32,width:128,height:32,foot:mountain.y-31,tileFootprints:[],tileImage:im,tileSourceY:0,tileSourceH:32});
 }
 window.YK_FIELD_TILE_TEST=Object.freeze({placed,enabled:true});
 })();
