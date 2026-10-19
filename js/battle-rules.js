@@ -35,8 +35,8 @@ window.YK_BATTLE_RULES=(()=>{
  function applyLevelUps(state){
   const previous=state.lv;
   while(state.xp>=state.lv*40){
-   state.xp-=state.lv*40;state.lv++;state.maxhp+=12;state.hp=state.maxhp;
-   state.maxmp+=2;state.mp=state.maxmp;state.atk+=3;state.def++;
+   state.xp-=state.lv*40;state.lv++;state.maxhp+=10;state.hp=state.maxhp;
+   state.maxmp+=3;state.mp=state.maxmp;state.atk+=2;state.def+=2;
   }
   return state.lv>previous;
  }
