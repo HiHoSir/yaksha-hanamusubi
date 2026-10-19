@@ -259,31 +259,42 @@ window.YK_LANDSCAPE=(()=>{
  // Draw cliff faces at height boundaries without altering the authored ground tiles.
  function drawHeightFaces(c,map){
   const heights=map.heights;if(!heights)return;
+  const floor=floorLayer(map),roads=roadLayer(map),step=22;
   c.save();c.imageSmoothingEnabled=false;
-  // Cliff frontage projects into the lower tile. The height map never changes passability.
-  for(let y=0;y<heights.length-1;y++)for(let x=0;x<heights[y].length;x++){
-   const high=heights[y][x],low=heights[y+1][x],drop=high-low;
-   if(drop<=0)continue;
-   const px=x*32,py=(y+1)*32,depth=Math.min(30,9+drop*7);
-   const rocky=map[y][x]==='rockMountain'||map[y][x]==='mountain';
-   c.fillStyle=rocky?'#514b48':'#675943';c.fillRect(px,py-depth,32,depth);
-   c.fillStyle=rocky?'#b0a396':'#b2a07a';c.fillRect(px,py-depth,32,4);
-   c.fillStyle='#343537';c.fillRect(px,py-3,32,3);
-   for(let k=0;k<4;k++){
-    const xx=px+((x*7+y*11+k*13)%27)+2;
-    c.fillStyle=k%2?'#817c72':'#383a3b';
-    c.fillRect(xx,py-depth+5+(k%2)*3,2,Math.max(2,depth-10-(k%3)*3));
+  // Raised top surfaces and their visible south-facing cliff walls are drawn
+  // from north to south, so the nearer ledge covers the farther one.
+  for(let y=0;y<heights.length;y++)for(let x=0;x<heights[y].length;x++){
+   const level=heights[y][x];if(level<=0)continue;
+   const px=x*32,py=y*32,dy=py-level*step;
+   const south=y+1<heights.length?heights[y+1][x]:0;
+   const west=x?heights[y][x-1]:0,east=x+1<heights[y].length?heights[y][x+1]:0;
+   if(level>south){
+    const depth=(level-south)*step;
+    // The wall hangs below the elevated surface, connecting to the lower ground.
+    c.fillStyle='#393c3c';c.fillRect(px,dy+32,32,depth);
+    c.fillStyle='#69675e';c.fillRect(px+3,dy+33,26,Math.max(1,depth-4));
+    c.fillStyle='#a59b85';c.fillRect(px,dy+32,32,4);
+    c.fillStyle='#282d31';c.fillRect(px,dy+32+depth-5,32,5);
+    for(let k=0;k<3;k++){
+     const xx=px+5+((x*11+y*7+k*9)%22);
+     c.fillStyle=k===1?'#b2a48a':'#4c4c48';
+     c.fillRect(xx,dy+38+(k%2)*6,2,Math.max(2,depth-14-(k%3)*3));
+    }
    }
-   // Side seams are shaded to emphasize adjacent height steps.
-   if(x===0||heights[y][x-1]<high){c.fillStyle='#302f31';c.fillRect(px,py-depth,3,depth);}
-   if(x===heights[y].length-1||heights[y][x+1]<high){c.fillStyle='#9a9180';c.fillRect(px+29,py-depth,3,depth);}
+   if(level>west){c.fillStyle='#303639';c.fillRect(px,dy+3,4,29);}
+   if(level>east){c.fillStyle='#a69b82';c.fillRect(px+28,dy+3,4,29);}
+   // Copy the real authored 32px top tile, not a flat color approximation.
+   c.drawImage(floor,px,py,32,32,px,dy,32,32);
+   c.drawImage(roads,px,py,32,32,px,dy,32,32);
+   // Thin top rim distinguishes the elevated surface from its cliff face.
+   if(level>south){c.fillStyle='#d0c2a1';c.fillRect(px,dy+29,32,3);}
   }
   c.restore();
  }
  function groundLayer(map){
   if(grounds.has(map))return grounds.get(map);
   const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
-  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);drawHeightFaces(c,map);c.drawImage(shadowLayer(map),0,0);
+  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);drawHeightFaces(c,map);
   for(const o of (map.decorations||[]).filter(o=>o.ground)){
    if(o.kind==='wildflowers'){
     // Same 32px cells as Hozuki village, placed sparsely without a square backdrop.
