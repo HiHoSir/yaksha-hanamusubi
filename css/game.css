@@ -578,3 +578,21 @@ body:has(#title.show) #stage{min-height:0}
   object-fit:contain;object-position:left bottom;
  }
 }
+
+/* 15.57.275: result art uses the same dramatic bust-up scale as attack poses.
+   Keep the head near the top of the visible scene; crop the lower body instead. */
+#battle #battleHeroOverlay.battleHeroResult,
+#battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
+ left:0;bottom:auto;top:clamp(42px,9dvh,76px);
+ width:min(100vw,1100px);height:calc(145dvh - 50px);
+ max-width:none;object-fit:contain;object-position:left top;
+ transform-origin:left top;
+}
+@media(orientation:portrait){
+ #battle #battleHeroOverlay.battleHeroResult,
+ #battle #battleHeroOverlay.battleHeroResult.battleHeroVictory{
+  left:0;top:clamp(52px,10dvh,90px);
+  width:110vw;height:calc(150dvh - 50px);
+  object-fit:contain;object-position:left top;
+ }
+}
