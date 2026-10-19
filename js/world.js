@@ -1,21 +1,22 @@
 // Original journey geography. 80 x 80 walking cells; never copied from ROM map data.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=93;
+ const tileSize=32,size=2560,viewSize=640,revision=94;
  const center=([x,y])=>[x*32+16,y*32+16];
  const definitions={
-  village:[[17,62],'鬼灯の里','里から北へ。西の山裾の道をたどって天妖の社へ。'],
-  shrine:[[19,43],'天妖の社','南の分岐に戻り、東の大橋を渡ると海の入り江へ。'],
-  cove:[[38,42],'海の入り江','砂浜沿いに北へ。東の森の入口が次の目的地。'],
-  forest:[[51,33],'忘れの森','森から北へ進み、川の縦橋を渡って龍神の滝へ。'],
-  waterfall:[[54,22],'龍神の滝','西の高原へ。月見の湯に寄り道し、峠を越えて九尾の祠へ。'],
-  hotspring:[[39,17],'月見の湯','高原の湯宿。南の街道へ戻り、西の峠から北の祠へ。'],
+  village:[[17,62],'鬼灯の里','里を出たら北の草原を探索し、森の西側にある天妖の社を探そう。'],
+  shrine:[[19,43],'天妖の社','東へ広がる草原を進み、海の入り江を探そう。'],
+  cove:[[38,42],'海の入り江','北東の森へ。木々の間に忘れの森の入口がある。'],
+  forest:[[51,33],'忘れの森','森を抜けて北の水音を頼りに龍神の滝へ。'],
+  waterfall:[[54,22],'龍神の滝','北西の高原に月見の湯がある。旅支度を整えよう。'],
+  hotspring:[[39,17],'月見の湯','高原を北へ進み、山の間にある九尾の祠を探そう。'],
   fox:[[42,8],'九尾の祠','山間の旅路の終点。緑の山々に囲まれた祠。']
  };
  const places=Object.fromEntries(Object.entries(definitions).map(([id,[cell,name,note]])=>[id,{point:center(cell),name,note}]));
  const start=center([17,65]),hub=start;
+ // Paths are maintained only immediately outside settlements and entrances.
  const routes=[
-  [[17,65],[18,61]],[[18,47],[19,43]],[[35,43],[38,42]],
-  [[49,35],[51,33]],[[53,24],[54,22]],[[39,19],[39,17]],[[42,11],[42,8]]
+  [[17,65],[17,62]],[[19,46],[19,43]],[[38,45],[38,42]],
+  [[51,36],[51,33]],[[54,25],[54,22]],[[39,20],[39,17]],[[42,11],[42,8]]
  ];
  const roads=routes.map(r=>r.map(center));
  const outline=[[26,4],[43,5],[54,3],[64,7],[65,15],[72,22],[69,31],[74,40],[70,48],[72,57],[67,68],[61,74],[57,74],[57,69],[49,69],[47,76],[36,73],[24,76],[13,71],[9,66],[7,58],[10,49],[6,41],[9,31],[12,25],[9,19],[15,12],[19,7]];
@@ -38,9 +39,14 @@ window.YK_WORLD=(()=>{
   }
  }
  const paint=(kind,cx,cy,rx,ry)=>{for(let y=Math.max(2,cy-ry);y<Math.min(78,cy+ry);y++)for(let x=Math.max(2,cx-rx);x<Math.min(78,cx+rx);x++)if(mapData[y][x]!=='sea'&&((x-cx)/rx)**2+((y-cy)/ry)**2<1)mapData[y][x]=kind;};
+ // First-area exploration: gentle irregular forest edges, not wall-to-wall mountains.
+ const patch=(kind,points,r=2)=>{for(const [x,y] of points)paint(kind,x,y,r,r);};
  // Mountains frame distant valleys; central plains and coasts stay open.
- for(const p of [[10,36,4,11],[68,35,5,15],[18,17,5,10],[61,12,6,8],[29,27,4,6],[48,14,3,5]])paint('mountain',...p);
- for(const p of [[14,48,4,5],[29,48,5,4],[47,48,5,6],[58,39,5,5],[34,31,4,5],[53,29,4,5],[31,11,4,4]])paint('forest',...p);
+ for(const p of [[10,36,4,9],[68,35,4,12],[18,17,4,8],[61,12,5,7],[29,27,3,4],[48,14,3,4]])paint('mountain',...p);
+ for(const p of [[14,48,3,4],[29,48,4,3],[47,48,4,5],[58,39,4,4],[34,31,3,4],[53,29,4,4],[31,11,3,3]])paint('forest',...p);
+ // Short wooded pockets and open meadows provide readable optional detours.
+ patch('forest',[[11,54],[27,54],[33,58],[38,52],[42,47],[23,37],[27,33],[39,26],[46,23],[35,12]],2);
+ patch('grass',[[16,53],[21,52],[26,57],[30,46],[39,45],[45,39],[46,32],[40,28],[35,20],[43,15]],3);
  // River valleys require a crossing, but broad plains are not walled off.
  for(let x=25;x<=64;x++)if(mapData[37][x]!=='sea')mapData[37][x]='river';
  for(let y=21;y<=37;y++)if(mapData[y][60]!=='sea')mapData[y][60]='river';
