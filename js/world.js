@@ -24,7 +24,7 @@ window.YK_WORLD=(()=>{
  const mapData=window.YK_FIELD_TERRAIN.tiles.map(row=>row.slice());
  // Height metadata is independent of the player's authored terrain.
  // Terrain type does not imply elevation: only explicitly authored height zones rise.
- mapData.heights=mapData.map(row=>row.map(()=>0));
+ mapData.heights=window.YK_FIELD_TERRAIN.heights?.map(row=>row.slice())||mapData.map(row=>row.map(()=>0));
  // Ryujin Falls: a stepped escarpment behind the waterfall, with a higher source.
  for(let y=10;y<=13;y++)for(let x=64;x<=68;x++){
   if(mapData[y][x]!=='sea'&&mapData[y][x]!=='river')mapData.heights[y][x]=Math.max(mapData.heights[y][x],y<=11?3:2);
