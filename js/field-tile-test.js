@@ -13,11 +13,11 @@ const defs=[
  ['cave-small',1,1,[[0,0,1,1]]],
  ['cave-large',2,1,[[0,0,2,1]]],
  ['hole',1,1,[[0,0,1,1]]],
- ['pagoda',1,2,[[0,0,1,2]]],
+ ['pagoda',1,2,[[0,1,1,1]]],
  ['fort',2,1,[[0,0,2,1]]]
 ];
 const images=new Map();
-for(const [name] of defs){const im=new Image();im.src='assets/field-map-objects-v2/'+name+'.png?v=16.0.37';images.set(name,im);}
+for(const [name] of defs){const im=new Image();im.src='assets/field-map-objects-v2/'+name+'.png?v=16.0.39';images.set(name,im);}
 const valid=(x,y,w,h)=>{for(let yy=y-1;yy<y+h+1;yy++)for(let xx=x-1;xx<x+w+1;xx++)if(map[yy]?.[xx]!=='grass')return false;return true;};
 const occupied=new Set();
 const fits=(x,y,w,h)=>{if(!valid(x,y,w,h))return false;for(let yy=y-1;yy<y+h+1;yy++)for(let xx=x-1;xx<x+w+1;xx++)if(occupied.has(xx+','+yy))return false;return true;};
