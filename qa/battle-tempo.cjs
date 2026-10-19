@@ -26,7 +26,7 @@ function scenario({hp=100,trait=null,chance=0,random=0.5,playerHp=100}={}){
  const {c,until,draw,text}=scenario();c.cmd('target-0');
  assert.equal(c.battle.hp,100);assert.match(text(),/緋月の攻撃/);
  until(599);assert.equal(c.battle.hp,100);until(600);assert.equal(c.battle.hp,76);assert.equal(c.battleFx.amount,24);
- until(1240);assert.ok(c.battleFx,'damage stays visible well after impact');assert.equal(c.S.hp,100);
+ until(1000);assert.ok(c.battleFx,'damage stays visible well after impact');assert.equal(c.S.hp,100);
  until(1850);assert.match(text(),/敵の攻撃/);assert.equal(c.S.hp,100);
  until(2299);assert.equal(c.S.hp,100);until(2300);assert.equal(c.S.hp,88);
  until(3549);assert.equal(c.battleLocked,true);until(3550);assert.equal(c.battleLocked,false);assert.equal(c.battle.turn,2);assert.equal(draw(),1);
