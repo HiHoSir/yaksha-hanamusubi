@@ -263,6 +263,9 @@ const ENEMY_ART={};
 [...new Set(Object.values(YK_DATA.enemyProfiles||{}).map(p=>p.art).filter(Boolean))].forEach(n=>{
  const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/standard/${n}.png`;ENEMY_ART[n]=im;
 });
+const REDESIGNED_ENEMY_PATHS={"野の小鬼":"001-field-oni/oni-intact-512.png","化け狸":"002-tanuki/tanuki-intact-512.png","鬼火":"003-onibi/onibi-intact-512.png","磯妖":"004-isoy/isoy-intact-512.png","泡くらげ":"005-awakurage/awakurage-intact-512.png","木霊":"006-kodama/kodama-intact-512.png","迷い蜘蛛":"007-mayoi-gumo/mayoi-gumo-intact-512.png","水蛇":"008-mizuhebi/mizuhebi-intact-512.png","滝童":"009-takiwarashi/takiwarashi-intact-512.png","妖狐":"010-youko/youko-intact-512.png"};
+const REDESIGNED_ENEMY_ART={};
+for(const [name,path] of Object.entries(REDESIGNED_ENEMY_PATHS)){const im=new Image();im.onload=assetLoaded;im.onerror=()=>{im.datasetFailed="1"};im.datasetSrc=`assets/enemies/redesign-v1/${path}?v=15.57.285`;REDESIGNED_ENEMY_ART[name]=im;}
 const KAGEKYUBI_ART=new Image();KAGEKYUBI_ART.onload=assetLoaded;KAGEKYUBI_ART.onerror=()=>{KAGEKYUBI_ART.datasetFailed="1"};KAGEKYUBI_ART.datasetSrc="assets/enemies/redesign-v1/011-kagekyubi/kagekyubi-intact-512.png?v=15.57.283";
 const ENEMY_ATLAS=new Image();ENEMY_ATLAS.onload=assetLoaded;ENEMY_ATLAS.datasetSrc="assets/enemies/enemy-standard-atlas-128.png?v=15.55.47";
 const ENEMY_ATLAS_CELL=128,ENEMY_ATLAS_COLS=4;
@@ -295,6 +298,7 @@ function ensureBattleAssets(){
  for(const im of Object.values(ENEMY_ART))ensureImage(im);
  ensureImage(ENEMY_ATLAS);
  ensureImage(KAGEKYUBI_ART);
+ for(const im of Object.values(REDESIGNED_ENEMY_ART))ensureImage(im);
  ensureImage(VARIANT_ATLAS);
  // Worn imagery retired: never request the damaged atlas.
  for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
@@ -319,8 +323,9 @@ function enemyArt(c,x,y,debugSmoothing=null){
  const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.intact:null;
  const hd=HD_RARE_ART[battle?.rareId]?.intact;
  const bossArt=battle?.boss?KAGEKYUBI_ART:null;
- const highResReady=(!!bossArt&&layerReady(bossArt))||(!!hd&&layerReady(hd));
- const im=highResReady?(bossArt&&layerReady(bossArt)?bossArt:hd):(battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback)));if(!layerReady(im))return;
+ const normalArt=!battle?.rareId&&!battle?.boss?REDESIGNED_ENEMY_ART[name]:null;
+ const highResReady=(!!normalArt&&layerReady(normalArt))||(!!bossArt&&layerReady(bossArt))||(!!hd&&layerReady(hd));
+ const im=highResReady?(normalArt&&layerReady(normalArt)?normalArt:(bossArt&&layerReady(bossArt)?bossArt:hd)):(battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback)));if(!layerReady(im))return;
  const bakedAtlas=!highResReady&&(wornVariantReady||variantReady||atlasReady);
  const cell=bakedAtlas?128:null;
  const scale=bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);

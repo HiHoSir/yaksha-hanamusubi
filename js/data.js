@@ -18,18 +18,18 @@ fox:{name:"九尾の祠",ground:"#665f4f",path:"#9e8965",water:"#526f78",encount
 };
 const enemies={
  field:[["野の小鬼",24,7,8,8],["化け狸",30,8,10,9]],
- shrine:[["灯火狐",40,10,15,12]],
- cove:[["磯妖",48,12,20,13],["泡くらげ",38,10,17,11]],
- forest:[["木霊",62,14,27,15],["迷い蜘蛛",55,15,29,16]],
- waterfall:[["水蛇",78,18,38,20],["滝童",68,16,35,18]],
- fox:[["妖狐",92,20,48,25]]
+ shrine:[["鬼火",38,10,15,12]],
+ cove:[["磯妖",46,12,20,13],["泡くらげ",36,10,17,11]],
+ forest:[["木霊",56,13,27,15],["迷い蜘蛛",52,14,29,16]],
+ waterfall:[["水蛇",72,17,38,20],["滝童",65,16,35,18]],
+ fox:[["妖狐",98,20,48,25]]
 };
 // Physical defense by normal enemy name; boss tuning is deliberately excluded.
-const enemyDefense={"野の小鬼":1,"化け狸":2,"灯火狐":3,"磯妖":5,"泡くらげ":2,"木霊":6,"迷い蜘蛛":3,"水蛇":7,"滝童":4,"妖狐":6};
+const enemyDefense={"野の小鬼":1,"化け狸":2,"鬼火":3,"磯妖":5,"泡くらげ":2,"木霊":6,"迷い蜘蛛":3,"水蛇":7,"滝童":4,"妖狐":6};
 const enemyProfiles={
  "野の小鬼":{atlas:0,fallback:"redoni",style:"bruiser",scale:1.04,attack:"角突進",fx:"impact",variance:3,yOffset:14,shadowScale:.82,shadowYOffset:10},
- "化け狸":{atlas:1,fallback:"crowtengu",style:"trickster",scale:.94,attack:"木の葉ばらまき",fx:"petals",variance:5},
- "灯火狐":{atlas:2,fallback:"ninefox",style:"caster",scale:.96,attack:"狐火",fx:"petals",variance:4},
+ "化け狸":{atlas:1,fallback:"crowtengu",style:"trickster",scale:.94,attack:"木の葉隠れ",fx:"petals",variance:5},
+ "鬼火":{atlas:2,fallback:"ninefox",style:"caster",scale:.96,attack:"火の粉",fx:"petals",variance:4},
  "磯妖":{atlas:3,fallback:"umibozu",style:"bruiser",scale:1.02,attack:"潮打ち",fx:"impact",variance:4},
  "泡くらげ":{atlas:4,fallback:"umibozu",style:"floater",scale:.90,attack:"泡まとい",fx:"petals",variance:5},
  "木霊":{atlas:5,fallback:"yokai_flower",style:"caster",scale:.94,attack:"木の葉散らし",fx:"petals",variance:4},
