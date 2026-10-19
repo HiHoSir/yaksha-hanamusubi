@@ -890,24 +890,7 @@ function map(frameTime=performance.now()){
   const {x,y}=YK_CAMERA.position(S,fieldMotion,frameTime);
   g.save();g.translate(0,32);g.scale(1.2,1.2);
   const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
-   elevation:(wx,wy)=>{const tx=Math.floor(wx/32),ty=Math.floor(wy/32);return (YK_WORLD.mapData.heights?.[ty]?.[tx]||0)*24;},
-   afterGround:(ctx,cam)=>{
-    const heights=YK_WORLD.mapData.heights;if(!heights)return;
-    // Project cliff walls in screen space, like the village's raised terraces.
-    const project=YK_LANDSCAPE.project;
-    for(let y=0;y<heights.length-1;y++)for(let x=0;x<heights[y].length;x++){
-     const drop=heights[y][x]-heights[y+1][x];if(drop<=0)continue;
-     const wx=x*32,wy=(y+1)*32;
-     const a=project(wx,wy,cam,1.4),b=project(wx+32,wy,cam,1.4);
-     if(!a||!b||a.y<120||a.y>550||b.x<0||a.x>640)continue;
-     const lift=heights[y][x]*24*a.scale,low=heights[y+1][x]*24*a.scale;
-     const topY=a.y-lift,bottomY=a.y-low;
-     if(bottomY<=topY)continue;
-     ctx.fillStyle='#454543';ctx.fillRect(a.x,topY,Math.max(1,b.x-a.x),bottomY-topY);
-     ctx.fillStyle='#958a76';ctx.fillRect(a.x,topY,Math.max(1,b.x-a.x),Math.max(2,3*a.scale));
-     ctx.fillStyle='#282f32';ctx.fillRect(a.x,bottomY-3,Math.max(1,b.x-a.x),3);
-    }
-   }
+   // Height tiers are retained in the map editor but not used for field rendering.
   });
   g.restore();
   if(!ready){g.fillStyle='#102635';g.fillRect(0,0,768,768);}

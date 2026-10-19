@@ -291,10 +291,31 @@ window.YK_LANDSCAPE=(()=>{
   }
   c.restore();
  }
+ // Subtle shoreline relief: the land edge is raised visually above a shared sea/river level.
+ // Painted in map coordinates so perspective sampling, collision and water alignment stay unchanged.
+ function drawShoreRelief(c,map){
+  c.save();c.imageSmoothingEnabled=false;
+  for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
+   if(water(map[y][x]))continue;
+   const px=x*32,py=y*32;
+   const north=water(map[y-1]?.[x]),south=water(map[y+1]?.[x]);
+   const west=water(map[y]?.[x-1]),east=water(map[y]?.[x+1]);
+   // The north-facing edge is darker; the south-facing bank catches more light.
+   if(south){
+    c.fillStyle='rgba(45,68,52,.55)';c.fillRect(px,py+27,32,4);
+    c.fillStyle='rgba(185,162,109,.85)';c.fillRect(px,py+28,32,2);
+    c.fillStyle='rgba(19,74,103,.40)';c.fillRect(px,py+32,32,3);
+   }
+   if(north){c.fillStyle='rgba(27,78,92,.42)';c.fillRect(px,py,32,3);c.fillStyle='rgba(202,191,139,.65)';c.fillRect(px,py+3,32,2);}
+   if(east){c.fillStyle='rgba(51,80,59,.42)';c.fillRect(px+28,py,4,32);c.fillStyle='rgba(196,180,125,.7)';c.fillRect(px+29,py,2,32);}
+   if(west){c.fillStyle='rgba(37,77,77,.38)';c.fillRect(px,py,3,32);c.fillStyle='rgba(205,187,133,.65)';c.fillRect(px+3,py,2,32);}
+  }
+  c.restore();
+ }
  function groundLayer(map){
   if(grounds.has(map))return grounds.get(map);
   const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
-  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);if(!map.projectedHeights)drawHeightFaces(c,map);
+  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);if(map.shoreRelief)drawShoreRelief(c,map);else if(!map.projectedHeights)drawHeightFaces(c,map);
   for(const o of (map.decorations||[]).filter(o=>o.ground)){
    if(o.kind==='wildflowers'){
     // Same 32px cells as Hozuki village, placed sparsely without a square backdrop.

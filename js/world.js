@@ -27,6 +27,7 @@ window.YK_WORLD=(()=>{
  mapData.heights=window.YK_FIELD_TERRAIN.heights?.map(row=>row.slice())||mapData.map(row=>row.map(()=>0));
  mapData.heightTransitions=[];
  mapData.projectedHeights=true;
+ mapData.shoreRelief=true; // Visual shoreline bank only; authored height tiers are dormant.
  mapData.paths=roads;mapData.decorations=[];
  // Two modest bridges are scenery at the designated river crossings.
 
