@@ -240,5 +240,65 @@
       64,
       32
     ]
+  },
+  {
+    "name": "castle",
+    "file": "castle.png",
+    "ground_cells": [
+      2,
+      2
+    ],
+    "render_px": [
+      64,
+      64
+    ],
+    "anchor": "bottom-center",
+    "collision_policy": "Refer to js/landscape.js groundFootprint or footprintSpecs; do not infer from image canvas.",
+    "visual_only": false
+  },
+  {
+    "name": "sacred-tree",
+    "file": "sacred-tree.png",
+    "ground_cells": [
+      2,
+      2
+    ],
+    "render_px": [
+      64,
+      64
+    ],
+    "anchor": "bottom-center",
+    "collision_policy": "Refer to js/landscape.js groundFootprint or footprintSpecs; do not infer from image canvas.",
+    "visual_only": false
+  },
+  {
+    "name": "shrine",
+    "file": "shrine.png",
+    "ground_cells": [
+      2,
+      2
+    ],
+    "render_px": [
+      64,
+      64
+    ],
+    "anchor": "bottom-center",
+    "collision_policy": "Refer to js/landscape.js groundFootprint or footprintSpecs; do not infer from image canvas.",
+    "visual_only": false
+  },
+  {
+    "name": "stone-monument",
+    "file": "stone-monument.png",
+    "ground_cells": [
+      1,
+      1
+    ],
+    "render_px": [
+      32,
+      32
+    ],
+    "anchor": "bottom-center",
+    "collision_policy": "Refer to js/landscape.js groundFootprint or footprintSpecs; do not infer from image canvas.",
+    "visual_only": false
   }
 ]
