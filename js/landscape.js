@@ -1,13 +1,13 @@
 // Original terrain art. Display sizes are independent of the 32px movement grid.
 window.YK_LANDSCAPE=(()=>{
- const specs={bridgeNS:[48,96],castle:[112,112],sacredTree:[64,64],stoneMonument:[32,32],waterfall:[80,96],horizon:[640,240],grass:[256,256],greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[96,86],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
+ const specs={newTrees:[32,32],newMountainSmall:[32,32],newMountainLarge:[128,64],bridgeNS:[48,96],castle:[112,112],sacredTree:[64,64],stoneMonument:[32,32],waterfall:[80,96],horizon:[640,240],grass:[256,256],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[96,86],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
  const placeKeys=['village','town','hermit','jizo','cave','torii'];
  const oldKeys=['water','snow','barren','sand'];
  const keys=Object.keys(specs),water=t=>t==='sea'||t==='river';let started=false;
  function ready(){return keys.every(k=>decoded[k]&&art[k]?.complete&&art[k].naturalWidth===specs[k][0]&&art[k].naturalHeight===specs[k][1]&&!errors[k]);}
  function load(change=()=>{}){
   if(started)return;started=true;
-  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=k==='stoneMonument'?'assets/field-map-objects-v3/stone-monument.png':k==='sacredTree'?'assets/field-map-objects-v3/sacred-tree.png':k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
+  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=k==='newTrees'?'assets/field-map-objects-v3/trees.png':k==='newMountainSmall'?'assets/field-map-objects-v3/mountain-small.png':k==='newMountainLarge'?'assets/field-map-objects-v3/mountain-large.png':k==='stoneMonument'?'assets/field-map-objects-v3/stone-monument.png':k==='sacredTree'?'assets/field-map-objects-v3/sacred-tree.png':k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
  }
  function fixture(){
   const m=Array.from({length:17},()=>Array(20).fill('grass'));
@@ -183,11 +183,19 @@ window.YK_LANDSCAPE=(()=>{
  const sceneObjects=new WeakMap();
  function objects(map){
   if(sceneObjects.has(map))return sceneObjects.get(map);
-  const a=window.YK_AUTOTILE,trees=a.forestObjects(map).map(t=>({...t,kind:'forest'}));
-  const mountains=[];
-  for(const [terrain,kind] of [['mountain','greenMountain'],['rockMountain','rockMountain'],['snowMountain','snowMountain']]){
-   const cells=map.map(row=>row.map(t=>t===terrain?'forest':'grass'));
-   mountains.push(...a.forestObjects(cells).map(t=>({...t,kind,x:t.x-8,y:t.foot-88,width:96,height:88})));
+  // Approved field objects replace legacy procedural crowns and mountain sprites.
+  // Grouping is visual only: the authored terrain/collision grid is immutable.
+  const trees=[],mountains=[],covered=new Set(),key=(x,y)=>y*map[0].length+x;
+  for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
+   const t=map[y][x];
+   if(t==='forest')trees.push({kind:'newTrees',x:x*32,y:y*32,width:32,height:32,foot:(y+1)*32});
+   if(!['mountain','rockMountain','snowMountain'].includes(t)||covered.has(key(x,y)))continue;
+   const large=t==='mountain'&&x+3<map[y].length&&y+1<map.length&&
+    [0,1].every(dy=>[0,1,2,3].every(dx=>map[y+dy]?.[x+dx]==='mountain'&&!covered.has(key(x+dx,y+dy))));
+   if(large){
+    mountains.push({kind:'newMountainLarge',x:x*32,y:y*32,width:128,height:64,foot:(y+2)*32});
+    for(let dy=0;dy<2;dy++)for(let dx=0;dx<4;dx++)covered.add(key(x+dx,y+dy));
+   }else mountains.push({kind:'newMountainSmall',x:x*32,y:y*32,width:32,height:32,foot:(y+1)*32});
   }
   const result=[...trees,...mountains,...(map.decorations||[]).filter(o=>!o.ground)].sort((a,b)=>a.foot-b.foot||a.x-b.x);sceneObjects.set(map,result);return result;
  }
