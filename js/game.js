@@ -156,7 +156,7 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 }
 // The withheld stardust artwork is intentionally not loaded in public builds.
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
-let hizukiArt=["legacy","pixel"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
+let hizukiArt=["legacy","pixel","sd"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
 const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=p==="idle"?"assets/characters/hizuki/battle-v2/hizuki_battle_idle_approved.png?v=15.57.215":`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 // User-approved original HD attack triptych; keep full-resolution RGBA originals.
@@ -211,6 +211,11 @@ const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
 HIZUKI_PIXEL.datasetSrc="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.116";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
+// Optional one-cell SD art for the world field only. Original village/interior art stays intact.
+const HIZUKI_FIELD_SD=new Image();
+HIZUKI_FIELD_SD.onload=assetLoaded;
+HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v1/walk-atlas-32.png?v=16.0.40";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -751,6 +756,18 @@ function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  z*=characterScale();
  if(hizukiArt==="pixel")ensureImage(HIZUKI_PIXEL);
+ if(hizukiArt==="sd"&&S.area==="field")ensureImage(HIZUKI_FIELD_SD);
+ if(outfit==="normal"&&hizukiArt==="sd"&&S.area==="field"&&layerReady(HIZUKI_FIELD_SD)){
+  const row=HIZUKI_4DIR_ROW[dir]??0;
+  const motion=Math.max(0,Math.min(2,Number(frame)||0));
+  // Atlas columns: neutral, raised foot, opposite foot (side uses neutral/raised).
+  const col=motion===1?0:motion===0?1:(row>=2?1:2);
+  const scale=z/.56,foot=y+9*z;
+  c.save();c.imageSmoothingEnabled=false;
+  shadow(c,x,foot,20*z,6*z,.28);
+  c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,x-16*scale,foot-31*scale,32*scale,32*scale);
+  c.restore();return;
+ }
   const pixelArt=hizukiArt==="pixel"&&layerReady(HIZUKI_PIXEL);
  const walkArt=pixelArt?HIZUKI_PIXEL:HIZUKI_4DIR;
  if(outfit==="normal"&&hizukiArt!=="legacy"&&layerReady(walkArt)){
