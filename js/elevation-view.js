@@ -90,6 +90,31 @@ window.YK_ELEVATION_VIEW=(()=>{
      if(p.every(Boolean))triangle(c,base,uv,p);
     }});
    }
+   // Outline only actual cliff lips and land/water boundaries, never tile seams.
+   // Geometry comes from the same retained top polygon as the cliff walls.
+   const isWater=t=>t==='sea'||t==='river';
+   for(let i=0;i<shape.polygon.length;i++){
+    const a=shape.polygon[i],b=shape.polygon[(i+1)%shape.polygon.length];
+    const [ax,ay]=a,[bx,by]=b;
+    const side=ax===bx&&ax===0?'w':ax===bx&&ax===32?'e':ay===by&&ay===0?'n':ay===by&&ay===32?'s':null;
+    const cut=side?shape.cuts.find(q=>q.ends.some(e=>e[0]===ax&&e[1]===ay)):shape.cuts.find(q=>q.ends[0][0]===ax&&q.ends[0][1]===ay&&q.ends[1][0]===bx&&q.ends[1][1]===by);
+    const [dx,dy]=side?E.dirs[side]:[0,0],neighbor=m[ty+dy]?.[tx+dx];
+    const h0=E.level(m,tx,ty,ax/32,ay/32),h1=E.level(m,tx,ty,bx/32,by/32);
+    const n0=side?E.level(m,tx+dx,ty+dy,ax/32-dx,ay/32-dy):cut?.lower;
+    const n1=side?E.level(m,tx+dx,ty+dy,bx/32-dx,by/32-dy):cut?.lower;
+    const cliff=h0>(n0??h0)+.001||h1>(n1??h1)+.001;
+    const shore=!!side&&!isWater(kind)&&isWater(neighbor)&&!cliff;
+    if(!cliff&&!shore)continue;
+    const depth=ty*32+Math.max(ay,by);
+    items.push({depth,order:1.5,draw:()=>{
+     const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
+     if(!p0||!p1)return;
+     c.save();c.lineCap='butt';c.lineJoin='bevel';
+     c.strokeStyle=shore?'rgba(13,35,43,.78)':'rgba(19,22,18,.84)';
+     c.lineWidth=Math.max(1,Math.min(2.4,(p0.scale+p1.scale)*.7));
+     c.beginPath();c.moveTo(p0.x,p0.y);c.lineTo(p1.x,p1.y);c.stroke();c.restore();
+    }});
+   }
    // Generate axis-aligned and diagonal walls from the SAME top polygon.
    for(let i=0;i<shape.polygon.length;i++){
     const ends=[shape.polygon[i],shape.polygon[(i+1)%shape.polygon.length]],[[ax,ay],[bx,by]]=ends;
