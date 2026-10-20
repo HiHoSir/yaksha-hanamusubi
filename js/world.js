@@ -33,32 +33,30 @@ window.YK_WORLD=(()=>{
  mapData.fieldObjectCollisionDeferred=false;
  // Two modest bridges are scenery at the designated river crossings.
 
- const object=(kind,cx,foot,width,height,walkThrough=false)=>{
-  // Visual pixels are independent of the movement grid.
+ // Authored field collision cells. Sprite bounds NEVER define collision.
+ const object=(kind,cx,foot,width,height,occupiedTiles=[])=>{
   const x=cx-width/2,y=foot-height;
-  const tileX=Math.floor(cx/32),tileY=Math.floor((foot-1)/32);
-  const occupiedTiles=walkThrough||kind==='newTorii'?[]:[[tileX,tileY]];
-  mapData.decorations.push({kind,x,y,width,height,foot,walkThrough,occupiedTiles});
+  mapData.decorations.push({kind,x,y,width,height,foot,walkThrough:occupiedTiles.length===0,occupiedTiles});
  };
  // Entrance markers are 24px in front of the solid object's feet.
  for(const [id,p] of Object.entries(places)){
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
   // Preserve the author's tiles around story entrances.
-  if(id==='village')object('newVillage',x,y-32,64,32);
-  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,occupiedTiles:[[tx,ty]]});object('lantern',x-64,y-32,24,40,true);object('lantern',x+64,y-32,24,40,true);}
-  if(id==='cove')object('newFort',x,y-32,64,32);
-  if(id==='forest')object('newTorii',x,y-24,32,32);
-  if(id==='waterfall')object('waterfall',x,y-24,80,96);
-  if(id==='hotspring')object('hermit',x,y-24,72,72);
+  if(id==='village')object('newVillage',x,y-32,64,32,[[tx,ty-1]]);
+  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,occupiedTiles:[[tx,ty]]});object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
+  if(id==='cove')object('newFort',x,y-32,64,32,[[tx,ty-1]]);
+  if(id==='forest')object('newTorii',x,y-24,32,32,[]);
+  if(id==='waterfall')object('waterfall',x,y-24,80,96,[[tx,ty-1]]);
+  if(id==='hotspring')object('hermit',x,y-24,72,72,[[tx,ty-1]]);
  }
  // Optional landmarks are placed in reachable clearings, independent of old roads.
  mapData.decorations.push({kind:'castle',x:31*32,y:47*32,width:64,height:64,foot:49*32,occupiedTiles:[[31,48],[32,48]]});
  // Sacred tree: 2x2 visible tiles, bottom row solid, away from the forest torii entrance.
  mapData.decorations.push({kind:'sacredTree',x:57*32,y:34*32,width:64,height:64,foot:36*32,occupiedTiles:[[57,35],[58,35]]});
  mapData.decorations.push({kind:'stoneMonument',x:56*32,y:38*32,width:32,height:32,foot:39*32,occupiedTiles:[[56,38]]});
- object('newCaveLarge',center([67,39])[0],center([67,39])[1]-32,64,32);
+ object('newCaveLarge',center([67,39])[0],center([67,39])[1]-32,64,32,[[67,38]]);
  const guides=[[30,61,'南の地蔵','北の草原を進むと天妖の社があるぞ。'],[30,44,'森の地蔵','東の水辺には橋がある。入り江を探すのじゃ。'],[50,37,'川辺の地蔵','川を越えた先には忘れの森がある。'],[42,23,'湖畔の地蔵','月見の湯は西、九尾の祠は北じゃ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
- for(const g of guides)object('jizo',g.x,g.y,24,40,true);
+ for(const g of guides)object('jizo',g.x,g.y,24,40);
  function guideRoute(from,target){
   const nodes=new Map(),key=(x,y)=>x+','+y;
   for(const road of roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],dx=Math.sign(bx-ax)*32,dy=Math.sign(by-ay)*32,n=(Math.abs(bx-ax)+Math.abs(by-ay))/32;for(let j=0;j<=n;j++)nodes.set(key(ax+j*dx,ay+j*dy),[ax+j*dx,ay+j*dy]);}
@@ -110,6 +108,20 @@ window.YK_WORLD=(()=>{
   });
  };
  mapData.decorations=mapData.decorations.filter(o=>!optionalScenery.has(o.kind)||grounded(o));
+ // Occupancy contract: explicit 32px cells, no duplicates, no invisible blocking
+ // on terrain already impassable. Keep the artist's sprite positions untouched.
+ const occupied=new Map();
+ for(const o of mapData.decorations){
+  if(!Array.isArray(o.occupiedTiles))o.occupiedTiles=[];
+  if(o.walkThrough&&o.occupiedTiles.length)throw Error('walk-through object occupies tiles: '+o.kind);
+  for(const tile of o.occupiedTiles){
+   if(!Array.isArray(tile)||tile.length!==2||!tile.every(Number.isInteger))throw Error('invalid occupied tile: '+o.kind);
+   const [tx,ty]=tile,k=tx+','+ty;
+   if(tx<0||ty<0||tx>=mapData[0].length||ty>=mapData.length)throw Error('out-of-map occupied tile: '+o.kind+' '+k);
+   if(occupied.has(k))throw Error('overlapping occupied tile: '+o.kind+' / '+occupied.get(k)+' '+k);
+   occupied.set(k,o.kind);
+  }
+ }
  // Preserve the exact authored tile layout around decorations.
  // Existing story entrances and save IDs remain unchanged.
  // Small clearings make landmarks visible, with only short maintained paths.
