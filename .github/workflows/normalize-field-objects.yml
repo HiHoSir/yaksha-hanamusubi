@@ -1,0 +1,42 @@
+name: Normalize approved field objects
+on:
+  push:
+    paths:
+      - '.github/workflows/normalize-field-objects.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install Pillow==11.3.0
+      - name: Resize original sprites to approved 2x2 cells
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          for stem in ("castle", "shrine"):
+              p=Path("assets/field-map-objects-v3")/(stem+".png")
+              with Image.open(p) as source:
+                  im=source.convert("RGBA")
+              if im.size!=(64,64):
+                  im.resize((64,64), Image.Resampling.NEAREST).save(p,optimize=True)
+              with Image.open(p) as result:
+                  assert result.size==(64,64) and result.mode=="RGBA"
+          PY
+      - name: Commit normalized original art
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/field-map-objects-v3/castle.png assets/field-map-objects-v3/shrine.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Normalize castle and shrine to approved 64x64"
+            git push
+          fi
