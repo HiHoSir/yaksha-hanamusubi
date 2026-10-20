@@ -35,3 +35,7 @@ description: Preflight, author and deliver 32px game tiles, walkable floor decor
 - `QA-PASSED LOCAL`: local objective tests and required composition previews passed.
 - `INTEGRATED / DEPLOYED`: verified remote binary, renderer usage and deployment as applicable.
 Never claim Safari QA without an actual device run.
+
+
+## Field elevation compatibility
+For field mapchips, cliff surfaces or independent field objects, include `docs/field-elevation-assets.md` in preflight. Record ground material, separate cliff texture, height support, explicit contact/occupied cells and entrance approach. Reuse the shared approximately 45% corner geometry; never derive height/collision from image bounds.

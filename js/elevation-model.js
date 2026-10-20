@@ -9,12 +9,18 @@ window.YK_ELEVATION=(()=>{
  }
  // All geometry is authored in map coordinates, never inferred from a sprite.
  const cornerDefs=[['nw',0,0,-1,0,0,-1],['ne',32,0,1,0,0,-1],['se',32,32,1,0,0,1],['sw',0,32,-1,0,0,1]];
+ const outlines=new WeakMap();
  function outline(m,tx,ty){
+  const cache=outlines.get(m);if(cache&&inside(m,tx,ty))return cache[ty][tx];
+  return buildOutline(m,tx,ty);
+ }
+ function prepare(m){outlines.delete(m);outlines.set(m,m.map((row,y)=>row.map((_,x)=>buildOutline(m,x,y))));}
+ function buildOutline(m,tx,ty){
   const requested=Math.max(0,Math.min(30,m.cornerCut??30)),base=level(m,tx,ty),cuts=[],polygon=[];
   const eligible=cornerDefs.map(([name,cx,cy,dx,dy,ex,ey])=>{
    const a=level(m,tx+dx,ty+dy),b=level(m,tx+ex,ty+ey),d=level(m,tx+dx+ex,ty+dy+ey);
    const ramp=m.ramps?.[ty]?.[tx]||m.ramps?.[ty+dy]?.[tx+dx]||m.ramps?.[ty+ey]?.[tx+ex]||m.ramps?.[ty+dy+ey]?.[tx+dx+ex];
-   return requested>0&&!ramp&&base>a&&a===b&&d<=a;
+   return requested>0&&!m.cornerProtected?.has(tx+','+ty)&&!ramp&&base>a&&a===b&&d<=a;
   });
   for(const [name,cx,cy,dx,dy,ex,ey] of cornerDefs){
    const index=cornerDefs.findIndex(c=>c[0]===name),a=level(m,tx+dx,ty+dy);
@@ -40,7 +46,7 @@ window.YK_ELEVATION=(()=>{
    if(outline(m,cx,cy).cuts.some(c=>removed(c,u,v,clearance)))return false;
   }return true;
  }
- function walkable(m,x,y){return inside(m,x,y)&&!['sea','river'].includes(m[y][x])&&!m.occupiedTiles?.has(x+','+y);}
+ function walkable(m,x,y){return inside(m,x,y)&&['grass','forest','sand','snow','barren','road','bridge'].includes(m[y][x])&&!m.occupiedTiles?.has(x+','+y);}
  // Test BOTH ends of a shared edge: a ramp's side is not a traversable cliff.
  function connected(m,x,y,nx,ny){
   if(!walkable(m,x,y)||!walkable(m,nx,ny)||Math.abs(nx-x)+Math.abs(ny-y)!==1)return false;
@@ -84,6 +90,7 @@ window.YK_ELEVATION=(()=>{
   m.occupiedTiles=new Set(m.objects.flatMap(o=>o.occupiedTiles.map(p=>p.join(','))));
   m.spawn=[7*32+16,15*32+16];return m;
  }
- return {CELL,dirs,inside,level,height,outline,pointWalkable,canMove,walkable,connected,validate,fixture};
+ return {prepare,CELL,dirs,inside,level,height,outline,pointWalkable,canMove,walkable,connected,validate,fixture};
 })();
+
 

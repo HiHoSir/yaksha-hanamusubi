@@ -403,12 +403,7 @@ function stabilizeLoadedState(){
  S.encounterGrace=Math.max(Number(S.encounterGrace)||0,D.areas[area]?.grace||0);
  if(area==="field"){
    if(!fieldCollisionDebugOff&&!YK_WORLD.walkable(S.x,S.y)){
-    const old=[S.x,S.y];let found=null;
-    for(let radius=16;radius<=192&&!found;radius+=16)for(let a=0;a<16;a++){
-     const angle=a*Math.PI/8,x=old[0]+Math.round(Math.cos(angle)*radius),y=old[1]+Math.round(Math.sin(angle)*radius);
-     if(YK_WORLD.walkable(x,y)){found=[x,y];break;}
-    }
-    [S.x,S.y]=found||YK_WORLD.start;
+    [S.x,S.y]=YK_WORLD.safePosition([S.x,S.y]);
    }
  }else if(area==="village"){
    S.x=clamp(Number(S.x)||768,32,1504);S.y=clamp(Number(S.y)||1190,40,1248);
@@ -922,7 +917,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.0.101";
+const GAME_JS_BUILD="16.0.119";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1010,7 +1005,7 @@ function map(frameTime=performance.now()){
   g.save();g.translate(0,32);g.scale(1.2,1.2);
   const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
    oceanOutside:true,
-   // Height tiers are retained in the map editor but not used for field rendering.
+   elevationTerrain:true,
   });
   fieldDebugOverlay(g,{x,y});
   g.restore();
@@ -1407,6 +1402,10 @@ function move(dx,dy,dir){
       ||(!initialNpcBlocked&&npcBlocked(px,py))){crossesBlocked=true;break;}
   }
   if(crossesBlocked){S.frame=1;map();return;}
+ }
+ if(S.area==="field"&&!fieldCollisionDebugOff){
+  const dist=32*(Number($("speedSelect").value)||1),norm=Math.hypot(dx,dy)||1;
+  if(!YK_WORLD.canMove(S.x,S.y,S.x+dx/norm*dist,S.y+dy/norm*dist)){S.frame=1;map();return;}
  }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
@@ -2425,6 +2424,7 @@ if(villageTestWarpBtn){
 }
 
 })();
+
 
 
 

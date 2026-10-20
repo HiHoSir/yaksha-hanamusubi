@@ -35,10 +35,20 @@ window.YK_ELEVATION_VIEW=(()=>{
    }poly=out;
   }return poly;
  }
+ const groundTiles=new WeakMap();
+ function groundTile(surface,tx,ty){
+  if(!groundTiles.has(surface))groundTiles.set(surface,new Map());
+  const cache=groundTiles.get(surface),key=tx+','+ty;if(cache.has(key))return cache.get(key);
+  const tile=document.createElement('canvas');tile.width=tile.height=32;
+  tile.getContext('2d').drawImage(surface,tx*32,ty*32,32,32,0,0,32,32);cache.set(key,tile);return tile;
+ }
  function render(c,m,art,actor,options={}){
-  const rise=options.rise||20,zoom=1.4,camera={x:256,y:options.cameraY||400,preset:0},items=[];
+  const rise=options.rise||20,zoom=1.4,camera=options.camera||{x:256,y:options.cameraY||400,preset:0},items=[];
+  const bounds=[];for(const sy of [120,240,400,700])for(const sx of [-160,800])bounds.push(YK_LANDSCAPE.unproject(sx,sy,camera,zoom));
+  const minX=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.x))/32)-2),maxX=Math.min(m[0].length-1,Math.ceil(Math.max(...bounds.map(p=>p.x))/32)+2);
+  const minY=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.y))/32)-2),maxY=Math.min(m.length-1,Math.ceil(Math.max(...bounds.map(p=>p.y))/32)+2);
   const point=(x,y,h)=>{const p=YK_LANDSCAPE.project(x,y,camera,zoom);return p&&{...p,y:p.y-h*rise*p.scale};};
-  c.save();c.imageSmoothingEnabled=false;c.clearRect(0,0,640,544);c.drawImage(art.horizon,0,0,640,240);
+  c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;c.clearRect(0,0,640,544);c.drawImage(art.horizon,0,0,640,240);
   // Continue the same sea texture beyond the test map, as in the main field.
   const ocean=c.createPattern(art.sea,'repeat');
   for(let sy=136;sy<544;sy+=4){
@@ -46,23 +56,27 @@ window.YK_ELEVATION_VIEW=(()=>{
    c.save();c.beginPath();c.rect(0,sy,640,4);c.clip();c.translate(0,sy);c.scale(640/(b.x-a.x),4/(d.y-a.y));c.translate(-a.x,-a.y);c.fillStyle=ocean;
    c.fillRect(a.x-4,a.y-4,b.x-a.x+8,d.y-a.y+8);c.restore();
   }
+  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
   // Tile tops are sampled in short world-space strips to follow perspective and slopes.
-  for(let ty=0;ty<m.length;ty++)for(let tx=0;tx<m[0].length;tx++){
-   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=road?art.road:im,shape=E.outline(m,tx,ty);
-   for(let v=0;v<32;v+=8){const py=ty*32+v;
-    items.push({depth:py+8,order:0,draw:()=>{
-     const p=[[0,v],[32,v],[32,v+8],[0,v+8]].map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
+  for(let ty=minY;ty<=maxY;ty++)for(let tx=minX;tx<=maxX;tx++){
+   const center=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
+   if(!center||center.y<112||center.y>600||center.x+32*center.scale<0||center.x-32*center.scale>640)continue;
+   const band=options.groundTile?(center.y<280?32:16):8;
+   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty);
+   for(let v=0;v<32;v+=band){const py=ty*32+v;
+    items.push({depth:py+band,order:0,draw:()=>{
+     const p=[[0,v],[32,v],[32,v+band],[0,v+band]].map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
      if(p.every(Boolean)){
       if(shape.cuts.length){
-       const clipped=bandPolygon(shape.polygon,v,v+8).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
+       const clipped=bandPolygon(shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
        if(clipped.length<3||!clipped.every(Boolean))return;
        c.save();c.beginPath();clipped.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.clip();
       }
       const sx=tx*32%texture.width,sy=(ty*32+v)%texture.height;
       if(Math.abs(p[0].y-p[1].y)<1e-6&&Math.abs(p[2].y-p[3].y)<1e-6){
        const left=Math.min(p[0].x,p[3].x),right=Math.max(p[1].x,p[2].x);
-       c.drawImage(texture,sx,sy,32,8,left,p[0].y,right-left+.3,p[3].y-p[0].y+.6);
-      }else quad(c,texture,sx,sy,32,8,p);
+       c.drawImage(texture,sx,sy,32,band,left,p[0].y,right-left+.3,p[3].y-p[0].y+.6);
+      }else quad(c,texture,sx,sy,32,band,p);
       if(shape.cuts.length)c.restore();
      }
     }});
@@ -82,6 +96,10 @@ window.YK_ELEVATION_VIEW=(()=>{
     const side=ax===bx&&ax===0?'w':ax===bx&&ax===32?'e':ay===by&&ay===0?'n':ay===by&&ay===32?'s':null;
     const cut=side?null:shape.cuts.find(c=>c.ends[0][0]===ax&&c.ends[0][1]===ay&&c.ends[1][0]===bx&&c.ends[1][1]===by);
     if(!side&&!cut)continue;
+    // Back-facing cliff walls cannot be seen from the production north-facing camera.
+    if(options.groundTile){const mx=tx*32+(ax+bx)/2,my=ty*32+(ay+by)/2;
+     if((by-ay)*(camera.x-mx)-(bx-ax)*(camera.y+1000-my)<=0)continue;
+    }
     const [dx,dy]=side?E.dirs[side]:[0,0],top=ends.map(([u,v])=>E.level(m,tx,ty,u/32,v/32));
     const bottom=ends.map(([u,v],j)=>Math.min(top[j],cut?cut.lower:E.level(m,tx+dx,ty+dy,u/32-dx,v/32-dy)));
     if(top.every((h,j)=>h-bottom[j]<1e-6))continue;
@@ -95,25 +113,32 @@ window.YK_ELEVATION_VIEW=(()=>{
       for(let b=0;b<bands;b++){
        const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
        const p=[point(...span[0],hi[0]),point(...span[1],hi[1]),point(...span[1],lo[1]),point(...span[0],lo[0])];
-       const face=art[options.cliffMaterial||'rock']||art.rock;
+       const face=art[m.cliffMaterials?.[ty]?.[tx]||options.cliffMaterial||'rock']||art.rock;
        if(p.every(Boolean))quad(c,face,tx%2*32,ty%2*32,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
       }
      }});
     }
    }
   }
-  for(const o of m.objects||[])items.push({depth:o.y,order:2,draw:()=>{const p=point(o.x,o.y,E.height(m,o.x,o.y));if(p)c.drawImage(art[o.kind],p.x-o.width*p.scale/2,p.y-o.height*p.scale,o.width*p.scale,o.height*p.scale);}});
+  for(const o of options.objects||m.objects||[]){
+   const foot=o.foot??o.y,center=o.foot===undefined?o.x:o.x+o.width/2;
+   items.push({depth:foot,order:2,draw:()=>{const p=point(center,foot,o.supportHeight??E.height(m,center,foot));if(!p||p.x+o.width*p.scale/2<0||p.x-o.width*p.scale/2>640)return;
+    c.globalAlpha=Math.min(1,Math.max(0,(p.y-136)/70));
+    if(o.render)o.render(c,p);else c.drawImage(art[o.kind],p.x-o.width*p.scale/2,p.y-o.height*p.scale,o.width*p.scale,o.height*p.scale);c.globalAlpha=1;
+   }});
+  }
   if(actor)items.push({depth:actor.y,order:3,draw:()=>{
    const p=point(actor.x,actor.y,E.height(m,actor.x,actor.y));if(!p)return;
+   if(actor.draw){actor.draw(p.x,p.y,p.scale);return;}
    const row={d:0,u:1,r:2,l:3}[actor.dir||'d'],col=row>=2?Math.min(1,actor.frame||0):actor.frame||0;
    // Approved 32px field atlas, one shared projection/foot anchor.
    c.fillStyle='rgba(0,0,0,.24)';c.beginPath();c.ellipse(p.x,p.y,9*p.scale,3*p.scale,0,0,Math.PI*2);c.fill();
    const bounds=heroBounds(art.hero,row,col),scale=28/bounds.height*p.scale;
    c.drawImage(art.hero,col*32,row*32,32,32,p.x-(bounds.left+bounds.width/2)*scale,p.y-(bounds.bottom+1)*scale,32*scale,32*scale);
   }});
-  items.sort((a,b)=>a.depth-b.depth||a.order-b.order);for(const item of items)item.draw();
+  items.sort((a,b)=>a.depth-b.depth||a.order-b.order);for(const item of items)item.draw();c.restore();
   for(let y=136;y<208;y+=4){const t=(y-136)/72;c.globalAlpha=1-t*t*(3-2*t);c.drawImage(art.horizon,0,y,640,4,0,y,640,4);}c.globalAlpha=1;
-  if(options.grid){for(let ty=0;ty<m.length;ty++)for(let tx=0;tx<m[0].length;tx++){
+  if(options.grid){for(let ty=minY;ty<=maxY;ty++)for(let tx=minX;tx<=maxX;tx++){
    for(const cut of E.outline(m,tx,ty).cuts){
     const blocked=[cut.corner,...cut.ends].map(([u,v])=>point(tx*32+u,ty*32+v,cut.lower));if(!blocked.every(Boolean))continue;
     c.fillStyle='rgba(255,77,77,.65)';c.beginPath();blocked.forEach((v,i)=>i?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));c.closePath();c.fill();
@@ -132,4 +157,5 @@ window.YK_ELEVATION_VIEW=(()=>{
  }
  return {load,render,sources};
 })();
+
 

@@ -7,7 +7,7 @@ description: Build or revise material-independent terrain heights, ramps, cliff 
 ## Read the actual implementation first
 - Read root `AGENTS.md`, `.agents/skills/field-mapchip-art/SKILL.md`, and `.agents/skills/github-artifact-delivery/SKILL.md`.
 - Fetch current `main` before editing. Inspect `js/elevation-model.js`, `js/elevation-view.js`, `js/elevation-lab.js` and `docs/elevation-prototype.md`. Treat this skill as the contract; consult current code for details and version numbers.
-- Open `elevation-lab.html` for a playable comparison. The prototype is not yet the main world's height renderer. Do not claim world-wide integration from a demo or a successful deployment.
+- Open `elevation-lab.html` for a playable comparison. The main field also uses this model and renderer via `js/field-elevation.js` and `YK_LANDSCAPE.drawQuarter({elevationTerrain:true})`. Village/interior elevation remains separate. Verify the production entry point, not just this comparison.
 
 ## Preserve the data contract
 - Keep 1 movement cell = 32 world pixels. Store ground material, integer base height, ramp direction, cliff material and corner cut independently.
@@ -38,6 +38,14 @@ node qa/elevation-render.cjs
 - Inspect straight versus cut corners, all four corner orientations, all material choices, 8/12/24/30px cuts, raised object feet and the automatic ramp round trip.
 - Test entry from both higher and lower ground, exact grid endpoints, retained walkable tops, water/object occupancy, and unchanged entry/return routes. Rendered appearance and collision tests are separate gates.
 - Check the live page: corner selector, material selectors, grid/forbidden overlays, manual movement and automatic round trip. Report iPhone Safari separately; never infer a device pass from desktop Chrome.
-- Before applying to the main field, audit existing height data, every destination approach, ramp placement, saved positions and performance. Until then, state explicitly that this is a prototype.
+- When changing the main field, audit existing height data, every destination approach, ramp placement, saved positions and performance. Run `node qa/field-elevation.cjs` and `node --expose-gc qa/field-elevation-render.cjs`. Keep the visible-ground chunk cache and world texture phase; do not allocate repeated full-world canvases.
 - Bump visible BETA and all index asset cache versions in the same main commit, preserve unrelated concurrent changes, and verify Pages. Use the repository's proven GitHub binary skill if adding images; do not generate artwork to solve a geometry bug.
 - Keep this skill and its `AGENTS.md` entry committed together so another chat can discover the rules without conversation history.
+
+
+## Future mapchips and objects: production handoff
+- Before authoring any field tile or object, read `docs/field-elevation-assets.md` and inspect the current production entry points, not only the lab.
+- Keep ground art flat in map coordinates. Do not paint elevation, camera perspective or a diagonal cut into every material tile. The renderer clips existing ground and constructs textured faces from the shared outline.
+- Supply cliff material separately; preserve repeatability and phase across straight and diagonal faces. Reuse approved terrain textures until dedicated cliff artwork is approved.
+- Author object contact cells and blocking cells separately, with a stable visual foot anchor. Place each foundation on one flat level, away from ramps and removed corners. Tall imagery may overhang that footprint.
+- Add entrances, bridges and new paths to route validation. Never restore access by disabling collision or silently teleporting on each step.

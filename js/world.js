@@ -1,7 +1,7 @@
 // The authored 80x80 reference composition is baked into field-terrain.js.
 // All object contact/collision coordinates are explicit integer movement cells.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=113;
+ const tileSize=32,size=2560,viewSize=640,revision=119;
  const geography=window.YK_FIELD_TERRAIN.referenceComposition;
  const center=([x,y])=>[x*32+16,y*32+16];
  const descriptions={
@@ -26,15 +26,16 @@ window.YK_WORLD=(()=>{
  const guides=[[30,56,'南の地蔵','林の西を通り、天妖の社へ向かうのじゃ。'],[34,46,'川辺の地蔵','東へ川沿いに進むと海の入り江じゃ。'],[56,37,'森の地蔵','北の鳥居が忘れの森の入口じゃ。'],[40,22,'湖畔の地蔵','湖の南を西へ進むと月見の湯じゃ。']].map(([tx,ty,name,tip],id)=>({id,...{x:tx*32+16,y:ty*32+16},name,tip}));
  // Guides stand on the route's walkable cells and never create a new barrier.
  for(const g of guides){const tx=Math.floor(g.x/32),ty=Math.floor(g.y/32);mapData.decorations.push({kind:'jizo',x:tx*32+4,y:ty*32-8,width:24,height:40,foot:(ty+1)*32,contactTiles:[[tx,ty]],occupiedTiles:[],walkThrough:true});}
+ window.YK_FIELD_ELEVATION.prepare(mapData,geography);
  const solid=new Set(mapData.decorations.flatMap(o=>o.occupiedTiles.map(c=>c.join(','))));
  const passable=new Set(['grass','forest','sand','snow','barren','road','bridge']);
- const cellOpen=(x,y)=>x>0&&y>0&&x<79&&y<79&&passable.has(mapData[y]?.[x])&&!solid.has(x+','+y);
+ const cellOpen=(x,y)=>x>0&&y>0&&x<79&&y<79&&passable.has(mapData[y]?.[x])&&!solid.has(x+','+y)&&mapData.travelReachable.has(x+','+y)&&YK_ELEVATION.pointWalkable(mapData,x*32+16,y*32+16);
  // Data-only save repair: keep valid positions, otherwise find the nearest
  // open cell. Do not teleport all existing saves to a story destination.
  function safePosition(point){
   if(!Array.isArray(point)||!point.every(Number.isFinite))return start.slice();
   const tx=Math.floor(point[0]/32),ty=Math.floor(point[1]/32);
-  if([[0,0],[-8,0],[8,0],[0,-8],[0,8]].every(([dx,dy])=>cellOpen(Math.floor((point[0]+dx)/32),Math.floor((point[1]+dy)/32))))return point.slice();
+  if(YK_ELEVATION.pointWalkable(mapData,...point)&&[[0,0],[-8,0],[8,0],[0,-8],[0,8]].every(([dx,dy])=>cellOpen(Math.floor((point[0]+dx)/32),Math.floor((point[1]+dy)/32))))return point.slice();
   for(let r=1;r<80;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)
    if(Math.max(Math.abs(dx),Math.abs(dy))===r&&cellOpen(tx+dx,ty+dy))return center([tx+dx,ty+dy]);
   return start.slice();
@@ -45,13 +46,14 @@ window.YK_WORLD=(()=>{
   if(!nodes.size)return '地図で道を確かめるのじゃ。';
   const nearest=p=>[...nodes.keys()].sort((a,b)=>Math.hypot(nodes.get(a)[0]-p[0],nodes.get(a)[1]-p[1])-Math.hypot(nodes.get(b)[0]-p[0],nodes.get(b)[1]-p[1]))[0];
   const fromKey=nearest(from),toKey=nearest(target),queue=[fromKey],prev=new Map([[fromKey,null]]);
-  for(let i=0;i<queue.length&&!prev.has(toKey);i++){const [x,y]=nodes.get(queue[i]);for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const k=key(x+dx,y+dy);if(nodes.has(k)&&!prev.has(k)){prev.set(k,queue[i]);queue.push(k);}}}
+  for(let i=0;i<queue.length&&!prev.has(toKey);i++){const [x,y]=nodes.get(queue[i]);for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const k=key(x+dx,y+dy);if(nodes.has(k)&&!prev.has(k)&&YK_ELEVATION.canMove(mapData,x,y,x+dx,y+dy)){prev.set(k,queue[i]);queue.push(k);}}}
   if(!prev.has(toKey))return '地図で道と橋の位置を確かめるのじゃ。';
   const path=[];for(let k=toKey;k;k=prev.get(k))path.unshift(nodes.get(k));const turns=[];
   for(let i=1;i<path.length;i++){const [x,y]=path[i],[px,py]=path[i-1],d=x>px?'東':x<px?'西':y>py?'南':'北';if(turns.at(-1)!==d)turns.push(d);}
   return turns.length?'そばの道に出たら、まず'+turns.slice(0,3).join('、次の曲がり角で')+'へ進むのじゃ。':'入口はこの近くじゃ。Aを押すのじゃ。';
  }
- const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
+ const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y)&&YK_ELEVATION.pointWalkable(mapData,x,y);
+ const canMove=(x,y,nx,ny)=>YK_ELEVATION.canMove(mapData,x,y,nx,ny)&&walkable(nx,ny);
  const tileAt=(x,y)=>mapData[Math.floor(y/32)]?.[Math.floor(x/32)]||'sea';
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=36)||null;
  const camera=(x,y)=>({x:x-viewSize/2,y:y-viewSize/2,size:viewSize,zoom:1.4});
@@ -63,7 +65,8 @@ window.YK_WORLD=(()=>{
   const id=Object.keys(legacy).sort((a,b)=>Math.hypot(point[0]-legacy[a][0],point[1]-legacy[a][1])-Math.hypot(point[0]-legacy[b][0],point[1]-legacy[b][1]))[0];
   return places[id].point.slice();
  }
- return {start,hub,places,roads,restStops,guides,guideRoute,worldObjects,mapData,walkable,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition,safePosition};
+ return {start,hub,places,roads,restStops,guides,guideRoute,worldObjects,mapData,walkable,canMove,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition,safePosition};
 })();
+
 
 

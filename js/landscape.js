@@ -119,13 +119,14 @@ window.YK_LANDSCAPE=(()=>{
  function drawFloor(c,map){
   const a=window.YK_AUTOTILE;
   for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
-   c.drawImage(art.grass,x%8*32,y%8*32,32,32,x*32,y*32,32,32);
+   const wx=x+(map.textureOrigin?.x||0),wy=y+(map.textureOrigin?.y||0);
+   c.drawImage(art.grass,wx%8*32,wy%8*32,32,32,x*32,y*32,32,32);
    const t=groundTile(map,x,y),kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
    if(!['water','snow','barren','sand'].includes(kind))continue;
    const same=v=>v===undefined||(kind==='water'?water(v):kind==='snow'?(v==='snow'||v==='snowMountain'):kind==='barren'?(v==='barren'||v==='rockMountain'):kind==='sand'?(v==='sand'||water(v)):v===kind);
-   if(t==='sea')c.drawImage(art.sand,x%2*32,y%2*32,32,32,x*32,y*32,32,32);
+   if(t==='sea')c.drawImage(art.sand,wx%2*32,wy%2*32,32,32,x*32,y*32,32,32);
    const n={n:same(groundTile(map,x,y-1)),e:same(groundTile(map,x+1,y)),s:same(groundTile(map,x,y+1)),w:same(groundTile(map,x-1,y))},diag={nw:same(groundTile(map,x-1,y-1)),ne:same(groundTile(map,x+1,y-1)),sw:same(groundTile(map,x-1,y+1)),se:same(groundTile(map,x+1,y+1))};
-   c.drawImage(maskTile(kind,n,diag,x%2*32,y%2*32),x*32,y*32);
+   c.drawImage(maskTile(kind,n,diag,wx%2*32,wy%2*32),x*32,y*32);
   }
  }
  function pathDistance(x,y,a,b){
@@ -140,13 +141,13 @@ window.YK_LANDSCAPE=(()=>{
   if(roads.has(map))return roads.get(map);
   const canvas=document.createElement('canvas');canvas.width=map[0].length*32;canvas.height=map.length*32;
   const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
-  for(let y=0;y<canvas.height;y+=64)for(let x=0;x<canvas.width;x+=64)c.drawImage(art.road,x,y);
+  for(let y=-((map.textureOrigin?.y||0)%2)*32;y<canvas.height;y+=64)for(let x=-((map.textureOrigin?.x||0)%2)*32;x<canvas.width;x+=64)c.drawImage(art.road,x,y);
   const pixels=c.getImageData(0,0,canvas.width,canvas.height),covered=new Uint8Array(canvas.width*canvas.height);
   for(const path of map.paths||[])for(let j=1;j<path.length;j++){
    const a=path[j-1],b=path[j];
    for(let y=Math.max(0,Math.floor(Math.min(a[1],b[1])-22));y<Math.min(canvas.height,Math.ceil(Math.max(a[1],b[1])+22));y++)
     for(let x=Math.max(0,Math.floor(Math.min(a[0],b[0])-22));x<Math.min(canvas.width,Math.ceil(Math.max(a[0],b[0])+22));x++){
-     const edge=20-((Math.floor(x/4)+Math.floor(y/4)*3)%5===0?1:0);
+     const edge=20-((Math.floor((x+(map.textureOrigin?.x||0)*32)/4)+Math.floor((y+(map.textureOrigin?.y||0)*32)/4)*3)%5===0?1:0);
      if(pathDistance(x+.5,y+.5,a,b)<=edge&&roadAllowed(map,x,y))covered[y*canvas.width+x]=1;
     }
   }
@@ -177,7 +178,10 @@ window.YK_LANDSCAPE=(()=>{
   // The world map's legacy decoration positions are being replaced. Until the
   // new placement pass is verified, do not retain invisible solid footprints
   // from those former positions. Terrain/water/cliffs still block normally.
-  if(!map.fieldObjectCollisionDeferred)for(const o of map.decorations||[]){
+  if(!map.fieldObjectCollisionDeferred&&map.occupiedTiles){
+   for(let ty=Math.floor((y-r)/32);ty<=Math.floor((y+r)/32);ty++)for(let tx=Math.floor((x-r)/32);tx<=Math.floor((x+r)/32);tx++)
+    if(map.occupiedTiles.has(tx+','+ty)&&hit(tx*32,ty*32,32,32))return false;
+  }else if(!map.fieldObjectCollisionDeferred)for(const o of map.decorations||[]){
    for(const f of footprints(o))if(hit(f.x,f.y,f.width,f.height))return false;
   }
   return true;
@@ -385,8 +389,34 @@ window.YK_LANDSCAPE=(()=>{
   if(y<0||y>800)return null;const l=lineAt(y,zoom,camera.preset||0),vx=(x-320)/(camera.horizontalScale||l.xScale),vy=l.offset,a=camera.angle||0,cs=Math.cos(a),sn=Math.sin(a);
   return {x:camera.x+cs*vx-sn*vy,y:camera.y+sn*vx+cs*vy,scale:l.scale};
  }
+ // Build only small visible ground chunks. Avoid several 2560² temporary
+ // canvases on mobile when preparing the elevated world.
+ const elevationChunks=new WeakMap();
+ function elevationTexture(map,tx,ty){
+  if(!elevationChunks.has(map))elevationChunks.set(map,new Map());
+  const cache=elevationChunks.get(map),bx=Math.floor(tx/8)*8,by=Math.floor(ty/8)*8,key=bx+','+by;
+  if(!cache.has(key)){
+   const ox=Math.max(0,bx-1),oy=Math.max(0,by-1),ex=Math.min(map[0].length,bx+9),ey=Math.min(map.length,by+9);
+   const chunk=map.slice(oy,ey).map(r=>r.slice(ox,ex));
+   chunk.textureOrigin={x:ox,y:oy};chunk.projectedHeights=true;chunk.shoreRelief=true;chunk.referencePlacedObjects=true;
+   chunk.bridgeWaterCells=new Set([...map.bridgeWaterCells].map(k=>{const [x,y]=k.split(',').map(Number);return (x-ox)+','+(y-oy);}));
+   chunk.paths=map.paths.map(r=>r.map(([x,y])=>[x-ox*32,y-oy*32]));
+   chunk.decorations=map.decorations.filter(o=>o.x+o.width>=ox*32-32&&o.x<=ex*32+32&&o.foot>=oy*32-32&&o.y<=ey*32+32).map(o=>({...o,x:o.x-ox*32,y:o.y-oy*32,foot:o.foot-oy*32}));
+   const surface=groundLayer(chunk);
+   for(const layers of [floors,roads,shadows]){const temp=layers.get(chunk);if(temp){temp.width=1;temp.height=1;}layers.delete(chunk);}
+   cache.set(key,{surface,ox,oy});
+  }
+  const {surface,ox,oy}=cache.get(key);return {surface,x:(tx-ox)*32,y:(ty-oy)*32};
+ }
  function drawQuarter(c,map,actor,zoom=1.4,settings={}){
   if(!ready())return false;
+  if(settings.elevationTerrain&&map.elevationEnabled){
+   const fieldArt={...art,sea:art.water,river:art.water,rock:art.barren,forest:art.grass,mountain:art.grass,snowMountain:art.snow,rockMountain:art.barren};
+   return !!window.YK_ELEVATION_VIEW.render(c,map,fieldArt,{x:actor.x,y:actor.foot,draw:actor.draw},{
+    camera:{x:settings.cameraX??actor.x,y:actor.foot,preset:settings.preset||0},rise:map.elevationRise||20,
+    groundTile:(tx,ty)=>elevationTexture(map,tx,ty),objects:objects(map)
+   });
+  }
   const camera={x:settings.cameraX??actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0,horizontalScale:settings.horizontalScale||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;if(settings.interiorBackdrop){c.fillStyle=settings.interiorBackdrop;c.fillRect(0,0,640,544);}else c.drawImage(art.horizon,0,0,640,top+80);
   const ocean=settings.oceanOutside?c.createPattern(art.water,'repeat'):null;
@@ -443,6 +473,7 @@ window.YK_LANDSCAPE=(()=>{
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
  return {cameraPresets,perspectiveScale,mode7LikeMatrix,groundLayer,drawQuarter,project,unproject,quarterFixture,footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
 })();
+
 
 
 
