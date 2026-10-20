@@ -156,7 +156,7 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 }
 // The withheld stardust artwork is intentionally not loaded in public builds.
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
-let hizukiArt=["legacy","pixel","sd"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"bluebob";
+let hizukiArt=["legacy","pixel","sd"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"sd";
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
 const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=p==="idle"?"assets/characters/hizuki/battle-v2/hizuki_battle_idle_approved.png?v=15.57.215":`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 // User-approved original HD attack triptych; keep full-resolution RGBA originals.
