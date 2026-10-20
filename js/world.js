@@ -45,6 +45,8 @@ window.YK_WORLD=(()=>{
  }
  // Optional landmarks are placed in reachable clearings, independent of old roads.
  mapData.decorations.push({kind:'castle',x:31*32,y:47*32,width:64,height:64,foot:49*32,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});
+ // Sacred tree: 2x2 visible tiles, bottom row solid, away from the forest torii entrance.
+ mapData.decorations.push({kind:'sacredTree',x:57*32,y:34*32,width:64,height:64,foot:36*32,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});
  object('cave',center([67,39])[0],center([67,39])[1],80,64);
  const guides=[[30,61,'南の地蔵','北の草原を進むと天妖の社があるぞ。'],[30,44,'森の地蔵','東の水辺には橋がある。入り江を探すのじゃ。'],[50,37,'川辺の地蔵','川を越えた先には忘れの森がある。'],[37,19,'湖畔の地蔵','月見の湯は西、九尾の祠は北じゃ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
  for(const g of guides)object('jizo',g.x,g.y,24,40);

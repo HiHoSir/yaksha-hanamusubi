@@ -1,13 +1,13 @@
 // Original terrain art. Display sizes are independent of the 32px movement grid.
 window.YK_LANDSCAPE=(()=>{
- const specs={bridgeNS:[48,96],castle:[112,112],waterfall:[80,96],horizon:[640,240],grass:[256,256],greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[96,86],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
+ const specs={bridgeNS:[48,96],castle:[112,112],sacredTree:[64,64],waterfall:[80,96],horizon:[640,240],grass:[256,256],greenMountain:[96,88],rockMountain:[96,88],snowMountain:[96,88],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[96,86],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
  const placeKeys=['village','town','hermit','jizo','cave','torii'];
  const oldKeys=['water','snow','barren','sand'];
  const keys=Object.keys(specs),water=t=>t==='sea'||t==='river';let started=false;
  function ready(){return keys.every(k=>decoded[k]&&art[k]?.complete&&art[k].naturalWidth===specs[k][0]&&art[k].naturalHeight===specs[k][1]&&!errors[k]);}
  function load(change=()=>{}){
   if(started)return;started=true;
-  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
+  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};im.src=k==='sacredTree'?'assets/field-map-objects-v3/sacred-tree.png':k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';}
  }
  function fixture(){
   const m=Array.from({length:17},()=>Array(20).fill('grass'));
