@@ -389,6 +389,7 @@ window.YK_LANDSCAPE=(()=>{
   if(!ready())return false;
   const camera={x:settings.cameraX??actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0,horizontalScale:settings.horizontalScale||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;if(settings.interiorBackdrop){c.fillStyle=settings.interiorBackdrop;c.fillRect(0,0,640,544);}else c.drawImage(art.horizon,0,0,640,top+80);
+  const ocean=settings.oceanOutside?c.createPattern(art.water,'repeat'):null;
   const corners=[];for(let y=top;y<=544;y+=strip)for(const x of [0,640])corners.push(unproject(x,y,camera,zoom));
   const left=Math.max(gx,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(gx+ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
   const upper=Math.max(gy,Math.floor(Math.min(...corners.map(p=>p.y)))-4),lower=Math.min(gy+ground.height,Math.ceil(Math.max(...corners.map(p=>p.y)))+4);
@@ -396,9 +397,19 @@ window.YK_LANDSCAPE=(()=>{
    const a=lineAt(sy,zoom,camera.preset),b=lineAt(sy+strip,zoom,camera.preset);
    const blend=Math.max(0,Math.min(1,(sy-top)/72));c.globalAlpha=blend*blend*(3-2*blend);
    c.fillStyle=settings.edgeColor||'#25869d';c.fillRect(0,sy,640,strip);
+   // Repeat the existing 64px sea in world coordinates, beyond every map edge.
+   // Only visible strips are drawn: no padded multi-megapixel ground cache.
+   if(ocean){
+    const xs=camera.horizontalScale||a.xScale,ys=strip/(b.offset-a.offset),cs=Math.cos(camera.angle),sn=Math.sin(camera.angle);
+    c.save();c.beginPath();c.rect(0,sy,640,strip);c.clip();
+    c.transform(xs*cs,-ys*sn,xs*sn,ys*cs,320-xs*(cs*camera.x+sn*camera.y),sy-ys*(-sn*camera.x+cs*camera.y+a.offset));
+    const pts=[unproject(0,sy,camera,zoom),unproject(640,sy,camera,zoom),unproject(0,sy+strip,camera,zoom),unproject(640,sy+strip,camera,zoom)];
+    const x0=Math.min(...pts.map(p=>p.x))-4,y0=Math.min(...pts.map(p=>p.y))-4;
+    c.fillStyle=ocean;c.fillRect(x0,y0,Math.max(...pts.map(p=>p.x))-x0+4,Math.max(...pts.map(p=>p.y))-y0+4);c.restore();
+   }
    if(!camera.angle){
     const sourceTop=Math.max(gy,camera.y+a.offset),bottom=Math.min(gy+ground.height,camera.y+b.offset);
-    if(bottom>sourceTop)c.drawImage(ground,left-gx,sourceTop-gy,right-left,bottom-sourceTop,320+(left-camera.x)*(camera.horizontalScale||a.xScale),sy,(right-left)*(camera.horizontalScale||a.xScale),strip+.5);
+    if(right>left&&bottom>sourceTop)c.drawImage(ground,left-gx,sourceTop-gy,right-left,bottom-sourceTop,320+(left-camera.x)*(camera.horizontalScale||a.xScale),sy+(sourceTop-camera.y-a.offset)*strip/(b.offset-a.offset),(right-left)*(camera.horizontalScale||a.xScale),(bottom-sourceTop)*strip/(b.offset-a.offset)+.5);
    }else if(right>left&&lower>upper){
     const cs=Math.cos(camera.angle),sn=Math.sin(camera.angle),ys=strip/(b.offset-a.offset);
     c.save();c.beginPath();c.rect(0,sy,640,strip);c.clip();
@@ -432,5 +443,6 @@ window.YK_LANDSCAPE=(()=>{
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
  return {cameraPresets,perspectiveScale,mode7LikeMatrix,groundLayer,drawQuarter,project,unproject,quarterFixture,footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
 })();
+
 
 

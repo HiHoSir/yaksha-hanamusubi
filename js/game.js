@@ -420,7 +420,7 @@ function stabilizeLoadedState(){
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
    if(collision(S.x,S.y)){
-     const safe={field:((typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.hub)?YK_WORLD.hub:[230,534]),village:[373,690],shrine:[70,430],cove:[70,430],forest:[70,430],waterfall:[70,600],hotspring:[70,430],fox:[70,430]}[area]||[384,500];
+     const safe=YK_DESTINATION_SCENES.layouts[area]?.spawn||{field:((typeof YK_WORLD!=="undefined"&&YK_WORLD&&YK_WORLD.hub)?YK_WORLD.hub:[230,534]),village:[373,690],shrine:[70,430],cove:[70,430],forest:[70,430],waterfall:[70,600],hotspring:[70,430],fox:[70,430]}[area]||[384,500];
      S.x=safe[0];S.y=safe[1];
    }
  }
@@ -428,6 +428,7 @@ function stabilizeLoadedState(){
 }
 function restoreState(v){
  state(v);
+ if(YK_DESTINATION_SCENES.blocked(S.area,S.x,S.y))[S.x,S.y]=YK_DESTINATION_SCENES.layouts[S.area].spawn.slice();
  // Old autosaves may point at a field position while the world module is still loading.
  // Restore data first; defer world-dependent stabilization until it is actually available.
  if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
@@ -1008,6 +1009,7 @@ function map(frameTime=performance.now()){
   const {x,y}=YK_CAMERA.position(S,fieldMotion,frameTime);
   g.save();g.translate(0,32);g.scale(1.2,1.2);
   const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
+   oceanOutside:true,
    // Height tiers are retained in the map editor but not used for field rendering.
   });
   fieldDebugOverlay(g,{x,y});
@@ -1048,8 +1050,10 @@ function map(frameTime=performance.now()){
   worldHint(YK_INTERIOR_BASE.exit(S)?"A：村へ戻る":"入口の土間から A：村へ戻る");return;
  }
  else {
+  const illustrated=YK_DESTINATION_SCENES.draw(g,S.area,assetLoaded);
   const art=S.area==="forest"?B9IMG.forest:null;
-  if(art&&art.complete&&art.naturalWidth)g.drawImage(art,0,0,768,768);
+  if(illustrated){}
+  else if(art&&art.complete&&art.naturalWidth)g.drawImage(art,0,0,768,768);
   else {const im=IMG[S.area]||IMG.field;if(im&&im.complete&&im.naturalWidth)g.drawImage(im,0,0,768,768);else{g.fillStyle="#274738";g.fillRect(0,0,768,768)}}
  }
  if(S.area==="field")drawWorldPins(g,false);
@@ -1789,7 +1793,7 @@ function enterWorldPlace(k){
  const p=YK_WORLD.places[k];if(!p)return;
  // Discovery is geographical; story progression is controlled by event conditions.
  fieldMotion=null;S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
- [S.x,S.y]=k==="village"?YK_SETTLEMENT.spawn.slice():k==="waterfall"?[70,600]:[70,430];
+ [S.x,S.y]=k==="village"?YK_SETTLEMENT.spawn.slice():(YK_DESTINATION_SCENES.layouts[k]?.spawn||[70,430]).slice();
  S.dir=k==="village"?"u":"r";S.frame=1;walkPhase=0;
  S.encounterSteps=0;S.encounterGrace=D.areas[k].grace||9;
  YK_INPUT.stopAll();YK_SAVE.auto(S);message(p.name);hud();
@@ -2421,5 +2425,6 @@ if(villageTestWarpBtn){
 }
 
 })();
+
 
 

@@ -10,8 +10,10 @@ window.YK_COLLISION=(()=>{
   if(x<27||x>741||y<34||y>736)return true;
   if(!ignoreNPC&&env.npcBlocked(x,y))return true;
   if(['teahouse','osumiHome','villageRoom'].includes(area)&&env.interiorBlocked(x,y))return true;
+  if(window.YK_DESTINATION_SCENES?.blocked(area,x,y))return true;
   if(area==='waterfall'&&x>200&&x<565&&y<500)return true;
   return false;
  }
  return {blocked};
 })();
+
