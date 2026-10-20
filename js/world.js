@@ -42,9 +42,9 @@ window.YK_WORLD=(()=>{
  for(const [id,p] of Object.entries(places)){
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
   // Preserve the author's tiles around story entrances.
-  if(id==='village')object('newVillage',x,y-32,64,32,[[tx,ty-1]]);
-  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,occupiedTiles:[[tx,ty]]});object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
-  if(id==='cove')object('newFort',x,y-32,64,32,[[tx,ty-1]]);
+  if(id==='village')object('newVillage',x,y-32,64,32,[]); // Walkable two-cell entrance; transition handled by area logic.
+  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,occupiedTiles:[]});object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
+  // Retired newFort artwork: retain the cove destination and its existing entrance logic.
   if(id==='forest')object('newTorii',x,y-24,32,32,[]);
   if(id==='waterfall')object('waterfall',x,y-24,80,96,[[tx,ty-1]]);
   if(id==='hotspring')object('hermit',x,y-24,72,72,[[tx,ty-1]]);
@@ -54,7 +54,7 @@ window.YK_WORLD=(()=>{
  // Sacred tree: 2x2 visible tiles, bottom row solid, away from the forest torii entrance.
  mapData.decorations.push({kind:'sacredTree',x:57*32,y:34*32,width:64,height:64,foot:36*32,occupiedTiles:[[57,35],[58,35]]});
  mapData.decorations.push({kind:'stoneMonument',x:56*32,y:38*32,width:32,height:32,foot:39*32,occupiedTiles:[[56,38]]});
- object('newCaveLarge',center([67,39])[0],center([67,39])[1]-32,64,32,[[67,38]]);
+ object('newCaveLarge',center([67,39])[0],center([67,39])[1]-32,64,32,[]); // Walkable cave entrance.
  const guides=[[30,61,'南の地蔵','北の草原を進むと天妖の社があるぞ。'],[30,44,'森の地蔵','東の水辺には橋がある。入り江を探すのじゃ。'],[50,37,'川辺の地蔵','川を越えた先には忘れの森がある。'],[42,23,'湖畔の地蔵','月見の湯は西、九尾の祠は北じゃ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
  for(const g of guides)object('jizo',g.x,g.y,24,40);
  function guideRoute(from,target){
