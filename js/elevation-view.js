@@ -112,7 +112,22 @@ window.YK_ELEVATION_VIEW=(()=>{
      c.save();c.lineCap='butt';c.lineJoin='bevel';
      c.strokeStyle=shore?'rgba(13,35,43,.78)':'rgba(19,22,18,.84)';
      c.lineWidth=Math.max(1,Math.min(2.4,(p0.scale+p1.scale)*.7));
-     c.beginPath();c.moveTo(p0.x,p0.y);c.lineTo(p1.x,p1.y);c.stroke();c.restore();
+     // Stable hand-drawn wobble: endpoints stay on the exact terrain seam.
+     // Sample the same world coordinates across adjacent tiles, not per frame.
+     const vx=p1.x-p0.x,vy=p1.y-p0.y,length=Math.hypot(vx,vy);
+     const nx=length?-vy/length:0,ny=length?vx/length:0;
+     const wx=tx*32+ax,wy=ty*32+ay,ex=tx*32+bx,ey=ty*32+by;
+     const wobble=(t)=>{
+      const x=wx+(ex-wx)*t,y=wy+(ey-wy)*t;
+      const seed=Math.sin(x*12.9898+y*78.233)*43758.5453;
+      return (seed-Math.floor(seed)-.5)*1.6;
+     };
+     c.beginPath();c.moveTo(p0.x,p0.y);
+     for(let step=1;step<4;step++){
+      const t=step/4,offset=wobble(t)*Math.sin(Math.PI*t);
+      c.lineTo(p0.x+vx*t+nx*offset,p0.y+vy*t+ny*offset);
+     }
+     c.lineTo(p1.x,p1.y);c.stroke();c.restore();
     }});
    }
    // Generate axis-aligned and diagonal walls from the SAME top polygon.
