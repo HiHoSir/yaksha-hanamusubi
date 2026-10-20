@@ -161,3 +161,14 @@ A footprint (world cells), a sprite's rendered pixel rectangle, its visual silho
 ## Mandatory image upload preflight
 - For every generated PNG/ZIP GitHub delivery, **first read** `skills/github-image-atlas/SKILL.md` and `.agents/skills/github-artifact-delivery/SKILL.md`. The proven route is local PNG → Base64 `.b64` → temporary Library upload/read → GitHub `create_blob` (base64) → `create_tree` → `create_commit` → `update_ref` with expected head → remote SHA verification. Do not stop at a local-file access limitation or ask for manual upload before trying this workflow.
 - After uploading, separately verify actual runtime asset references, Actions, Pages, and user-performed iPhone Safari QA. Do not conflate them.
+
+## Mandatory field-object occupancy contract (32×32 movement grid)
+
+This is a **hard rule** for every field-map object, including buildings, torii, trees, mountains, caves, and decorations:
+
+1. Define blocking/contact occupancy **directly as explicit integer tile coordinates** (`occupiedTiles: [[tx,ty], ...]`) on the same 32×32 grid used by character movement. Multiple cells are allowed. Empty occupancy means passable.
+2. **Never derive, round, infer, or quantize occupied tiles from sprite bounds, pixel coordinates, visual width/height, foot anchors, proportional rectangles, shadows, or image alpha.** Sprite dimensions and render position are visual-only.
+3. Object placement and route/pathfinding must consult the **same explicit occupancy** as runtime collision. Never use a full sprite rectangle as an overlap prohibition. Occupied/contact cells must not overlap other occupied cells; visual images, especially mountains and crowns, **may overlap freely** with depth ordering.
+4. Keep approved sprite dimensions, visual offsets, existing terrain, and authored coordinates unchanged unless the user explicitly requests a change. Place and inspect every occupied cell intentionally. Entrances and passable gaps must remain reachable.
+5. New or changed field objects require validation for: integer/in-bounds occupied tiles; duplicate or overlapping occupied tiles; passable entry approaches; alignment of visible ground contact with occupied tiles; and no newly invisible walls. Test actual collision and routing. Do not treat a GitHub commit or successful Pages deployment as gameplay QA or Safari device validation.
+6. Do not use a transitional pixel-footprint conversion as a substitute for explicit occupancy. If an existing object lacks authored occupancy, inspect the intended tile layout and add the explicit cells; do not guess based on image size. If the correct occupied cells cannot be established, report the unresolved object rather than silently fabricating them.
