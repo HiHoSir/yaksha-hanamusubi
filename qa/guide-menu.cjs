@@ -7,7 +7,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  for(const height of [852,568]){
  const page=await browser.newPage({viewport:{width:393,height},isMobile:true,hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());const run=code=>page.evaluate(code=>window.__qaEval(code),code);
  await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;');
- const guides=await run('YK_WORLD.guides');assert.equal(guides.length,5);
+ const guides=await run('YK_WORLD.guides');assert.equal(guides.length,4,'four placed guide statues');
  for(const guide of guides){const approach=await run(`(()=>{const g=YK_WORLD.guides[${guide.id}];return [[32,32],[32,0],[0,32],[-32,0],[0,-32]].map(([x,y])=>[g.x+x,g.y+y]).find(([x,y])=>YK_WORLD.walkable(x,y));})()`);assert(approach,'guide reachable '+guide.id);
  await run(`S.area="field";S.x=${approach[0]};S.y=${approach[1]};S.quest=2;busy=false;action();`);assert.equal(await page.locator('#speaker').textContent(),guide.name);await run('revealDialogLine()');assert((await page.locator('#dialogText').textContent()).includes('海の入り江'),'guide describes current chapter-one destination');assert.equal(await run('S.quest'),2);await run('while($("dialog").classList.contains("show"))nextDialog();');}
  await run('S.quest=6;guideTalk();');await run('revealDialogLine()');assert((await page.locator('#dialogText').textContent()).includes('一区切り'));await run('while($("dialog").classList.contains("show"))nextDialog();');
