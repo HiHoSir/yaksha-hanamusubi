@@ -1,4 +1,4 @@
-# Reference field composition — β16.0.109
+# Reference field composition — β16.0.110
 
 The user's 2026-10-20 map is the composition reference. This replaces the sparse roadside scenery experiment with authored forest masses, mountain ridges, an inland lake, rivers and four bridges, using existing images. It is an approximation on the existing 80×80 world, not a pixel-identical reproduction.
 

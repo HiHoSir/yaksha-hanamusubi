@@ -173,6 +173,10 @@ for kind,x,y in bridge_specs:
         deck=[(x,y-1),(x,y),(x,y+1)];obj('bridgeNS',x-.25,y-1,48,96,deck,ground=True)
     else:
         deck=[(x-1,y),(x,y),(x+1,y)];obj('bridge',x-1,y-.125,96,40,deck,ground=True)
+# Preserve inspectable landmarks beside explicit, unobstructed route approaches.
+obj('castle',25,46,64,64,[(25,47),(26,47)],[(25,47),(26,47)])
+obj('newCaveLarge',26,25,64,32,[(26,25),(27,25)])
+obj('sacredTree',58,31,64,64,[(58,32),(59,32)],[(58,32),(59,32)])
 reserved={tuple(c) for o in objects for c in o['contactTiles']}
 # Dense forests reuse the approved 32x32 tree object, with deliberately open
 # grassy pockets. These cells are walkable as approved in the user's review.
