@@ -70,3 +70,10 @@ all four corner directions, three ground materials, 8/12px cuts, forbidden entry
 from high/low ground, exact boundaries, retained tops and all fixture routes.
 Reusable instructions are in `.agents/skills/terrain-elevation/SKILL.md` and the
 root `AGENTS.md` registry. These changes remain isolated to the elevation lab.
+
+## Bolder silhouette — β16.0.117
+Default corner cut is now 24px (3/4 cell), alongside 0/8/12px comparisons.
+Adjacent eligible corners sharing an edge are capped at 15px each to prevent
+overlap and preserve a 2px straight segment. The same effective width drives
+the top, wall, lower triangle and forbidden region. Full route checks remain
+required because a wide cut can close a cell-edge midpoint.

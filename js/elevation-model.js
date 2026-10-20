@@ -10,11 +10,16 @@ window.YK_ELEVATION=(()=>{
  // All geometry is authored in map coordinates, never inferred from a sprite.
  const cornerDefs=[['nw',0,0,-1,0,0,-1],['ne',32,0,1,0,0,-1],['se',32,32,1,0,0,1],['sw',0,32,-1,0,0,1]];
  function outline(m,tx,ty){
-  const cut=Math.max(0,Math.min(12,m.cornerCut??8)),base=level(m,tx,ty),cuts=[],polygon=[];
-  for(const [name,cx,cy,dx,dy,ex,ey] of cornerDefs){
+  const requested=Math.max(0,Math.min(24,m.cornerCut??24)),base=level(m,tx,ty),cuts=[],polygon=[];
+  const eligible=cornerDefs.map(([name,cx,cy,dx,dy,ex,ey])=>{
    const a=level(m,tx+dx,ty+dy),b=level(m,tx+ex,ty+ey),d=level(m,tx+dx+ex,ty+dy+ey);
    const ramp=m.ramps?.[ty]?.[tx]||m.ramps?.[ty+dy]?.[tx+dx]||m.ramps?.[ty+ey]?.[tx+ex]||m.ramps?.[ty+dy+ey]?.[tx+dx+ex];
-   const bevel=cut>0&&!ramp&&base>a&&a===b&&d<=a;
+   return requested>0&&!ramp&&base>a&&a===b&&d<=a;
+  });
+  for(const [name,cx,cy,dx,dy,ex,ey] of cornerDefs){
+   const index=cornerDefs.findIndex(c=>c[0]===name),a=level(m,tx+dx,ty+dy);
+   // Adjacent bevels share a 32px edge: keep a 2px straight segment.
+   const cut=Math.min(requested,eligible[(index+1)%4]||eligible[(index+3)%4]?15:24),bevel=eligible[index];
    if(!bevel){polygon.push([cx,cy]);continue;}
    const ends=name==='nw'?[[0,cut],[cut,0]]:name==='ne'?[[32-cut,0],[32,cut]]:name==='se'?[[32,32-cut],[32-cut,32]]:[[cut,32],[0,32-cut]];
    cuts.push({name,corner:[cx,cy],ends,lower:a,amount:cut,material:m[ty+dy]?.[tx+dx]||m[ty+ey]?.[tx+ex]||m[ty]?.[tx]});polygon.push(...ends);
@@ -66,7 +71,7 @@ window.YK_ELEVATION=(()=>{
  }
  function fixture(material='mixed'){
   const m=Array.from({length:20},(_,y)=>Array.from({length:16},(_,x)=>x===0||x===15||y===0||y===19?'sea':material==='mixed'?(x<6?'grass':x<11?'sand':'snow'):material));
-  m.heights=m.map(r=>r.map(()=>0));m.ramps=m.map(r=>r.map(()=>null));m.roads=new Set();m.cornerCut=8;
+  m.heights=m.map(r=>r.map(()=>0));m.ramps=m.map(r=>r.map(()=>null));m.roads=new Set();m.cornerCut=24;
   for(let y=5;y<=11;y++)for(let x=3;x<=12;x++)m.heights[y][x]=1;
   for(let y=5;y<=8;y++)for(let x=6;x<=10;x++)m.heights[y][x]=2;
   m.heights[9][3]=m.heights[10][3]=0; // concave corner
