@@ -920,6 +920,15 @@ function npc(c,x,y,type,name,dir="d",frame=1){
 window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;return window.__YK_COLLISION_DEBUG};
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
+// Runtime build fingerprint, independent of the HTML title and query-string label.
+const GAME_JS_BUILD="16.0.95";
+window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
+function runtimeBuildReport(){
+ const htmlBuild=window.__YK_HTML_BUILD||"unknown";
+ const scripts=Array.from(document.scripts).map(e=>e.src).filter(u=>u.includes("/js/")).map(u=>{const url=new URL(u);return url.pathname.split("/").pop()+"@"+(url.searchParams.get("v")||"none")});
+ const mismatch=scripts.filter(v=>!v.endsWith("@"+GAME_JS_BUILD));
+ return "HTML="+htmlBuild+" GAME="+GAME_JS_BUILD+" STATUS="+(htmlBuild===GAME_JS_BUILD&&!mismatch.length?"MATCH":"MISMATCH")+"\\n"+scripts.join("\\n");
+}
 const collisionDebugEnabled=new URLSearchParams(location.search).has("collisionDebug");
 let collisionDebugVisible=collisionDebugEnabled;
 function fieldFrontPoint(){
@@ -963,14 +972,17 @@ if(collisionDebugEnabled){
  const toggle=document.createElement("button");toggle.type="button";toggle.textContent="判定表示 ON";
  const copy=document.createElement("button");copy.type="button";copy.textContent="前方座標コピー";copy.style.marginLeft="4px";
  const status=document.createElement("div");status.style.marginTop="6px";status.style.whiteSpace="pre-line";
- panel.append(label,toggle,copy,status);document.body.appendChild(panel);
+ const build=document.createElement("button");build.type="button";build.textContent="実行中バージョンコピー";build.style.marginTop="6px";
+ build.addEventListener("click",async()=>{const report=runtimeBuildReport();try{await navigator.clipboard.writeText(report);status.textContent="実行中バージョンをコピーしました"}catch(e){status.textContent=report}});
+
+ panel.append(label,toggle,copy,build,status);document.body.appendChild(panel);
  toggle.addEventListener("click",()=>{collisionDebugVisible=!collisionDebugVisible;toggle.textContent="判定表示 "+(collisionDebugVisible?"ON":"OFF");map()});
  copy.addEventListener("click",async()=>{
   const p=fieldFrontPoint(),v="area="+S.area+" tile=("+p.tileX+","+p.tileY+") pixel=("+p.px.toFixed(1)+","+p.py.toFixed(1)+") facing="+S.dir+" blocked="+collision(p.px,p.py);
   try{await navigator.clipboard.writeText(v);status.textContent="コピーしました\\n"+v}
   catch(e){const t=document.createElement("textarea");t.value=v;panel.append(t);t.select();try{document.execCommand("copy");status.textContent="コピーしました"}catch(_){status.textContent="文字列を選択してコピー"}t.remove()}
  });
- window.setInterval(()=>{if(!panel.isConnected)return;const p=fieldFrontPoint();label.textContent="判定: 赤=通行不可 / 黄=物体 / 水色=前方";status.textContent="前方 ("+p.tileX+","+p.tileY+") "+(S.area==="field"?(collision(p.px,p.py)?"通行不可":"通行可"):"フィールド外")},500);
+ window.setInterval(()=>{if(!panel.isConnected)return;const p=fieldFrontPoint();label.textContent="HTML "+(window.__YK_HTML_BUILD||"?")+" / JS "+GAME_JS_BUILD+"\\n判定: 赤=通行不可 / 黄=物体 / 水色=前方";status.textContent="前方 ("+p.tileX+","+p.tileY+") "+(S.area==="field"?(collision(p.px,p.py)?"通行不可":"通行可"):"フィールド外")},500);
 }
 function map(frameTime=performance.now()){
  if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
