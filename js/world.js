@@ -182,7 +182,14 @@ window.YK_WORLD=(()=>{
    const nx=tx+dx,ny=ty+dy,k=nx+','+ny;
    if(roadsideCells.size>=84||roadsideCells.has(k)||mapData[ny]?.[nx]!=='grass')continue;
    if(roads.some(route=>route.some(([rx,ry])=>Math.abs(Math.floor(rx/32)-nx)<=1&&Math.abs(Math.floor(ry/32)-ny)<=1)))continue;
-   if(mapData.decorations.some(o=>nx*32<o.x+o.width&&nx*32+32>o.x&&ny*32<o.y+o.height&&ny*32+32>o.y))continue;
+   // Compare ground contact only. Crowns, roofs and mountain silhouettes may overlap.
+   const base={x:nx*32+8,y:(ny+1)*32-8,width:16,height:8};
+   if(mapData.decorations.some(o=>{
+    const contacts=contact(o);
+    // Nonblocking trees still reserve their visible trunk's ground contact for spacing.
+    if(o.kind==='newTrees')contacts.push({x:o.x+8,y:o.foot-8,width:16,height:8});
+    return contacts.some(f=>intersects(base,f));
+   }))continue;
    roadsideCells.add(k);
    mapData.decorations.push({kind:'newTrees',x:nx*32,y:ny*32,width:32,height:32,foot:(ny+1)*32,walkThrough:true});
   }
