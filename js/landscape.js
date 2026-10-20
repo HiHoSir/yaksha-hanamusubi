@@ -115,15 +115,16 @@ window.YK_LANDSCAPE=(()=>{
   }
   c.putImageData(base,0,0);masks.set(key,canvas);return canvas;
  }
+ function groundTile(map,x,y){return map.bridgeWaterCells?.has(x+','+y)?'river':map[y]?.[x];}
  function drawFloor(c,map){
   const a=window.YK_AUTOTILE;
   for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
    c.drawImage(art.grass,x%8*32,y%8*32,32,32,x*32,y*32,32,32);
-   const t=map.bridgeWaterCells?.has(x+','+y)?'river':map[y][x],kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
+   const t=groundTile(map,x,y),kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
    if(!['water','snow','barren','sand'].includes(kind))continue;
    const same=v=>v===undefined||(kind==='water'?water(v):kind==='snow'?(v==='snow'||v==='snowMountain'):kind==='barren'?(v==='barren'||v==='rockMountain'):kind==='sand'?(v==='sand'||water(v)):v===kind);
    if(t==='sea')c.drawImage(art.sand,x%2*32,y%2*32,32,32,x*32,y*32,32,32);
-   const n=adjacent(map,x,y,same),diag={nw:same(map[y-1]?.[x-1]),ne:same(map[y-1]?.[x+1]),sw:same(map[y+1]?.[x-1]),se:same(map[y+1]?.[x+1])};
+   const n={n:same(groundTile(map,x,y-1)),e:same(groundTile(map,x+1,y)),s:same(groundTile(map,x,y+1)),w:same(groundTile(map,x-1,y))},diag={nw:same(groundTile(map,x-1,y-1)),ne:same(groundTile(map,x+1,y-1)),sw:same(groundTile(map,x-1,y+1)),se:same(groundTile(map,x+1,y+1))};
    c.drawImage(maskTile(kind,n,diag,x%2*32,y%2*32),x*32,y*32);
   }
  }
@@ -312,10 +313,10 @@ window.YK_LANDSCAPE=(()=>{
  function drawShoreRelief(c,map){
   c.save();c.imageSmoothingEnabled=false;
   for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
-   if(water(map[y][x]))continue;
+   if(water(groundTile(map,x,y)))continue;
    const px=x*32,py=y*32;
-   const north=water(map[y-1]?.[x]),south=water(map[y+1]?.[x]);
-   const west=water(map[y]?.[x-1]),east=water(map[y]?.[x+1]);
+   const north=water(groundTile(map,x,y-1)),south=water(groundTile(map,x,y+1));
+   const west=water(groundTile(map,x-1,y)),east=water(groundTile(map,x+1,y));
    // The north-facing edge is darker; the south-facing bank catches more light.
    if(south){
     c.fillStyle='rgba(45,68,52,.55)';c.fillRect(px,py+27,32,4);
@@ -431,4 +432,5 @@ window.YK_LANDSCAPE=(()=>{
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
  return {cameraPresets,perspectiveScale,mode7LikeMatrix,groundLayer,drawQuarter,project,unproject,quarterFixture,footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
 })();
+
 

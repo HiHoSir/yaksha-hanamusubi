@@ -76,9 +76,6 @@ def stroke(points,kind,radius=.8):
             for y in range(max(0,int(cy)-2),min(N,int(cy)+3)):
                 for x in range(max(0,int(cx)-2),min(N,int(cx)+3)):
                     if math.hypot(x-cx,y-cy)<=radius:tiles[y][x]=kind
-stroke([(39,20),(38,23),(36,26),(35,31),(35,35),(37,38),(41,40),(45,43),(49,45)],'river',.8)
-stroke([(12,44),(18,43),(24,42),(29,41),(35,36)],'river',.8)
-stroke([(67,15),(67,20),(69,23),(70,27)],'river',.8)
 # The waterfall's western foot is a continuous land terrace in the reference.
 for y in range(20,27):
     for x in range(60,67):
@@ -90,7 +87,6 @@ for y in range(15,23):
 for y in range(17,19):
     for x in range(33,35):tiles[y][x]='forest'
 # The eastern lake outlet follows the reference's small basin below the ridge.
-stroke([(39,19),(42,20),(45,20),(47,18),(48,17),(49,18),(52,20)],'river',.7)
 places={'village':[37,70],'shrine':[20,45],'cove':[49,50],'forest':[60,33],
         'waterfall':[67,20],'hotspring':[22,17],'fox':[40,5]}
 stops=[('roadside-tea','花かげ茶屋',[24,56],'tea'),('bridge-inn','渡しの旅籠',[31,30],'inn'),
@@ -106,6 +102,31 @@ for y in range(7,12):
     for x in range(39,42):tiles[y][x]='grass'
 objects=[]
 stroke([(63,24),(65,24),(65,20),(67,20)],'grass',.8)
+# Author water AFTER destination clearings so the waterfall plaza cannot erase
+# its outlet. Every centerline is orthogonally connected on the movement grid.
+def channel_cells(points):
+    out=[tuple(points[0])]
+    for (ax,ay),(bx,by) in zip(points,points[1:]):
+        x,y=ax,ay;nx,ny=abs(bx-ax),abs(by-ay);ix=iy=0
+        while ix<nx or iy<ny:
+            if ix<nx and (iy==ny or (ix+.5)*ny<(iy+.5)*nx):x+=1 if bx>ax else -1;ix+=1
+            else:y+=1 if by>ay else -1;iy+=1
+            out.append((x,y))
+    return list(dict.fromkeys(out))
+watercourses={
+ 'central':channel_cells([(39,20),(38,23),(36,26),(35,31),(35,35),(37,38),(41,40),(45,43),(47,44),(49,44),(49,45)]),
+ 'western':channel_cells([(12,44),(16,43),(18,42),(24,42),(29,41),(35,36)]),
+ 'lake-outlet':channel_cells([(39,19),(42,20),(45,20),(48,20),(48,17)]),
+ 'eastern-basin':channel_cells([(48,20),(51,20),(54,21)]),
+ 'waterfall':channel_cells([(67,13),(67,16),(68,18),(69,19),(69,23),(70,27)])
+}
+# Lower river widens into its estuary; bridges keep their intentionally narrow
+# cross-sections. The waterfall pool stays east of the dry visitor landing.
+watercourses['central']+= [(x+1,y) for x,y in watercourses['central'] if 28<=y<=33 or 37<=y<=41]
+watercourses['lake-outlet'] += [(47,16),(48,16),(49,16),(47,17),(49,17)]
+watercourses['waterfall'] += [(70,19),(70,20),(70,21),(70,22)]
+for cells in watercourses.values():
+    for x,y in cells:tiles[y][x]='river'
 def obj(kind,x,y,w,h,contacts,blocked=(),**extra):
     objects.append(dict(kind=kind,x=x*32,y=y*32,width=w,height=h,foot=y*32+h,
         contactTiles=[list(p) for p in contacts],occupiedTiles=[list(p) for p in blocked],walkThrough=not blocked,**extra))
@@ -230,10 +251,11 @@ for y,row in enumerate(tiles):
     for x,t in enumerate(row):
         if t in water or t=='bridge':heights[y][x]=0
 data.update(tiles=tiles,heights=heights,referenceComposition={
- 'revision':111,'source':'User reference map 2026-10-20; reviewed coast trace, beach cells and authored interior terrain',
+ 'revision':112,'source':'User reference map 2026-10-20; reviewed coast trace, beach cells and authored interior terrain',
  'places':places,'restStops':[dict(id=i,name=n,cell=p,type=t) for i,n,p,t in stops],
- 'roads':roads,'bridgeWaterCells':bridgeWater,'decorations':objects,'forestRegions':[n for n,_ in forests],
+ 'roads':roads,'bridgeWaterCells':bridgeWater,'watercourses':watercourses,'decorations':objects,'forestRegions':[n for n,_ in forests],
  'mountainRegions':[n for n,_ in mountains],
  'assetGaps':['snow-capped mountain group compatible with current art (legacy snowMountain.png candidate exists)','brown bare mountain group','conifer tree group','cherry blossom tree','connected coastal cliff faces','harbor pier and boat','large connected waterfall and rock face']})
 Path('js/field-terrain.js').write_text('window.YK_FIELD_TERRAIN='+json.dumps(data,ensure_ascii=False,separators=(',',':'))+';\n')
 print(json.dumps({'objects':len(objects),'forest':sum(o.get('biome')=='forest' for o in objects),'mountains':sum(o.get('biome')=='mountain' for o in objects),'crossings':crossings,'roads':[len(r) for r in roads]},ensure_ascii=False))
+

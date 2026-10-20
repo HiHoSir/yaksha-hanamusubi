@@ -38,4 +38,21 @@ for(let y=0;y<80;y++)for(let x=0;x<80;x++)if(water(m[y][x])||m[y][x]==='bridge')
 assert(m.flat().filter(t=>t==='sand').length>=200,'missing reference beaches');
 assert.equal(m[18][30],'river');assert.equal(m[18][34],'forest');
 for(const r of w.roads)assert.equal(new Set(r.map(c=>c.join(','))).size,r.length,'route doubles back');
+// Channels must be four-neighbor continuous, including the water below bridge
+// decks. A dry plaza or abutment must never erase a channel cell.
+const wet=(x,y)=>water(m[y]?.[x])||m.bridgeWaterCells.has(x+','+y);
+const ocean=new Set(['0,0']),queue=[[0,0]];
+for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [xx,yy] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]])if(xx>=0&&yy>=0&&xx<80&&yy<80&&wet(xx,yy)&&!ocean.has(xx+','+yy)){ocean.add(xx+','+yy);queue.push([xx,yy]);}}
+for(const [name,cells] of Object.entries(g.watercourses)){
+ const keys=new Set(cells.map(c=>c.join(','))),seen=new Set([cells[0].join(',')]),q=[cells[0]];
+ for(let i=0;i<q.length;i++){const [x,y]=q[i];assert(wet(x,y),'dry channel '+name+' '+[x,y]);for(const [xx,yy] of [[x-1,y],[x+1,y],[x,y-1],[x,y+1]]){const k=xx+','+yy;if(keys.has(k)&&!seen.has(k)){seen.add(k);q.push([xx,yy]);}}}
+ assert.equal(seen.size,keys.size,'diagonal-only channel '+name);
+ for(const p of cells)assert(ocean.has(p.join(',')),'disconnected drainage '+name+' '+p);
+}
+for(const b of m.decorations.filter(o=>o.kind==='bridge'||o.kind==='bridgeNS')){
+ const [x,y]=b.contactTiles[1];assert(m.bridgeWaterCells.has(x+','+y),'bridge center is not over water');
+ const sides=b.kind==='bridge'?[[x,y-1],[x,y+1]]:[[x-1,y],[x+1,y]];
+ assert(sides.every(([xx,yy])=>wet(xx,yy)),'water interrupted at bridge '+[x,y]);
+}
 console.log('PASS reference field: explicit contacts, all destinations, 11 continuous routes, bridge traversal, save repair and no duplicated scenery');
+

@@ -57,3 +57,14 @@ Changes:
 Validation: explicit occupancy, 11 traversable route legs, all seven destinations, all rest stops/guides, separated reference islands, dry beaches, water elevations, loop-free route legs and save compatibility pass. Actual existing art was inspected with the production projection in cropped harbor and hot-spring renders. Full-world browser and iPhone Safari visual approval remain distinct and unverified by these cropped tests.
 
 Remaining fidelity limits: 80×80 resolution simplifies narrow channels; current green mountain sprites cannot reproduce the reference's brown/snow ranges; illustrated coastal cliff faces, conifers/cherry trees and landmark-specific architecture remain art gaps. No new art was generated in this audit.
+
+## Watercourse adjustment — β16.0.112
+
+The channel centerlines now use four-neighbor connected movement cells instead of diagonal-only raster contacts. Central river reaches widen to two cells and narrow at existing bridge crossings. The eastern lake basin joins the lake through a continuous channel; its northern bridge now crosses water at its center. The estuary crossing runs horizontally underneath the north/south bridge instead of meeting one side diagonally.
+
+Water is authored after destination clearings. The waterfall pool and outlet remain east of the dry visitor landing, so the plaza no longer erases the flow. The western tributary bends north of the shrine contact cells and joins the central river. Existing buildings, sprite sizes and destination points are retained.
+
+Ground tile adjacency and shore relief both consult the water beneath bridge decks. Bridge decks remain walkable terrain for collision; the water-only visual layer never grants walking on neighboring river cells.
+
+QA adds independent four-neighbor channel continuity, drainage to the ocean, wet bridge-center/upstream/downstream cells and retained route traversal. These checks and save migration through world revision 111 pass. Cropped production renders of the waterfall and estuary were inspected. No new image assets or camera changes. iPhone Safari device verification remains pending.
+

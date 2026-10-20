@@ -1,7 +1,7 @@
 // The authored 80x80 reference composition is baked into field-terrain.js.
 // All object contact/collision coordinates are explicit integer movement cells.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=111;
+ const tileSize=32,size=2560,viewSize=640,revision=112;
  const geography=window.YK_FIELD_TERRAIN.referenceComposition;
  const center=([x,y])=>[x*32+16,y*32+16];
  const descriptions={
@@ -65,3 +65,4 @@ window.YK_WORLD=(()=>{
  }
  return {start,hub,places,roads,restStops,guides,guideRoute,worldObjects,mapData,walkable,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition,safePosition};
 })();
+
