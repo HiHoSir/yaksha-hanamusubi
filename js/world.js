@@ -37,7 +37,7 @@ window.YK_WORLD=(()=>{
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
   // Preserve the author's tiles around story entrances.
   if(id==='village')object('village',x,y-24,144,104);
-  if(id==='shrine'||id==='fox'){object('shrine',x,y-24,80,80);object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
+  if(id==='shrine'||id==='fox'){object('shrine',x,y-24,96,86);object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
   if(id==='cove')object('town',x,y-24,144,104);
   if(id==='forest')object('torii',x,y-24,64,64);
   if(id==='waterfall')object('waterfall',x,y-24,80,96);
