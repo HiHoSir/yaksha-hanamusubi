@@ -49,7 +49,7 @@ window.YK_WORLD=(()=>{
   if(id==='village')object('newVillage',x,y-32,64,32);
   if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});object('lantern',x-64,y-32,24,40,true);object('lantern',x+64,y-32,24,40,true);}
   if(id==='cove')object('newFort',x,y-32,64,32);
-  if(id==='forest'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'newTorii',x:left,y:top,width:64,height:64,foot:top+64,collision:{enabled:true,rects:[{x:4,y:48,width:8,height:16},{x:52,y:48,width:8,height:16}]}});}
+  if(id==='forest')object('newTorii',x,y-24,32,32);
   if(id==='waterfall')object('waterfall',x,y-24,80,96);
   if(id==='hotspring')object('hermit',x,y-24,72,72);
  }
