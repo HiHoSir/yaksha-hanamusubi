@@ -733,6 +733,7 @@ function interiorBlocked(x,y){if(S.area==="teahouse")return YK_INDOOR_NATIVE_DEB
 function enterInterior(area){fieldMotion=null;YK_INPUT.stopAll();S.area=area;[S.x,S.y]=area==="teahouse"?YK_INDOOR_NATIVE_DEBUG.spawn():YK_INTERIOR_BASE.spawn(S);S.dir="u";S.frame=0;YK_SAVE.auto(S);message(D.areas[area].name);hud()}
 function leaveInterior(){
  if(villageDoorMotion)return;
+ if(S.restStopId&&Array.isArray(S.restStopReturn)){const point=S.restStopReturn.slice();S.restStopId=null;S.restStopReturn=null;S.lastInterior=null;fieldMotion=null;YK_INPUT.stopAll();S.area='field';[S.x,S.y]=point;S.dir='d';S.frame=1;YK_SAVE.auto(S);message('フィールドへ戻った');hud();return;}
  fieldMotion=null;YK_INPUT.stopAll();S.area="village";
  const door=YK_SETTLEMENT.doors.find(d=>d.id===S.lastInterior)||YK_SETTLEMENT.doors[0];
  [S.x,S.y]=alignVillageEntryFoot(door.x,door.y+18);S.dir="d";S.frame=1;
@@ -999,7 +1000,16 @@ function map(frameTime=performance.now()){
  fox:[{x:535,y:650,type:"traveler",name:"白狐の使い",talk:["ようやく来たね、緋月。","忘れた約束を思い出す時だ。"]}],
  hotspring:[{x:620,y:650,type:"hotkeeper",name:"湯守・お糸",talk:["月見の湯へようこそ。","今夜は花びらの香りがよく立っていますよ。","温泉では、忘れたことまでふっと思い出す人がいるの。不思議でしょう？"]}]
 };
+const REST_STOP_PROFILES={
+ 'roadside-tea':{host:{type:'weaver',name:'茶屋娘・小春',talk:['鬼灯の里からの旅かい？','この先の社へ向かうなら、花の咲く道を辿るといいよ。']},guest:{type:'traveler',name:'巡礼の旅人',talk:['天妖の社には、古い花結びの伝承があるそうだ。']}},
+ 'bridge-inn':{host:{type:'farmer',name:'旅籠主・源六',talk:['川を越える旅人は、ここで一晩休んでいきな。','水辺の道は足元に気をつけるんだぞ。']},guest:{type:'traveler',name:'行商人・弥七',talk:['入り江へ行くなら橋の位置を確かめておくといい。']}},
+ 'forest-tea':{host:{type:'weaver',name:'茶屋娘・すず',talk:['森の入口では道に迷いやすいの。','花の香りがする方を覚えておいてね。']},guest:{type:'shrine-keeper',name:'森番・朔',talk:['忘れの森では、同じ景色に惑わされぬようにな。']}},
+ 'highland-inn':{host:{type:'farmer',name:'旅籠主・弥兵衛',talk:['山道を越えてきたのか。よく来たな。','九尾の祠へ向かうなら、十分に休んでいけ。']},guest:{type:'traveler',name:'湯治客・お松',talk:['月見の湯の湯気は、疲れを忘れさせてくれるよ。']}}
+};
+function restStopResidents(){const p=REST_STOP_PROFILES[S.restStopId];if(!p)return [];return [{...p.host,x:384,y:368,dir:'d',stationary:true,service:'rest'},{...p.guest,x:545,y:440,dir:'l',stationary:true}];}
+function enterFieldRestStop(stop){S.restStopId=stop.id;S.restStopReturn=[S.x,S.y];S.lastInterior=stop.type==='inn'?'inn':'teahouse';fieldMotion=null;YK_INPUT.stopAll();S.area=stop.type==='inn'?'villageRoom':'teahouse';[S.x,S.y]=YK_INTERIOR_BASE.spawn(S);S.dir='u';S.frame=1;YK_SAVE.auto(S);message(stop.name);hud();}
 function areaNPCs(){
+ if(S.restStopId&&YK_INTERIOR_BASE.area(S))return restStopResidents();
  if(S.area==="village")return YK_SETTLEMENT.residents;
  if(S.area==="teahouse"){const people=YK_SETTLEMENT.insideResidents("teahouse");for(const person of people){person.x=368;person.y=336;person.stationary=true;}return people;}
   if(["villageRoom","osumiHome"].includes(S.area))return YK_INTERIOR_BASE.residents(S,YK_SETTLEMENT.insideResidents(S.lastInterior||S.area));
@@ -1228,12 +1238,7 @@ function action(){
  if(guideTalk())return true;
  if(S.area==="field"&&YK_WORLD.restStops){
   const stop=YK_WORLD.restStops.find(o=>Math.hypot(S.x-o.point[0],S.y-o.point[1])<=48);
-  if(stop){
-   const missing=S.hp<S.maxhp||S.mp<S.maxmp;
-   return talk({n:stop.name,t:[stop.type==='inn'?'花の向こうに小さな旅籠があった。':'花畑の奥に茶屋の灯りが見える。',missing?'旅の疲れを癒やし、体と技が全回復した。':'温かな茶をいただいた。いつでも休んでいくとよい。']},()=>{
-    S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();renderStatus();
-   },120);
-  }
+  if(stop){enterFieldRestStop(stop);return true;}
  }
  if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}if(inspectObject())return true;openCommands();return true;}
  if(openNearbyChest())return true;
@@ -1244,7 +1249,7 @@ function action(){
  const n=nearestNPC(YK_INTERIOR_BASE.area(S)&&["inn","armory"].includes(YK_INTERIOR_BASE.kind(S))?140:100);
  if(n){faceNPC(n);n.frame=1;
   if(n.service==="shop"||(n.type==="merchant"&&n.service===undefined)){openShop();return true;}
-  if(n.service==="rest")return talk({n:n.name,t:["旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();},120);
+  if(n.service==="rest")return talk({n:n.name,t:[...(n.talk||[]),"旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();},120);
   const event=YK_STORY_EVENTS.match(S,D.story,n.name);
   if(event){const stage=S.quest;
    if(S.area==="fox"&&n.name==="白狐の使い")return talk({n:n.name,t:["影九尾を退ければ、忘れた約束の続きを話そう。"]},()=>beginEncounter(true,true),120);
@@ -1295,7 +1300,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
 function collision(x,y,ignoreNPC=false){if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
-function exitArea(){return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
+function exitArea(){if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 function move(dx,dy,dir){
  if(busy)return;
  if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
