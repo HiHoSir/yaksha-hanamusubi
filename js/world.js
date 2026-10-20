@@ -173,14 +173,14 @@ window.YK_WORLD=(()=>{
   if(path.length>1)roads.push(path);
  }
  mapData.paths=roads;
- // Reuse approved tree sprites as nonblocking roadside scenery on the first
- // two story legs. Keep road cells and a full neighboring cell unobstructed.
+ // Reuse approved tree sprites as nonblocking roadside scenery along all
+ // story legs. Keep road cells and a full neighboring cell unobstructed.
  const roadsideCells=new Set();
- for(const path of roads.slice(0,2))for(let i=0;i<path.length;i+=5){
+ for(const [leg,path] of roads.entries())for(let i=0;i<path.length;i+=7){
   const [px,py]=path[i],tx=Math.floor(px/32),ty=Math.floor(py/32);
-  for(const [dx,dy] of [[-2,0],[2,0],[0,-2],[0,2]]){
+  for(const [dx,dy] of (leg%2===0?[[-2,0],[2,0],[0,-2],[0,2]]:[[0,-2],[0,2],[-2,0],[2,0]])){
    const nx=tx+dx,ny=ty+dy,k=nx+','+ny;
-   if(roadsideCells.size>=28||roadsideCells.has(k)||mapData[ny]?.[nx]!=='grass')continue;
+   if(roadsideCells.size>=84||roadsideCells.has(k)||mapData[ny]?.[nx]!=='grass')continue;
    if(roads.some(route=>route.some(([rx,ry])=>Math.abs(Math.floor(rx/32)-nx)<=1&&Math.abs(Math.floor(ry/32)-ny)<=1)))continue;
    if(mapData.decorations.some(o=>nx*32<o.x+o.width&&nx*32+32>o.x&&ny*32<o.y+o.height&&ny*32+32>o.y))continue;
    roadsideCells.add(k);
