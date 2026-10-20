@@ -543,7 +543,7 @@ body:has(#title.show) #stage{min-height:0}
  }
 }
 @media(orientation:portrait) and (max-height:720px){
- #dialog .dialogWindow{bottom:calc(164px + env(safe-area-inset-bottom));max-height:32dvh}
+ #dialog .dialogWindow{bottom:calc(188px + env(safe-area-inset-bottom));max-height:32dvh}
 }
 
 /* BETA 15.57.270: four compact, accessible menu icons, aligned at top-right. */
