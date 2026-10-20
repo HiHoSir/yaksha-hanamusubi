@@ -159,7 +159,7 @@ window.YK_LANDSCAPE=(()=>{
   cave:[[.10,.56,.90,1]],lantern:[[.25,.72,.75,1]],
   jizo:[[.22,.64,.78,1]],torii:[[.18,.78,.31,1],[.72,.78,.85,1]]
  };
- function footprints(o){if(o.groundFootprint){const w=o.groundFootprint.width,h=o.groundFootprint.height;return [{x:o.x+(o.width-w)/2,y:o.foot-h,width:w,height:h}];}if(o.tileFootprints)return o.tileFootprints.map(([x,y,w,h])=>({x:o.x+x*32,y:o.y+y*32,width:w*32,height:h*32}));return (footprintSpecs[o.kind]||[]).map(([l,t,r,b])=>({x:o.x+l*o.width,y:o.y+t*o.height,width:(r-l)*o.width,height:(b-t)*o.height}));}
+ function footprints(o){if(o.walkThrough)return [];if(o.groundFootprint){const w=o.groundFootprint.width,h=o.groundFootprint.height;return [{x:o.x+(o.width-w)/2,y:o.foot-h,width:w,height:h}];}if(o.tileFootprints)return o.tileFootprints.map(([x,y,w,h])=>({x:o.x+x*32,y:o.y+y*32,width:w*32,height:h*32}));return (footprintSpecs[o.kind]||[]).map(([l,t,r,b])=>({x:o.x+l*o.width,y:o.y+t*o.height,width:(r-l)*o.width,height:(b-t)*o.height}));}
  // Collision uses feet and ground footprints, not roofs or tree overhangs.
  function walkable(map,x,y,r=8){
   if(x-r<0||y-r<0||x+r>=map[0].length*32||y+r>=map.length*32)return false;

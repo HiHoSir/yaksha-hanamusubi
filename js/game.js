@@ -402,7 +402,14 @@ function stabilizeLoadedState(){
  S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
  S.encounterGrace=Math.max(Number(S.encounterGrace)||0,D.areas[area]?.grace||0);
  if(area==="field"){
-   if(!fieldCollisionDebugOff&&!YK_WORLD.walkable(S.x,S.y))[S.x,S.y]=YK_WORLD.start;
+   if(!fieldCollisionDebugOff&&!YK_WORLD.walkable(S.x,S.y)){
+    const old=[S.x,S.y];let found=null;
+    for(let radius=16;radius<=192&&!found;radius+=16)for(let a=0;a<16;a++){
+     const angle=a*Math.PI/8,x=old[0]+Math.round(Math.cos(angle)*radius),y=old[1]+Math.round(Math.sin(angle)*radius);
+     if(YK_WORLD.walkable(x,y)){found=[x,y];break;}
+    }
+    [S.x,S.y]=found||YK_WORLD.start;
+   }
  }else if(area==="village"){
    S.x=clamp(Number(S.x)||768,32,1504);S.y=clamp(Number(S.y)||1190,40,1248);
    if(YK_SETTLEMENT.blocked(S.x,S.y)||npcBlocked(S.x,S.y))[S.x,S.y]=YK_SETTLEMENT.spawn;

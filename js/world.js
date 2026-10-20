@@ -31,13 +31,13 @@ window.YK_WORLD=(()=>{
  mapData.paths=roads;mapData.decorations=[];
  // Two modest bridges are scenery at the designated river crossings.
 
- const object=(kind,cx,foot,width,height)=>mapData.decorations.push({kind,x:cx-width/2,y:foot-height,width,height,foot});
+ const object=(kind,cx,foot,width,height,walkThrough=false)=>mapData.decorations.push({kind,x:cx-width/2,y:foot-height,width,height,foot,walkThrough});
  // Entrance markers are 24px in front of the solid object's feet.
  for(const [id,p] of Object.entries(places)){
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
   // Preserve the author's tiles around story entrances.
   if(id==='village')object('newVillage',x,y-32,64,32);
-  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
+  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});object('lantern',x-64,y-32,24,40,true);object('lantern',x+64,y-32,24,40,true);}
   if(id==='cove')object('newFort',x,y-32,64,32);
   if(id==='forest')object('newTorii',x,y-24,32,32);
   if(id==='waterfall')object('waterfall',x,y-24,80,96);
@@ -50,7 +50,7 @@ window.YK_WORLD=(()=>{
  mapData.decorations.push({kind:'stoneMonument',x:56*32,y:38*32,width:32,height:32,foot:39*32,groundFootprint:{width:32,height:16,anchor:'bottom-center'}});
  object('newCaveLarge',center([67,39])[0],center([67,39])[1]-32,64,32);
  const guides=[[30,61,'南の地蔵','北の草原を進むと天妖の社があるぞ。'],[30,44,'森の地蔵','東の水辺には橋がある。入り江を探すのじゃ。'],[50,37,'川辺の地蔵','川を越えた先には忘れの森がある。'],[37,19,'湖畔の地蔵','月見の湯は西、九尾の祠は北じゃ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
- for(const g of guides)object('jizo',g.x,g.y,24,40);
+ for(const g of guides)object('jizo',g.x,g.y,24,40,true);
  function guideRoute(from,target){
   const nodes=new Map(),key=(x,y)=>x+','+y;
   for(const road of roads)for(let i=1;i<road.length;i++){const [ax,ay]=road[i-1],[bx,by]=road[i],dx=Math.sign(bx-ax)*32,dy=Math.sign(by-ay)*32,n=(Math.abs(bx-ax)+Math.abs(by-ay))/32;for(let j=0;j<=n;j++)nodes.set(key(ax+j*dx,ay+j*dy),[ax+j*dx,ay+j*dy]);}
