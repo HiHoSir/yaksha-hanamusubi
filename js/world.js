@@ -34,7 +34,12 @@ window.YK_WORLD=(()=>{
  // Two modest bridges are scenery at the designated river crossings.
 
  const object=(kind,cx,foot,width,height,walkThrough=false)=>{
-  const collision=walkThrough?{enabled:false}:{enabled:true,rects:[{x:width*.18,y:height*.72,width:width*.64,height:height*.28}]};
+  const shapes={
+   newVillage:[[.18,.72,.82,1]],newFort:[[.18,.72,.82,1]],
+   newCaveLarge:[[.12,.72,.88,1]],newTorii:[[.08,.68,.25,1],[.75,.68,.92,1]],
+   waterfall:[[.10,.40,.90,1]],hermit:[[.14,.52,.88,1]]
+  };
+  const collision=walkThrough?{enabled:false}:{enabled:true,rects:(shapes[kind]||[[.18,.72,.82,1]]).map(([a,b,c,d])=>({x:a*width,y:b*height,width:(c-a)*width,height:(d-b)*height}))};
   mapData.decorations.push({kind,x:cx-width/2,y:foot-height,width,height,foot,walkThrough,collision});
  };
  // Entrance markers are 24px in front of the solid object's feet.
