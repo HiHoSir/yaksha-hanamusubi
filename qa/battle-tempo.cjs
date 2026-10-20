@@ -8,7 +8,7 @@ function scenario({hp=100,trait=null,chance=0,random=0.5,playerHp=100}={}){
  const c={console,Math:Object.assign(Object.create(Math),{random:()=>random}),performance:{now:()=>now},
   setTimeout(fn,ms){const key=++id;timers.set(key,{fn,at:now+ms});return key;},clearTimeout(key){timers.delete(key)},
   document:{getElementById(key){if(!elements.has(key))elements.set(key,element());return elements.get(key)},querySelector:()=>null,querySelectorAll:()=>[]},
-  bg:canvas,layerReady:()=>false,HIZUKI_4DIR:{},HIZUKI_BATTLE_FRAMES:[],HIZUKI_BATTLE_IDLE:{},hero(){},flower(){},
+  bg:canvas,layerReady:()=>false,HIZUKI_4DIR:{},HIZUKI_BATTLE_FRAMES:[],HIZUKI_BATTLE_IDLE:{},HIZUKI_ATTACK_FRAMES:[{},{},{}],HIZUKI_SKILL_FRAMES:[{},{},{}],HIZUKI_BATTLE_EXPRESSIONS:{victory:{},levelup:{}},hero(){},flower(){},
   enemyArt(){enemyAlpha=canvas.globalAlpha},renderBattlePartyCards(){},relicBonus:()=>0,
   YK_AUDIO:{battleSe(){},endEncounterAudio(){}},YK_SAVE:{auto(){}},YK_INPUT:{stopAll(){}},battleTrace(){},hud(){},
   E:{bonus:()=>0,drop:()=>null,items:{}},D:{enemyProfiles:{},rareRules:{repeatDropChance:0},relics:{},areas:{}},
