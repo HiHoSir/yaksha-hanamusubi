@@ -63,6 +63,39 @@ window.YK_WORLD=(()=>{
   return turns.length?'そばの街道に出たら、まず'+turns.slice(0,3).join('、次の曲がり角で')+'へ進むのじゃ。':'目的地はこの近くじゃ。入口でAを押すのじゃ。';
  }
  for(const [tx,ty] of [[16,57],[20,60],[45,63],[54,63],[58,45],[43,25]]){const [x,y]=center([tx,ty]);mapData.decorations.push({kind:'wildflowers',x,y,width:40,height:24,foot:y+24,ground:true});}
+ // Place by contact footprints, not sprite rectangles. Visual overhang may overlap.
+ const contact=o=>{
+  if(o.walkThrough)return [];
+  if(o.groundFootprint){const f=o.groundFootprint;return [{x:o.x+(o.width-f.width)/2,y:o.foot-f.height,width:f.width,height:f.height}];}
+  const bases={newVillage:[0,0,1,1],newFort:[0,0,1,1],newCaveLarge:[0,0,1,1],shrine:[0,.5,1,1],castle:[0,.5,1,1],sacredTree:[0,.5,1,1],stoneMonument:[0,.5,1,1]};
+  const b=bases[o.kind];return b?[{x:o.x+b[0]*o.width,y:o.y+b[1]*o.height,width:(b[2]-b[0])*o.width,height:(b[3]-b[1])*o.height}]:[];
+ };
+ const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
+ const placeObject=o=>{
+  const footprint=contact(o);
+  if(footprint.some(f=>mapData.decorations.some(existing=>contact(existing).some(g=>intersects(f,g)))))return false;
+  mapData.decorations.push(o);return true;
+ };
+ // Small visible mountain ridges encourage detours; authored coastlines remain intact.
+ const ridgeLines=[
+  [[29,63],[30,63],[31,63],[32,63],[33,63],[34,63]],
+  [[26,52],[27,52],[28,52],[29,52],[30,52]],
+  [[39,46],[40,46],[41,46],[42,46]],
+  [[53,41],[54,41],[55,41],[56,41]],
+  [[57,27],[58,27],[59,27],[60,27]],
+  [[38,12],[39,12],[40,12],[41,12]]
+ ];
+ const reserved=[start,...Object.values(places).map(p=>p.point),...[[25,58],[35,41],[54,37],[34,13]].map(center)];
+ for(const line of ridgeLines)for(const [tx,ty] of line){
+  if(mapData[ty]?.[tx]!=='grass'||reserved.some(([px,py])=>Math.hypot(px-(tx*32+16),py-(ty*32+16))<112))continue;
+  placeObject({kind:'newMountainSmall',x:tx*32,y:ty*32,width:32,height:32,foot:(ty+1)*32,groundFootprint:{width:32,height:32}});
+ }
+ // Forest crowns are traversable; overlapping visual silhouettes are permitted.
+ const groves=[[[24,55],[25,55],[26,55],[25,56]],[[17,45],[18,45],[19,45]],[[57,32],[58,32],[59,32],[58,33]],[[62,24],[63,24],[64,24]],[[30,16],[31,16],[32,16]]];
+ for(const grove of groves)for(const [tx,ty] of grove){
+  if(mapData[ty]?.[tx]!=='grass')continue;
+  placeObject({kind:'newTrees',x:tx*32,y:ty*32,width:32,height:32,foot:(ty+1)*32,walkThrough:true});
+ }
  // Preserve the exact authored tile layout around decorations.
  // Existing story entrances and save IDs remain unchanged.
  // Small clearings make landmarks visible, with only short maintained paths.
