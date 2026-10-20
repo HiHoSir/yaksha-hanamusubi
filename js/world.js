@@ -121,7 +121,14 @@ window.YK_WORLD=(()=>{
   // The visible road must be traversable by the *actual hero collision radius*.
   // Checking just the tile center previously allowed roads through invisible
   // object footprints or water edges.
-  return window.YK_LANDSCAPE.walkable(mapData,px,py,12);
+  // world.js loads before landscape.js; never call YK_LANDSCAPE during initialization.
+  // Test the player's radius against terrain and visible object contacts locally.
+  for(const [dx,dy] of [[0,0],[-12,0],[12,0],[0,-12],[0,12],[-8,-8],[8,-8],[-8,8],[8,8]]){
+   const xx=px+dx,yy=py+dy,t=mapData[Math.floor(yy/32)]?.[Math.floor(xx/32)];
+   if(!['grass','forest','sand','snow','barren','road','bridge'].includes(t))return false;
+  }
+  return !mapData.decorations.some(o=>contact(o).some(f=>
+   px>=f.x-12&&px<=f.x+f.width+12&&py>=f.y-12&&py<=f.y+f.height+12));
  };
  const nearestRoadCell=([sx,sy])=>{
   if(roadCell(sx,sy))return [sx,sy];
