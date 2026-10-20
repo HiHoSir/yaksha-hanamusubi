@@ -118,7 +118,10 @@ window.YK_WORLD=(()=>{
  const roadCell=(x,y)=>{
   if(mapData[y]?.[x]!=='grass')return false;
   const px=x*32+16,py=y*32+16;
-  return !mapData.decorations.some(o=>contact(o).some(f=>px>=f.x-4&&px<f.x+f.width+4&&py>=f.y-4&&py<f.y+f.height+4));
+  // The visible road must be traversable by the *actual hero collision radius*.
+  // Checking just the tile center previously allowed roads through invisible
+  // object footprints or water edges.
+  return window.YK_LANDSCAPE.walkable(mapData,px,py,12);
  };
  const nearestRoadCell=([sx,sy])=>{
   if(roadCell(sx,sy))return [sx,sy];
