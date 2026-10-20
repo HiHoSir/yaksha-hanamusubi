@@ -113,8 +113,9 @@ window.YK_ELEVATION_VIEW=(()=>{
       for(let b=0;b<bands;b++){
        const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
        const p=[point(...span[0],hi[0]),point(...span[1],hi[1]),point(...span[1],lo[1]),point(...span[0],lo[0])];
-       const face=art[m.cliffMaterials?.[ty]?.[tx]||options.cliffMaterial||'rock']||art.rock;
-       if(p.every(Boolean))quad(c,face,tx%2*32,ty%2*32,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
+       const material=m.cliffMaterials?.[ty]?.[tx]||options.cliffMaterial||(m[ty][tx]==='grass'?'grassCliff':'rock');
+       const face=art[material]||art.rock;
+       if(p.every(Boolean))quad(c,face,(tx*32)%face.width,(ty*32)%face.height,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
       }
      }});
     }
