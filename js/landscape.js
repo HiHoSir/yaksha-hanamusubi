@@ -154,7 +154,7 @@ window.YK_LANDSCAPE=(()=>{
  }
  // Explicit normalized ground footprints. Roofs remain outside collision.
  const footprintSpecs={castle:[[.10,.62,.92,1]],waterfall:[[.10,.40,.90,1]],
-  shrine:[[.16,.48,.86,1]],hermit:[[.14,.52,.88,1]],
+  shrine:[[0,0,1,1]],hermit:[[.14,.52,.88,1]],
   village:[[.10,.50,.92,1]],town:[[.08,.48,.94,1]],
   cave:[[.10,.56,.90,1]],lantern:[[.25,.72,.75,1]],
   jizo:[[.22,.64,.78,1]],torii:[[.18,.78,.31,1],[.72,.78,.85,1]]

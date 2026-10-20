@@ -37,14 +37,14 @@ window.YK_WORLD=(()=>{
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
   // Preserve the author's tiles around story entrances.
   if(id==='village')object('village',x,y-24,144,104);
-  if(id==='shrine'||id==='fox'){object('shrine',x,y-24,96,86);object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
+  if(id==='shrine'||id==='fox'){object('shrine',x,y-24,64,64);object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
   if(id==='cove')object('town',x,y-24,144,104);
   if(id==='forest')object('torii',x,y-24,64,64);
   if(id==='waterfall')object('waterfall',x,y-24,80,96);
   if(id==='hotspring')object('hermit',x,y-24,72,72);
  }
  // Optional landmarks are placed in reachable clearings, independent of old roads.
- mapData.decorations.push({kind:'castle',x:center([31,48])[0]-56,y:center([31,48])[1]-112,width:112,height:112,foot:center([31,48])[1],groundFootprint:{width:64,height:64,anchor:'bottom-center'}});
+ mapData.decorations.push({kind:'castle',x:center([31,48])[0]-32,y:center([31,48])[1]-64,width:64,height:64,foot:center([31,48])[1],groundFootprint:{width:64,height:64,anchor:'bottom-center'}});
  object('cave',center([67,39])[0],center([67,39])[1],80,64);
  const guides=[[30,61,'南の地蔵','北の草原を進むと天妖の社があるぞ。'],[30,44,'森の地蔵','東の水辺には橋がある。入り江を探すのじゃ。'],[50,37,'川辺の地蔵','川を越えた先には忘れの森がある。'],[37,19,'湖畔の地蔵','月見の湯は西、九尾の祠は北じゃ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
  for(const g of guides)object('jizo',g.x,g.y,24,40);
