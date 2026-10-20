@@ -5,7 +5,7 @@ window.YK_COLLISION=(()=>{
    const map=env.debugMap?.();
    return map?!env.landscape.walkable(map,x-48,y-100):x<53||x>683||y<105||y>639;
   }
-  if(area==='field')return !env.world?.walkable(x,y,env.visitedAreas);
+  if(area==='field')return !env.world?.walkable(x,y);
   if(area==='village')return env.villageBlocked(x,y)||(!ignoreNPC&&env.npcBlocked(x,y));
   if(x<27||x>741||y<34||y>736)return true;
   if(!ignoreNPC&&env.npcBlocked(x,y))return true;

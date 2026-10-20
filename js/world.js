@@ -79,15 +79,8 @@ window.YK_WORLD=(()=>{
  }
  // Authored road cells are retained without adding artificial paths.
  mapData.paths=roads;
- // A chapter boundary is checked at movement time, not only when A is pressed.
- // This leaves the authored geography intact while preventing entry into later landmarks.
- const chapterOrder=['village','shrine','cove','forest','waterfall','hotspring','fox'];
- const stageAt=(x,y)=>chapterOrder.findIndex((id,i)=>i>0&&Math.hypot(x-places[id].point[0],y-places[id].point[1])<96);
- const walkable=(x,y,visited={})=>{
-  if(!Number.isFinite(x)||!Number.isFinite(y)||!window.YK_LANDSCAPE.walkable(mapData,x,y))return false;
-  const stage=stageAt(x,y);
-  return stage<0||!!visited[chapterOrder[stage-1]];
- };
+ // Only authored terrain and visible object footprints block movement.
+ const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
  const tileAt=(x,y)=>mapData[Math.floor(y/32)]?.[Math.floor(x/32)]||'sea';
  const near=(x,y)=>Object.keys(places).find(k=>Math.hypot(x-places[k].point[0],y-places[k].point[1])<=36)||null;
  const camera=(x,y)=>({x:x-viewSize/2,y:y-viewSize/2,size:viewSize,zoom:1.4});
