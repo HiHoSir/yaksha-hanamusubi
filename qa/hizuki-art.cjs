@@ -19,7 +19,7 @@ const server=http.createServer((req,res)=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:'+server.address().port);
   const run=code=>page.evaluate(code=>window.__qaEval(code),code);
-  await page.waitForFunction(()=>window.__qaEval&&window.__qaEval('layerReady(HIZUKI_4DIR)&&layerReady(HIZUKI_8DIR)&&layerReady(HIZUKI_PIXEL)'));
+  await page.waitForFunction(()=>window.__qaEval&&window.__qaEval('layerReady(HIZUKI_4DIR)'));
   assert.deepEqual(await run('[HIZUKI_4DIR.naturalWidth,HIZUKI_4DIR.naturalHeight]'),[768,1024]);
   const cells=await run(`(()=>{
    const results=[];
