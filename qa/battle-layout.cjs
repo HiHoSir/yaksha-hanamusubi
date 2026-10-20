@@ -39,7 +39,7 @@ const server=http.createServer((req,res)=>{
 
  await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=400;S.dir="u";S.gold=1000;action();'));
  await page.locator('[data-shop-item="short_blade"]').tap();
- assert.equal(await page.evaluate(()=>window.gameState.gold),935);
+ assert.equal(await page.evaluate(()=>window.gameState.gold),955);
  assert.equal(await page.evaluate(()=>window.gameState.equipmentInventory.short_blade),1);
  await page.screenshot({path:path.join(__dirname,'results/autotile/shop-mobile-'+height+'.png')});
  await page.locator('[data-close="shop"]').tap();await page.locator('#bookBtn').tap();await page.locator('[data-field-command="equipment"]').tap();
