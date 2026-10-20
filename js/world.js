@@ -87,9 +87,9 @@ window.YK_WORLD=(()=>{
  }
  // Optional scenery must stand on accessible terrain. Remove its sprite AND
  // footprint together when its contact area falls on water or impassable rock.
- // Story entrances are retained; only independently placed decorative landmarks
- // and ground ornaments are subject to this cleanup.
- const optionalScenery=new Set(['castle','sacredTree','stoneMonument','newCaveLarge','wildflowers']);
+ // Story entrances and the cave set into the mountain are retained; only
+ // independently placed decorative landmarks and ornaments are cleaned up.
+ const optionalScenery=new Set(['castle','sacredTree','stoneMonument','wildflowers']);
  const passableGround=new Set(['grass','forest','sand','snow','barren','road','bridge']);
  const grounded=o=>{
   if(o.ground){
