@@ -29,6 +29,8 @@ window.YK_WORLD=(()=>{
  mapData.projectedHeights=true;
  mapData.shoreRelief=true; // Visual shoreline bank only; authored height tiers are dormant.
  mapData.paths=roads;mapData.decorations=[];
+ // Disable old placement footprints until each current field object is re-anchored.
+ mapData.fieldObjectCollisionDeferred=true;
  // Two modest bridges are scenery at the designated river crossings.
 
  const object=(kind,cx,foot,width,height,walkThrough=false)=>mapData.decorations.push({kind,x:cx-width/2,y:foot-height,width,height,foot,walkThrough});

@@ -169,7 +169,10 @@ window.YK_LANDSCAPE=(()=>{
    if(water(t)?!bridge(px,py):!['grass','forest','sand','snow','barren','road','bridge'].includes(t))return false;
   }
   const hit=(l,t,w,h)=>Math.hypot(x-Math.max(l,Math.min(x,l+w)),y-Math.max(t,Math.min(y,t+h)))<r;
-  for(const o of map.decorations||[]){
+  // The world map's legacy decoration positions are being replaced. Until the
+  // new placement pass is verified, do not retain invisible solid footprints
+  // from those former positions. Terrain/water/cliffs still block normally.
+  if(!map.fieldObjectCollisionDeferred)for(const o of map.decorations||[]){
    for(const f of footprints(o))if(hit(f.x,f.y,f.width,f.height))return false;
   }
   return true;
