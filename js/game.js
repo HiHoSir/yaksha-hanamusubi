@@ -919,6 +919,59 @@ function npc(c,x,y,type,name,dir="d",frame=1){
 }
 window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;return window.__YK_COLLISION_DEBUG};
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
+// Opt-in field collision diagnostics; never changes gameplay or hitboxes.
+const collisionDebugEnabled=new URLSearchParams(location.search).has("collisionDebug");
+let collisionDebugVisible=collisionDebugEnabled;
+function fieldFrontPoint(){
+ const dirs={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
+ const [dx,dy]=dirs[S.dir]||[0,1];
+ const px=S.x+dx*32,py=S.y+dy*32;
+ return {px,py,tileX:Math.floor(px/32),tileY:Math.floor(py/32)};
+}
+function fieldDebugOverlay(c,camera){
+ if(!collisionDebugVisible||S.area!=="field")return;
+ const map=YK_WORLD.mapData,project=(x,y)=>YK_LANDSCAPE.project(x,y,{x:camera.x,y:camera.y},1.4);
+ const polygon=(x,y,w,h,color)=>{
+  const p=[[x,y],[x+w,y],[x+w,y+h],[x,y+h]].map(([a,b])=>project(a,b));
+  if(p.some(v=>!v))return;
+  c.beginPath();c.moveTo(p[0].x,p[0].y);
+  for(let i=1;i<4;i++)c.lineTo(p[i].x,p[i].y);
+  c.closePath();c.fillStyle=color;c.fill();c.strokeStyle=color.replace(/0\\.22\\)/,"0.85)");c.lineWidth=1;c.stroke();
+ };
+ c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
+ const cx=Math.floor(camera.x/32),cy=Math.floor(camera.y/32);
+ for(let ty=Math.max(0,cy-15);ty<=Math.min(map.length-1,cy+15);ty++)
+  for(let tx=Math.max(0,cx-15);tx<=Math.min(map[0].length-1,cx+15);tx++){
+   const px=tx*32+16,py=ty*32+16;
+   const blocked=!YK_LANDSCAPE.walkable(map,px,py,0.1);
+   if(blocked)polygon(tx*32,ty*32,32,32,"rgba(255,65,65,0.22)");
+  }
+ for(const o of map.decorations||[]){
+  for(const f of YK_LANDSCAPE.footprints(o)){
+   if(Math.abs(f.x-camera.x)>520||Math.abs(f.y-camera.y)>520)continue;
+   polygon(f.x,f.y,f.width,f.height,"rgba(255,184,42,0.22)");
+  }
+ }
+ const p=fieldFrontPoint();
+ polygon(p.tileX*32,p.tileY*32,32,32,"rgba(45,215,255,0.22)");
+ c.restore();
+}
+if(collisionDebugEnabled){
+ const panel=document.createElement("div");panel.id="fieldCollisionDebug";
+ panel.style.cssText="position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:1000;background:#101923e8;color:white;border:1px solid #e5b95a;border-radius:8px;padding:8px;font:12px monospace;max-width:220px";
+ const label=document.createElement("div");label.style.marginBottom="6px";
+ const toggle=document.createElement("button");toggle.type="button";toggle.textContent="判定表示 ON";
+ const copy=document.createElement("button");copy.type="button";copy.textContent="前方座標コピー";copy.style.marginLeft="4px";
+ const status=document.createElement("div");status.style.marginTop="6px";status.style.whiteSpace="pre-line";
+ panel.append(label,toggle,copy,status);document.body.appendChild(panel);
+ toggle.addEventListener("click",()=>{collisionDebugVisible=!collisionDebugVisible;toggle.textContent="判定表示 "+(collisionDebugVisible?"ON":"OFF");map()});
+ copy.addEventListener("click",async()=>{
+  const p=fieldFrontPoint(),v="area="+S.area+" tile=("+p.tileX+","+p.tileY+") pixel=("+p.px.toFixed(1)+","+p.py.toFixed(1)+") facing="+S.dir+" blocked="+collision(p.px,p.py);
+  try{await navigator.clipboard.writeText(v);status.textContent="コピーしました\\n"+v}
+  catch(e){const t=document.createElement("textarea");t.value=v;panel.append(t);t.select();try{document.execCommand("copy");status.textContent="コピーしました"}catch(_){status.textContent="文字列を選択してコピー"}t.remove()}
+ });
+ window.setInterval(()=>{if(!panel.isConnected)return;const p=fieldFrontPoint();label.textContent="判定: 赤=通行不可 / 黄=物体 / 水色=前方";status.textContent="前方 ("+p.tileX+","+p.tileY+") "+(S.area==="field"?(collision(p.px,p.py)?"通行不可":"通行可"):"フィールド外")},500);
+}
 function map(frameTime=performance.now()){
  if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
   g.clearRect(0,0,768,768);g.fillStyle="#102635";g.fillRect(0,0,768,768);
@@ -942,6 +995,7 @@ function map(frameTime=performance.now()){
   const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
    // Height tiers are retained in the map editor but not used for field rendering.
   });
+  fieldDebugOverlay(g,{x,y});
   g.restore();
   if(!ready){g.fillStyle='#102635';g.fillRect(0,0,768,768);}
 
