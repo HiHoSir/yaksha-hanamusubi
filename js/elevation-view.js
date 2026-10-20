@@ -28,6 +28,13 @@ window.YK_ELEVATION_VIEW=(()=>{
   triangle(c,im,[uv[0],uv[1],uv[2]],[p[0],p[1],p[2]]);triangle(c,im,[uv[0],uv[2],uv[3]],[p[0],p[2],p[3]]);
   if(shade){c.save();c.fillStyle='rgba(12,24,34,'+shade+')';c.beginPath();p.forEach((v,i)=>i?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));c.closePath();c.fill();c.restore();}
  }
+ function bandPolygon(poly,low,high){
+  for(const [bound,sign] of [[low,1],[high,-1]]){const out=[];
+   for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length],ai=(a[1]-bound)*sign>=0,bi=(b[1]-bound)*sign>=0;
+    if(ai)out.push(a);if(ai!==bi){const t=(bound-a[1])/(b[1]-a[1]);out.push([a[0]+(b[0]-a[0])*t,bound]);}
+   }poly=out;
+  }return poly;
+ }
  function render(c,m,art,actor,options={}){
   const rise=options.rise||20,zoom=1.4,camera={x:256,y:options.cameraY||400,preset:0},items=[];
   const point=(x,y,h)=>{const p=YK_LANDSCAPE.project(x,y,camera,zoom);return p&&{...p,y:p.y-h*rise*p.scale};};
@@ -41,42 +48,57 @@ window.YK_ELEVATION_VIEW=(()=>{
   }
   // Tile tops are sampled in short world-space strips to follow perspective and slopes.
   for(let ty=0;ty<m.length;ty++)for(let tx=0;tx<m[0].length;tx++){
-   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=road?art.road:im;
+   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=road?art.road:im,shape=E.outline(m,tx,ty);
    for(let v=0;v<32;v+=8){const py=ty*32+v;
     items.push({depth:py+8,order:0,draw:()=>{
      const p=[[0,v],[32,v],[32,v+8],[0,v+8]].map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
      if(p.every(Boolean)){
+      if(shape.cuts.length){
+       const clipped=bandPolygon(shape.polygon,v,v+8).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
+       if(clipped.length<3||!clipped.every(Boolean))return;
+       c.save();c.beginPath();clipped.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.clip();
+      }
       const sx=tx*32%texture.width,sy=(ty*32+v)%texture.height;
       if(Math.abs(p[0].y-p[1].y)<1e-6&&Math.abs(p[2].y-p[3].y)<1e-6){
        const left=Math.min(p[0].x,p[3].x),right=Math.max(p[1].x,p[2].x);
        c.drawImage(texture,sx,sy,32,8,left,p[0].y,right-left+.3,p[3].y-p[0].y+.6);
       }else quad(c,texture,sx,sy,32,8,p);
+      if(shape.cuts.length)c.restore();
      }
     }});
    }
-   for(const [side,[dx,dy]] of Object.entries(E.dirs)){
-    const ends=side==='s'?[[0,1],[1,1]]:side==='n'?[[0,0],[1,0]]:side==='e'?[[1,0],[1,1]]:[[0,0],[0,1]];
-    const top=ends.map(([u,v])=>E.level(m,tx,ty,u,v));
-    const bottom=ends.map(([u,v],i)=>Math.min(top[i],E.level(m,tx+dx,ty+dy,u-dx,v-dy)));
-    if(top.every((h,i)=>h-bottom[i]<1e-6))continue;
-    const coords=ends.map(([u,v])=>[(tx+u)*32,(ty+v)*32]);
-    // Side walls are split by height band and world depth, sharing corner vertices.
-    const segments=dx?4:1;
-    for(let segment=0;segment<segments;segment++){
-    const t0=segment/segments,t1=(segment+1)/segments;
-    const mix=(a,t)=>a[0]+(a[1]-a[0])*t;
-    const span=[t0,t1].map(t=>[mix(coords.map(p=>p[0]),t),mix(coords.map(p=>p[1]),t)]);
-    const high=[mix(top,t0),mix(top,t1)],low=[mix(bottom,t0),mix(bottom,t1)];
-    const wallDepth=side==='n'?ty*32:side==='s'?(ty+1)*32:ty*32+(segment+1)*8;
-    items.push({depth:wallDepth,order:1,draw:()=>{
-     const bands=Math.max(1,Math.ceil(Math.max(...high.map((h,i)=>h-low[i]))));
-     for(let b=0;b<bands;b++){
-      const hi=high.map((h,i)=>h+(low[i]-h)*b/bands),lo=high.map((h,i)=>h+(low[i]-h)*(b+1)/bands);
-      const p=[point(...span[0],hi[0]),point(...span[1],hi[1]),point(...span[1],lo[1]),point(...span[0],lo[0])];
-      const face=art[options.cliffMaterial||'rock']||art.rock;
-      if(p.every(Boolean))quad(c,face,tx%2*32,ty%2*32,32,32,p,side==='w'?.12:side==='e'?.35:.22);
-     }
+   // The removed triangle exposes lower ground, not an empty cutout.
+   for(const cut of shape.cuts){
+    const local=[cut.corner,...cut.ends],base=art[cut.material]||im;
+    items.push({depth:ty*32+Math.max(...local.map(p=>p[1])),order:0,draw:()=>{
+     const p=local.map(([u,v])=>point(tx*32+u,ty*32+v,cut.lower));
+     const uv=local.map(([u,v])=>({x:tx*32%base.width+u,y:ty*32%base.height+v}));
+     if(p.every(Boolean))triangle(c,base,uv,p);
     }});
+   }
+   // Generate axis-aligned and diagonal walls from the SAME top polygon.
+   for(let i=0;i<shape.polygon.length;i++){
+    const ends=[shape.polygon[i],shape.polygon[(i+1)%shape.polygon.length]],[[ax,ay],[bx,by]]=ends;
+    const side=ax===bx&&ax===0?'w':ax===bx&&ax===32?'e':ay===by&&ay===0?'n':ay===by&&ay===32?'s':null;
+    const cut=side?null:shape.cuts.find(c=>c.ends[0][0]===ax&&c.ends[0][1]===ay&&c.ends[1][0]===bx&&c.ends[1][1]===by);
+    if(!side&&!cut)continue;
+    const [dx,dy]=side?E.dirs[side]:[0,0],top=ends.map(([u,v])=>E.level(m,tx,ty,u/32,v/32));
+    const bottom=ends.map(([u,v],j)=>Math.min(top[j],cut?cut.lower:E.level(m,tx+dx,ty+dy,u/32-dx,v/32-dy)));
+    if(top.every((h,j)=>h-bottom[j]<1e-6))continue;
+    const coords=ends.map(([u,v])=>[tx*32+u,ty*32+v]),segments=Math.max(1,Math.ceil(Math.abs(by-ay)/8));
+    for(let segment=0;segment<segments;segment++){
+     const t0=segment/segments,t1=(segment+1)/segments,mix=(a,t)=>a[0]+(a[1]-a[0])*t;
+     const span=[t0,t1].map(t=>[mix(coords.map(p=>p[0]),t),mix(coords.map(p=>p[1]),t)]);
+     const high=[mix(top,t0),mix(top,t1)],low=[mix(bottom,t0),mix(bottom,t1)];
+     items.push({depth:Math.max(...span.map(p=>p[1])),order:1,draw:()=>{
+      const bands=Math.max(1,Math.ceil(Math.max(...high.map((h,j)=>h-low[j]))));
+      for(let b=0;b<bands;b++){
+       const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
+       const p=[point(...span[0],hi[0]),point(...span[1],hi[1]),point(...span[1],lo[1]),point(...span[0],lo[0])];
+       const face=art[options.cliffMaterial||'rock']||art.rock;
+       if(p.every(Boolean))quad(c,face,tx%2*32,ty%2*32,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
+      }
+     }});
     }
    }
   }
@@ -92,7 +114,11 @@ window.YK_ELEVATION_VIEW=(()=>{
   items.sort((a,b)=>a.depth-b.depth||a.order-b.order);for(const item of items)item.draw();
   for(let y=136;y<208;y+=4){const t=(y-136)/72;c.globalAlpha=1-t*t*(3-2*t);c.drawImage(art.horizon,0,y,640,4,0,y,640,4);}c.globalAlpha=1;
   if(options.grid){for(let ty=0;ty<m.length;ty++)for(let tx=0;tx<m[0].length;tx++){
-   const p=[[0,0],[1,0],[1,1],[0,1]].map(([u,v])=>point((tx+u)*32,(ty+v)*32,E.level(m,tx,ty,u,v)));if(!p.every(Boolean))continue;
+   for(const cut of E.outline(m,tx,ty).cuts){
+    const blocked=[cut.corner,...cut.ends].map(([u,v])=>point(tx*32+u,ty*32+v,cut.lower));if(!blocked.every(Boolean))continue;
+    c.fillStyle='rgba(255,77,77,.65)';c.beginPath();blocked.forEach((v,i)=>i?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));c.closePath();c.fill();
+   }
+   const p=E.outline(m,tx,ty).polygon.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));if(!p.every(Boolean))continue;
    c.strokeStyle='rgba(255,255,255,.25)';c.beginPath();p.forEach((v,i)=>i?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));c.closePath();c.stroke();
   }}c.restore();return {point};
  }
@@ -106,3 +132,4 @@ window.YK_ELEVATION_VIEW=(()=>{
  }
  return {load,render,sources};
 })();
+

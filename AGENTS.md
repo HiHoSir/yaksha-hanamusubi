@@ -12,6 +12,7 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Battle screen and mobile QA | [battle-debug-qa](.agents/skills/battle-debug-qa/SKILL.md) |
 | Yaksha-hime battle poses and outfits | [yaksha-battle-sprites](.agents/skills/yaksha-battle-sprites/SKILL.md) |
 | Interior object layers, occlusion and floor footprints | [interior-occlusion-layers](skills/interior-occlusion-layers/SKILL.md) |
+| Terrain heights, ramps, diagonal cliff corners and collision | [terrain-elevation](.agents/skills/terrain-elevation/SKILL.md) |
 | Field/mapchip artwork and terrain | [field-mapchip-art](.agents/skills/field-mapchip-art/SKILL.md) |
 | New tile, floor decoration, furniture or architecture generation preflight | [asset-design](.agents/skills/asset-design/SKILL.md) |
 | Isolated private internal validation site | [sites-private-debug](.agents/skills/sites-private-debug/SKILL.md) |
@@ -172,3 +173,8 @@ This is a **hard rule** for every field-map object, including buildings, torii, 
 4. Keep approved sprite dimensions, visual offsets, existing terrain, and authored coordinates unchanged unless the user explicitly requests a change. Place and inspect every occupied cell intentionally. Entrances and passable gaps must remain reachable.
 5. New or changed field objects require validation for: integer/in-bounds occupied tiles; duplicate or overlapping occupied tiles; passable entry approaches; alignment of visible ground contact with occupied tiles; and no newly invisible walls. Test actual collision and routing. Do not treat a GitHub commit or successful Pages deployment as gameplay QA or Safari device validation.
 6. Do not use a transitional pixel-footprint conversion as a substitute for explicit occupancy. If an existing object lacks authored occupancy, inspect the intended tile layout and add the explicit cells; do not guess based on image size. If the correct occupied cells cannot be established, report the unresolved object rather than silently fabricating them.
+
+## Shared terrain elevation and diagonal-corner contract
+
+For terrain height, ramp, cliff smoothing or diagonal-corner work, read `.agents/skills/terrain-elevation/SKILL.md` before editing. Preserve the 32px movement grid and keep materials separate from height. Use one world-space outline for elevated tops, straight/diagonal cliff faces, exposed lower ground and foot collision. Cut-off corner triangles and their boundaries are non-walkable from either elevation; check the full stride and adjacent cells at exact grid edges. Do not derive object `occupiedTiles` from those polygons or sprite bounds. Preserve valid ramp/entrance routes and show a straight-versus-cut comparison. The elevation lab is a prototype; enabling its heights in the main field requires a route/save/camera audit. Record source tests, live-page checks, Pages and device QA separately.
+

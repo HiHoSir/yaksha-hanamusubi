@@ -1,0 +1,4 @@
+interface:
+  display_name: "地形の高低差と斜めの崖"
+  short_description: "32px地形の高さ・坂・崖輪郭・侵入判定を共通化する制作手順"
+  default_prompt: "Use $terrain-elevation to change terrain height, ramps, and clipped cliff corners while keeping rendering and collision consistent."

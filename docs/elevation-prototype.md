@@ -49,3 +49,24 @@ invalid ramp endpoints. `node qa/elevation-render.cjs`: four material scenes wit
 the production camera and heroine for visual inspection. Browser interaction and
 deployment are checked separately from these local tests; no iPhone-device pass
 is implied.
+
+
+## Diagonal corners — β16.0.116
+
+The corner selector compares 0px, 8px (default) and 12px cuts on the same map.
+`outline` supplies one retained-top polygon and removed-corner triangles. The
+renderer shortens straight faces and inserts diagonal walls from those exact
+vertices; lower ground fills the removed area. The grid option marks removed
+triangles red. Ground material and cliff material remain independent.
+
+Removed triangles, diagonal boundaries and a 2px foot clearance are blocked from
+both elevations. `pointWalkable` checks adjacent cells at exact grid edges, and
+`canMove` samples the complete stride. Manual input and automatic routing both
+use it. Only convex corners with equal lower neighbors are cut; ramps, corners
+adjoining ramps, concave corners and unequal lower joins retain square geometry.
+
+Run `node qa/elevation-corners.cjs` in addition to the existing tests. It covers
+all four corner directions, three ground materials, 8/12px cuts, forbidden entry
+from high/low ground, exact boundaries, retained tops and all fixture routes.
+Reusable instructions are in `.agents/skills/terrain-elevation/SKILL.md` and the
+root `AGENTS.md` registry. These changes remain isolated to the elevation lab.
