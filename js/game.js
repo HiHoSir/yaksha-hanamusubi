@@ -921,7 +921,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.0.95";
+const GAME_JS_BUILD="16.0.96";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -965,17 +965,20 @@ function fieldDebugOverlay(c,camera){
  polygon(p.tileX*32,p.tileY*32,32,32,"rgba(45,215,255,0.22)");
  c.restore();
 }
-if(collisionDebugEnabled){
+{
  const panel=document.createElement("div");panel.id="fieldCollisionDebug";
- panel.style.cssText="position:fixed;right:8px;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:1000;background:#101923e8;color:white;border:1px solid #e5b95a;border-radius:8px;padding:8px;font:12px monospace;max-width:220px";
+ panel.style.cssText="position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:2147483646;background:#101923f2;color:white;border:1px solid #e5b95a;border-radius:8px;padding:8px;font:12px monospace;max-width:220px";
  const label=document.createElement("div");label.style.marginBottom="6px";
+ const expand=document.createElement("button");expand.type="button";expand.textContent="判定DEBUG";expand.setAttribute("aria-label","当たり判定デバッグメニューを開く");
+ const details=document.createElement("div");details.style.display=collisionDebugEnabled?"block":"none";
+ expand.addEventListener("click",()=>{details.style.display=details.style.display==="none"?"block":"none";if(details.style.display==="block")map()});
  const toggle=document.createElement("button");toggle.type="button";toggle.textContent="判定表示 ON";
  const copy=document.createElement("button");copy.type="button";copy.textContent="前方座標コピー";copy.style.marginLeft="4px";
  const status=document.createElement("div");status.style.marginTop="6px";status.style.whiteSpace="pre-line";
  const build=document.createElement("button");build.type="button";build.textContent="実行中バージョンコピー";build.style.marginTop="6px";
  build.addEventListener("click",async()=>{const report=runtimeBuildReport();try{await navigator.clipboard.writeText(report);status.textContent="実行中バージョンをコピーしました"}catch(e){status.textContent=report}});
 
- panel.append(label,toggle,copy,build,status);document.body.appendChild(panel);
+ details.append(label,toggle,copy,build,status);panel.append(expand,details);document.body.appendChild(panel);
  toggle.addEventListener("click",()=>{collisionDebugVisible=!collisionDebugVisible;toggle.textContent="判定表示 "+(collisionDebugVisible?"ON":"OFF");map()});
  copy.addEventListener("click",async()=>{
   const p=fieldFrontPoint(),v="area="+S.area+" tile=("+p.tileX+","+p.tileY+") pixel=("+p.px.toFixed(1)+","+p.py.toFixed(1)+") facing="+S.dir+" blocked="+collision(p.px,p.py);
