@@ -1299,7 +1299,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
  exit:{to:"field",rect:[720,1230,816,1280]},northExit:{to:"field",rect:[710,0,830,58]}};
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
-function collision(x,y,ignoreNPC=false){if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
+function collision(x,y,ignoreNPC=false){if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,visitedAreas:S.visitedAreas||{},villageBlocked,npcBlocked,interiorBlocked});}
 function exitArea(){if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 function move(dx,dy,dir){
  if(busy)return;
@@ -1715,7 +1715,7 @@ function enterWorldPlace(k){
  // chapters requires reaching their predecessor. Prevents skipping the story.
  const order=['village','shrine','cove','forest','waterfall','hotspring','fox'];
  const index=order.indexOf(k),previous=order[index-1];
- if(index>1&&!S.visitedAreas?.[previous]&&S.area==='field'){
+ if(index>0&&!S.visitedAreas?.[previous]&&S.area==='field'){
   message('この先へ進む前に、'+YK_WORLD.places[previous].name+'を訪ねよう。',2200);
   return;
  }
