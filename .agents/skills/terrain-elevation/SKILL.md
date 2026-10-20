@@ -17,7 +17,7 @@ description: Build or revise material-independent terrain heights, ramps, cliff 
 - Permit a ramp only when both shared-edge endpoints and midpoint agree with neighboring heights. Check all four orientations. Do not permit stepping up a cliff or across a ramp's disconnected side.
 
 ## Author diagonal corners
-- Default to a bold 24px cut (three quarters of a cell); retain 0/8/12px comparisons. When two eligible corners share a tile edge, cap both at 15px so cuts do not overlap and a 2px straight segment survives. Recheck actual cell-center routes with collision; do not assume every edge remains traversable.
+- Default to a 30px cut: its right triangle removes 450/1024 = 43.95% of a tile, matching the requested roughly 45% area. Retain 0/8/12/24px comparisons. When two eligible corners share a tile edge, cap both at 15px so cuts do not overlap and a 2px straight segment survives. Recheck actual cell-center routes with collision; do not assume every edge remains traversable.
 - Detect convex corners from height topology, independent of ground material. In the present implementation, cut only flat tiles with two equally low orthogonal neighbors and a diagonal no higher than that lower floor.
 - Keep ramp tiles and corners adjoining ramps square. Keep unequal lower floors and concave corners square until a separately validated join is implemented; do not quietly create an unsupported join.
 - Generate the top polygon, shortened straight cliff edges, diagonal wall and exposed lower triangle from the same corner endpoints. Never mask just the top while leaving a square wall or an empty hole underneath.
@@ -35,7 +35,7 @@ node qa/elevation-corners.cjs
 node qa/elevation-render.cjs
 ```
 
-- Inspect straight versus cut corners, all four corner orientations, all material choices, 8/12/24px cuts, raised object feet and the automatic ramp round trip.
+- Inspect straight versus cut corners, all four corner orientations, all material choices, 8/12/24/30px cuts, raised object feet and the automatic ramp round trip.
 - Test entry from both higher and lower ground, exact grid endpoints, retained walkable tops, water/object occupancy, and unchanged entry/return routes. Rendered appearance and collision tests are separate gates.
 - Check the live page: corner selector, material selectors, grid/forbidden overlays, manual movement and automatic round trip. Report iPhone Safari separately; never infer a device pass from desktop Chrome.
 - Before applying to the main field, audit existing height data, every destination approach, ramp placement, saved positions and performance. Until then, state explicitly that this is a prototype.

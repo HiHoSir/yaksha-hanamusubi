@@ -77,3 +77,9 @@ Adjacent eligible corners sharing an edge are capped at 15px each to prevent
 overlap and preserve a 2px straight segment. The same effective width drives
 the top, wall, lower triangle and forbidden region. Full route checks remain
 required because a wide cut can close a cell-edge midpoint.
+
+## Approximately 45% area — β16.0.118
+The default is 30px along each edge: the removed triangle is 450px²,
+43.95% of a 32×32 cell. Adjacent cuts still cap at 15px to avoid overlap.
+Removed regions remain forbidden; the 2px clearance may block a corner
+cell's center too. Routing must respect this and use retained inner cells.
