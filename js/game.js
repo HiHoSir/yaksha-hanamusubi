@@ -211,11 +211,32 @@ const HIZUKI_PIXEL=new Image();
 HIZUKI_PIXEL.onload=assetLoaded;
 HIZUKI_PIXEL.datasetSrc="assets/characters/hizuki/pixel-v1/walk-atlas-64.png?v=15.57.116";
 const HIZUKI_4DIR_ROW={d:0,u:1,r:2,l:3};
+const SD_FIELD_BOUNDS_CACHE=new Map();
+function sdFieldBounds(row,col){
+ const key=row*3+col;
+ if(SD_FIELD_BOUNDS_CACHE.has(key))return SD_FIELD_BOUNDS_CACHE.get(key);
+ const fallback={left:0,width:32,bottom:31,height:31};
+ if(!layerReady(HIZUKI_FIELD_SD))return fallback;
+ try{
+  const canvas=document.createElement("canvas");canvas.width=32;canvas.height=32;
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  ctx.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,0,0,32,32);
+  const data=ctx.getImageData(0,0,32,32).data;
+  let left=32,right=-1,top=32,bottom=-1;
+  for(let y=0;y<32;y++)for(let x=0;x<32;x++){
+   if(data[(y*32+x)*4+3]<32)continue;
+   left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
+  }
+  const result=bottom>=top?{left,width:right-left+1,bottom,height:bottom-top+1}:fallback;
+  SD_FIELD_BOUNDS_CACHE.set(key,result);return result;
+ }catch(error){return fallback;}
+}
+
 // Optional one-cell SD art for the world field only. Original village/interior art stays intact.
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v1/walk-atlas-32.png?v=16.0.40";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v1/walk-atlas-32.png?v=16.0.41";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -762,10 +783,14 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   const motion=Math.max(0,Math.min(2,Number(frame)||0));
   // Atlas columns: neutral, raised foot, opposite foot (side uses neutral/raised).
   const col=motion===1?0:motion===0?1:(row>=2?1:2);
-  const scale=z/.56,foot=y+9*z;
+  // Normalize the opaque silhouette, not the transparent 32px cell.
+  // This keeps front/back/side at the same visible height and aligns the boots.
+  const bounds=sdFieldBounds(row,col);
+  const scale=(58/bounds.height)*(z/.56),foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,20*z,6*z,.28);
-  c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,x-16*scale,foot-31*scale,32*scale,32*scale);
+  c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
+   x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
   c.restore();return;
  }
   const pixelArt=hizukiArt==="pixel"&&layerReady(HIZUKI_PIXEL);
