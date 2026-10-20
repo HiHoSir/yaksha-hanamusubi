@@ -7,7 +7,7 @@ const localStorage={
  removeItem:key=>store.delete(key)
 };
 const ctx={localStorage,Date,console};ctx.window=ctx;
-for(const file of ['js/data.js','js/equipment.js','js/world.js','js/save.js','js/game-state.js']){
+for(const file of ['js/data.js','js/equipment.js','js/field-terrain.js','js/world.js','js/save.js','js/game-state.js']){
  vm.runInNewContext(fs.readFileSync(file,'utf8'),ctx,{filename:file});
 }
 const save=ctx.YK_SAVE;
