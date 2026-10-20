@@ -21,6 +21,8 @@ const server=http.createServer((req,res)=>{
   const run=code=>page.evaluate(code=>window.__qaEval(code),code);
   await page.waitForFunction(()=>window.__qaEval&&window.__qaEval('layerReady(HIZUKI_4DIR)'));
   assert.deepEqual(await run('[HIZUKI_4DIR.naturalWidth,HIZUKI_4DIR.naturalHeight]'),[768,1024]);
+  // Test the HD atlas explicitly; the approved field default now uses the SD atlas.
+  await run('hizukiArt="bluebob"');
   const cells=await run(`(()=>{
    const results=[];
    for(const dir of ['d','u','r','l'])for(let frame=0;frame<3;frame++){
