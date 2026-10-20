@@ -77,9 +77,15 @@ window.YK_WORLD=(()=>{
  // Collision geometry belongs to each placed object, not an old map coordinate.
  const contact=o=>{
   if(o.walkThrough||o.collision?.enabled===false)return [];
-  if(o.collision?.rects)return o.collision.rects.map(f=>({x:o.x+f.x,y:o.y+f.y,width:f.width,height:f.height}));
-  if(o.groundFootprint){const f=o.groundFootprint;return [{x:o.x+(o.width-f.width)/2,y:o.foot-f.height,width:f.width,height:f.height}];}
-  return [];
+  const raw=o.collision?.rects?.map(f=>({x:o.x+f.x,y:o.y+f.y,width:f.width,height:f.height}))
+   ||(o.groundFootprint?[{x:o.x+(o.width-o.groundFootprint.width)/2,y:o.foot-o.groundFootprint.height,width:o.groundFootprint.width,height:o.groundFootprint.height}]:[]);
+  const cells=new Set();
+  for(const f of raw)for(let ty=Math.floor(f.y/32)-1;ty<=Math.ceil((f.y+f.height)/32);ty++)
+   for(let tx=Math.floor(f.x/32)-1;tx<=Math.ceil((f.x+f.width)/32);tx++){
+    const cx=tx*32+16,cy=ty*32+16;
+    if(cx>=f.x&&cx<f.x+f.width&&cy>=f.y&&cy<f.y+f.height)cells.add(tx+","+ty);
+   }
+  return [...cells].map(k=>{const [tx,ty]=k.split(",").map(Number);return {x:tx*32,y:ty*32,width:32,height:32};});
  };
  const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
  const placeObject=o=>{
