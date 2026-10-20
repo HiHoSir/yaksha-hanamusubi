@@ -76,20 +76,9 @@ window.YK_WORLD=(()=>{
   if(footprint.some(f=>mapData.decorations.some(existing=>contact(existing).some(g=>intersects(f,g)))))return false;
   mapData.decorations.push(o);return true;
  };
- // Small visible mountain ridges encourage detours; authored coastlines remain intact.
- const ridgeLines=[
-  [[29,63],[30,63],[31,63],[32,63],[33,63],[34,63]],
-  [[26,52],[27,52],[28,52],[29,52],[30,52]],
-  [[39,46],[40,46],[41,46],[42,46]],
-  [[53,41],[54,41],[55,41],[56,41]],
-  [[57,27],[58,27],[59,27],[60,27]],
-  [[38,12],[39,12],[40,12],[41,12]]
- ];
- const reserved=[start,...Object.values(places).map(p=>p.point),...[[25,58],[35,41],[54,37],[34,13]].map(center)];
- for(const line of ridgeLines)for(const [tx,ty] of line){
-  if(mapData[ty]?.[tx]!=='grass'||reserved.some(([px,py])=>Math.hypot(px-(tx*32+16),py-(ty*32+16))<112))continue;
-  placeObject({kind:'newMountainSmall',x:tx*32,y:ty*32,width:32,height:32,foot:(ty+1)*32,groundFootprint:{width:32,height:32}});
- }
+ // Retire the provisional mountain strips: they were added independently of the
+ // approved map and could block grass without a coherent terrain boundary.
+ // Existing mountain terrain remains impassable and visibly rendered.
  // Forest crowns are traversable; overlapping visual silhouettes are permitted.
  const groves=[[[24,55],[25,55],[26,55],[25,56]],[[17,45],[18,45],[19,45]],[[57,32],[58,32],[59,32],[58,33]],[[62,24],[63,24],[64,24]],[[30,16],[31,16],[32,16]]];
  for(const grove of groves)for(const [tx,ty] of grove){
