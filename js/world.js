@@ -30,10 +30,13 @@ window.YK_WORLD=(()=>{
  mapData.shoreRelief=true; // Visual shoreline bank only; authored height tiers are dormant.
  mapData.paths=roads;mapData.decorations=[];
  // Disable old placement footprints until each current field object is re-anchored.
- mapData.fieldObjectCollisionDeferred=true;
+ mapData.fieldObjectCollisionDeferred=false;
  // Two modest bridges are scenery at the designated river crossings.
 
- const object=(kind,cx,foot,width,height,walkThrough=false)=>mapData.decorations.push({kind,x:cx-width/2,y:foot-height,width,height,foot,walkThrough});
+ const object=(kind,cx,foot,width,height,walkThrough=false)=>{
+  const collision=walkThrough?{enabled:false}:{enabled:true,rects:[{x:width*.18,y:height*.72,width:width*.64,height:height*.28}]};
+  mapData.decorations.push({kind,x:cx-width/2,y:foot-height,width,height,foot,walkThrough,collision});
+ };
  // Entrance markers are 24px in front of the solid object's feet.
  for(const [id,p] of Object.entries(places)){
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
@@ -66,11 +69,12 @@ window.YK_WORLD=(()=>{
  }
  for(const [tx,ty] of [[16,57],[20,60],[45,63],[54,63],[58,45],[43,25]]){const [x,y]=center([tx,ty]);mapData.decorations.push({kind:'wildflowers',x,y,width:40,height:24,foot:y+24,ground:true});}
  // Place by contact footprints, not sprite rectangles. Visual overhang may overlap.
+ // Collision geometry belongs to each placed object, not an old map coordinate.
  const contact=o=>{
-  if(o.walkThrough)return [];
+  if(o.walkThrough||o.collision?.enabled===false)return [];
+  if(o.collision?.rects)return o.collision.rects.map(f=>({x:o.x+f.x,y:o.y+f.y,width:f.width,height:f.height}));
   if(o.groundFootprint){const f=o.groundFootprint;return [{x:o.x+(o.width-f.width)/2,y:o.foot-f.height,width:f.width,height:f.height}];}
-  const bases={newVillage:[.18,.72,.82,1],newFort:[.18,.72,.82,1],newCaveLarge:[.12,.72,.88,1],shrine:[0,0,1,1],castle:[.10,.62,.92,1],sacredTree:[0,.5,1,1],stoneMonument:[0,.5,1,1]};
-  const b=bases[o.kind];return b?[{x:o.x+b[0]*o.width,y:o.y+b[1]*o.height,width:(b[2]-b[0])*o.width,height:(b[3]-b[1])*o.height}]:[];
+  return [];
  };
  const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
  const placeObject=o=>{
