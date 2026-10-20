@@ -3,6 +3,10 @@ const ctx={};ctx.window=ctx;vm.runInNewContext(fs.readFileSync('js/camera-positi
 const position=ctx.YK_CAMERA.position;
 const state={x:140,y:250},motion={x:100,y:200,at:1000};
 const at=t=>position(state,motion,t);
+const fieldMotion={...motion,duration:192};
+assert.equal(position(state,fieldMotion,1096).x,120);
+assert.equal(position(state,fieldMotion,1144).x,130);
+assert.equal(position(state,fieldMotion,1192).x,140);
 assert.equal(at(1000).x,100);assert.equal(at(1000).y,200);
 assert.equal(at(1072).x,120);assert.equal(at(1072).y,225);
 assert.equal(at(1144).x,140);assert.equal(at(1144).y,250);
@@ -27,3 +31,4 @@ assert.equal(stationary.x,80);assert.equal(stationary.y,90);
 assert.equal(position(state,motion,1000).x,100,'motion must begin at prior position');
 assert.equal(state.y,250);assert.equal(motion.y,200);
 console.log('Field/village render interpolation contracts OK');
+

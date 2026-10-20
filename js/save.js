@@ -22,7 +22,7 @@ function migrate(raw){
   if(s.area==="field")[s.x,s.y]=YK_WORLD.migratePosition([s.x,s.y]);
   s.worldPosition=YK_WORLD.migratePosition(raw.worldPosition);
  }
- if(raw&&Number(raw.worldRevision)>=88&&Number(raw.worldRevision)<112&&typeof YK_WORLD!=="undefined"&&YK_WORLD.safePosition){
+ if(raw&&Number(raw.worldRevision)>=88&&Number(raw.worldRevision)<113&&typeof YK_WORLD!=="undefined"&&YK_WORLD.safePosition){
   if(s.area==="field")[s.x,s.y]=YK_WORLD.safePosition([s.x,s.y]);
   s.worldPosition=YK_WORLD.safePosition(s.worldPosition);
  }
@@ -49,4 +49,5 @@ function slotInfo(n){const s=loadSlot(n);return s?{lv:s.lv,area:(YK_DATA.areas[s
 function reset(){[AUTO,LEGACY,"yaksha_beta_slot1","yaksha_beta_slot2","yaksha_beta_slot3"].forEach(k=>localStorage.removeItem(k))}
 return {fresh,migrate,loadAuto,auto,saveSlot,loadSlot,slotInfo,reset};
 })();
+
 

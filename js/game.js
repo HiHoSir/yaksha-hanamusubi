@@ -667,7 +667,7 @@ function drawLayeredIndoorActors(c,frameTime,guide,art){
    npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();
   }};
  });
- const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
+ const t=fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||144),0,1):1;
  const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
  const y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
  const p=indoorPerspective(guide,x,y);
@@ -996,7 +996,7 @@ function map(frameTime=performance.now()){
  if(S.area!=="field")ensureNpcAssets();
  if(S.area==="debugField"){drawDebugField(g);return;}
  if(S.area==="teahouse"){
-  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
+  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||144),0,1):1;
   const px=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
   const py=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
   YK_INDOOR_NATIVE_DEBUG.render(g,p=>hero(g,p.x,p.y-9*.56*p.z,S.dir,S.frame,S.outfit,.56*p.z),{x:px,y:py},areaNPCs(),(c,n,p)=>{c.save();c.translate(p.x,p.y);c.scale(p.z/.56,p.z/.56);npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();});
@@ -1094,13 +1094,13 @@ function areaNPCs(){
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
 function drawActorsOn(c,frameTime=performance.now()){
  const actors=areaNPCs().map(n=>({y:n.y,kind:"npc",n}));
- const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;
+ const t=fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||144),0,1):1;
  const heroY=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
  actors.push({y:heroY,kind:"hero"});
  if(YK_INTERIOR_BASE.area(S))for(const object of YK_INTERIOR_BASE.objects(S))actors.push({y:object.y,kind:"object",object});
  actors.sort((a,b)=>a.y-b.y);
  for(const a of actors){
-   if(a.kind==="hero"){const t=fieldMotion?clamp((frameTime-fieldMotion.at)/144,0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y-(YK_INTERIOR_BASE.area(S)?9*.56:0),S.dir,S.frame,S.outfit,S.area==="field"?.16:YK_INTERIOR_BASE.area(S)?.56:S.area==="village"?.68:.92);}
+   if(a.kind==="hero"){const t=fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||144),0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y-(YK_INTERIOR_BASE.area(S)?9*.56:0),S.dir,S.frame,S.outfit,S.area==="field"?.16:YK_INTERIOR_BASE.area(S)?.56:S.area==="village"?.68:.92);}
    else if(a.kind==="object")YK_INTERIOR_BASE.drawObject(c,S,a.object);
    else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
  }
@@ -1409,7 +1409,7 @@ function move(dx,dy,dir){
  const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,Number($("speedSelect").value)||1,YK_WORLD.size,collision);
  S.x=destination.x;S.y=destination.y;
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
- if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now()};
+ if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:YK_MOVEMENT.duration(S.area)};
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
@@ -1945,12 +1945,12 @@ function publishProbe(t){
  p.draw=p.npc=p.drawPeak=p.npcPeak=p.drawCount=p.npcCount=p.frames=0;p.last=t;
 }
 let lastBattleMotionPaint=0;
-function loop(t){if(battle&&t-lastBattleMotionPaint>=33){lastBattleMotionPaint=t;renderBattle();}publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>125;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=144){
- const deadline=fieldMotion.at+144;fieldMotion=null;
+function loop(t){if(battle&&t-lastBattleMotionPaint>=33){lastBattleMotionPaint=t;renderBattle();}publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>125;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=(fieldMotion.duration||144)){
+ const deadline=fieldMotion.at+(fieldMotion.duration||144);fieldMotion=null;
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
- }map(motionTime);}else if(idleNpcPaint||idleVillagePaint){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+ }map(motionTime);}else if(idleNpcPaint||idleVillagePaint){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(!fieldMotion&&S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
@@ -2421,4 +2421,5 @@ if(villageTestWarpBtn){
 }
 
 })();
+
 

@@ -24,6 +24,9 @@ for(const o of m.decorations.filter(o=>o.occupiedTiles.length).slice(0,20)){
 }
 assert(m.flat().filter(t=>t==='forest').length>500);assert(m.flat().filter(t=>t==='mountain').length>250);
 assert.equal(a.objects(m).length,m.decorations.filter(o=>!o.ground).length,'duplicate procedural scenery');
+const coastalMountains=m.decorations.filter(o=>o.biome==='mountain'&&o.contactTiles.some(([x,y])=>x>=28&&x<=48&&y>=64&&y<=77));
+assert(coastalMountains.length>=20,'missing village coastal ridges');
+assert(a.walkable(m,...w.start,12),'village field spawn blocked by coastal ridges');
 // Reference geography: islands must stay separate, beach is actual dry land,
 // water cannot retain an elevation from the old coastline, and route legs must
 // not backtrack to a previously visited cell.
@@ -55,4 +58,5 @@ for(const b of m.decorations.filter(o=>o.kind==='bridge'||o.kind==='bridgeNS')){
  assert(sides.every(([xx,yy])=>wet(xx,yy)),'water interrupted at bridge '+[x,y]);
 }
 console.log('PASS reference field: explicit contacts, all destinations, 11 continuous routes, bridge traversal, save repair and no duplicated scenery');
+
 

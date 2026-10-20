@@ -1,6 +1,9 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const ctx={};ctx.window=ctx;vm.runInNewContext(fs.readFileSync('js/movement-rules.js','utf8'),ctx);
 const step=ctx.YK_MOVEMENT.step,clear=()=>false;
+assert.equal(ctx.YK_MOVEMENT.duration('field'),192);
+for(const area of ['village','teahouse','osumiHome','villageRoom'])assert.equal(ctx.YK_MOVEMENT.duration(area),144);
+assert.equal(144/ctx.YK_MOVEMENT.duration('field'),.75,'field speed is 75% of previous cadence');
 const east=step('field',100,100,1,0,1,2560,clear);
 assert.equal(east.x,132);assert.equal(east.y,100);
 const diagonal=step('waterfall',100,100,1,1,1,2560,clear);
@@ -15,3 +18,4 @@ const village=step('village',1500,1240,1,0,1,2560,clear);
 assert.equal(village.x,1504);
 assert.equal(step('field',100,100,0,0,1,2560,clear).x,100);
 console.log('Movement speed, diagonal normalization, collision and bounds contracts OK');
+

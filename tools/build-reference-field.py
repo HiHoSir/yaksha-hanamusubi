@@ -55,6 +55,9 @@ forests=[
 ]
 for _,p in forests:zone(p,'forest')
 mountains=[
+ ('village-west-coast',[(28,65),(31,64),(33,66),(32,69),(30,70),(28,68)]),
+ ('village-east-coast',[(42,65),(46,64),(48,66),(46,69),(43,70),(42,68)]),
+ ('village-south-coast',[(39,73),(42,73),(43,75),(40,77),(38,76)]),
  ('western-ridge',[(23,33),(26,31),(31,32),(35,36),(33,39),(28,40),(24,38)]),
  ('central-ridge',[(44,22),(47,18),(51,20),(53,23),(59,25),(57,28),(51,27),(47,26)]),
  ('northern-ridge',[(43,7),(47,6),(50,9),(54,11),(57,14),(55,18),(51,16),(47,13)]),
@@ -251,11 +254,12 @@ for y,row in enumerate(tiles):
     for x,t in enumerate(row):
         if t in water or t=='bridge':heights[y][x]=0
 data.update(tiles=tiles,heights=heights,referenceComposition={
- 'revision':112,'source':'User reference map 2026-10-20; reviewed coast trace, beach cells and authored interior terrain',
+ 'revision':113,'source':'User reference map 2026-10-20; reviewed coast trace, beach cells and authored interior terrain',
  'places':places,'restStops':[dict(id=i,name=n,cell=p,type=t) for i,n,p,t in stops],
  'roads':roads,'bridgeWaterCells':bridgeWater,'watercourses':watercourses,'decorations':objects,'forestRegions':[n for n,_ in forests],
  'mountainRegions':[n for n,_ in mountains],
  'assetGaps':['snow-capped mountain group compatible with current art (legacy snowMountain.png candidate exists)','brown bare mountain group','conifer tree group','cherry blossom tree','connected coastal cliff faces','harbor pier and boat','large connected waterfall and rock face']})
 Path('js/field-terrain.js').write_text('window.YK_FIELD_TERRAIN='+json.dumps(data,ensure_ascii=False,separators=(',',':'))+';\n')
 print(json.dumps({'objects':len(objects),'forest':sum(o.get('biome')=='forest' for o in objects),'mountains':sum(o.get('biome')=='mountain' for o in objects),'crossings':crossings,'roads':[len(r) for r in roads]},ensure_ascii=False))
+
 

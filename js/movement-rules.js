@@ -27,5 +27,8 @@ window.YK_MOVEMENT=(()=>{
   }
   return {x,y};
  }
- return {step};
+ // Preserve 32px strides; only field travel cadence is slower.
+ const duration=area=>area==='field'?192:144;
+ return {step,duration};
 })();
+
