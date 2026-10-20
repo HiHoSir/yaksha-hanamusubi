@@ -936,7 +936,7 @@ function fieldDebugOverlay(c,camera){
   if(p.some(v=>!v))return;
   c.beginPath();c.moveTo(p[0].x,p[0].y);
   for(let i=1;i<4;i++)c.lineTo(p[i].x,p[i].y);
-  c.closePath();c.fillStyle=color;c.fill();c.strokeStyle=color.replace(/0\\.22\\)/,"0.85)");c.lineWidth=1;c.stroke();
+  c.closePath();c.fillStyle=color;c.fill();c.strokeStyle=color;c.lineWidth=1;c.stroke();
  };
  c.save();c.beginPath();c.rect(0,136,640,408);c.clip();
  const cx=Math.floor(camera.x/32),cy=Math.floor(camera.y/32);
