@@ -12,7 +12,7 @@ const server=http.createServer((req,res)=>{
  try{for(const height of [852,667]){
  const context=await browser.newContext({viewport:{width:393,height},isMobile:true,hasTouch:true,deviceScaleFactor:1});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());
- await page.evaluate(()=>{window.__qaEval('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;S.encounterGrace=0;S.encounterSteps=100;Math.random=()=>0;beginEncounter();battle.hp=battle.max=999;');});
+ await page.evaluate(()=>{window.__qaEval('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;S.area="field";S.encounterGrace=0;S.encounterSteps=100;Math.random=()=>0;if(!beginEncounter(true))throw Error("forced battle setup failed");battle.hp=battle.max=999;');});
  await page.waitForFunction(()=>window.__qaEval('layerReady(B9EN.redoni)'));await page.waitForFunction(()=>window.__qaEval('!battleLocked'),null,{timeout:6000});await page.evaluate(()=>window.__qaEval('renderBattle()'));
  // The battle is a full-screen overlay: field controls are intentionally behind it.
  // Verify the actual battle command touch targets instead of the hidden field pad.
