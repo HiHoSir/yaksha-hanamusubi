@@ -152,6 +152,8 @@ jobs:
         run: node qa/interaction-unit.cjs
       - name: Story event progression contract
         run: node qa/story-events-unit.cjs
+      - name: Roadside scenery placement contract
+        run: node qa/roadside-scenery.cjs
       - name: Battle arithmetic contract
         run: |
           node qa/battle-rules-unit.cjs

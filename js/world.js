@@ -200,6 +200,52 @@ window.YK_WORLD=(()=>{
    mapData.decorations.push({kind:'newTrees',x:nx*32,y:ny*32,width:32,height:32,foot:(ny+1)*32,walkThrough:true});
   }
  }
+ // Authored roadside accents, grouped by journey leg. Coordinates are movement
+ // cells selected against the approved terrain and routes, never sprite bounds.
+ // Trees are walkable; stone monuments occupy exactly their authored one cell.
+ const roadsideAccents=[
+  ["newTrees",27,67,0],
+  ["newTrees",28,66,0],
+  ["newTrees",26,66,0],
+  ["stoneMonument",15,52,0],
+  ["newTrees",27,46,1],
+  ["newTrees",28,45,1],
+  ["newTrees",26,45,1],
+  ["newTrees",37,46,1],
+  ["newTrees",36,45,1],
+  ["newTrees",43,48,1],
+  ["newTrees",42,47,1],
+  ["newTrees",39,48,2],
+  ["newTrees",40,47,2],
+  ["newTrees",38,47,2],
+  ["stoneMonument",31,30,2],
+  ["newTrees",52,32,2],
+  ["newTrees",53,31,2],
+  ["newTrees",51,31,2],
+  ["newTrees",65,30,3],
+  ["newTrees",66,29,3],
+  ["newTrees",64,29,3],
+  ["newTrees",63,22,3],
+  ["newTrees",57,17,4],
+  ["newTrees",58,16,4],
+  ["newTrees",56,16,4],
+  ["stoneMonument",45,18,4],
+  ["newTrees",33,18,4],
+  ["newTrees",34,17,4],
+  ["newTrees",29,11,5],
+  ["newTrees",30,10,5],
+  ["newTrees",28,10,5],
+  ["newTrees",40,18,5],
+  ["newTrees",41,17,5],
+  ["newTrees",39,17,5],
+  ["stoneMonument",48,11,5],
+ ];
+ for(const [kind,tx,ty,leg] of roadsideAccents){
+  const occupiedTiles=kind==='stoneMonument'?[[tx,ty]]:[];
+  mapData.decorations.push({kind,x:tx*32,y:ty*32,width:32,height:32,
+   foot:(ty+1)*32,contactTiles:[[tx,ty]],occupiedTiles,
+   walkThrough:occupiedTiles.length===0,sceneryLeg:leg,sceneryId:'roadside-'+leg+'-'+tx+'-'+ty});
+ }
  // Only authored terrain and visible object footprints block movement.
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
  const tileAt=(x,y)=>mapData[Math.floor(y/32)]?.[Math.floor(x/32)]||'sea';
@@ -215,3 +261,4 @@ window.YK_WORLD=(()=>{
  }
  return {start,hub,places,roads,restStops,guides,guideRoute,worldObjects,mapData,walkable,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition};
 })();
+
