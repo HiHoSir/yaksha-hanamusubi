@@ -152,8 +152,8 @@ jobs:
         run: node qa/interaction-unit.cjs
       - name: Story event progression contract
         run: node qa/story-events-unit.cjs
-      - name: Roadside scenery placement contract
-        run: node qa/roadside-scenery.cjs
+      - name: Reference field composition contract
+        run: node qa/reference-field.cjs
       - name: Battle arithmetic contract
         run: |
           node qa/battle-rules-unit.cjs
@@ -311,3 +311,4 @@ jobs:
             qa/results/autotile/interior-*.png
             qa/results/autotile/armory-layer-*.png
           if-no-files-found: ignore
+

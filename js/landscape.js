@@ -119,7 +119,7 @@ window.YK_LANDSCAPE=(()=>{
   const a=window.YK_AUTOTILE;
   for(let y=0;y<map.length;y++)for(let x=0;x<map[y].length;x++){
    c.drawImage(art.grass,x%8*32,y%8*32,32,32,x*32,y*32,32,32);
-   const t=map[y][x],kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
+   const t=map.bridgeWaterCells?.has(x+','+y)?'river':map[y][x],kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
    if(!['water','snow','barren','sand'].includes(kind))continue;
    const same=v=>v===undefined||(kind==='water'?water(v):kind==='snow'?(v==='snow'||v==='snowMountain'):kind==='barren'?(v==='barren'||v==='rockMountain'):kind==='sand'?(v==='sand'||water(v)):v===kind);
    if(t==='sea')c.drawImage(art.sand,x%2*32,y%2*32,32,32,x*32,y*32,32,32);
@@ -133,7 +133,7 @@ window.YK_LANDSCAPE=(()=>{
   return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);
  }
  function onBridge(map,x,y){return (map.decorations||[]).some(o=>(o.kind==='bridge'||o.kind==='bridgeNS')&&x>=o.x&&x<o.x+o.width&&y>=o.y&&y<o.y+o.height);}
- function roadAllowed(map,x,y){const t=map[Math.floor(y/32)]?.[Math.floor(x/32)];return ['grass','sand','snow','barren'].includes(t)||water(t)&&onBridge(map,x,y);}
+ function roadAllowed(map,x,y){const t=map[Math.floor(y/32)]?.[Math.floor(x/32)];return ['grass','sand','snow','barren','road','bridge'].includes(t)||!map.referencePlacedObjects&&water(t)&&onBridge(map,x,y);}
  const roads=new WeakMap();
  function roadLayer(map){
   if(roads.has(map))return roads.get(map);
@@ -170,7 +170,7 @@ window.YK_LANDSCAPE=(()=>{
   const bridge=(px,py)=>(map.decorations||[]).some(o=>(o.kind==='bridge'&&px>=o.x&&px<o.x+o.width&&py>=o.y+o.height*.30&&py<=o.y+o.height*.82||o.kind==='bridgeNS'&&px>=o.x+o.width*.22&&px<=o.x+o.width*.78&&py>=o.y&&py<o.y+o.height));
   for(const [dx,dy] of [[0,0],[-r,0],[r,0],[0,-r],[0,r],[-r*.7,-r*.7],[r*.7,-r*.7],[-r*.7,r*.7],[r*.7,r*.7]]){
    const px=x+dx,py=y+dy,t=map[Math.floor(py/32)]?.[Math.floor(px/32)];
-   if(water(t)?!bridge(px,py):!['grass','forest','sand','snow','barren','road','bridge'].includes(t))return false;
+   if(water(t)?(map.referencePlacedObjects||!bridge(px,py)):!['grass','forest','sand','snow','barren','road','bridge'].includes(t))return false;
   }
   const hit=(l,t,w,h)=>Math.hypot(x-Math.max(l,Math.min(x,l+w)),y-Math.max(t,Math.min(y,t+h)))<r;
   // The world map's legacy decoration positions are being replaced. Until the
@@ -190,6 +190,7 @@ window.YK_LANDSCAPE=(()=>{
  const sceneObjects=new WeakMap();
  function objects(map){
   if(sceneObjects.has(map))return sceneObjects.get(map);
+  if(map.referencePlacedObjects){const result=(map.decorations||[]).filter(o=>!o.ground).slice().sort((a,b)=>a.foot-b.foot||a.x-b.x);sceneObjects.set(map,result);return result;}
   // Approved field objects replace legacy procedural crowns and mountain sprites.
   // Grouping is visual only: the authored terrain/collision grid is immutable.
   const trees=[],mountains=[],covered=new Set(),key=(x,y)=>y*map[0].length+x;
@@ -430,3 +431,4 @@ window.YK_LANDSCAPE=(()=>{
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
  return {cameraPresets,perspectiveScale,mode7LikeMatrix,groundLayer,drawQuarter,project,unproject,quarterFixture,footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
 })();
+

@@ -11,6 +11,14 @@ for(const file of ['js/data.js','js/equipment.js','js/field-terrain.js','js/worl
  vm.runInNewContext(fs.readFileSync(file,'utf8'),ctx,{filename:file});
 }
 const save=ctx.YK_SAVE;
+// Reference-map revision repairs obstructed field positions without changing progress.
+const blocked=ctx.YK_WORLD.mapData.decorations.find(o=>o.occupiedTiles.length).occupiedTiles[0];
+const oldField={...save.fresh(),worldRevision:108,area:'field',x:blocked[0]*32+16,y:blocked[1]*32+16,worldPosition:blocked.map(v=>v*32+16),quest:2,gold:321,petals:5};
+const repaired=save.migrate(oldField);
+assert.notDeepEqual([repaired.x,repaired.y],[oldField.x,oldField.y]);
+assert.equal(repaired.worldRevision,109);
+assert.equal(repaired.quest,2);assert.equal(repaired.gold,321);assert.equal(repaired.petals,5);
+assert.deepEqual(JSON.parse(JSON.stringify(repaired.worldPosition)),[repaired.x,repaired.y]);
 const initial=save.fresh();
 assert.equal(initial.saveVersion,14);
 assert.ok(Array.isArray(initial.worldPosition));
@@ -55,3 +63,4 @@ save.reset();
 assert.equal(save.loadSlot(2),null);
 assert.equal(store.has('yaksha_beta'),false);
 console.log('Save migration, persistence, slot isolation and corrupt-data contracts OK');
+
