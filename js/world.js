@@ -110,7 +110,38 @@ window.YK_WORLD=(()=>{
   const [x,y]=stop.point;
   mapData.decorations.push({kind:'wildflowers',x:x-20,y:y-18,width:40,height:24,foot:y+6,ground:true});
  }
- // Authored road cells are retained without adding artificial paths.
+ // Build an actual road-tile overlay through walkable grass, never over water or solid contacts.
+ // Routes are found on the 32px grid after all field objects have been placed.
+ const routeStops=['village','shrine','cove','forest','waterfall','hotspring','fox'].map(id=>places[id].point)
+  .map(([x,y])=>[Math.floor(x/32),Math.floor(y/32)]);
+ const key=(x,y)=>y*mapData[0].length+x;
+ const roadCell=(x,y)=>{
+  if(mapData[y]?.[x]!=='grass')return false;
+  const px=x*32+16,py=y*32+16;
+  return !mapData.decorations.some(o=>contact(o).some(f=>px>=f.x-4&&px<f.x+f.width+4&&py>=f.y-4&&py<f.y+f.height+4));
+ };
+ const nearestRoadCell=([sx,sy])=>{
+  if(roadCell(sx,sy))return [sx,sy];
+  for(let radius=1;radius<9;radius++)for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++)
+   if(Math.max(Math.abs(dx),Math.abs(dy))===radius&&roadCell(sx+dx,sy+dy))return [sx+dx,sy+dy];
+  return null;
+ };
+ const routeBetween=(a,b)=>{
+  const from=nearestRoadCell(a),to=nearestRoadCell(b);if(!from||!to)return [];
+  const target=key(...to),queue=[from],prev=new Map([[key(...from),null]]);
+  for(let i=0;i<queue.length&&!prev.has(target);i++){
+   const [x,y]=queue[i],neighbors=[[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
+   neighbors.sort((p,q)=>Math.abs(p[0]-to[0])+Math.abs(p[1]-to[1])-Math.abs(q[0]-to[0])-Math.abs(q[1]-to[1]));
+   for(const [nx,ny] of neighbors){const k=key(nx,ny);if(!prev.has(k)&&roadCell(nx,ny)){prev.set(k,key(x,y));queue.push([nx,ny]);}}
+  }
+  if(!prev.has(target))return [];
+  const path=[];for(let k=target;k!==null;k=prev.get(k))path.push([(k%mapData[0].length)*32+16,Math.floor(k/mapData[0].length)*32+16]);
+  return path.reverse();
+ };
+ for(let i=1;i<routeStops.length;i++){
+  const path=routeBetween(routeStops[i-1],routeStops[i]);
+  if(path.length>1)roads.push(path);
+ }
  mapData.paths=roads;
  // Only authored terrain and visible object footprints block movement.
  const walkable=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&window.YK_LANDSCAPE.walkable(mapData,x,y);
