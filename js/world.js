@@ -43,7 +43,7 @@ window.YK_WORLD=(()=>{
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
   // Preserve the author's tiles around story entrances.
   if(id==='village')object('newVillage',x,y-32,64,32,[]); // Walkable two-cell entrance; transition handled by area logic.
-  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,occupiedTiles:[]});object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
+  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,occupiedTiles:[[tx,ty],[tx+1,ty]]});object('lantern',x-64,y-32,24,40);object('lantern',x+64,y-32,24,40);}
   // Retired newFort artwork: retain the cove destination and its existing entrance logic.
   if(id==='forest')object('newTorii',x,y-24,32,32,[]);
   if(id==='waterfall')object('waterfall',x,y-24,80,96,[[tx,ty-1]]);
