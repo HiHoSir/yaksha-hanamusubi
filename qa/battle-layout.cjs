@@ -45,7 +45,7 @@ const server=http.createServer((req,res)=>{
  await page.locator('[data-close="shop"]').tap();await page.locator('#bookBtn').tap();await page.locator('[data-field-command="equipment"]').tap();
  await page.locator('[data-equip-slot="weapon"]').selectOption('short_blade');
  assert.equal(await page.evaluate(()=>window.gameState.equipment.weapon),'short_blade');
- const expectedAttack=await page.evaluate(()=>window.__qaEval('S.atk+relicBonus('atk')'));
+ const expectedAttack=await page.evaluate(()=>window.__qaEval("S.atk+relicBonus('atk')"));
  assert((await page.locator('#statusPanel').innerText()).includes('攻撃力 '+expectedAttack),'status attack must include current equipment bonus');
  assert.equal(await page.locator('[data-outfit]').count(),1);
  for(const slot of ['weapon','head','body','feet'])assert(await page.locator('[data-equip-slot="'+slot+'"]').evaluate(el=>el.getBoundingClientRect().right<=window.innerWidth),'equipment overflow');
