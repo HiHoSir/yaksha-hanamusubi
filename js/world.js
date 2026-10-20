@@ -85,6 +85,26 @@ window.YK_WORLD=(()=>{
   if(mapData[ty]?.[tx]!=='grass')continue;
   placeObject({kind:'newTrees',x:tx*32,y:ty*32,width:32,height:32,foot:(ty+1)*32,walkThrough:true});
  }
+ // Optional scenery must stand on accessible terrain. Remove its sprite AND
+ // footprint together when its contact area falls on water or impassable rock.
+ // Story entrances are retained; only independently placed decorative landmarks
+ // and ground ornaments are subject to this cleanup.
+ const optionalScenery=new Set(['castle','sacredTree','stoneMonument','newCaveLarge','wildflowers']);
+ const passableGround=new Set(['grass','forest','sand','snow','barren','road','bridge']);
+ const grounded=o=>{
+  if(o.ground){
+   const tx=Math.floor((o.x+o.width/2)/32),ty=Math.floor(o.foot/32);
+   return passableGround.has(mapData[ty]?.[tx]);
+  }
+  const feet=contact(o);
+  return feet.every(f=>{
+   for(let y=Math.floor(f.y/32);y<=Math.floor((f.y+f.height-0.01)/32);y++)
+    for(let x=Math.floor(f.x/32);x<=Math.floor((f.x+f.width-0.01)/32);x++)
+     if(!passableGround.has(mapData[y]?.[x]))return false;
+   return true;
+  });
+ };
+ mapData.decorations=mapData.decorations.filter(o=>!optionalScenery.has(o.kind)||grounded(o));
  // Preserve the exact authored tile layout around decorations.
  // Existing story entrances and save IDs remain unchanged.
  // Small clearings make landmarks visible, with only short maintained paths.

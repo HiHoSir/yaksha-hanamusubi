@@ -153,7 +153,7 @@ window.YK_LANDSCAPE=(()=>{
   c.putImageData(pixels,0,0);roads.set(map,canvas);return canvas;
  }
  // Explicit normalized ground footprints. Roofs remain outside collision.
- const footprintSpecs={newVillage:[[0,0,1,1]],newHouse:[[0,0,1,1]],newTorii:[[.1,.65,.9,1]],newCaveLarge:[[0,0,1,1]],newFort:[[0,0,1,1]],newPagoda:[[.1,.6,.9,1]],castle:[[.10,.62,.92,1]],waterfall:[[.10,.40,.90,1]],
+ const footprintSpecs={newVillage:[[0,0,1,1]],newHouse:[[0,0,1,1]],newTorii:[[.08,.68,.25,1],[.75,.68,.92,1]],newCaveLarge:[[0,0,1,1]],newFort:[[0,0,1,1]],newPagoda:[[.1,.6,.9,1]],castle:[[.10,.62,.92,1]],waterfall:[[.10,.40,.90,1]],
   shrine:[[0,0,1,1]],hermit:[[.14,.52,.88,1]],
   village:[[.10,.50,.92,1]],town:[[.08,.48,.94,1]],
   cave:[[.10,.56,.90,1]],lantern:[[.25,.72,.75,1]],
