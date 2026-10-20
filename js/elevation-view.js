@@ -120,11 +120,11 @@ window.YK_ELEVATION_VIEW=(()=>{
      const wobble=(t)=>{
       const x=wx+(ex-wx)*t,y=wy+(ey-wy)*t;
       const seed=Math.sin(x*12.9898+y*78.233)*43758.5453;
-      return (seed-Math.floor(seed)-.5)*1.6;
+      return (seed-Math.floor(seed)-.5)*5.2;
      };
      c.beginPath();c.moveTo(p0.x,p0.y);
-     for(let step=1;step<4;step++){
-      const t=step/4,offset=wobble(t)*Math.sin(Math.PI*t);
+     for(let step=1;step<7;step++){
+      const t=step/7,offset=wobble(t)*Math.sin(Math.PI*t);
       c.lineTo(p0.x+vx*t+nx*offset,p0.y+vy*t+ny*offset);
      }
      c.lineTo(p1.x,p1.y);c.stroke();c.restore();
