@@ -7,7 +7,7 @@ const localStorage={
  removeItem:key=>store.delete(key)
 };
 const ctx={localStorage,Date,console};ctx.window=ctx;
-for(const file of ['js/data.js','js/equipment.js','js/field-terrain.js','js/world.js','js/save.js','js/game-state.js']){
+for(const file of ['js/data.js','js/equipment.js','js/field-terrain.js','js/elevation-model.js','js/field-elevation.js','js/world.js','js/save.js','js/game-state.js']){
  vm.runInNewContext(fs.readFileSync(file,'utf8'),ctx,{filename:file});
 }
 const save=ctx.YK_SAVE;
@@ -16,10 +16,10 @@ const blocked=ctx.YK_WORLD.mapData.decorations.find(o=>o.occupiedTiles.length).o
 const oldField={...save.fresh(),worldRevision:108,area:'field',x:blocked[0]*32+16,y:blocked[1]*32+16,worldPosition:blocked.map(v=>v*32+16),quest:2,gold:321,petals:5};
 const repaired=save.migrate(oldField);
 assert.notDeepEqual([repaired.x,repaired.y],[oldField.x,oldField.y]);
-assert.equal(repaired.worldRevision,113);
+assert.equal(repaired.worldRevision,ctx.YK_WORLD.revision);
 assert.equal(repaired.quest,2);assert.equal(repaired.gold,321);assert.equal(repaired.petals,5);
 assert.deepEqual(JSON.parse(JSON.stringify(repaired.worldPosition)),[repaired.x,repaired.y]);
-for(const worldRevision of [109,110,111,112]){
+for(const worldRevision of [109,110,111,112,113,118]){
  const prior=save.migrate({...oldField,worldRevision});
  assert.deepEqual([prior.x,prior.y],[repaired.x,repaired.y]);
  assert.equal(prior.gold,321);assert.equal(prior.quest,2);
@@ -68,6 +68,7 @@ save.reset();
 assert.equal(save.loadSlot(2),null);
 assert.equal(store.has('yaksha_beta'),false);
 console.log('Save migration, persistence, slot isolation and corrupt-data contracts OK');
+
 
 
 

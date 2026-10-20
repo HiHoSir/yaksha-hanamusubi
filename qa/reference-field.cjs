@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const env={};env.window=env;
-for(const name of ['field-terrain','world','landscape'])vm.runInNewContext(fs.readFileSync('js/'+name+'.js','utf8'),env);
+for(const name of ['field-terrain','elevation-model','field-elevation','world','landscape'])vm.runInNewContext(fs.readFileSync('js/'+name+'.js','utf8'),env);
 const w=env.YK_WORLD,m=w.mapData,a=env.YK_LANDSCAPE,g=env.YK_FIELD_TERRAIN.referenceComposition;
 assert.equal(m.length,80);assert(m.every(r=>r.length===80));assert.equal(w.roads.length,11);
 const occupied=new Set();
@@ -58,5 +58,6 @@ for(const b of m.decorations.filter(o=>o.kind==='bridge'||o.kind==='bridgeNS')){
  assert(sides.every(([xx,yy])=>wet(xx,yy)),'water interrupted at bridge '+[x,y]);
 }
 console.log('PASS reference field: explicit contacts, all destinations, 11 continuous routes, bridge traversal, save repair and no duplicated scenery');
+
 
 

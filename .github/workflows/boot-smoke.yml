@@ -152,6 +152,11 @@ jobs:
         run: node qa/interaction-unit.cjs
       - name: Story event progression contract
         run: node qa/story-events-unit.cjs
+      - name: Field elevation and corner contract
+        run: |
+          node qa/elevation.cjs
+          node qa/elevation-corners.cjs
+          node qa/field-elevation.cjs
       - name: Reference field composition contract
         run: node qa/reference-field.cjs
       - name: Battle arithmetic contract
@@ -311,4 +316,5 @@ jobs:
             qa/results/autotile/interior-*.png
             qa/results/autotile/armory-layer-*.png
           if-no-files-found: ignore
+
 
