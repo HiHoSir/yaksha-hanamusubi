@@ -67,7 +67,7 @@ window.YK_WORLD=(()=>{
  const contact=o=>{
   if(o.walkThrough)return [];
   if(o.groundFootprint){const f=o.groundFootprint;return [{x:o.x+(o.width-f.width)/2,y:o.foot-f.height,width:f.width,height:f.height}];}
-  const bases={newVillage:[0,0,1,1],newFort:[0,0,1,1],newCaveLarge:[0,0,1,1],shrine:[0,.5,1,1],castle:[0,.5,1,1],sacredTree:[0,.5,1,1],stoneMonument:[0,.5,1,1]};
+  const bases={newVillage:[.18,.72,.82,1],newFort:[.18,.72,.82,1],newCaveLarge:[.12,.72,.88,1],shrine:[0,0,1,1],castle:[.10,.62,.92,1],sacredTree:[0,.5,1,1],stoneMonument:[0,.5,1,1]};
   const b=bases[o.kind];return b?[{x:o.x+b[0]*o.width,y:o.y+b[1]*o.height,width:(b[2]-b[0])*o.width,height:(b[3]-b[1])*o.height}]:[];
  };
  const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
