@@ -161,19 +161,8 @@ window.YK_LANDSCAPE=(()=>{
  };
  function footprints(o){
   if(o.walkThrough||o.collision?.enabled===false)return [];
-  // Collision is always expressed as whole movement cells, never sprite pixels.
-  // A cell is occupied only when its CENTER lies inside the authored ground contact.
-  const raw=o.collision?.rects?.map(f=>({x:o.x+f.x,y:o.y+f.y,width:f.width,height:f.height}))
-   ||(o.groundFootprint?[{x:o.x+(o.width-o.groundFootprint.width)/2,y:o.foot-o.groundFootprint.height,width:o.groundFootprint.width,height:o.groundFootprint.height}]
-   :o.tileFootprints?.map(([x,y,w,h])=>({x:o.x+x*32,y:o.y+y*32,width:w*32,height:h*32}))
-   ||(footprintSpecs[o.kind]||[]).map(([a,b,c,d])=>({x:o.x+a*o.width,y:o.y+b*o.height,width:(c-a)*o.width,height:(d-b)*o.height})));
-  const cells=new Set();
-  for(const f of raw)for(let ty=Math.floor(f.y/32)-1;ty<=Math.ceil((f.y+f.height)/32);ty++)
-   for(let tx=Math.floor(f.x/32)-1;tx<=Math.ceil((f.x+f.width)/32);tx++){
-    const cx=tx*32+16,cy=ty*32+16;
-    if(cx>=f.x&&cx<f.x+f.width&&cy>=f.y&&cy<f.y+f.height)cells.add(tx+","+ty);
-   }
-  return [...cells].map(k=>{const [tx,ty]=k.split(",").map(Number);return {x:tx*32,y:ty*32,width:32,height:32};});
+  // Occupancy is authored in absolute movement cells, never inferred from sprite pixels.
+  return (o.occupiedTiles||[]).map(([tx,ty])=>({x:tx*32,y:ty*32,width:32,height:32}));
  }
  // Collision uses feet and ground footprints, not roofs or tree overhangs.
  function walkable(map,x,y,r=8){

@@ -34,30 +34,28 @@ window.YK_WORLD=(()=>{
  // Two modest bridges are scenery at the designated river crossings.
 
  const object=(kind,cx,foot,width,height,walkThrough=false)=>{
-  const shapes={
-   newVillage:[[.18,.72,.82,1]],newFort:[[.18,.72,.82,1]],
-   newCaveLarge:[[.12,.72,.88,1]],newTorii:[[.08,.68,.25,1],[.75,.68,.92,1]],
-   waterfall:[[.10,.40,.90,1]],hermit:[[.14,.52,.88,1]]
-  };
-  const collision=walkThrough?{enabled:false}:{enabled:true,rects:(shapes[kind]||[[.18,.72,.82,1]]).map(([a,b,c,d])=>({x:a*width,y:b*height,width:(c-a)*width,height:(d-b)*height}))};
-  mapData.decorations.push({kind,x:cx-width/2,y:foot-height,width,height,foot,walkThrough,collision});
+  // Visual pixels are independent of the movement grid.
+  const x=cx-width/2,y=foot-height;
+  const tileX=Math.floor(cx/32),tileY=Math.floor((foot-1)/32);
+  const occupiedTiles=walkThrough||kind==='newTorii'?[]:[[tileX,tileY]];
+  mapData.decorations.push({kind,x,y,width,height,foot,walkThrough,occupiedTiles});
  };
  // Entrance markers are 24px in front of the solid object's feet.
  for(const [id,p] of Object.entries(places)){
   const [x,y]=p.point,tx=Math.floor(x/32),ty=Math.floor(y/32);
   // Preserve the author's tiles around story entrances.
   if(id==='village')object('newVillage',x,y-32,64,32);
-  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});object('lantern',x-64,y-32,24,40,true);object('lantern',x+64,y-32,24,40,true);}
+  if(id==='shrine'||id==='fox'){const left=tx*32,top=(ty-1)*32;mapData.decorations.push({kind:'shrine',x:left,y:top,width:64,height:64,foot:top+64,occupiedTiles:[[tx,ty]]});object('lantern',x-64,y-32,24,40,true);object('lantern',x+64,y-32,24,40,true);}
   if(id==='cove')object('newFort',x,y-32,64,32);
   if(id==='forest')object('newTorii',x,y-24,32,32);
   if(id==='waterfall')object('waterfall',x,y-24,80,96);
   if(id==='hotspring')object('hermit',x,y-24,72,72);
  }
  // Optional landmarks are placed in reachable clearings, independent of old roads.
- mapData.decorations.push({kind:'castle',x:31*32,y:47*32,width:64,height:64,foot:49*32,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});
+ mapData.decorations.push({kind:'castle',x:31*32,y:47*32,width:64,height:64,foot:49*32,occupiedTiles:[[31,48],[32,48]]});
  // Sacred tree: 2x2 visible tiles, bottom row solid, away from the forest torii entrance.
- mapData.decorations.push({kind:'sacredTree',x:57*32,y:34*32,width:64,height:64,foot:36*32,groundFootprint:{width:64,height:32,anchor:'bottom-center'}});
- mapData.decorations.push({kind:'stoneMonument',x:56*32,y:38*32,width:32,height:32,foot:39*32,groundFootprint:{width:32,height:16,anchor:'bottom-center'}});
+ mapData.decorations.push({kind:'sacredTree',x:57*32,y:34*32,width:64,height:64,foot:36*32,occupiedTiles:[[57,35],[58,35]]});
+ mapData.decorations.push({kind:'stoneMonument',x:56*32,y:38*32,width:32,height:32,foot:39*32,occupiedTiles:[[56,38]]});
  object('newCaveLarge',center([67,39])[0],center([67,39])[1]-32,64,32);
  const guides=[[30,61,'南の地蔵','北の草原を進むと天妖の社があるぞ。'],[30,44,'森の地蔵','東の水辺には橋がある。入り江を探すのじゃ。'],[50,37,'川辺の地蔵','川を越えた先には忘れの森がある。'],[42,23,'湖畔の地蔵','月見の湯は西、九尾の祠は北じゃ。']].map(([tx,ty,name,tip],id)=>({id,x:center([tx,ty])[0],y:center([tx,ty])[1],name,tip}));
  for(const g of guides)object('jizo',g.x,g.y,24,40,true);
@@ -75,18 +73,8 @@ window.YK_WORLD=(()=>{
  for(const [tx,ty] of [[16,57],[20,60],[45,63],[54,63],[58,45],[43,25]]){const [x,y]=center([tx,ty]);mapData.decorations.push({kind:'wildflowers',x,y,width:40,height:24,foot:y+24,ground:true});}
  // Place by contact footprints, not sprite rectangles. Visual overhang may overlap.
  // Collision geometry belongs to each placed object, not an old map coordinate.
- const contact=o=>{
-  if(o.walkThrough||o.collision?.enabled===false)return [];
-  const raw=o.collision?.rects?.map(f=>({x:o.x+f.x,y:o.y+f.y,width:f.width,height:f.height}))
-   ||(o.groundFootprint?[{x:o.x+(o.width-o.groundFootprint.width)/2,y:o.foot-o.groundFootprint.height,width:o.groundFootprint.width,height:o.groundFootprint.height}]:[]);
-  const cells=new Set();
-  for(const f of raw)for(let ty=Math.floor(f.y/32)-1;ty<=Math.ceil((f.y+f.height)/32);ty++)
-   for(let tx=Math.floor(f.x/32)-1;tx<=Math.ceil((f.x+f.width)/32);tx++){
-    const cx=tx*32+16,cy=ty*32+16;
-    if(cx>=f.x&&cx<f.x+f.width&&cy>=f.y&&cy<f.y+f.height)cells.add(tx+","+ty);
-   }
-  return [...cells].map(k=>{const [tx,ty]=k.split(",").map(Number);return {x:tx*32,y:ty*32,width:32,height:32};});
- };
+ const contact=o=>o.walkThrough||o.collision?.enabled===false?[]:
+  (o.occupiedTiles||[]).map(([tx,ty])=>({x:tx*32,y:ty*32,width:32,height:32}));
  const intersects=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
  const placeObject=o=>{
   const footprint=contact(o);
