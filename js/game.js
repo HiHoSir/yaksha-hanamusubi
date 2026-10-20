@@ -236,7 +236,7 @@ function sdFieldBounds(row,col){
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v1/walk-atlas-32.png?v=16.0.41";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v1/walk-atlas-32.png?v=16.0.42";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -786,7 +786,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   // Normalize the opaque silhouette, not the transparent 32px cell.
   // This keeps front/back/side at the same visible height and aligns the boots.
   const bounds=sdFieldBounds(row,col);
-  const scale=(58/bounds.height)*(z/.56),foot=y+9*z;
+  const scale=(28/bounds.height)*(z/.56),foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,20*z,6*z,.28);
   c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
