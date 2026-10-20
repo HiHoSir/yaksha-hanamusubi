@@ -40,3 +40,20 @@ Use js/field-terrain.js from commit e60b7541c5c2beaf6af7bc8d739543fa390bf8aa as 
 `node qa/reference-field-render.cjs <place-id>` uses @napi-rs/canvas and real production art/projection for a cropped visual check. Cropped views were inspected for forest, fox shrine, waterfall and hot spring. This harness does not draw the heroine and is not evidence of full-world browser performance or device QA. Full-world native canvas rendering exceeded the local process memory budget. iPhone Safari remains unverified.
 
 Old field saves preserve valid positions; obstructed positions move to a nearby open cell. Inventory, quests and local-map positions are retained. Existing unrelated battle/interior test failures must be reported separately from field validation.
+
+
+## Terrain fidelity audit — β16.0.111
+
+Compared the user's 1312×1199 reference with the actual 80×80 baked terrain. The earlier coastline merged the northwest cliff island into the mainland, simplified the harbor inlet, omitted dry beach tiles, and left some new water cells carrying old land elevations. The inland lake was too tall and its eastern outlet was missing. Route waypoints also caused short repeated excursions.
+
+Changes:
+- Added a reviewed 80×80 sea-connected coast trace in tools/reference-coast-80.json, retaining the two-cell shallow-water fringe. Broad blue regions were classified from the reference and reviewed at map scale; the northwest island channel received explicit cell corrections because perspective cliffs merge when downsampled. This is a layout approximation, not a pixel-perfect or measured overall similarity score.
+- Restored northwest-island separation and refined western/southeastern offshore islands and the harbor inlet. Added 286 dry beach cells selected from yellow reference shoreline regions. Reused existing sand artwork.
+- Made the lake wider and shallower, retained its wooded island, and added the eastern outlet/basin. Existing walkable bridges and destination cells remain reachable.
+- Removed repeated route excursions and the unnecessary southern-lake detour on the waterfall/hot-spring route. Forests recover in areas no longer cleared for redundant roads.
+- Set water and bridge elevations to zero while preserving other authored height values. Kept camera and rendering scale unchanged.
+- Incremented world revision to 111 and extended data-only save-position repair through prior revisions. Progress and inventory are retained.
+
+Validation: explicit occupancy, 11 traversable route legs, all seven destinations, all rest stops/guides, separated reference islands, dry beaches, water elevations, loop-free route legs and save compatibility pass. Actual existing art was inspected with the production projection in cropped harbor and hot-spring renders. Full-world browser and iPhone Safari visual approval remain distinct and unverified by these cropped tests.
+
+Remaining fidelity limits: 80×80 resolution simplifies narrow channels; current green mountain sprites cannot reproduce the reference's brown/snow ranges; illustrated coastal cliff faces, conifers/cherry trees and landmark-specific architecture remain art gaps. No new art was generated in this audit.

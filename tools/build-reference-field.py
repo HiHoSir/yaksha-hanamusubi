@@ -8,6 +8,15 @@ from pathlib import Path
 src=Path(sys.argv[1]).read_text().split('=',1)[1].strip().rstrip(';')
 data=json.loads(src); tiles=[r[:] for r in data['tiles']]; N=80
 water={'sea','river'}
+# Reviewed coastline trace, independent of illustration shadows/labels. Preserve
+# 80x80 grid and the two-cell shallow-water fringe requested for the original map.
+trace=json.loads(Path('tools/reference-coast-80.json').read_text());coast=trace['rows']
+for y in range(N):
+    for x in range(N):
+        if coast[y][x]!='~':tiles[y][x]='grass';continue
+        near_land=any(0<=x+dx<N and 0<=y+dy<N and coast[y+dy][x+dx]!='~'
+                      for dy in range(-2,3) for dx in range(-2,3))
+        tiles[y][x]='river' if near_land else 'sea'
 # Remove only tiny enclosed sampling holes in the original rough coastline.
 # The large lakes and ocean-connected channels remain, then authored rivers follow.
 seen=set()
@@ -75,11 +84,13 @@ for y in range(20,27):
     for x in range(60,67):
         if tiles[y][x] in water:tiles[y][x]='grass'
 # A connected lake ring and its wooded island, positioned at the reference lake.
-for y in range(14,23):
+for y in range(15,23):
     for x in range(29,40):
-        if ((x-34)/4.8)**2+((y-18)/4)**2<=1:tiles[y][x]='river'
+        if ((x-34)/5.1)**2+((y-18.5)/3.2)**2<=1:tiles[y][x]='river'
 for y in range(17,19):
     for x in range(33,35):tiles[y][x]='forest'
+# The eastern lake outlet follows the reference's small basin below the ridge.
+stroke([(39,19),(42,20),(45,20),(47,18),(48,17),(49,18),(52,20)],'river',.7)
 places={'village':[37,70],'shrine':[20,45],'cove':[49,50],'forest':[60,33],
         'waterfall':[67,20],'hotspring':[22,17],'fox':[40,5]}
 stops=[('roadside-tea','花かげ茶屋',[24,56],'tea'),('bridge-inn','渡しの旅籠',[31,30],'inn'),
@@ -112,7 +123,7 @@ legs=[['village','shrine',[(35,62),(30,56),(26,50)]],
       ['shrine','cove',[(27,46),(34,46),(42,48)]],
       ['cove','forest',[(48,44),(50,39),(56,37)]],
       ['forest','waterfall',[(63,29),(63,24),(65,23)]],
-      ['waterfall','hotspring',[(62,22),(57,21),(54,18),(50,18),(44,19),(40,23),(36,23),(30,24),(25,21)]],
+      ['waterfall','hotspring',[(62,22),(57,21),(54,18),(50,18),(44,19),(41,16),(29,13)]],
       ['hotspring','fox',[(29,13),(34,11),(40,11),(40,8)]]]
 bridge_specs=[('bridge',38,23),('bridge',35,35),('bridgeNS',48,44),('bridge',48,18)]
 bridgeWater=[]
@@ -143,11 +154,19 @@ def route(a,b):
     out=[];p=b
     while p is not None:out.append(list(p));p=prev[p]
     return out[::-1]
+def without_loops(path):
+    out=[];seen={}
+    for p in path:
+        k=tuple(p)
+        if k in seen:
+            out=out[:seen[k]+1];seen={tuple(c):i for i,c in enumerate(out)}
+        else:seen[k]=len(out);out.append(p)
+    return out
 roads=[]
 for a,b,via in legs:
     checkpoints=[places[a]]+via+[places[b]];path=[]
     for u,v in zip(checkpoints,checkpoints[1:]):path+=route(u,v)[bool(path):]
-    roads.append(path)
+    roads.append(without_loops(path))
 # A cross-valley branch uses the central river bridge, as in the reference.
 path=[]
 for u,v in zip([(31,30),(33,35),(37,35),(45,35),(49,36)],[(33,35),(37,35),(45,35),(49,36)]):path+=route(u,v)[bool(path):]
@@ -166,6 +185,11 @@ for x,y in roadCells:
     for dx,dy in [(0,0),(1,0),(-1,0),(0,1),(0,-1)]:
         xx,yy=x+dx,y+dy
         if (xx,yy) not in roadCells and tiles[yy][xx] in ('forest','mountain'):tiles[yy][xx]='grass'
+# Reference-colored beaches belong on land, never on top of a water cell.
+# Restrict them to sea-facing grass, preserving roads, forests and mountain feet.
+for x,y in trace['beachCandidates']:
+    if tiles[y][x]=='grass' and any(0<=x+dx<N and 0<=y+dy<N and coast[y+dy][x+dx]=='~' for dx,dy in [(1,0),(-1,0),(0,1),(0,-1)]):
+        tiles[y][x]='sand'
 # Bridge sprites retain existing dimensions. Their explicit traversable cells
 # are the authored bridge terrain; bounds do not grant water walkability.
 for kind,x,y in bridge_specs:
@@ -200,8 +224,13 @@ for x,y in [(10,10),(11,11),(13,7),(11,27),(7,56),(9,63),(7,70),(67,39),(69,39),
 # Flowers in the southern meadows, reused from the village ground atlas.
 for x,y in [(30,61),(32,60),(34,58),(38,61),(39,63),(32,65),(42,66),(17,48),(23,48)]:
     if tiles[y][x]=='grass':obj('wildflowers',x,y,32,32,[(x,y)],ground=True)
-data.update(tiles=tiles,referenceComposition={
- 'revision':109,'source':'User reference map 2026-10-20; coastline retained from authored 80x80 base',
+# Water added or removed by tracing must not retain the old terrain's elevation.
+heights=[row[:] for row in data['heights']]
+for y,row in enumerate(tiles):
+    for x,t in enumerate(row):
+        if t in water or t=='bridge':heights[y][x]=0
+data.update(tiles=tiles,heights=heights,referenceComposition={
+ 'revision':111,'source':'User reference map 2026-10-20; reviewed coast trace, beach cells and authored interior terrain',
  'places':places,'restStops':[dict(id=i,name=n,cell=p,type=t) for i,n,p,t in stops],
  'roads':roads,'bridgeWaterCells':bridgeWater,'decorations':objects,'forestRegions':[n for n,_ in forests],
  'mountainRegions':[n for n,_ in mountains],

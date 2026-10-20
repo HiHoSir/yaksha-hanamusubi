@@ -22,7 +22,7 @@ function migrate(raw){
   if(s.area==="field")[s.x,s.y]=YK_WORLD.migratePosition([s.x,s.y]);
   s.worldPosition=YK_WORLD.migratePosition(raw.worldPosition);
  }
- if(raw&&Number(raw.worldRevision)>=88&&Number(raw.worldRevision)<109&&typeof YK_WORLD!=="undefined"&&YK_WORLD.safePosition){
+ if(raw&&Number(raw.worldRevision)>=88&&Number(raw.worldRevision)<111&&typeof YK_WORLD!=="undefined"&&YK_WORLD.safePosition){
   if(s.area==="field")[s.x,s.y]=YK_WORLD.safePosition([s.x,s.y]);
   s.worldPosition=YK_WORLD.safePosition(s.worldPosition);
  }
