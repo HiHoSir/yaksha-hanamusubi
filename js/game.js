@@ -1917,7 +1917,53 @@ function startNewGame(){
 window.__YK_BOOT_START=startNewGame;
 $("newGame").removeAttribute?.("onclick");
 YK_INPUT.tap($("newGame"),startNewGame);
-YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
+// The title's Continue action selects a deliberate manual save.
+ // Suspension/autosave is a distinct operation and must never silently
+ // take priority over one of the three recorded journey slots.
+ function showTitleLoadSelection(){
+  if(!$("title").classList.contains("show"))return;
+  $("titleMainActions").hidden=true;
+  $("titleLoadSelection").hidden=false;
+  $("titleLoadNotice").textContent="";
+  const list=$("titleLoadSlots");
+  list.replaceChildren();
+  for(const n of [1,2,3]){
+   const info=YK_SAVE.slotInfo(n);
+   const button=document.createElement("button");
+   button.type="button";
+   button.className="titleLoadSlot";
+   button.disabled=!info;
+   const title=document.createElement("strong");
+   title.textContent=n+"番の記録";
+   const detail=document.createElement("small");
+   detail.textContent=info?info.lv+"段 ／ "+info.area+" ／ "+new Date(info.time).toLocaleString("ja-JP"):"記録なし";
+   button.append(title,detail);
+   if(info)YK_INPUT.tap(button,()=>{
+    const saved=YK_SAVE.loadSlot(n);
+    if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";showTitleLoadSelection();return;}
+    restoreState(saved);
+    $("titleLoadSelection").hidden=true;
+    $("title").classList.remove("show");
+    busy=false;hud();
+   });
+   list.append(button);
+  }
+ }
+ function hideTitleLoadSelection(){
+  $("titleLoadSelection").hidden=true;
+  $("titleMainActions").hidden=false;
+  $("titleLoadNotice").textContent="";
+ }
+ YK_INPUT.tap($("continueGame"),showTitleLoadSelection);
+ YK_INPUT.tap($("titleLoadBack"),hideTitleLoadSelection);
+ YK_INPUT.tap($("resumeSuspend"),()=>{
+  const saved=YK_SAVE.loadAuto();
+  if(!saved){$("bootError").textContent="中断セーブがありません。";return;}
+  restoreState(saved);
+  $("titleLoadSelection").hidden=true;
+  $("title").classList.remove("show");
+  busy=false;hud();
+ });
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
