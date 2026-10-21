@@ -2,7 +2,7 @@
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/kikoku-field-v11.mp3?v=15.57.190",loopStart:8.888875,loopEnd:71.111125},
+  field:{url:"audio/kikoku-field-v11.mp3?v=15.57.190",loopStart:8.888875,loopEnd:71.09},
   village:{url:"audio/hoozuki-v13.mp3?v=15.57.105",loopStart:4.8}
  };
  // Web Audio BGM is the approved default; HTMLAudio is opt-in diagnostics only.
@@ -152,7 +152,8 @@ window.YK_AUDIO=(()=>{
    if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null;}
    bufferGain??=ctx.createGain();bufferGain.connect(ctx.destination);
    const source=ctx.createBufferSource();source.buffer=buffer;source.loop=true;
-   source.loopStart=tracks[key].loopStart;source.loopEnd=tracks[key].loopEnd||buffer.duration;
+   source.loopStart=Math.max(0,Math.min(tracks[key].loopStart,buffer.duration-.02));
+   source.loopEnd=Math.max(source.loopStart+.01,Math.min(tracks[key].loopEnd||buffer.duration,buffer.duration-.01));
    source.connect(bufferGain);bufferGain.gain.value=performance.now()<duckUntil?.23:.4;
    const offset=Math.max(0,Math.min(bufferOffset,buffer.duration-.01));
    source.start(0,offset);traceAudio("source-start");bufferStartedAt=ctx.currentTime;bufferSource=source;bufferKey=key;bufferError="";
