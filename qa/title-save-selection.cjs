@@ -26,7 +26,7 @@ const server=http.createServer((req,res)=>{
   await page.goto(address);await ready();
   assert(await page.locator('#title').isVisible());
   await page.locator('#continueGame').tap();
-  assert(await page.locator('#titleLoadSelection').isVisible(),'manual save picker must open');
+  const diag=await page.evaluate(()=>({pickerHidden:document.querySelector('#titleLoadSelection').hidden,pickerDisplay:getComputedStyle(document.querySelector('#titleLoadSelection')).display,mainHidden:document.querySelector('#titleMainActions').hidden,titleShow:document.querySelector('#title').classList.contains('show'),buttonVisible:getComputedStyle(document.querySelector('#continueGame')).display,pickerRect:document.querySelector('#titleLoadSelection').getBoundingClientRect().toJSON()}));assert(await page.locator('#titleLoadSelection').isVisible(),'manual save picker must open '+JSON.stringify(diag)+' errors '+JSON.stringify(errors));
   assert(!await page.locator('#titleMainActions').isVisible(),'main actions must hide while picking');
   assert.equal(await page.locator('#titleLoadSlots button').count(),3);
   assert.equal(await page.locator('#titleLoadSlots button').nth(1).isDisabled(),true,'empty manual slot cannot load');
