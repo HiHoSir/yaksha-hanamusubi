@@ -187,8 +187,12 @@ window.YK_AUDIO=(()=>{
   attenuate();play();
  }
  function syncBgm(area){
-  if(encounterMuted)return;
-  const key=zone(area);if(key!==currentArea)setTrack(key);
+  const key=zone(area);
+  // The game may load a different area while BGM is temporarily muted
+  // (battle, game-over, title). Track the *desired* area even during mute;
+  // otherwise unmuting resumes the previous zone's music or stays silent.
+  if(encounterMuted){if(key!==currentArea)setTrack(key);return;}
+  if(key!==currentArea)setTrack(key);
   if(!soundOn()){player.pause();if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0}return}
   attenuate();play()
  }
