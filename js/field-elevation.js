@@ -46,6 +46,27 @@ window.YK_FIELD_ELEVATION=(()=>{
   m.cornerProtected=new Set(m.decorations.flatMap(o=>(o.contactTiles||[]).map(c=>c.join(','))));
   // Immutable topology gets a cache shared by rendering and collision.
   E.prepare(m);
+  // Find safe cliff edges between reachable lowland and isolated upper ground.
+  const initialQueue=[[37,71]],initialSeen=new Set(['37,71']);
+  for(let i=0;i<initialQueue.length;i++){const [x,y]=initialQueue[i];for(const [dx,dy] of Object.values(E.dirs)){
+   const nx=x+dx,ny=y+dy,key=nx+','+ny;
+   if(!initialSeen.has(key)&&E.canMove(m,x*32+16,y*32+16,nx*32+16,ny*32+16)){initialSeen.add(key);initialQueue.push([nx,ny]);}
+  }}
+  m.ladders=[];
+  const candidates=[];
+  for(const key of initialSeen){const [x,y]=key.split(',').map(Number),uy=y-1;
+   if(uy<1||x<1||x>=m[0].length-1||!E.walkable(m,x,y)||!E.walkable(m,x,uy))continue;
+   if(initialSeen.has(x+','+uy)||m.ramps[y]?.[x]||m.ramps[uy]?.[x])continue;
+   if(E.level(m,x,uy)-E.level(m,x,y)!==1)continue;
+   if(E.outline(m,x,y).cuts.length||E.outline(m,x,uy).cuts.length)continue;
+   if(!E.pointWalkable(m,x*32+16,y*32+16)||!E.pointWalkable(m,x*32+16,uy*32+16))continue;
+   candidates.push({x,y,uy});
+  }
+  candidates.sort((a,b)=>a.y-b.y||a.x-b.x);
+  for(const q of candidates){if(m.ladders.length>=6)break;
+   if(m.ladders.some(l=>Math.hypot(l.lower[0]-q.x,l.lower[1]-q.y)<7))continue;
+   m.ladders.push({lower:[q.x,q.y],upper:[q.x,q.uy]});
+  }
   const queue=[[37,71]],seen=new Set(['37,71']);
   for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of Object.values(E.dirs)){
    const nx=x+dx,ny=y+dy,key=nx+','+ny;
