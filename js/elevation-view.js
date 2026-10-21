@@ -110,6 +110,9 @@ window.YK_ELEVATION_VIEW=(()=>{
   const minX=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.x))/32)-2),maxX=Math.min(m[0].length-1,Math.ceil(Math.max(...bounds.map(p=>p.x))/32)+2);
   const minY=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.y))/32)-2),maxY=Math.min(m.length-1,Math.ceil(Math.max(...bounds.map(p=>p.y))/32)+2);
   const point=(x,y,h)=>{const p=YK_LANDSCAPE.project(x,y,camera,zoom);return p&&{...p,y:p.y-h*rise*p.scale};};
+  const diagnostic=window.YK_CLIFF_DEBUG===true;
+  const cliffReport=diagnostic?{camera:{x:camera.x,y:camera.y},bounds:[minX,minY,maxX,maxY],walls:[],lips:[],tiles:0}:null;
+  if(diagnostic)window.YK_CLIFF_REPORT=cliffReport;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;c.clearRect(0,0,640,544);c.drawImage(art.horizon,0,0,640,240);
   // Continue the same sea texture beyond the test map, as in the main field.
   const ocean=c.createPattern(art.sea,'repeat');
@@ -123,6 +126,7 @@ window.YK_ELEVATION_VIEW=(()=>{
   for(let ty=minY;ty<=maxY;ty++)for(let tx=minX;tx<=maxX;tx++){
    const center=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
    if(!center||center.y<112||center.y>600||center.x+32*center.scale<0||center.x-32*center.scale>640)continue;
+   if(diagnostic)cliffReport.tiles++;
    const band=options.groundTile?(center.y<280?32:16):8;
    const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),shores=!shape.cuts.length?shoreSides(m,tx,ty):[],shoreShape=shores.length?shoreOutline(shores,tx,ty):null;
    for(let v=0;v<32;v+=band){const py=ty*32+v;
@@ -199,6 +203,7 @@ window.YK_ELEVATION_VIEW=(()=>{
     const n1=side?E.level(m,tx+dx,ty+dy,bx/32-dx,by/32-dy):cut?.lower;
     const cliff=h0>(n0??h0)+.001||h1>(n1??h1)+.001;
     if(!cliff)continue;
+    if(diagnostic)cliffReport.lips.push({tile:[tx,ty],edge:[ax,ay,bx,by],heights:[h0,h1],neighbor:[n0,n1]});
     const depth=ty*32+Math.max(ay,by);
     items.push({depth,order:1.5,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
@@ -244,6 +249,7 @@ window.YK_ELEVATION_VIEW=(()=>{
      const t0=segment/segments,t1=(segment+1)/segments,mix=(a,t)=>a[0]+(a[1]-a[0])*t;
      const span=[t0,t1].map(t=>[mix(coords.map(p=>p[0]),t),mix(coords.map(p=>p[1]),t)]);
      const high=[mix(top,t0),mix(top,t1)],low=[mix(bottom,t0),mix(bottom,t1)];
+     if(diagnostic)cliffReport.walls.push({tile:[tx,ty],edge:[ax,ay,bx,by],segment,segments,high,low,depth:Math.max(...span.map(p=>p[1])),side:side||'diagonal'});
      items.push({depth:Math.max(...span.map(p=>p[1])),order:1,draw:()=>{
       const bands=Math.max(1,Math.ceil(Math.max(...high.map((h,j)=>h-low[j]))));
       for(let b=0;b<bands;b++){
@@ -251,7 +257,10 @@ window.YK_ELEVATION_VIEW=(()=>{
        const p=[point(...span[0],hi[0]),point(...span[1],hi[1]),point(...span[1],lo[1]),point(...span[0],lo[0])];
        const material=m.cliffMaterials?.[ty]?.[tx]||options.cliffMaterial||(['grass','forest'].includes(m[ty][tx])?'grassCliff':'rock');
        const face=art[material]||art.rock;
-       if(p.every(Boolean))quad(c,face,(tx*32)%face.width,(ty*32)%face.height,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
+       if(p.every(Boolean)){
+        quad(c,face,(tx*32)%face.width,(ty*32)%face.height,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
+        if(diagnostic){c.save();c.fillStyle='rgba(255,0,180,.32)';c.strokeStyle='#ff00ff';c.lineWidth=1.5;c.beginPath();p.forEach((v,i)=>i?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));c.closePath();c.fill();c.stroke();c.restore();}
+       }
       }
      }});
     }
