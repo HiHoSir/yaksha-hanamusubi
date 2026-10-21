@@ -35,30 +35,16 @@ window.YK_ELEVATION_VIEW=(()=>{
    }poly=out;
   }return poly;
  }
- // Map-independent coastline contour: round exposed land corners using
- // neighbouring water topology, without changing the 32px collision grid.
+ // Shore geometry is derived from neighbouring water, independent of terrain art.
  const waterKind=t=>t==='sea'||t==='river';
- function coastShape(m,x,y){
-  if(waterKind(m[y]?.[x])||m.roads?.has(x+','+y)||m.cornerProtected?.has(x+','+y))return null;
-  const wet=(dx,dy)=>waterKind(m[y+dy]?.[x+dx]);
-  const corners=[[0,0,[-1,0],[0,-1]],[32,0,[1,0],[0,-1]],[32,32,[1,0],[0,1]],[0,32,[-1,0],[0,1]]];
-  const radii=corners.map(([cx,cy,a,b])=>wet(...a)&&wet(...b)?8:0);
-  if(!radii.some(Boolean))return null;
-  const poly=[];
-  for(let i=0;i<4;i++){
-   const [cx,cy]=corners[i],r=radii[i],prev=corners[(i+3)%4],next=corners[(i+1)%4];
-   if(!r){poly.push([cx,cy]);continue;}
-   const a=[cx+(prev[0]-cx)/32*r,cy+(prev[1]-cy)/32*r];
-   const b=[cx+(next[0]-cx)/32*r,cy+(next[1]-cy)/32*r];
-   poly.push(a);
-   // Quadratic corner, tessellated in world pixels for pixel-art rendering.
-   for(let j=1;j<=4;j++){
-    const t=j/4,q=1-t;
-    poly.push([q*q*a[0]+2*q*t*cx+t*t*b[0],q*q*a[1]+2*q*t*cy+t*t*b[1]]);
-   }
-  }
-  return poly;
- }
+ const shoreSides=(m,x,y)=>{
+  if(waterKind(m[y]?.[x])||m.roads?.has(x+','+y)||m.cornerProtected?.has(x+','+y)||m[y]?.[x]==='bridge')return [];
+  return [['n',0,-1],['e',1,0],['s',0,1],['w',-1,0]].filter(([side,dx,dy])=>waterKind(m[y+dy]?.[x+dx])).map(([side])=>side);
+ };
+ const shorePoly=(side,width)=>{
+  const w=width;
+  return {n:[[0,0],[32,0],[32,w],[0,w]],e:[[32,0],[32,32],[32-w,32],[32-w,0]],s:[[0,32],[32,32],[32,32-w],[0,32-w]],w:[[0,0],[w,0],[w,32],[0,32]]}[side];
+ };
  const groundTiles=new WeakMap();
  function groundTile(surface,tx,ty){
   if(!groundTiles.has(surface))groundTiles.set(surface,new Map());
@@ -86,13 +72,13 @@ window.YK_ELEVATION_VIEW=(()=>{
    const center=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
    if(!center||center.y<112||center.y>600||center.x+32*center.scale<0||center.x-32*center.scale>640)continue;
    const band=options.groundTile?(center.y<280?32:16):8;
-   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),coast=!shape.cuts.length?coastShape(m,tx,ty):null;
+   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),shores=!shape.cuts.length?shoreSides(m,tx,ty):[];
    for(let v=0;v<32;v+=band){const py=ty*32+v;
     items.push({depth:py+band,order:0,draw:()=>{
      const p=[[0,v],[32,v],[32,v+band],[0,v+band]].map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
      if(p.every(Boolean)){
-      if(shape.cuts.length||coast){
-       const clipped=bandPolygon(coast||shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
+      if(shape.cuts.length){
+       const clipped=bandPolygon(shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
        if(clipped.length<3||!clipped.every(Boolean))return;
        c.save();c.beginPath();clipped.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.clip();
       }
@@ -101,9 +87,33 @@ window.YK_ELEVATION_VIEW=(()=>{
        const left=Math.min(p[0].x,p[3].x),right=Math.max(p[1].x,p[2].x);
        c.drawImage(texture,sx,sy,32,band,left,p[0].y,right-left+.3,p[3].y-p[0].y+.6);
       }else quad(c,texture,sx,sy,32,band,p);
-      if(shape.cuts.length||coast)c.restore();
+      if(shape.cuts.length)c.restore();
      }
     }});
+   }
+   // Overlay shoreline sand on the LAND side. No water expansion, collision
+   // changes or tile-specific coordinate lists. All edges use world geometry.
+   if(shores.length){
+    const shoreWidth=7;
+    for(const side of shores){
+     const poly=shorePoly(side,shoreWidth);
+     items.push({depth:ty*32+32,order:.25,draw:()=>{
+      const projected=poly.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
+      if(!projected.every(Boolean))return;
+      const uv=poly.map(([u,v])=>({x:tx*32+u,y:ty*32+v}));
+      // Two triangles preserve the original sand texture in perspective.
+      triangle(c,art.sand,[uv[0],uv[1],uv[2]],[projected[0],projected[1],projected[2]]);
+      triangle(c,art.sand,[uv[0],uv[2],uv[3]],[projected[0],projected[2],projected[3]]);
+      const inner=side==='n'?[[0,shoreWidth],[32,shoreWidth]]:side==='s'?[[0,32-shoreWidth],[32,32-shoreWidth]]:side==='w'?[[shoreWidth,0],[shoreWidth,32]]:[[32-shoreWidth,0],[32-shoreWidth,32]];
+      const ends=inner.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
+      if(!ends.every(Boolean))return;
+      c.save();c.strokeStyle='rgba(27,36,29,.76)';c.lineWidth=Math.max(1,(ends[0].scale+ends[1].scale)*.6);c.lineCap='round';
+      c.beginPath();c.moveTo(ends[0].x,ends[0].y);
+      const dx=ends[1].x-ends[0].x,dy=ends[1].y-ends[0].y,len=Math.hypot(dx,dy)||1;
+      for(let k=1;k<8;k++){const t=k/8,x=tx*32+inner[0][0]+(inner[1][0]-inner[0][0])*t,y=ty*32+inner[0][1]+(inner[1][1]-inner[0][1])*t;const wobble=Math.sin(x*.27+y*.39)*1.2*Math.sin(Math.PI*t);c.lineTo(ends[0].x+dx*t-dy/len*wobble,ends[0].y+dy*t+dx/len*wobble);}
+      c.lineTo(ends[1].x,ends[1].y);c.stroke();c.restore();
+     }});
+    }
    }
    // The removed triangle exposes lower ground, not an empty cutout.
    for(const cut of shape.cuts){
@@ -128,7 +138,7 @@ window.YK_ELEVATION_VIEW=(()=>{
     const n1=side?E.level(m,tx+dx,ty+dy,bx/32-dx,by/32-dy):cut?.lower;
     const cliff=h0>(n0??h0)+.001||h1>(n1??h1)+.001;
     const shore=!!side&&!isWater(kind)&&isWater(neighbor)&&!cliff;
-    if(!cliff&&!shore)continue;
+    if(!cliff)continue;
     const depth=ty*32+Math.max(ay,by);
     items.push({depth,order:1.5,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
