@@ -146,6 +146,8 @@ jobs:
         run: node qa/collision-unit.cjs
       - name: Save compatibility contract
         run: node qa/save-compat-unit.cjs
+      - name: Audio lifecycle contract
+        run: node qa/audio-lifecycle-unit.cjs
       - name: Dialogue normalization contract
         run: node qa/dialogue-unit.cjs
       - name: NPC interaction geometry contract
