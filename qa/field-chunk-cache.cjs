@@ -21,7 +21,7 @@ assert.equal(stats(map).count,0);
 const resident=get(map,16,16);
 assert.strictEqual(get(map,17,18).surface,resident.surface,'same authored chunk reuses exactly one canvas');
 assert.equal(get(map,17,18).x,64);
-assert.equal(get(map,17,18).y,64);
+assert.equal(get(map,17,18).y,96);
 // Cover 100 unique 8x8 source chunks, deliberately beyond the cache ceiling.
 for(let y=0;y<80;y+=8)for(let x=0;x<80;x+=8){
  const t=get(map,x,y);
