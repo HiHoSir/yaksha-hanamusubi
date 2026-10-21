@@ -3,12 +3,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const source=fs.readFileSync('js/game.js','utf8');
 function scenario({hp=100,trait=null,chance=0,random=0.5,playerHp=100}={}){
  let now=0,id=0,timers=new Map(),enemyAlpha=null;
- const elements=new Map(),element=()=>({style:{},classList:{add(){},remove(){},toggle(){}},setAttribute(){},textContent:''});
+ const elements=new Map(),element=()=>({style:{},classList:{add(){},remove(){},toggle(){},contains(){return false}},setAttribute(){},textContent:''});
  const canvas=new Proxy({globalAlpha:1,save(){},restore(){this.globalAlpha=1;}},{get:(o,k)=>k in o?o[k]:(()=>{})});
  const c={console,Math:Object.assign(Object.create(Math),{random:()=>random}),performance:{now:()=>now},
   setTimeout(fn,ms){const key=++id;timers.set(key,{fn,at:now+ms});return key;},clearTimeout(key){timers.delete(key)},
   document:{getElementById(key){if(!elements.has(key))elements.set(key,element());return elements.get(key)},querySelector:()=>null,querySelectorAll:()=>[]},
-  bg:canvas,layerReady:()=>false,HIZUKI_4DIR:{},HIZUKI_BATTLE_FRAMES:[],HIZUKI_BATTLE_IDLE:{},HIZUKI_ATTACK_FRAMES:[{},{},{}],HIZUKI_SKILL_FRAMES:[{},{},{}],HIZUKI_BATTLE_EXPRESSIONS:{victory:{},levelup:{}},hero(){},flower(){},
+  bg:canvas,layerReady:image=>!!image,HIZUKI_4DIR:{},HIZUKI_BATTLE_FRAMES:[{src:'qa:hero',naturalWidth:100,naturalHeight:200}],HIZUKI_BATTLE_IDLE:{},HIZUKI_ATTACK_FRAMES:[{},{},{}],HIZUKI_SKILL_FRAMES:[{},{},{}],HIZUKI_BATTLE_EXPRESSIONS:{victory:null,levelup:null},hero(){},flower(){},
   enemyArt(){enemyAlpha=canvas.globalAlpha},renderBattlePartyCards(){},relicBonus:()=>0,
   YK_AUDIO:{battleSe(){},endEncounterAudio(){}},YK_SAVE:{auto(){}},YK_INPUT:{stopAll(){}},battleTrace(){},hud(){},
   E:{bonus:()=>0,drop:()=>null,items:{}},D:{enemyProfiles:{},rareRules:{repeatDropChance:0},relics:{},areas:{}},
