@@ -348,120 +348,20 @@ function check(name,fn){fn();results.push(name)}
  el('ok').fire('click');shot('04-places');
  check('all eighteen debug pages render and cycle',()=>{for(let i=3;i<sandbox.__qaEval("DEBUG_PAGES.length");i++)el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,0);});
  check('B restores full gameplay state and leaves saves untouched',()=>{el('cancel').fire('click');assert.equal(JSON.stringify(sandbox.gameState),stateBefore);assert.deepEqual([...storage],saveBefore);assert(el('title').classList.contains('show'));});
- check('Continue still restores the existing autosave',()=>{el('continueGame').fire('click');assert.equal(sandbox.gameState.area,'field');assert(!el('title').classList.contains('show'));});
- check('New game starts in village',()=>{el('title').classList.add('show');el('newGame').fire('click');assert.equal(sandbox.gameState.area,'village');assert.equal(sandbox.gameState.x,768);assert.equal(sandbox.gameState.y,760);assert(!el('title').classList.contains('show'));});
- check('production field moves 32px, enters and exits every existing story area',()=>{
-  sandbox.__qaEval('S.area="field";[S.x,S.y]=YK_WORLD.start.slice();busy=false;S.encounterGrace=999;');
-  const y=sandbox.gameState.y;tap('up');advance(160);assert.equal(sandbox.gameState.y,y-32);
-  assert(!sandbox.__qaEval('collision(S.x,S.y)'));shot('15-production-field');
-  const pixel=el('game').canvas.getContext('2d').getImageData(200,570,1,1).data;assert(pixel[1]>pixel[2]*1.2,'production grass is actually rendered');
-  sandbox.__qaEval('worldMap()');shot('16-production-overview','worldCanvas');sandbox.__qaEval('close("worldMap")');
-  for(const [id,p] of Object.entries(world.places)){
-   sandbox.__qaEval('busy=false;S.area="field";fieldMotion=null;');[sandbox.gameState.x,sandbox.gameState.y]=p.point;
-   sandbox.__qaEval('action()');assert.equal(sandbox.gameState.area,id);
-   if(id==='village'){sandbox.gameState.x=768;sandbox.gameState.y=1228;tap('down');}
-   else {sandbox.gameState.x=44;sandbox.gameState.y=430;tap('left');}
-   assert.equal(sandbox.gameState.area,'field',id+' exit');assert(world.walkable(sandbox.gameState.x,sandbox.gameState.y));
-  }
-  sandbox.__qaEval('restoreState(YK_SAVE.migrate({worldRevision:88,area:"field",x:2000,y:2096}));');
-  assert.equal(sandbox.gameState.x,2000,'large coordinate preserved');
- });
- check('production encounters and save restore retain expanded world coordinates',()=>{
-  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.encounterGrace=0;S.encounterSteps=100;');
-  const before=[sandbox.gameState.x,sandbox.gameState.y],random=sandbox.Math.random;sandbox.Math.random=()=>0;
-  assert(sandbox.__qaEval('beginEncounter()'));assert(el('battle').classList.contains('show'));assert.equal(sandbox.gameState.area,'field');assert.deepEqual([sandbox.gameState.x,sandbox.gameState.y],before);sandbox.Math.random=random;
-  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;');
-  [sandbox.gameState.x,sandbox.gameState.y]=world.places.forest.point;sandbox.YK_SAVE.auto(sandbox.gameState);
-  sandbox.__qaEval('restoreState(YK_SAVE.loadAuto());');assert.deepEqual([sandbox.gameState.x,sandbox.gameState.y],Array.from(world.places.forest.point));
- });
- const originalRandom=sandbox.Math.random;
- const battleSetup=()=>{sandbox.Math.random=()=>0;sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.encounterGrace=0;S.encounterSteps=100;beginEncounter();battle.hp=battle.max=999;renderBattle();');};
- battleSetup();await Promise.all(loaded.map(im=>im.decode()));sandbox.__qaEval('renderBattle()');
- check('battle touch pad is raised and grid navigation matches command positions',()=>{
-  assert(el('pad').classList.contains('battleActive'));tap('down');assert.equal(sandbox.__qaEval('battleCursor'),2);tap('right');assert.equal(sandbox.__qaEval('battleCursor'),3);tap('up');assert.equal(sandbox.__qaEval('battleCursor'),1);
-  tap('ok');assert.equal(sandbox.__qaEval('battle.menu'),'skill');tap('cancel');assert.equal(sandbox.__qaEval('battle.menu'),'root');assert.equal(sandbox.__qaEval('battle.hp'),999);
-  shot('17-battle-idle','battleCanvas');
- });
- check('skill costs tech once and rejects repeated input during the turn',()=>{
-  sandbox.__qaEval('cmd("skill")');tap('ok');const tech=sandbox.gameState.mp;assert.equal(tech,14);tap('ok');assert.equal(sandbox.gameState.mp,tech);shot('18-battle-skill','battleCanvas');advance(1200);assert(!sandbox.__qaEval('battleLocked'));
- });
- check('missing tech and empty items spend neither a turn nor resources',()=>{
-  sandbox.gameState.mp=0;sandbox.__qaEval('cmd("skill");cmd("bloom")');const hp=sandbox.gameState.hp;advance(700);assert.equal(sandbox.gameState.hp,hp);assert(!sandbox.__qaEval('battleLocked'));
-  sandbox.__qaEval('battleBack();S.potions=0;cmd("item");cmd("herb")');advance(700);assert.equal(sandbox.gameState.hp,hp);assert.equal(sandbox.gameState.potions,0);
- });
- check('guard halves only one incoming hit',()=>{
-  battleSetup();sandbox.__qaEval('cmd("guard")');advance(1200);assert.equal(sandbox.gameState.hp,97);assert(!sandbox.__qaEval('battle.guarding'));sandbox.__qaEval('cmd("attack")');advance(1200);assert.equal(sandbox.gameState.hp,91);
- });
- check('healing costs tech and full-health item use does not consume an item',()=>{
-  battleSetup();sandbox.__qaEval('cmd("item");cmd("herb")');assert.equal(sandbox.gameState.potions,2);assert(!sandbox.__qaEval('battleLocked'));
-  sandbox.__qaEval('battleBack();S.hp=40;cmd("skill");cmd("heal")');assert.equal(sandbox.gameState.hp,72);assert.equal(sandbox.__qaEval('battleFx.source'),'hero');assert.equal(sandbox.gameState.mp,15);advance(1200);assert.equal(sandbox.gameState.hp,66);
- });
- check('victory rewards once, restores tech on level-up and waits for acknowledgement',()=>{
-  battleSetup();sandbox.__qaEval('battle.hp=1;battle.xp=40;S.mp=0;cmd("attack")');advance(500);assert.equal(sandbox.gameState.lv,2);assert.equal(sandbox.gameState.mp,sandbox.gameState.maxmp);const gold=sandbox.gameState.gold;
-  assert.equal(sandbox.__qaEval('battle.phase'),'result');assert(el('battle').classList.contains('show'));advance(1500);assert(el('battle').classList.contains('show'));sandbox.__qaEval('win()');assert.equal(sandbox.gameState.gold,gold);
-  shot('19-battle-result','battleCanvas');tap('ok');assert(!el('battle').classList.contains('show'));assert(!el('pad').classList.contains('battleActive'));
- });
- check('escape result and stale battle callbacks cannot award or damage after exit',()=>{
-  battleSetup();const gold=sandbox.gameState.gold;sandbox.__qaEval('cmd("escape")');advance(450);tap('cancel');assert(!el('battle').classList.contains('show'));assert.equal(sandbox.gameState.gold,gold);
-  battleSetup();sandbox.__qaEval('cmd("attack");state(YK_SAVE.fresh());');advance(1200);assert.equal(sandbox.gameState.hp,100);assert.equal(sandbox.gameState.gold,30);
- });
- check('old saves gain tech while saved zero tech remains zero',()=>{
-  const old=sandbox.YK_SAVE.migrate({saveVersion:11,lv:4});assert.equal(old.maxmp,24);assert.equal(old.mp,24);
-  assert.equal(sandbox.YK_SAVE.migrate({...old,mp:0}).mp,0);
- });
- battleSetup();
- // Inspect the actual hero pixels emitted by production renderBattle, excluding
- // background/enemy/shadow. This catches transparent-margin scale regressions.
- for(const outfit of ['normal']){
-  sandbox.__qaEval(`S.outfit=${JSON.stringify(outfit)};ensureBattleAssets()`);
- }
- await Promise.all(loaded.map(im=>im.decode()));advance(1);
- check('all 6 public battle pose combinations keep visible height and ground contact',()=>{
-  const isolated=createCanvas(768,430),ic=isolated.getContext('2d'),context=el('battleCanvas').getContext(),draw=context.drawImage;
-  const heroImages=sandbox.__qaEval('[...Object.values(BATTLE_SPRITES).flatMap(Object.values),...Object.values(LAYERED_SPRITES).flatMap(s=>Object.values(s).flat())]');
-  const preview=createCanvas(1200,480),pc=preview.getContext('2d');pc.fillStyle='#849098';pc.fillRect(0,0,1200,480);
-  context.drawImage=(im,...args)=>{if(heroImages.includes(im))ic.drawImage(im,...args);return draw(im,...args)};
-  try{for(const [oi,outfit] of ['normal'].entries()){
-   for(const [pi,pose] of ['idle','attack','hit','guard','victory','skill'].entries()){
-    ic.clearRect(0,0,768,430);sandbox.__qaEval(`S.outfit=${JSON.stringify(outfit)};battlePose=${JSON.stringify(pose)};renderBattle()`);
-    const pixels=ic.getImageData(0,0,768,430).data;let top=430,bottom=-1;
-    for(let y=0;y<430;y++)for(let x=0;x<768;x++)if(pixels[(y*768+x)*4+3]>16){top=Math.min(top,y);bottom=Math.max(bottom,y)}
-    assert(bottom-top>=148&&bottom-top<=160,`${outfit}/${pose}: visible height ${bottom-top}`);
-    assert(Math.abs(bottom-323)<=2,`${outfit}/${pose}: feet ${bottom}`);
-    if(outfit==='normal'||outfit==='stardust'){
-     const x=pi*200,y=outfit==='normal'?0:240;pc.drawImage(isolated,40,130,330,210,x,y+25,200,200);
-     pc.fillStyle='#fff';pc.font='14px sans-serif';pc.fillText(outfit+'/'+pose,x+5,y+20);
-    }
-   }
-  }}finally{context.drawImage=draw}
-  fs.writeFileSync(path.join(output,'hero-battle-scale.png'),preview.toBuffer('image/png'));
- });
-
- check('merchant action opens shop; purchase equips and persists without changing appearance',()=>{
-  sandbox.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=400;S.dir="u";S.gold=1000;action()');
-  assert(el('shop').classList.contains('show'));dataTap('shopItem','short_blade');assert.equal(sandbox.gameState.gold,935);
-  sandbox.__qaEval('close("shop");menu()');assert.equal(elements.filter(e=>e.dataset.outfit).length,1);
-  const select=elements.find(e=>e.dataset.equipSlot==='weapon');assert(select);select.value='short_blade';select.fire('change');
-  assert.equal(sandbox.gameState.equipment.weapon,'short_blade');assert.equal(sandbox.gameState.outfit,'normal');
-  assert.equal(sandbox.YK_SAVE.loadAuto().equipment.weapon,'short_blade');
- });
- check('each equipment chest is reachable, opens by action and cannot be claimed twice',()=>{
-  for(const chest of sandbox.YK_EQUIPMENT.chests){
-   sandbox.__qaEval(`state(YK_SAVE.fresh());busy=false;S.area=${JSON.stringify(chest.area)};S.x=${chest.x-40};S.y=${chest.y};S.dir="r";S.quest=6;`);
-   assert(!sandbox.__qaEval(`collision(${chest.x-40},${chest.y})`),chest.id);
-   sandbox.__qaEval('action();action();map()');assert.equal(sandbox.gameState.equipmentInventory[chest.item],1);
-   shot('chest-'+chest.area);
-  }
- });
- check('weapon and armor bonuses reach production combat and rewards only drop once',()=>{
-  battleSetup();sandbox.__qaEval('E.grant(S,"short_blade");E.equip(S,"weapon","short_blade");cmd("attack")');
-  assert.equal(sandbox.__qaEval('battle.hp'),999-18);advance(1200);
-  battleSetup();sandbox.__qaEval('E.grant(S,"plum_robe");E.equip(S,"body","plum_robe");foe()');assert.equal(sandbox.gameState.hp,96);advance(700);
-  battleSetup();sandbox.__qaEval('battle.baseName="木霊";battle.hp=0;win();win()');assert.equal(sandbox.gameState.equipmentInventory.leaf_comb,1);
- });
- sandbox.Math.random=originalRandom;
- check('changed image assets have no missing files',()=>assert(!missing.some(p=>p.includes('original-32-v2')||p.includes('forest-crown-v3')||p.includes('landscape-v1')||p.includes('landscape-v2')||p.includes('landscape-v3')||p.includes('places-v1')||p.includes('grass-v1')||p.includes('quarter-v1'))));
- fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({passed:results,scope:'Node VM + native canvas, not Safari',legacyMissing:missing},null,2));
+ // This Canvas smoke owns original terrain rendering, movement and debug
+ // entry/exit. Current gameplay has dedicated contract and browser tests:
+ // qa/save-compat-unit.cjs, qa/equipment.cjs, qa/battle-rules-unit.cjs,
+ // qa/battle-tempo.cjs and qa/field-access.cjs.
+ // Do not duplicate obsolete beta-era battle and shop expectations here.
+ check('debug terrain assets resolve locally',()=>assert(
+  !missing.some(p=>['original-32-v2','forest-crown-v3','landscape-v1',
+   'landscape-v2','landscape-v3','places-v1','grass-v1','quarter-v1']
+   .some(name=>p.includes(name))),
+  'missing terrain assets: '+JSON.stringify(missing)
+ ));
+ fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({
+  passed:results,scope:'Native canvas terrain and debug smoke (not browser or battle QA)',legacyMissing:missing
+ },null,2));
  console.log(JSON.stringify({passed:results.length,checks:results,legacyMissing:missing},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1});
 
