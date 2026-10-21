@@ -49,10 +49,6 @@ window.YK_ELEVATION_VIEW=(()=>{
    );
   }).map(([side])=>side);
  };
- const shorePoly=(side,width)=>{
-  const w=width;
-  return {n:[[0,0],[32,0],[32,w],[0,w]],e:[[32,0],[32,32],[32-w,32],[32-w,0]],s:[[0,32],[32,32],[32,32-w],[0,32-w]],w:[[0,0],[w,0],[w,32],[0,32]]}[side];
- };
  // Shared shoreline mask for the visible land surface and its sand overlay.
  // Round convex land corners only when both orthogonal neighbours are water.
  // The removed corner reveals the already rendered water below; collision
@@ -201,14 +197,13 @@ window.YK_ELEVATION_VIEW=(()=>{
     const n0=side?E.level(m,tx+dx,ty+dy,ax/32-dx,ay/32-dy):cut?.lower;
     const n1=side?E.level(m,tx+dx,ty+dy,bx/32-dx,by/32-dy):cut?.lower;
     const cliff=h0>(n0??h0)+.001||h1>(n1??h1)+.001;
-    const shore=!!side&&!isWater(kind)&&isWater(neighbor)&&!cliff;
     if(!cliff)continue;
     const depth=ty*32+Math.max(ay,by);
     items.push({depth,order:1.5,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
      if(!p0||!p1)return;
      c.save();c.lineCap='butt';c.lineJoin='bevel';
-     c.strokeStyle=shore?'rgba(13,35,43,.78)':'rgba(19,22,18,.84)';
+     c.strokeStyle='rgba(19,22,18,.84)';
      c.lineWidth=Math.max(1,Math.min(2.4,(p0.scale+p1.scale)*.7));
      // Stable hand-drawn wobble: endpoints stay on the exact terrain seam.
      // Sample the same world coordinates across adjacent tiles, not per frame.
@@ -220,34 +215,14 @@ window.YK_ELEVATION_VIEW=(()=>{
       const seed=Math.sin(x*12.9898+y*78.233)*43758.5453;
       return (seed-Math.floor(seed)-.5)*5.2;
      };
-     // Coastline is a continuous world-space contour: its shared corner
-     // displacement is derived from the same vertex, regardless of tile.
-     // Keep cliff lips tied to their collision geometry.
-     const shorePoint=(t)=>{
-      const x=wx+(ex-wx)*t,y=wy+(ey-wy)*t;
-      const p=point(x,y,h0+(h1-h0)*t);
-      if(!p)return null;
-      const q=Math.sin(x*.19+y*.31)*1.8+Math.sin(x*.41-y*.27)*1.1;
-      const taper=Math.sin(Math.PI*t);
-      return {x:p.x+nx*q*taper,y:p.y+ny*q*taper};
-     };
-     c.beginPath();
-     if(shore){
-      // A smooth cubic joins each shoreline segment; world-coordinate
-      // perturbation avoids per-frame randomness and square sawtooth strokes.
-      const a=shorePoint(0),b=shorePoint(1),u=shorePoint(1/3),w=shorePoint(2/3);
-      if(a&&b&&u&&w){
-       c.moveTo(a.x,a.y);
-       c.bezierCurveTo(u.x,u.y,w.x,w.y,b.x,b.y);
-      }
-     }else{
-      c.moveTo(p0.x,p0.y);
-      for(let step=1;step<7;step++){
-       const t=step/7,offset=wobble(t)*Math.sin(Math.PI*t);
-       c.lineTo(p0.x+vx*t+nx*offset,p0.y+vy*t+ny*offset);
-      }
-      c.lineTo(p1.x,p1.y);
+     // Cliff lips use only the elevation outline. Waterline belongs
+     // exclusively to the shared shoreline polygon below.
+     c.beginPath();c.moveTo(p0.x,p0.y);
+     for(let step=1;step<7;step++){
+      const t=step/7,offset=wobble(t)*Math.sin(Math.PI*t);
+      c.lineTo(p0.x+vx*t+nx*offset,p0.y+vy*t+ny*offset);
      }
+     c.lineTo(p1.x,p1.y);
      c.stroke();c.restore();
     }});
    }
