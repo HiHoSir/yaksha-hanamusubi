@@ -211,8 +211,8 @@ window.YK_ELEVATION_VIEW=(()=>{
     // Do not promote rear-facing lips: that exposed the back walls in 16.0.154.
     const facesCamera=side==='s'||(!side&&bx<ax);
     const lift=facesCamera?Math.max(0,Math.max(h0-n0,h1-n1))*rise/zoom:0;
-    const depth=ty*32+Math.max(ay,by)+lift;
-    items.push({depth,order:1.5,draw:()=>{
+    const depth=facesCamera?ty*32+Math.max(ay,by)+lift:ty*32-.01;
+    items.push({depth,order:facesCamera?1.5:-1,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
      if(!p0||!p1)return;
      c.save();c.lineCap='butt';c.lineJoin='bevel';
@@ -262,7 +262,7 @@ window.YK_ELEVATION_VIEW=(()=>{
      // than drawing every cliff after all terrain (the 16.0.154 regression).
      const facesCamera=side==='s'||(!side&&bx<ax);
      const lift=facesCamera?Math.max(...high.map((h,j)=>h-low[j]))*rise/zoom:0;
-     items.push({depth:Math.max(...span.map(p=>p[1]))+lift,order:1,draw:()=>{
+     items.push({depth:facesCamera?Math.max(...span.map(p=>p[1]))+lift:ty*32-.01,order:facesCamera?1:-1,draw:()=>{
       const bands=Math.max(1,Math.ceil(Math.max(...high.map((h,j)=>h-low[j]))));
       for(let b=0;b<bands;b++){
        const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
