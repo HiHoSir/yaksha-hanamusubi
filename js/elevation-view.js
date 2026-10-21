@@ -220,8 +220,8 @@ window.YK_ELEVATION_VIEW=(()=>{
     // Do not promote rear-facing lips: that exposed the back walls in 16.0.154.
     const facesCamera=side==='s'||(!side&&bx<ax);
     const lift=facesCamera?Math.max(0,Math.max(h0-n0,h1-n1))*rise/zoom:0;
-    const depth=facesCamera?ty*32+Math.max(ay,by)+lift:ty*32-.01;
-    items.push({depth,order:facesCamera?1.5:-1,draw:()=>{
+    const depth=ty*32+Math.max(ay,by)+lift;
+    items.push({depth,order:1.5,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
      if(!p0||!p1)return;
      c.save();c.lineCap='butt';c.lineJoin='bevel';
