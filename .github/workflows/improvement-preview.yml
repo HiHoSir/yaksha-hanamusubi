@@ -50,7 +50,9 @@ jobs:
           src=src.replace('const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=14;',
                           'const AUTO="yaksha_preview_'+slug+'_auto", LEGACY="yaksha_preview_'+slug+'_legacy", VER=14;')
           src=src.replace('"yaksha_beta_slot"', '"yaksha_preview_'+slug+'_slot"')
-          if 'const AUTO="yaksha_preview_'+slug+'_auto"' not in src:\n            raise SystemExit('Save namespace rewrite did not match source')\n          save.write_text(src)
+          if 'const AUTO="yaksha_preview_'+slug+'_auto"' not in src:
+            raise SystemExit('Save namespace rewrite did not match source')
+          save.write_text(src)
           # Reject absolute root asset paths, which would escape the preview folder.
           html=p.read_text()
           import re
