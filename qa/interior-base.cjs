@@ -40,7 +40,7 @@ if(id==='teahouse'){
  }
  await run('S.x=384;S.y=560;fieldMotion=null;map();');
 }
-if(id==='inn'){await run('S.x=128;S.y=496;S.dir="u";S.hp=10;action();while($("dialog").classList.contains("show"))nextDialog();');assert.equal(await run('S.hp'),100);}
+if(id==='inn'){await run('S.x=128;S.y=496;S.dir="u";S.hp=10;action();while($("dialog").classList.contains("show"))nextDialog();');assert.equal(await run('S.hp'),await run('S.maxhp'),'inn restores current maximum HP');}
 if(id==='shop'){
 await page.waitForFunction(()=>window.YK_INTERIOR_BASE.layeredReady());
 const layers=await run(`(()=>{
