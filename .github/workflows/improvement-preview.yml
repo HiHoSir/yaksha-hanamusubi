@@ -1,4 +1,4 @@
-name: Build isolated improvement preview artifacts
+name: Deploy production-preserving improvement preview
 on:
   workflow_dispatch:
     inputs:
