@@ -57,7 +57,7 @@ jobs:
           if re.search(r'(?:src|href)=[\\\"\\\']/(?!/)',html):
             raise SystemExit('Root-absolute asset URL cannot be isolated')
           # A preview must never inherit production saves through old key fallbacks.
-          assert 'localStorage.getItem("yaksha_beta_auto")' not in src
+          assert 'yaksha_beta_auto' not in src
           assert '"yaksha_beta_slot"' not in src
           (root/'PREVIEW.txt').write_text('Preview branch: '+slug+'\\nProduction is not modified.\\n')
           PY
@@ -75,6 +75,8 @@ jobs:
           path: production
           persist-credentials: false
       - name: Assemble production plus isolated preview
+        env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
         shell: bash
         run: |
           set -euo pipefail
@@ -83,7 +85,7 @@ jobs:
           mkdir -p site/previews
           cp -a preview/previews/. site/previews/
           test -f site/index.html
-          test -f site/previews/ui-dpad-touch/index.html || echo 'Selected preview is not ui-dpad-touch'
+          test -f "site/previews/${SOURCE_BRANCH#improve/}/index.html"
       - name: Upload preview artifact (not public)
         uses: actions/upload-artifact@v4
         with:
