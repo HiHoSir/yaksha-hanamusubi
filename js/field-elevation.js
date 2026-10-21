@@ -65,15 +65,18 @@ window.YK_FIELD_ELEVATION=(()=>{
     if(!seen.has(k)&&E.canMove(m,...center(x,y),...center(nx,ny))){seen.add(k);queue.push([nx,ny]);}
    }}return seen;
   }
-  // An elevated landmass is one connected plateau, not one tile.
-  // Suppress redundant ladders into any plateau already accessible from below.
+  // Group plateaus by terrain geometry, ignoring forest objects and other
+  // occupancy. Physical collision still applies to the actual ladder tile.
   function plateauComponent(x,y){
    const level=E.level(m,x,y),seen=new Set([key(x,y)]),queue=[[x,y]];
    for(let i=0;i<queue.length;i++){const [cx,cy]=queue[i];
     for(const [dx,dy] of dirs){
      const nx=cx+dx,ny=cy+dy,k=key(nx,ny);
-     if(seen.has(k)||!pass(nx,ny)||E.level(m,nx,ny)!==level)continue;
-     if(!E.canMove(m,...center(cx,cy),...center(nx,ny)))continue;
+     if(seen.has(k)||!E.inside(m,nx,ny)||E.level(m,nx,ny)!==level)continue;
+     if(!['grass','forest','sand','snow','barren','road','bridge'].includes(m[ny][nx]))continue;
+     // Use terrain outline geometry, not tree/prop occupancy.
+     if(E.outline(m,nx,ny).cuts.length&&
+        !E.pointWalkable(m,...center(nx,ny)))continue;
      seen.add(k);queue.push([nx,ny]);
     }
    }return seen;
@@ -106,15 +109,6 @@ window.YK_FIELD_ELEVATION=(()=>{
    const before=reachable.size;
    let installed=false;
    for(const c of ladderCandidates){
-    // Trees and other occupied cells may split one visible plateau into
-    // multiple walkable components. Space entrances by cliff geometry as well
-    // as component membership, so one forest edge never gains a ladder row.
-    const sameCliffCrowded=m.ladders.some(l=>{
-     const [lx,ly]=l.lower,[ux,uy]=l.upper;
-     const sameRise=E.level(m,ux,uy)===E.level(m,c.nx,c.ny);
-     return sameRise&&Math.abs(ly-c.y)<=3&&Math.abs(lx-c.x)<8;
-    });
-    if(sameCliffCrowded)continue;
     m.ladders.push({lower:[c.x,c.y],upper:[c.nx,c.ny]});
     E.prepare(m);
     if(flood().size>before){
