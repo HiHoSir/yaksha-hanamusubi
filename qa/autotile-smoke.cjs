@@ -17,6 +17,7 @@ class Element{
  getAttribute(name){return this[name]??null}
  append(...children){for(const child of children){if(child&&typeof child==='object'){child.owner=this;child.isConnected=true;}}}
  appendChild(child){this.append(child);return child}
+ replaceChildren(...children){elements=elements.filter(x=>x.owner!==this);this.append(...children)}
  addEventListener(name,fn){(this.events[name]??=[]).push(fn)}
  fire(name,extra={}){const e={target:this,pointerId:1,preventDefault(){},stopPropagation(){},...extra};for(const fn of this.events[name]||[])fn(e)}
  setPointerCapture(){}getContext(){if(this.id==='worldTerrain')this.snapshot=null;if(this.canvas.width!==this.width)this.canvas.width=this.width;if(this.canvas.height!==this.height)this.canvas.height=this.height;const c=this.canvas.getContext('2d');if(!c.__adapted){const draw=c.drawImage.bind(c);c.drawImage=(im,...args)=>{if((im.id==="worldTerrain"||im.__ykStatic)&&!im.snapshot){im.snapshot=new NativeImage();im.snapshot.src=im.canvas.toBuffer("image/png");loaded.push(im.snapshot);}return draw(im.snapshot||im.canvas||im,...args);};c.__adapted=true;}return c}
