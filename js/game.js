@@ -52,7 +52,7 @@ function installCharacterSizeReview(){
  document.body.append(panel);
 }
 installCharacterSizeReview();
-let fieldMotion=null;
+let fieldMotion=null;let fieldLadderMotion=null;
 let debugMotion=null,debugAngle=0,debugTargetAngle=0,debugPreset=0,debugCameraTime=0;
 let walkPhase=0,lastMoved=-Infinity,assetDrawQueued=false,hotBathing=false;
 function assetLoaded(){
@@ -919,7 +919,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.0.164";
+const GAME_JS_BUILD="16.0.165";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1026,8 +1026,10 @@ function map(frameTime=performance.now()){
  if(S.area==="field"){
   YK_LANDSCAPE.load(assetLoaded);YK_AUTOTILE.load(assetLoaded);
   const {x,y}=YK_CAMERA.position(S,fieldMotion,frameTime);
+  const climbT=fieldLadderMotion&&fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||400),0,1):1;
+  const climbHeight=fieldLadderMotion&&fieldMotion?fieldLadderMotion.from+(fieldLadderMotion.to-fieldLadderMotion.from)*climbT:undefined;
   g.save();g.translate(0,32);g.scale(1.2,1.2);
-  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
+  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>hero(g,px,py-9*.56*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
    oceanOutside:true,
    elevationTerrain:true,
   });
@@ -1405,7 +1407,8 @@ function move(dx,dy,dir){
  if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
  const fieldStyle=["field","village","teahouse","osumiHome","villageRoom"].includes(S.area);
  if(fieldStyle&&(fieldMotion||dx&&dy))return;
- S.dir=dir;
+ const ladder=S.area==='field'&&dy&&!dx?YK_ELEVATION.ladderBetween(YK_WORLD.mapData,Math.floor(S.x/32),Math.floor(S.y/32),Math.floor(S.x/32),Math.floor(S.y/32)+Math.sign(dy)):null;
+ S.dir=ladder?'u':dir;
  // Village movement is atomic across *all* blockers, including river banks,
  // ramps, props and NPCs. Reject the whole stride if any 2px sample is blocked.
  // Previously only NPCs/props were preflighted, so water and cliffs could
@@ -1428,15 +1431,16 @@ function move(dx,dy,dir){
   if(crossesBlocked){S.frame=1;map();return;}
  }
  if(S.area==="field"&&!fieldCollisionDebugOff){
-  const dist=32*(Number($("speedSelect").value)||1),norm=Math.hypot(dx,dy)||1;
+  const dist=32*(ladder?1:(Number($("speedSelect").value)||1)),norm=Math.hypot(dx,dy)||1;
   if(!YK_WORLD.canMove(S.x,S.y,S.x+dx/norm*dist,S.y+dy/norm*dist)){S.frame=1;map();return;}
  }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
- const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,Number($("speedSelect").value)||1,YK_WORLD.size,collision);
+ const destination=YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,ladder?1:(Number($("speedSelect").value)||1),YK_WORLD.size,collision);
  S.x=destination.x;S.y=destination.y;
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
- if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:YK_MOVEMENT.duration(S.area)};
+ if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:ladder?400:YK_MOVEMENT.duration(S.area)};
+ fieldLadderMotion=ladder?{from:YK_ELEVATION.height(YK_WORLD.mapData,startX,startY),to:YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y)}:null;
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
@@ -1973,7 +1977,7 @@ function publishProbe(t){
 }
 let lastBattleMotionPaint=0;
 function loop(t){if(battle&&t-lastBattleMotionPaint>=33){lastBattleMotionPaint=t;renderBattle();}publishProbe(t);tickVillageDoor(t);const npcMoved=timedNpcUpdate(t);const idleNpcPaint=npcMoved&&!fieldMotion&&t-npcPaintAt>33;const idleVillagePaint=S.area==="village"&&!fieldMotion&&!npcMoved&&t-villagePaintAt>125;if(idleNpcPaint)npcPaintAt=t;if(idleVillagePaint)villagePaintAt=t;if(!busy){const motionTime=performance.now();if(fieldMotion){if(motionTime-fieldMotion.at>=(fieldMotion.duration||144)){
- const deadline=fieldMotion.at+(fieldMotion.duration||144);fieldMotion=null;
+ const deadline=fieldMotion.at+(fieldMotion.duration||144);fieldMotion=null;fieldLadderMotion=null;
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
