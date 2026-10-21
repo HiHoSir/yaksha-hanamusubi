@@ -13,7 +13,7 @@ const sandbox={
 };
 vm.createContext(sandbox);
 vm.runInContext(source.slice(start,end)+
- '\\nwindowCache={get:elevationTexture,stats:elevationChunkStats};',sandbox);
+ '\nwindowCache={get:elevationTexture,stats:elevationChunkStats};',sandbox);
 const {get,stats}=sandbox.windowCache;
 const map=Array.from({length:80},()=>Array(80).fill('grass'));
 map.bridgeWaterCells=new Set();map.paths=[];map.decorations=[];
