@@ -18,7 +18,7 @@ const checks = [
   ['field renderer integration', () => assert.match(game, /YK_LANDSCAPE\.drawQuarter\(/)],
   ['village renderer integration', () => assert.match(settlement, /YK_LANDSCAPE\.drawQuarter\(/)],
   ['village data and elevations', () => { assert.match(settlement, /const size=\[1536,1280\]/); assert.match(settlement, /const upland=/); }],
-  ['world map dimensions', () => assert.match(world, /const tileSize=32,size=2560,viewSize=640,revision=88/)],
+  ['world map dimensions', () => { const m=world.match(/const tileSize=32,size=2560,viewSize=640,revision=(\d+)/); assert(m,'world geometry contract'); assert(Number(m[1])>=88,'world revision must not regress'); }],
   ['world collision API', () => assert.match(world, /const walkable=/)],
   ['existing save migration', () => { assert.match(save, /function migrate\(raw\)/); assert.match(save, /worldRevision/); }],
   ['existing save storage', () => { assert.match(save, /function loadAuto\(\)/); assert.match(save, /function saveSlot\(/); }],
