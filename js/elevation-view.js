@@ -320,7 +320,10 @@ window.YK_ELEVATION_VIEW=(()=>{
     if(o.render)o.render(c,p);else if(art[o.kind])c.drawImage(art[o.kind],p.x-o.width*p.scale/2,p.y-o.height*p.scale,o.width*p.scale,o.height*p.scale);c.globalAlpha=1;
    }});
   }
-  if(actor)items.push({depth:actor.y,order:3,draw:()=>{
+  // The actor's feet must be composited after the entire ground cell under them.
+   // Sorting at the exact foot y interleaved the sprite with 16px terrain strips,
+   // making the boots/body flicker as the camera moved vertically.
+   if(actor)items.push({depth:actor.y+32,order:3,draw:()=>{
    const p=point(actor.x,actor.y,E.height(m,actor.x,actor.y));if(!p)return;
    if(actor.draw){actor.draw(p.x,p.y,p.scale);return;}
    const row={d:0,u:1,r:2,l:3}[actor.dir||'d'],col=row>=2?Math.min(1,actor.frame||0):actor.frame||0;
