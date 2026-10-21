@@ -26,6 +26,7 @@ const server=http.createServer((req,res)=>{
   await page.goto(address);await ready();
   assert(await page.locator('#title').isVisible());
   await page.locator('#continueGame').tap();
+  await page.locator('#titleLoadSelection').waitFor({state:'visible'});
   const diag=await page.evaluate(()=>({pickerHidden:document.querySelector('#titleLoadSelection').hidden,pickerDisplay:getComputedStyle(document.querySelector('#titleLoadSelection')).display,mainHidden:document.querySelector('#titleMainActions').hidden,titleShow:document.querySelector('#title').classList.contains('show'),buttonVisible:getComputedStyle(document.querySelector('#continueGame')).display,pickerRect:document.querySelector('#titleLoadSelection').getBoundingClientRect().toJSON()}));assert(await page.locator('#titleLoadSelection').isVisible(),'manual save picker must open '+JSON.stringify(diag)+' errors '+JSON.stringify(errors));
   assert(!await page.locator('#titleMainActions').isVisible(),'main actions must hide while picking');
   assert.equal(await page.locator('#titleLoadSlots button').count(),3);
@@ -33,8 +34,10 @@ const server=http.createServer((req,res)=>{
   assert((await page.locator('#titleLoadSlots button').first().innerText()).includes('1段'));
   assert((await page.locator('#titleLoadSlots button').last().innerText()).includes('3段'));
   await page.locator('#titleLoadBack').tap();
+  await page.locator('#continueGame').waitFor({state:'visible'});
   assert(await page.locator('#continueGame').isVisible(),'back restores title menu');
   await page.locator('#continueGame').tap();
+  await page.locator('#titleLoadSelection').waitFor({state:'visible'});
   await page.locator('#titleLoadSlots button').last().tap();
   await page.waitForFunction(()=>!document.querySelector('#title').classList.contains('show'));
   assert.equal(await page.evaluate(()=>window.gameState.gold),333,'chosen manual slot must be restored');
