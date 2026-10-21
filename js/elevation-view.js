@@ -49,23 +49,43 @@ window.YK_ELEVATION_VIEW=(()=>{
  // Round convex land corners only when both orthogonal neighbours are water.
  // The removed corner reveals the already rendered water below; collision
  // and height geometry remain unchanged.
- function shoreOutline(shores){
-  const wet=new Set(shores),corners=[
-   [0,0,'w','n',[0,1],[1,0]],
-   [32,0,'n','e',[-1,0],[0,1]],
-   [32,32,'e','s',[0,-1],[-1,0]],
-   [0,32,'s','w',[1,0],[0,-1]]
-  ],poly=[],radius=10;
-  for(const [x,y,a,b,back,forward] of corners){
-   if(!(wet.has(a)&&wet.has(b))){poly.push([x,y]);continue;}
-   const from=[x+back[0]*radius,y+back[1]*radius],to=[x+forward[0]*radius,y+forward[1]*radius];
-   poly.push(from);
-   for(let i=1;i<=6;i++){
-    const t=i/6,u=1-t;
-    poly.push([u*u*from[0]+2*u*t*x+t*t*to[0],u*u*from[1]+2*u*t*y+t*t*to[1]]);
+ // Each shore edge is sampled in world coordinates. Land and sand share
+ // this polygon; the dark waterline is extracted from its marked edges.
+ function shoreOutline(shores,tx,ty){
+  const wet=new Set(shores),poly=[],boundary=[],radius=9;
+  const wave=(x,y)=>2.2+1.3*Math.sin(x*.13+y*.071)+.8*Math.sin(x*.29-y*.11);
+  const corners=[[0,0,'w','n'],[32,0,'n','e'],[32,32,'e','s'],[0,32,'s','w']];
+  const sidePoint=(side,t)=>{
+   const wx=tx*32,wy=ty*32;
+   const f=Math.sin(Math.PI*t/32),d=Math.max(0,wave(wx+(side==='n'||side==='s'?t:side==='e'?32:0),wy+(side==='e'||side==='w'?t:side==='s'?32:0)))*f;
+   return side==='n'?[t,d]:side==='e'?[32-d,t]:side==='s'?[32-t,32-d]:[d,32-t];
+  };
+  const sideAt=(side,t)=>side==='n'?sidePoint('n',t):side==='e'?sidePoint('e',t):side==='s'?sidePoint('s',t):sidePoint('w',t);
+  const sides=['n','e','s','w'];
+  for(let i=0;i<4;i++){
+   const side=sides[i],prev=sides[(i+3)%4],next=sides[(i+1)%4];
+   const start=wet.has(side)&&wet.has(prev)?radius:0;
+   const finish=wet.has(side)&&wet.has(next)?32-radius:32;
+   if(wet.has(side)){
+    for(let t=start;t<=finish;t+=2){
+     const p=sideAt(side,t);poly.push(p);boundary.push(true);
+    }
+    if((finish-start)%2!==0){poly.push(sideAt(side,finish));boundary.push(true);}
+   }else{
+    poly.push(sideAt(side,start));boundary.push(false);
+    poly.push(sideAt(side,finish));boundary.push(false);
+   }
+   if(wet.has(side)&&wet.has(next)){
+    const from=sideAt(side,32-radius),to=sideAt(next,radius);
+    const corner=corners[(i+1)%4];
+    for(let j=1;j<=6;j++){
+     const t=j/7,u=1-t;
+     poly.push([u*u*from[0]+2*u*t*corner[0]+t*t*to[0],u*u*from[1]+2*u*t*corner[1]+t*t*to[1]]);
+     boundary.push(true);
+    }
    }
   }
-  return poly;
+  return {poly,boundary};
  }
  function clipShore(c,poly,tx,ty,point,m){
   const p=poly.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
@@ -99,12 +119,12 @@ window.YK_ELEVATION_VIEW=(()=>{
    const center=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
    if(!center||center.y<112||center.y>600||center.x+32*center.scale<0||center.x-32*center.scale>640)continue;
    const band=options.groundTile?(center.y<280?32:16):8;
-   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),shores=!shape.cuts.length?shoreSides(m,tx,ty):[],shoreShape=shores.length?shoreOutline(shores):null;
+   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),shores=!shape.cuts.length?shoreSides(m,tx,ty):[],shoreShape=shores.length?shoreOutline(shores,tx,ty):null;
    for(let v=0;v<32;v+=band){const py=ty*32+v;
     items.push({depth:py+band,order:0,draw:()=>{
      const p=[[0,v],[32,v],[32,v+band],[0,v+band]].map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
      if(p.every(Boolean)){
-      if(shoreShape){c.save();if(!clipShore(c,shoreShape,tx,ty,point,m)){c.restore();return;}}
+      if(shoreShape){c.save();if(!clipShore(c,shoreShape.poly,tx,ty,point,m)){c.restore();return;}}
       if(shape.cuts.length){
        const clipped=bandPolygon(shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
        if(clipped.length<3||!clipped.every(Boolean)){if(shoreShape)c.restore();return;}
@@ -144,7 +164,7 @@ window.YK_ELEVATION_VIEW=(()=>{
      if(distance(cx,cy)>widthAt(cx,cy))continue;
      const poly=[[x,y],[x+step,y],[x+step,y+step],[x,y+step]];
      items.push({depth:ty*32+y+step,order:.25,draw:()=>{
-      if(shoreShape){c.save();if(!clipShore(c,shoreShape,tx,ty,point,m)){c.restore();return;}}
+      if(shoreShape){c.save();if(!clipShore(c,shoreShape.poly,tx,ty,point,m)){c.restore();return;}}
       const p=poly.map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
       if(!p.every(Boolean)){if(shoreShape)c.restore();return;}
       const uv=poly.map(([u,w])=>({x:tx*32+u,y:ty*32+w}));
@@ -264,22 +284,10 @@ window.YK_ELEVATION_VIEW=(()=>{
    if(E.outline(m,tx,ty).cuts.length)continue;
    const shores=shoreSides(m,tx,ty);
    if(!shores.length)continue;
-   const poly=shoreOutline(shores),wet=new Set(shores);
-   const edgeWet=(a,b)=>{
-    const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
-    if(wet.has('n')&&my<.01||wet.has('e')&&mx>31.99||
-       wet.has('s')&&my>31.99||wet.has('w')&&mx<.01)return true;
-    // The rounded corner belongs to the water boundary only when BOTH
-    // adjacent orthogonal neighbours are wet.
-    return (wet.has('n')&&wet.has('w')&&mx<10&&my<10)||
-           (wet.has('n')&&wet.has('e')&&mx>22&&my<10)||
-           (wet.has('s')&&wet.has('e')&&mx>22&&my>22)||
-           (wet.has('s')&&wet.has('w')&&mx<10&&my>22);
-   };
-   const edges=[];
+   const shore=shoreOutline(shores,tx,ty),poly=shore.poly,edges=[];
    for(let i=0;i<poly.length;i++){
-    const a=poly[i],b=poly[(i+1)%poly.length];
-    if(edgeWet(a,b))edges.push([a,b]);
+    if(shore.boundary[i]&&shore.boundary[(i+1)%poly.length])
+     edges.push([poly[i],poly[(i+1)%poly.length]]);
    }
    if(!edges.length)continue;
    items.push({depth:ty*32+32,order:.5,draw:()=>{
