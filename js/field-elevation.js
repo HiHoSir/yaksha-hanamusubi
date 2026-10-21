@@ -37,6 +37,12 @@ window.YK_FIELD_ELEVATION=(()=>{
    for(const [x,y] of valid){set(x,y,h);m.ramps[y][x]=null;}
    o.supportHeight=h;
   }
+  // Simplify the former mountain cluster at field (28,35) to one terrace
+  // level. Retain lowland corridors, water, ramps and authored materials.
+  // No level-2/3 stacks remain inside this local footprint.
+  for(let y=31;y<=39;y++)for(let x=23;x<=32;x++){
+   if(!water(m[y]?.[x])&&m.heights[y][x]>1)m.heights[y][x]=1;
+  }
   m.cornerProtected=new Set(m.decorations.flatMap(o=>(o.contactTiles||[]).map(c=>c.join(','))));
   // Immutable topology gets a cache shared by rendering and collision.
   E.prepare(m);
