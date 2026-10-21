@@ -1938,14 +1938,14 @@ YK_INPUT.tap($("newGame"),startNewGame);
    const detail=document.createElement("small");
    detail.textContent=info?info.lv+"段 ／ "+info.area+" ／ "+new Date(info.time).toLocaleString("ja-JP"):"記録なし";
    button.append(title,detail);
-   if(info)YK_INPUT.tap(button,()=>{
+   if(info)YK_INPUT.tap(button,()=>requestAnimationFrame(()=>{
     const saved=YK_SAVE.loadSlot(n);
     if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
     restoreState(saved);
     $("titleLoadSelection").hidden=true;
     $("title").classList.remove("show");
     busy=false;hud();
-   });
+   }));
    list.append(button);
   }
  }
@@ -1954,16 +1954,18 @@ YK_INPUT.tap($("newGame"),startNewGame);
   $("titleMainActions").hidden=false;
   $("titleLoadNotice").textContent="";
  }
- YK_INPUT.tap($("continueGame"),showTitleLoadSelection);
- YK_INPUT.tap($("titleLoadBack"),hideTitleLoadSelection);
- YK_INPUT.tap($("resumeSuspend"),()=>{
+ // Delay visual switching until the synthetic click following pointerup has
+ // settled. Otherwise the same tap can land on a newly revealed save slot.
+ YK_INPUT.tap($("continueGame"),()=>requestAnimationFrame(showTitleLoadSelection));
+ YK_INPUT.tap($("titleLoadBack"),()=>requestAnimationFrame(hideTitleLoadSelection));
+ YK_INPUT.tap($("resumeSuspend"),()=>requestAnimationFrame(()=>{
   const saved=YK_SAVE.loadAuto();
   if(!saved){$("bootError").textContent="中断セーブがありません。";return;}
   restoreState(saved);
   $("titleLoadSelection").hidden=true;
   $("title").classList.remove("show");
   busy=false;hud();
- });
+ }));
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
