@@ -39,7 +39,15 @@ window.YK_ELEVATION_VIEW=(()=>{
  const waterKind=t=>t==='sea'||t==='river';
  const shoreSides=(m,x,y)=>{
   if(waterKind(m[y]?.[x])||m.roads?.has(x+','+y)||m.cornerProtected?.has(x+','+y)||m[y]?.[x]==='bridge')return [];
-  return [['n',0,-1],['e',1,0],['s',0,1],['w',-1,0]].filter(([side,dx,dy])=>waterKind(m[y+dy]?.[x+dx])).map(([side])=>side);
+  return [['n',0,-1],['e',1,0],['s',0,1],['w',-1,0]].filter(([side,dx,dy])=>{
+   if(!waterKind(m[y+dy]?.[x+dx]))return false;
+   // Only a level, non-ramped bank is a beach. Elevated land is a cliff.
+   // Compare both shared edge endpoints so sloping shores are excluded.
+   const ends=side==='n'?[[0,0],[1,0]]:side==='e'?[[1,0],[1,1]]:side==='s'?[[0,1],[1,1]]:[[0,0],[0,1]];
+   return ends.every(([u,v])=>
+    Math.abs(E.level(m,x,y,u,v)-E.level(m,x+dx,y+dy,u-dx,v-dy))<.001
+   );
+  }).map(([side])=>side);
  };
  const shorePoly=(side,width)=>{
   const w=width;
