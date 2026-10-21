@@ -2,7 +2,9 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const w={console,localStorage:{getItem:()=>null},Date};w.window=w;
 for(const f of ['field-terrain','elevation-model','field-elevation','world','landscape','movement-rules','data','equipment','save'])vm.runInNewContext(fs.readFileSync('js/'+f+'.js','utf8'),w);
 const E=w.YK_ELEVATION,W=w.YK_WORLD,m=W.mapData,source=w.YK_FIELD_TERRAIN;
-assert.equal(JSON.stringify(m),JSON.stringify(source.tiles),'authored tile materials unchanged');
+const expectedTerrain=source.tiles.map(row=>row.map(tile=>tile==='road'?'grass':tile));
+assert.equal(JSON.stringify(m),JSON.stringify(expectedTerrain),'authored terrain preserved except deprecated road surfaces converted to grass');
+assert(!m.some(row=>row.includes('road')),'production terrain must not render constructed roads');
 assert.equal(m.cornerCut,30);assert.deepEqual(Array.from(E.validate(m)),[]);
 const move=(x,y,nx,ny)=>{if(!W.canMove(x,y,nx,ny))return false;const end=w.YK_MOVEMENT.step('field',x,y,(nx-x)/32,(ny-y)/32,1,W.size,(a,b)=>!W.walkable(a,b));return end.x===nx&&end.y===ny;};
 const queue=[[37,71]],seen=new Set(['37,71']);for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of Object.values(E.dirs)){const nx=x+dx,ny=y+dy,key=nx+','+ny;if(!seen.has(key)&&move(x*32+16,y*32+16,nx*32+16,ny*32+16)){assert(move(nx*32+16,ny*32+16,x*32+16,y*32+16),'return step');seen.add(key);queue.push([nx,ny]);}}}
