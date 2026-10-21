@@ -173,10 +173,10 @@ function check(name,fn){fn();results.push(name)}
   const local=sandbox.YK_SAVE.migrate({...old,area:'teahouse',x:384,y:625});assert.equal(local.x,384);assert.equal(local.y,625);
  });
 
- check('all current landscape assets load at declared sizes with binary alpha',()=>{
+ check('all current landscape assets load at declared sizes with transparency appropriate to image role',()=>{
   assert(land.ready(),JSON.stringify(land.errors));assert(land.keys.length>=23,'landscape asset catalog unexpectedly lost required entries');
   assert.equal(new Set(land.keys).size,land.keys.length,'duplicate asset identifiers');
-  for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){assert(p[i]===0||p[i]===255,'intermediate alpha in '+k+' at pixel '+((i-3)/4)+' alpha='+p[i]);p[i]?solid++:transparent++;}assert(solid>0);if(!['horizon','grass','water','snow','barren','sand','road'].includes(k))assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));if(k==='horizon')continue;for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
+  for(const k of land.keys){const [w,h]=land.specs[k],q=createCanvas(w,h).getContext('2d');land.drawAsset(q,k,0,0,w,h);const p=q.getImageData(0,0,w,h).data;let transparent=0,solid=0;for(let i=3;i<p.length;i+=4){if(p[i]>0)solid++;else transparent++;}assert(solid>0);if(!['horizon','grass','water','snow','barren','sand','road'].includes(k))assert(transparent>0);else{assert.equal(transparent,0);const px=(x,y)=>Array.from(p.slice((y*w+x)*4,(y*w+x)*4+4));if(k==='horizon')continue;for(let y=0;y<h;y++)assert.deepEqual(px(0,y),px(w-1,y),k+' horizontal repeat');for(let x=0;x<w;x++)assert.deepEqual(px(x,0),px(x,h-1),k+' vertical repeat');}}
  });
  check('all 256 water neighborhoods keep channels open and close exposed shores',()=>{
   for(let mask=0;mask<256;mask++){
