@@ -131,6 +131,7 @@ window.YK_AUDIO=(()=>{
   if(bufferKey===key&&bufferSource)return;
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
+  let deferredUntilRunning=false;
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();bindContext();
    // Safari may leave resume() pending after foreground. Do not block buffer reconstruction.
@@ -143,7 +144,7 @@ window.YK_AUDIO=(()=>{
    // Safari can accept start() on a suspended/interrupted context without
    // producing sound. Keep the decoded buffer and create the source only once
    // the context really reports running; resume callbacks/taps will retry.
-   if(ctx.state!=="running"){restorePending=true;resumeContext();return;}
+   if(ctx.state!=="running"){deferredUntilRunning=true;restorePending=true;resumeContext();return;}
    if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null;}
    bufferGain??=ctx.createGain();bufferGain.connect(ctx.destination);
    const source=ctx.createBufferSource();source.buffer=buffer;source.loop=true;
@@ -152,7 +153,16 @@ window.YK_AUDIO=(()=>{
    const offset=Math.max(0,Math.min(bufferOffset,buffer.duration-.01));
    source.start(0,offset);traceAudio("source-start");bufferStartedAt=ctx.currentTime;bufferSource=source;bufferKey=key;bufferError="";
   }catch(e){bufferError=String(e?.message||e)}
-  finally{if(gen===bufferGeneration)bufferLoading=""}
+  finally{
+   if(gen===bufferGeneration){
+    bufferLoading="";
+    // resume() may resolve during decoding while bufferLoading was still set.
+    // Retry once the pending loader relinquishes ownership, never creating
+    // a silent/stale node or restarting after a track change.
+    if(deferredUntilRunning&&ctx?.state==="running"&&currentArea===key&&!bufferSource)
+     queueMicrotask(()=>{if(gen===bufferGeneration&&!backgroundPaused&&!document.hidden&&soundOn()&&!encounterMuted)void playBuffer(key);});
+   }
+  }
  }
  function attenuate(){if(bufferTest){if(bufferGain)bufferGain.gain.value=performance.now()<duckUntil?.23:.4;}else player.volume=performance.now()<duckUntil?.23:.4}
  function play(){
