@@ -36,7 +36,11 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   const gaps=trace.slice(1).filter((v,i)=>Math.abs(v.y-trace[i].y)<.01).length;
   const distance=trace[0].y-trace.at(-1).y;
   console.log('movement diagnostic',JSON.stringify({area,frames:trace.length,gaps,distance,uniquePositions:new Set(trace.map(v=>Math.round(v.y))).size,first:trace[0],last:trace.at(-1)}));
-  assert(distance>160&&distance<230,area+' continuous pace '+distance);
+  // Field steps are deliberately slower (192ms) than village steps (144ms).
+  // Keep a one-and-a-half-tile tolerance for animation/RAF scheduling jitter.
+  const stepDuration=await page.evaluate(a=>YK_MOVEMENT.duration(a),area);
+  const expected=850/stepDuration*32;
+  assert(distance>expected-48&&distance<expected+48,area+' continuous pace '+distance+' expected '+expected.toFixed(1));
   assert(gaps<=Math.max(2,trace.length*.1),area+' idle frames '+gaps+'/'+trace.length);
   assert.equal(await page.evaluate(()=>window.__hudWrites),0,'unchanged HUD is not rebuilt while walking');
   const stopped=await run('S.y');await page.waitForTimeout(250);assert.equal(await run('S.y'),stopped,'release stops queued movement');
