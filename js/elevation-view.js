@@ -122,12 +122,35 @@ window.YK_ELEVATION_VIEW=(()=>{
       const seed=Math.sin(x*12.9898+y*78.233)*43758.5453;
       return (seed-Math.floor(seed)-.5)*5.2;
      };
-     c.beginPath();c.moveTo(p0.x,p0.y);
-     for(let step=1;step<7;step++){
-      const t=step/7,offset=wobble(t)*Math.sin(Math.PI*t);
-      c.lineTo(p0.x+vx*t+nx*offset,p0.y+vy*t+ny*offset);
+     // Coastline is a continuous world-space contour: its shared corner
+     // displacement is derived from the same vertex, regardless of tile.
+     // Keep cliff lips tied to their collision geometry.
+     const shorePoint=(t)=>{
+      const x=wx+(ex-wx)*t,y=wy+(ey-wy)*t;
+      const p=point(x,y,h0+(h1-h0)*t);
+      if(!p)return null;
+      const q=Math.sin(x*.19+y*.31)*1.8+Math.sin(x*.41-y*.27)*1.1;
+      const taper=Math.sin(Math.PI*t);
+      return {x:p.x+nx*q*taper,y:p.y+ny*q*taper};
+     };
+     c.beginPath();
+     if(shore){
+      // A smooth cubic joins each shoreline segment; world-coordinate
+      // perturbation avoids per-frame randomness and square sawtooth strokes.
+      const a=shorePoint(0),b=shorePoint(1),u=shorePoint(1/3),w=shorePoint(2/3);
+      if(a&&b&&u&&w){
+       c.moveTo(a.x,a.y);
+       c.bezierCurveTo(u.x,u.y,w.x,w.y,b.x,b.y);
+      }
+     }else{
+      c.moveTo(p0.x,p0.y);
+      for(let step=1;step<7;step++){
+       const t=step/7,offset=wobble(t)*Math.sin(Math.PI*t);
+       c.lineTo(p0.x+vx*t+nx*offset,p0.y+vy*t+ny*offset);
+      }
+      c.lineTo(p1.x,p1.y);
      }
-     c.lineTo(p1.x,p1.y);c.stroke();c.restore();
+     c.stroke();c.restore();
     }});
    }
    // Generate axis-aligned and diagonal walls from the SAME top polygon.
