@@ -74,7 +74,18 @@ window.YK_AUDIO=(()=>{
   encounterMuted=true;requestId++;playPending=false;player.pause();
   if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0;}
  }
- function endEncounterAudio(){stopBattleMusic();encounterMuted=false;if(currentArea&&soundOn())play();}
+ function endEncounterAudio(options={}){
+  stopBattleMusic();encounterMuted=false;
+  if(options.resumeBgm!==false&&currentArea&&soundOn())play();
+ }
+ function stopForTitle(){
+  stopBattleMusic();encounterMuted=true;requestId++;playPending=false;player.pause();
+  if(bufferTest){
+   bufferGeneration++;bufferLoading="";
+   if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null;}
+   bufferKey="";bufferOffset=0;
+  }
+ }
 
  const lifecycleTrace=[];
  function traceAudio(event){
@@ -110,7 +121,7 @@ window.YK_AUDIO=(()=>{
   enabledByGesture=true;bufferError="";
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();
-   if(ctx.state==="suspended")ctx.resume().catch(e=>{bufferError="tap resume "+String(e?.name||e)});
+   if(ctx.state!=="running")resumeContext();
    if(bufferTest&&currentArea&&!bufferSource){if(!bufferLoading)void playBuffer(currentArea)}
    else play();
   }catch(e){bufferError="tap "+String(e)}
@@ -128,7 +139,11 @@ window.YK_AUDIO=(()=>{
    let buffer=decodedBuffers[key];
    if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
     buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
-   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key)return;
+   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key||encounterMuted)return;
+   // Safari can accept start() on a suspended/interrupted context without
+   // producing sound. Keep the decoded buffer and create the source only once
+   // the context really reports running; resume callbacks/taps will retry.
+   if(ctx.state!=="running"){restorePending=true;resumeContext();return;}
    if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null;}
    bufferGain??=ctx.createGain();bufferGain.connect(ctx.destination);
    const source=ctx.createBufferSource();source.buffer=buffer;source.loop=true;
@@ -314,5 +329,5 @@ window.YK_AUDIO=(()=>{
   details.append(out);document.body.append(panel);
   refreshStatus();setInterval(refreshStatus,1500);
  }
- return {beep,horagai,battleSe,startBattleMusic,syncBgm,stopBgmForEncounter,endEncounterAudio,unlock,talkChar,dialogEnd,diagnostics};
+ return {beep,horagai,battleSe,startBattleMusic,syncBgm,stopBgmForEncounter,endEncounterAudio,stopForTitle,unlock,talkChar,dialogEnd,diagnostics};
 })();
