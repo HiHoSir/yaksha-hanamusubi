@@ -1,6 +1,14 @@
 window.YK_INPUT=(()=>{
 const timers=new Map();
 const directionStops=[];
+// Suppress iOS text-selection and touch callouts on gamepad controls only.
+const gamepad=document.getElementById("pad");
+if(gamepad){
+ for(const eventName of ["contextmenu","selectstart","dragstart"]){
+  gamepad.addEventListener(eventName,e=>e.preventDefault());
+ }
+}
+
 // A touch handler may replace its button before the synthetic click arrives.
 // Retain the logical control key across those DOM replacements.
 let lastTouch={at:-Infinity,key:null};
