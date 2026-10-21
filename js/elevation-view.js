@@ -109,7 +109,18 @@ window.YK_ELEVATION_VIEW=(()=>{
   const bounds=[];for(const sy of [120,240,400,700])for(const sx of [-160,800])bounds.push(YK_LANDSCAPE.unproject(sx,sy,camera,zoom));
   const minX=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.x))/32)-2),maxX=Math.min(m[0].length-1,Math.ceil(Math.max(...bounds.map(p=>p.x))/32)+2);
   const minY=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.y))/32)-2),maxY=Math.min(m.length-1,Math.ceil(Math.max(...bounds.map(p=>p.y))/32)+2);
-  const point=(x,y,h)=>{const p=YK_LANDSCAPE.project(x,y,camera,zoom);return p&&{...p,y:p.y-h*rise*p.scale};};
+  // Exact world-space vertices are projected repeatedly by ground strips,
+  // cliff faces and shoreline overlays. Keep this cache within one render:
+  // camera movement can never reuse coordinates from an earlier frame.
+  const projectedVertices=new Map();
+  const point=(x,y,h)=>{
+   const key=x+','+y+','+h;
+   if(projectedVertices.has(key))return projectedVertices.get(key);
+   const p=YK_LANDSCAPE.project(x,y,camera,zoom);
+   const projected=p&&{...p,y:p.y-h*rise*p.scale};
+   projectedVertices.set(key,projected);
+   return projected;
+  };
   const diagnostic=window.YK_CLIFF_DEBUG===true;
   // Separate late overlay isolates missing geometry from depth overpainting.
   const xray=diagnostic&&window.YK_CLIFF_XRAY===true;
