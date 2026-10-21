@@ -8,6 +8,8 @@ on:
         type: string
 permissions:
   contents: read
+  pages: write
+  id-token: write
 concurrency:
   group: improvement-preview
   cancel-in-progress: false
@@ -66,9 +68,41 @@ jobs:
           find preview -name '*.js' -type f -print0 | while IFS= read -r -d '' file; do
             node --check "$file"
           done
+      - name: Assemble Pages root from production main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production
+          persist-credentials: false
+      - name: Assemble production plus isolated preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site
+          tar -C production --exclude=.git --exclude=.github -cf - . | tar -C site -xf -
+          mkdir -p site/previews
+          cp -a preview/previews/. site/previews/
+          test -f site/index.html
+          test -f site/previews/ui-dpad-touch/index.html || echo 'Selected preview is not ui-dpad-touch'
       - name: Upload preview artifact (not public)
         uses: actions/upload-artifact@v4
         with:
           name: preview-${{ github.run_id }}
           path: preview/
           retention-days: 7
+
+
+      - name: Upload Pages artifact (production root preserved)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build-preview
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy production and preview together
+        id: deployment
+        uses: actions/deploy-pages@v4
