@@ -9,7 +9,11 @@ for(const o of m.decorations){
  for(const [x,y] of o.occupiedTiles){assert(!occupied.has(x+','+y),'overlapping occupancy '+o.kind);occupied.add(x+','+y);}
  if(!['bridge','bridgeNS','waterfall'].includes(o.kind))for(const [x,y] of o.contactTiles)assert(!['sea','river'].includes(m[y][x]),'water contact '+o.kind+' '+x+','+y);
  if(o.kind==='newMountainLarge')assert.equal(o.occupiedTiles.length,4);
- if(o.kind==='newTrees')assert.equal(o.occupiedTiles.length,0);
+ if(o.kind==='newTrees'){
+  // Retain explicit collision when a highland mountain is replaced with tree art.
+  assert(o.occupiedTiles.length<=o.contactTiles.length,'tree contact occupancy invalid');
+  for(const [x,y] of o.occupiedTiles)assert(o.contactTiles.some(([cx,cy])=>cx===x&&cy===y),'tree occupancy must belong to its contact tiles');
+ }
 }
 for(const [id,p] of Object.entries(w.places))assert(a.walkable(m,...p.point,12),'blocked destination '+id);
 for(const p of w.restStops)assert(a.walkable(m,...p.point,12),'blocked rest stop '+p.id);

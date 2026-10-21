@@ -35,7 +35,10 @@ const server=http.createServer((req,res)=>{
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
  await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});
  await page.evaluate(()=>window.__qaEval('endBattle()'));
- for(const id of ['virtualStick','ok','cancel']){assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' occluded after battle '+height);}
+ assert(!(await page.locator('#virtualStick').isVisible()),'legacy stick must stay hidden after battle '+height);
+  assert(await page.locator('#up').isVisible(),'four-way D-pad must be visible after battle '+height);
+  assert(!(await page.locator('#upLeft').isVisible()),'diagonal control must stay hidden '+height);
+  for(const id of ['up','ok','cancel']){assert(await page.locator('#'+id).evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),id+' occluded after battle '+height);}
 
  await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=400;S.dir="u";S.gold=1000;action();'));
  await page.locator('[data-shop-item="short_blade"]').tap();

@@ -47,7 +47,7 @@ window.YK_WORLD=(()=>{
   return o.contactTiles.map(([x,y])=>({
    kind:'newTrees',x:x*32,y:y*32,width:32,height:32,foot:(y+1)*32,
    contactTiles:[[x,y]],occupiedTiles:o.occupiedTiles.some(([cx,cy])=>cx===x&&cy===y)?[[x,y]]:[],
-   walkThrough:o.walkThrough,biome:'forest'
+   walkThrough:o.walkThrough,biome:'forest',supportHeight:mapData.heights[y][x]
   }));
  });
  const solid=new Set(mapData.decorations.flatMap(o=>o.occupiedTiles.map(c=>c.join(','))));
