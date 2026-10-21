@@ -49,11 +49,23 @@ jobs:
                           'const AUTO="yaksha_preview_'+slug+'_auto", LEGACY="yaksha_preview_'+slug+'_legacy", VER=14;')
           src=src.replace('"yaksha_beta_slot"', '"yaksha_preview_'+slug+'_slot"')
           save.write_text(src)
+          # Reject absolute root asset paths, which would escape the preview folder.
+          html=p.read_text()
+          import re
+          if re.search(r'(?:src|href)=[\\\"\\\']/(?!/)',html):
+            raise SystemExit('Root-absolute asset URL cannot be isolated')
           # A preview must never inherit production saves through old key fallbacks.
           assert 'localStorage.getItem("yaksha_beta_auto")' not in src
           assert '"yaksha_beta_slot"' not in src
           (root/'PREVIEW.txt').write_text('Preview branch: '+slug+'\\nProduction is not modified.\\n')
           PY
+      - name: Check generated preview JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find preview -name '*.js' -type f -print0 | while IFS= read -r -d '' file; do
+            node --check "$file"
+          done
       - name: Upload preview artifact (not public)
         uses: actions/upload-artifact@v4
         with:
