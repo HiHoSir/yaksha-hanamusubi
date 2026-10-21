@@ -27,6 +27,19 @@ window.YK_WORLD=(()=>{
  // Guides stand on the route's walkable cells and never create a new barrier.
  for(const g of guides){const tx=Math.floor(g.x/32),ty=Math.floor(g.y/32);mapData.decorations.push({kind:'jizo',x:tx*32+4,y:ty*32-8,width:24,height:40,foot:(ty+1)*32,contactTiles:[[tx,ty]],occupiedTiles:[],walkThrough:true});}
  window.YK_FIELD_ELEVATION.prepare(mapData,geography);
+ // On high terraces, mountain sprites obscure the cliff silhouette.
+ // Reuse the existing 32px forest object instead; preserve the original
+ // occupied/contact cells so movement and saved positions remain stable.
+ mapData.decorations=mapData.decorations.flatMap(o=>{
+  if(!['newMountainLarge','newMountainSmall'].includes(o.kind))return [o];
+  const elevated=o.contactTiles.some(([x,y])=>(mapData.heights[y]?.[x]||0)>=2);
+  if(!elevated)return [o];
+  return o.contactTiles.map(([x,y])=>({
+   kind:'newTrees',x:x*32,y:y*32,width:32,height:32,foot:(y+1)*32,
+   contactTiles:[[x,y]],occupiedTiles:o.occupiedTiles.some(([cx,cy])=>cx===x&&cy===y)?[[x,y]]:[],
+   walkThrough:o.walkThrough,biome:'forest'
+  }));
+ });
  const solid=new Set(mapData.decorations.flatMap(o=>o.occupiedTiles.map(c=>c.join(','))));
  const passable=new Set(['grass','forest','sand','snow','barren','road','bridge']);
  const cellOpen=(x,y)=>x>0&&y>0&&x<79&&y<79&&passable.has(mapData[y]?.[x])&&!solid.has(x+','+y)&&mapData.travelReachable.has(x+','+y)&&YK_ELEVATION.pointWalkable(mapData,x*32+16,y*32+16);
