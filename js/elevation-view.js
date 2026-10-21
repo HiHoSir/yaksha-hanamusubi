@@ -35,6 +35,30 @@ window.YK_ELEVATION_VIEW=(()=>{
    }poly=out;
   }return poly;
  }
+ // Map-independent coastline contour: round exposed land corners using
+ // neighbouring water topology, without changing the 32px collision grid.
+ const waterKind=t=>t==='sea'||t==='river';
+ function coastShape(m,x,y){
+  if(waterKind(m[y]?.[x])||m.roads?.has(x+','+y)||m.cornerProtected?.has(x+','+y))return null;
+  const wet=(dx,dy)=>waterKind(m[y+dy]?.[x+dx]);
+  const corners=[[0,0,[-1,0],[0,-1]],[32,0,[1,0],[0,-1]],[32,32,[1,0],[0,1]],[0,32,[-1,0],[0,1]]];
+  const radii=corners.map(([cx,cy,a,b])=>wet(...a)&&wet(...b)?8:0);
+  if(!radii.some(Boolean))return null;
+  const poly=[];
+  for(let i=0;i<4;i++){
+   const [cx,cy]=corners[i],r=radii[i],prev=corners[(i+3)%4],next=corners[(i+1)%4];
+   if(!r){poly.push([cx,cy]);continue;}
+   const a=[cx+(prev[0]-cx)/32*r,cy+(prev[1]-cy)/32*r];
+   const b=[cx+(next[0]-cx)/32*r,cy+(next[1]-cy)/32*r];
+   poly.push(a);
+   // Quadratic corner, tessellated in world pixels for pixel-art rendering.
+   for(let j=1;j<=4;j++){
+    const t=j/4,q=1-t;
+    poly.push([q*q*a[0]+2*q*t*cx+t*t*b[0],q*q*a[1]+2*q*t*cy+t*t*b[1]]);
+   }
+  }
+  return poly;
+ }
  const groundTiles=new WeakMap();
  function groundTile(surface,tx,ty){
   if(!groundTiles.has(surface))groundTiles.set(surface,new Map());
@@ -62,13 +86,13 @@ window.YK_ELEVATION_VIEW=(()=>{
    const center=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
    if(!center||center.y<112||center.y>600||center.x+32*center.scale<0||center.x-32*center.scale>640)continue;
    const band=options.groundTile?(center.y<280?32:16):8;
-   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty);
+   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),coast=!shape.cuts.length?coastShape(m,tx,ty):null;
    for(let v=0;v<32;v+=band){const py=ty*32+v;
     items.push({depth:py+band,order:0,draw:()=>{
      const p=[[0,v],[32,v],[32,v+band],[0,v+band]].map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
      if(p.every(Boolean)){
-      if(shape.cuts.length){
-       const clipped=bandPolygon(shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
+      if(shape.cuts.length||coast){
+       const clipped=bandPolygon(coast||shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
        if(clipped.length<3||!clipped.every(Boolean))return;
        c.save();c.beginPath();clipped.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.clip();
       }
@@ -77,7 +101,7 @@ window.YK_ELEVATION_VIEW=(()=>{
        const left=Math.min(p[0].x,p[3].x),right=Math.max(p[1].x,p[2].x);
        c.drawImage(texture,sx,sy,32,band,left,p[0].y,right-left+.3,p[3].y-p[0].y+.6);
       }else quad(c,texture,sx,sy,32,band,p);
-      if(shape.cuts.length)c.restore();
+      if(shape.cuts.length||coast)c.restore();
      }
     }});
    }
