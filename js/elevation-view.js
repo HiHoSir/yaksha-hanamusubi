@@ -207,7 +207,11 @@ window.YK_ELEVATION_VIEW=(()=>{
     const cliff=h0>(n0??h0)+.001||h1>(n1??h1)+.001;
     if(!cliff)continue;
     if(diagnostic)cliffReport.lips.push({tile:[tx,ty],edge:[ax,ay,bx,by],heights:[h0,h1],neighbor:[n0,n1]});
-    const depth=ty*32+Math.max(ay,by);
+    // For forward-facing lips, sort at their visible raised screen position.
+    // Do not promote rear-facing lips: that exposed the back walls in 16.0.154.
+    const facesCamera=side==='s'||(!side&&bx<ax);
+    const lift=facesCamera?Math.max(0,Math.max(h0-n0,h1-n1))*rise/zoom:0;
+    const depth=ty*32+Math.max(ay,by)+lift;
     items.push({depth,order:1.5,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
      if(!p0||!p1)return;
@@ -253,7 +257,12 @@ window.YK_ELEVATION_VIEW=(()=>{
      const span=[t0,t1].map(t=>[mix(coords.map(p=>p[0]),t),mix(coords.map(p=>p[1]),t)]);
      const high=[mix(top,t0),mix(top,t1)],low=[mix(bottom,t0),mix(bottom,t1)];
      if(diagnostic)cliffReport.walls.push({tile:[tx,ty],edge:[ax,ay,bx,by],segment,segments,high,low,depth:Math.max(...span.map(p=>p[1])),side:side||'diagonal'});
-     items.push({depth:Math.max(...span.map(p=>p[1])),order:1,draw:()=>{
+     // A forward-facing wall occupies screen space BELOW its elevated top.
+     // Account for that projected span in the ordinary depth sort, rather
+     // than drawing every cliff after all terrain (the 16.0.154 regression).
+     const facesCamera=side==='s'||(!side&&bx<ax);
+     const lift=facesCamera?Math.max(...high.map((h,j)=>h-low[j]))*rise/zoom:0;
+     items.push({depth:Math.max(...span.map(p=>p[1]))+lift,order:1,draw:()=>{
       const bands=Math.max(1,Math.ceil(Math.max(...high.map((h,j)=>h-low[j]))));
       for(let b=0;b<bands;b++){
        const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
