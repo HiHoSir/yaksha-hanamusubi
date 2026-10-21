@@ -189,7 +189,7 @@ function check(name,fn){fn();results.push(name)}
  });
  check('mixed terrain renders all regions and sorts mountain forest and hero by depth',()=>{
   const m=land.fixture(),types=new Set(m.flat());for(const t of ['grass','forest','mountain','rockMountain','snowMountain','snow','barren','sand','sea','river'])assert(types.has(t));
-  const objects=land.objects(m);for(const k of ['greenMountain','rockMountain','snowMountain','shrine','lantern'])assert(objects.some(o=>o.kind===k));assert(objects.some(o=>o.kind==='forest'));
+  const objects=land.objects(m);for(const k of ['newMountainSmall','newTrees','shrine','lantern'])assert(objects.some(o=>o.kind===k),'missing current sprite kind '+k);
   for(let i=1;i<objects.length;i++)assert(objects[i].foot>=objects[i-1].foot);
   const c=createCanvas(640,544).getContext('2d');let actor=0;assert(land.draw(c,m,{foot:280,draw:()=>actor++}));assert.equal(actor,1);
   fs.writeFileSync(path.join(output,'05-landscape-floor.png'),c.canvas.toBuffer('image/png'));
