@@ -35,6 +35,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   await page.keyboard.up('ArrowUp');await page.waitForFunction(()=>window.__qaEval('!fieldMotion'));
   const gaps=trace.slice(1).filter((v,i)=>Math.abs(v.y-trace[i].y)<.01).length;
   const distance=trace[0].y-trace.at(-1).y;
+  console.log('movement diagnostic',JSON.stringify({area,frames:trace.length,gaps,distance,uniquePositions:new Set(trace.map(v=>Math.round(v.y))).size,first:trace[0],last:trace.at(-1)}));
   assert(distance>160&&distance<230,area+' continuous pace '+distance);
   assert(gaps<=Math.max(2,trace.length*.1),area+' idle frames '+gaps+'/'+trace.length);
   assert.equal(await page.evaluate(()=>window.__hudWrites),0,'unchanged HUD is not rebuilt while walking');
