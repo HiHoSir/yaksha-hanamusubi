@@ -205,7 +205,7 @@ window.YK_ELEVATION_VIEW=(()=>{
     if(!cliff)continue;
     if(diagnostic)cliffReport.lips.push({tile:[tx,ty],edge:[ax,ay,bx,by],heights:[h0,h1],neighbor:[n0,n1]});
     const depth=ty*32+Math.max(ay,by);
-    items.push({pass:side==='s'||!side?1:0,depth,order:1.5,draw:()=>{
+    items.push({depth,order:1.5,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
      if(!p0||!p1)return;
      c.save();c.lineCap='butt';c.lineJoin='bevel';
@@ -250,7 +250,7 @@ window.YK_ELEVATION_VIEW=(()=>{
      const span=[t0,t1].map(t=>[mix(coords.map(p=>p[0]),t),mix(coords.map(p=>p[1]),t)]);
      const high=[mix(top,t0),mix(top,t1)],low=[mix(bottom,t0),mix(bottom,t1)];
      if(diagnostic)cliffReport.walls.push({tile:[tx,ty],edge:[ax,ay,bx,by],segment,segments,high,low,depth:Math.max(...span.map(p=>p[1])),side:side||'diagonal'});
-     items.push({pass:side==='s'||!side?1:0,depth:Math.max(...span.map(p=>p[1])),order:1,draw:()=>{
+     items.push({depth:Math.max(...span.map(p=>p[1])),order:1,draw:()=>{
       const bands=Math.max(1,Math.ceil(Math.max(...high.map((h,j)=>h-low[j]))));
       for(let b=0;b<bands;b++){
        const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
@@ -293,12 +293,12 @@ window.YK_ELEVATION_VIEW=(()=>{
   }
   for(const o of options.objects||m.objects||[]){
    const foot=o.foot??o.y,center=o.foot===undefined?o.x:o.x+o.width/2;
-   items.push({pass:2,depth:foot,order:2,draw:()=>{const p=point(center,foot,o.supportHeight??E.height(m,center,foot));if(!p||p.x+o.width*p.scale/2<0||p.x-o.width*p.scale/2>640)return;
+   items.push({depth:foot,order:2,draw:()=>{const p=point(center,foot,o.supportHeight??E.height(m,center,foot));if(!p||p.x+o.width*p.scale/2<0||p.x-o.width*p.scale/2>640)return;
     c.globalAlpha=Math.min(1,Math.max(0,(p.y-136)/70));
     if(o.render)o.render(c,p);else if(art[o.kind])c.drawImage(art[o.kind],p.x-o.width*p.scale/2,p.y-o.height*p.scale,o.width*p.scale,o.height*p.scale);c.globalAlpha=1;
    }});
   }
-  if(actor)items.push({pass:2,depth:actor.y,order:3,draw:()=>{
+  if(actor)items.push({depth:actor.y,order:3,draw:()=>{
    const p=point(actor.x,actor.y,E.height(m,actor.x,actor.y));if(!p)return;
    if(actor.draw){actor.draw(p.x,p.y,p.scale);return;}
    const row={d:0,u:1,r:2,l:3}[actor.dir||'d'],col=row>=2?Math.min(1,actor.frame||0):actor.frame||0;
@@ -307,9 +307,7 @@ window.YK_ELEVATION_VIEW=(()=>{
    const bounds=heroBounds(art.hero,row,col),scale=28/bounds.height*p.scale;
    c.drawImage(art.hero,col*32,row*32,32,32,p.x-(bounds.left+bounds.width/2)*scale,p.y-(bounds.bottom+1)*scale,32*scale,32*scale);
   }});
-  // South-facing and diagonal cliff faces must survive later water/ground strips.
-  // Keep lateral/back faces in the normal depth sort, and sort actors/objects last.
-  items.sort((a,b)=>(a.pass||0)-(b.pass||0)||a.depth-b.depth||a.order-b.order);for(const item of items)item.draw();c.restore();
+  items.sort((a,b)=>a.depth-b.depth||a.order-b.order);for(const item of items)item.draw();c.restore();
   for(let y=136;y<208;y+=4){const t=(y-136)/72;c.globalAlpha=1-t*t*(3-2*t);c.drawImage(art.horizon,0,y,640,4,0,y,640,4);}c.globalAlpha=1;
   if(options.grid){for(let ty=minY;ty<=maxY;ty++)for(let tx=minX;tx<=maxX;tx++){
    for(const cut of E.outline(m,tx,ty).cuts){
