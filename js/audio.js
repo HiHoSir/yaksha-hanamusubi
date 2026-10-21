@@ -2,7 +2,7 @@
 window.YK_AUDIO=(()=>{
  let ctx=null,enabledByGesture=false,currentArea="",duckUntil=0,duckTimer=null,lastError="";
  const tracks={
-  field:{url:"audio/kikoku-field-v11.mp3?v=15.57.190",loopStart:8.888875,loopEnd:71.111125},
+  field:{url:"audio/kikoku-field-v11.mp3?v=15.57.190",loopStart:8.888875,loopEnd:71.09},
   village:{url:"audio/hoozuki-v13.mp3?v=15.57.105",loopStart:4.8}
  };
  // Web Audio BGM is the approved default; HTMLAudio is opt-in diagnostics only.
@@ -74,7 +74,22 @@ window.YK_AUDIO=(()=>{
   encounterMuted=true;requestId++;playPending=false;player.pause();
   if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0;}
  }
- function endEncounterAudio(){stopBattleMusic();encounterMuted=false;if(currentArea&&soundOn())play();}
+ function endEncounterAudio(options={}){
+  stopBattleMusic();
+  // Keep the field/village track muted for the ENTIRE game-over screen,
+  // including visibility changes and taps, until retry/title explicitly exits.
+  if(options.resumeBgm===false){encounterMuted=true;return;}
+  encounterMuted=false;
+  if(currentArea&&soundOn())play();
+ }
+ function stopForTitle(){
+  stopBattleMusic();encounterMuted=true;requestId++;playPending=false;player.pause();
+  if(bufferTest){
+   bufferGeneration++;bufferLoading="";
+   if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null;}
+   bufferKey="";bufferOffset=0;
+  }
+ }
 
  const lifecycleTrace=[];
  function traceAudio(event){
@@ -110,7 +125,7 @@ window.YK_AUDIO=(()=>{
   enabledByGesture=true;bufferError="";
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();
-   if(ctx.state==="suspended")ctx.resume().catch(e=>{bufferError="tap resume "+String(e?.name||e)});
+   if(ctx.state!=="running")resumeContext();
    if(bufferTest&&currentArea&&!bufferSource){if(!bufferLoading)void playBuffer(currentArea)}
    else play();
   }catch(e){bufferError="tap "+String(e)}
@@ -120,6 +135,7 @@ window.YK_AUDIO=(()=>{
   if(bufferKey===key&&bufferSource)return;
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
+  let deferredUntilRunning=false;
   try{
    ctx??=new(window.AudioContext||window.webkitAudioContext)();bindContext();
    // Safari may leave resume() pending after foreground. Do not block buffer reconstruction.
@@ -128,16 +144,30 @@ window.YK_AUDIO=(()=>{
    let buffer=decodedBuffers[key];
    if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
     buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
-   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key)return;
+   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key||encounterMuted)return;
+   // Safari can accept start() on a suspended/interrupted context without
+   // producing sound. Keep the decoded buffer and create the source only once
+   // the context really reports running; resume callbacks/taps will retry.
+   if(ctx.state!=="running"){deferredUntilRunning=true;restorePending=true;resumeContext();return;}
    if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null;}
    bufferGain??=ctx.createGain();bufferGain.connect(ctx.destination);
    const source=ctx.createBufferSource();source.buffer=buffer;source.loop=true;
-   source.loopStart=tracks[key].loopStart;source.loopEnd=tracks[key].loopEnd||buffer.duration;
+   source.loopStart=Math.max(0,Math.min(tracks[key].loopStart,buffer.duration-.02));
+   source.loopEnd=Math.max(source.loopStart+.01,Math.min(tracks[key].loopEnd||buffer.duration,buffer.duration-.01));
    source.connect(bufferGain);bufferGain.gain.value=performance.now()<duckUntil?.23:.4;
    const offset=Math.max(0,Math.min(bufferOffset,buffer.duration-.01));
    source.start(0,offset);traceAudio("source-start");bufferStartedAt=ctx.currentTime;bufferSource=source;bufferKey=key;bufferError="";
   }catch(e){bufferError=String(e?.message||e)}
-  finally{if(gen===bufferGeneration)bufferLoading=""}
+  finally{
+   if(gen===bufferGeneration){
+    bufferLoading="";
+    // resume() may resolve during decoding while bufferLoading was still set.
+    // Retry once the pending loader relinquishes ownership, never creating
+    // a silent/stale node or restarting after a track change.
+    if(deferredUntilRunning&&ctx?.state==="running"&&currentArea===key&&!bufferSource)
+     queueMicrotask(()=>{if(gen===bufferGeneration&&!backgroundPaused&&!document.hidden&&soundOn()&&!encounterMuted)void playBuffer(key);});
+   }
+  }
  }
  function attenuate(){if(bufferTest){if(bufferGain)bufferGain.gain.value=performance.now()<duckUntil?.23:.4;}else player.volume=performance.now()<duckUntil?.23:.4}
  function play(){
@@ -158,8 +188,12 @@ window.YK_AUDIO=(()=>{
   attenuate();play();
  }
  function syncBgm(area){
-  if(encounterMuted)return;
-  const key=zone(area);if(key!==currentArea)setTrack(key);
+  const key=zone(area);
+  // The game may load a different area while BGM is temporarily muted
+  // (battle, game-over, title). Track the *desired* area even during mute;
+  // otherwise unmuting resumes the previous zone's music or stays silent.
+  if(encounterMuted){if(key!==currentArea)setTrack(key);return;}
+  if(key!==currentArea)setTrack(key);
   if(!soundOn()){player.pause();if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0}return}
   attenuate();play()
  }
@@ -314,5 +348,5 @@ window.YK_AUDIO=(()=>{
   details.append(out);document.body.append(panel);
   refreshStatus();setInterval(refreshStatus,1500);
  }
- return {beep,horagai,battleSe,startBattleMusic,syncBgm,stopBgmForEncounter,endEncounterAudio,unlock,talkChar,dialogEnd,diagnostics};
+ return {beep,horagai,battleSe,startBattleMusic,syncBgm,stopBgmForEncounter,endEncounterAudio,stopForTitle,unlock,talkChar,dialogEnd,diagnostics};
 })();

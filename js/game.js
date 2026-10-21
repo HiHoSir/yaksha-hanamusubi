@@ -1743,7 +1743,7 @@ function win(){
  YK_SAVE.auto(S);renderBattle();
 }
 function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText,wasBoss=!!battle?.boss;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(wasBoss&&reward){const event=D.story[S.quest];if(event?.area==="fox"){const stage=S.quest;talk({n:"白狐の使い",t:event.lines},()=>{if(YK_STORY_EVENTS.complete(S,event,stage)){YK_SAVE.auto(S);message(event.unlock,4200)}},120)}}}
-function defeat(){battleTrace("defeat");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
+function defeat(){battleTrace("defeat");YK_AUDIO.endEncounterAudio({resumeBgm:false});$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
 function renderRelics(){
  const owned=Object.entries(D.relics).filter(([id])=>S.relics[id]);
  $("itemsPanel").innerHTML=`<button id="fieldHerb">薬草を使う</button><p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
@@ -1941,7 +1941,7 @@ YK_INPUT.tap($("newGame"),startNewGame);
    if(info)YK_INPUT.tap(button,()=>requestAnimationFrame(()=>{
     const saved=YK_SAVE.loadSlot(n);
     if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
-    restoreState(saved,false);
+    restoreState(saved,false);YK_AUDIO.endEncounterAudio();
     $("titleLoadSelection").hidden=true;
     $("title").classList.remove("show");
     busy=false;hud();
@@ -1961,12 +1961,12 @@ YK_INPUT.tap($("newGame"),startNewGame);
  YK_INPUT.tap($("resumeSuspend"),()=>requestAnimationFrame(()=>{
   const saved=YK_SAVE.loadAuto();
   if(!saved){$("bootError").textContent="中断セーブがありません。";return;}
-  restoreState(saved);
+  restoreState(saved);YK_AUDIO.endEncounterAudio();
   $("titleLoadSelection").hidden=true;
   $("title").classList.remove("show");
   busy=false;hud();
  }));
-YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
+YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());YK_AUDIO.endEncounterAudio();$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{YK_AUDIO.stopForTitle();$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
  if(e.key==="Escape"){if(battle){e.preventDefault();battleBack();return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
