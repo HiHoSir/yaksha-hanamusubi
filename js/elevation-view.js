@@ -233,10 +233,9 @@ window.YK_ELEVATION_VIEW=(()=>{
     const side=ax===bx&&ax===0?'w':ax===bx&&ax===32?'e':ay===by&&ay===0?'n':ay===by&&ay===32?'s':null;
     const cut=side?null:shape.cuts.find(c=>c.ends[0][0]===ax&&c.ends[0][1]===ay&&c.ends[1][0]===bx&&c.ends[1][1]===by);
     if(!side&&!cut)continue;
-    // Back-facing cliff walls cannot be seen from the production north-facing camera.
-    if(options.groundTile){const mx=tx*32+(ax+bx)/2,my=ty*32+(ay+by)/2;
-     if(Math.max(E.level(m,tx,ty,ax/32,ay/32),E.level(m,tx,ty,bx/32,by/32))<3&&(by-ay)*(camera.x-mx)-(bx-ax)*(camera.y+1000-my)<=0)continue;
-    }
+    // Do not cull a wall independently of its cliff lip. The former
+    // world-space backface test discarded valid faces at every elevation.
+    // Depth sorting and terrain occlusion determine visible portions.
     const [dx,dy]=side?E.dirs[side]:[0,0],top=ends.map(([u,v])=>E.level(m,tx,ty,u/32,v/32));
     const bottom=ends.map(([u,v],j)=>Math.min(top[j],cut?cut.lower:E.level(m,tx+dx,ty+dy,u/32-dx,v/32-dy)));
     if(top.every((h,j)=>h-bottom[j]<1e-6))continue;
