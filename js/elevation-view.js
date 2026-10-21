@@ -224,22 +224,27 @@ window.YK_ELEVATION_VIEW=(()=>{
     items.push({depth,order:1.5,draw:()=>{
      const p0=point(tx*32+ax,ty*32+ay,h0),p1=point(tx*32+bx,ty*32+by,h1);
      if(!p0||!p1)return;
-     // Pixelated visual edge only; retain terrain topology and collision.
-     const pixel=Math.max(1,Math.round((p0.scale+p1.scale)*.6));
-     const snap=v=>Math.round(v/pixel)*pixel;
-     const x0=snap(p0.x),y0=snap(p0.y),x1=snap(p1.x),y1=snap(p1.y);
-     const dx=x1-x0,dy=y1-y0,steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/pixel));
-     c.save();c.imageSmoothingEnabled=false;c.strokeStyle='rgba(19,22,18,.84)';
-     c.lineWidth=pixel;c.lineCap='butt';c.lineJoin='miter';
-     c.beginPath();c.moveTo(x0,y0);
-     let lastX=x0,lastY=y0;
-     for(let j=1;j<=steps;j++){
-      const x=snap(x0+dx*j/steps),y=snap(y0+dy*j/steps);
-      if(x===lastX&&y===lastY)continue;
-      if(x!==lastX)c.lineTo(x,lastY);
-      if(y!==lastY)c.lineTo(x,y);
-      lastX=x;lastY=y;
+     c.save();c.lineCap='butt';c.lineJoin='bevel';
+     c.strokeStyle='rgba(19,22,18,.84)';
+     c.lineWidth=Math.max(1,Math.min(2.4,(p0.scale+p1.scale)*.7));
+     // Stable hand-drawn wobble: endpoints stay on the exact terrain seam.
+     // Sample the same world coordinates across adjacent tiles, not per frame.
+     const vx=p1.x-p0.x,vy=p1.y-p0.y,length=Math.hypot(vx,vy);
+     const nx=length?-vy/length:0,ny=length?vx/length:0;
+     const wx=tx*32+ax,wy=ty*32+ay,ex=tx*32+bx,ey=ty*32+by;
+     const wobble=(t)=>{
+      const x=wx+(ex-wx)*t,y=wy+(ey-wy)*t;
+      const seed=Math.sin(x*12.9898+y*78.233)*43758.5453;
+      return (seed-Math.floor(seed)-.5)*5.2;
+     };
+     // Cliff lips use only the elevation outline. Waterline belongs
+     // exclusively to the shared shoreline polygon below.
+     c.beginPath();c.moveTo(p0.x,p0.y);
+     for(let step=1;step<7;step++){
+      const t=step/7,offset=wobble(t)*Math.sin(Math.PI*t);
+      c.lineTo(p0.x+vx*t+nx*offset,p0.y+vy*t+ny*offset);
      }
+     c.lineTo(p1.x,p1.y);
      c.stroke();c.restore();
     }});
    }
