@@ -2,7 +2,7 @@
 // The same elevation sampler positions terrain vertices, roads, feet and objects.
 window.YK_ELEVATION_VIEW=(()=>{
  const E=window.YK_ELEVATION;
- const sources={grass:'assets/terrain/grass-v1/grass.png',sand:'assets/terrain/landscape-v1/sand.png',snow:'assets/terrain/landscape-v1/snow.png',rock:'assets/terrain/landscape-v1/barren.png',grassCliff:'assets/terrain/cliffs-v1/grass-cliff-32.png',sea:'assets/terrain/landscape-v1/water.png',road:'assets/terrain/landscape-v3/road.png',horizon:'assets/terrain/quarter-v1/horizon.png',trees:'assets/field-map-objects-v3/trees.png',shrine:'assets/field-map-objects-v3/shrine.png',hero:'assets/characters/hizuki/field-sd-v1/walk-atlas-32.png'};
+ const sources={grass:'assets/terrain/grass-v1/grass.png',sand:'assets/terrain/landscape-v1/sand.png',snow:'assets/terrain/landscape-v1/snow.png',rock:'assets/terrain/landscape-v1/barren.png',grassCliff:'assets/terrain/cliffs-v1/grass-cliff-32.png',sea:'assets/terrain/landscape-v1/water.png',road:'assets/terrain/landscape-v3/road.png',horizon:'assets/terrain/quarter-v1/horizon.png',trees:'assets/field-map-objects-v3/trees.png',shrine:'assets/field-map-objects-v3/shrine.png',hero:'assets/characters/hizuki/field-sd-v1/walk-atlas-32.png',ladder:'assets/terrain/ladder-v1/wood-ladder-32x96.png'};
  async function load(){const pairs=await Promise.all(Object.entries(sources).map(([k,src])=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve([k,im]);im.onerror=()=>reject(Error(src));im.src=src;})));return Object.fromEntries(pairs);}
  const padded=new WeakMap();
  function repeatPadding(im){
@@ -313,6 +313,18 @@ window.YK_ELEVATION_VIEW=(()=>{
     c.stroke();c.restore();
    }});
   }
+  // Illustrated ladders lie on the front-facing cliff surface.
+  for(const l of m.ladders||[]){
+   const [tx,ty]=l.lower,[ux,uy]=l.upper;
+   items.push({depth:ty*32+20,order:2.5,draw:()=>{
+    if(!art.ladder)return;
+    const top=point(ux*32+16,(uy+1)*32,E.level(m,ux,uy));
+    const bottom=point(tx*32+16,ty*32,E.level(m,tx,ty));
+    if(!top||!bottom)return;
+    const height=Math.max(18,Math.abs(bottom.y-top.y)+12*bottom.scale),width=19*bottom.scale;
+    c.drawImage(art.ladder,top.x-width/2,top.y-5*top.scale,width,height);
+   }});
+  }
   for(const o of options.objects||m.objects||[]){
    const foot=o.foot??o.y,center=o.foot===undefined?o.x:o.x+o.width/2;
    items.push({depth:foot,order:2,draw:()=>{const p=point(center,foot,o.supportHeight??E.height(m,center,foot));if(!p||p.x+o.width*p.scale/2<0||p.x-o.width*p.scale/2>640)return;
@@ -324,7 +336,7 @@ window.YK_ELEVATION_VIEW=(()=>{
    // Sorting at the exact foot y interleaved the sprite with 16px terrain strips,
    // making the boots/body flicker as the camera moved vertically.
    if(actor)items.push({depth:actor.y+32,order:3,draw:()=>{
-   const p=point(actor.x,actor.y,E.height(m,actor.x,actor.y));if(!p)return;
+   const p=point(actor.x,actor.y,actor.height??E.height(m,actor.x,actor.y));if(!p)return;
    if(actor.draw){actor.draw(p.x,p.y,p.scale);return;}
    const row={d:0,u:1,r:2,l:3}[actor.dir||'d'],col=row>=2?Math.min(1,actor.frame||0):actor.frame||0;
    // Approved 32px field atlas, one shared projection/foot anchor.
