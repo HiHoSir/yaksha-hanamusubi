@@ -975,12 +975,20 @@ function fieldDebugOverlay(c,camera){
  const status=document.createElement("div");status.style.marginTop="6px";status.style.whiteSpace="pre-line";
  const cliffToggle=document.createElement("button");cliffToggle.type="button";cliffToggle.textContent="崖面診断 "+(window.YK_CLIFF_DEBUG?"ON":"OFF");
  cliffToggle.addEventListener("click",()=>{window.YK_CLIFF_DEBUG=!window.YK_CLIFF_DEBUG;cliffToggle.textContent="崖面診断 "+(window.YK_CLIFF_DEBUG?"ON":"OFF");map()});
+ const cliffXray=document.createElement("button");cliffXray.type="button";
+ cliffXray.textContent="崖面透視 "+(window.YK_CLIFF_XRAY?"ON":"OFF");
+ cliffXray.addEventListener("click",()=>{
+  window.YK_CLIFF_XRAY=!window.YK_CLIFF_XRAY;
+  if(window.YK_CLIFF_XRAY){window.YK_CLIFF_DEBUG=true;cliffToggle.textContent="崖面診断 ON";}
+  cliffXray.textContent="崖面透視 "+(window.YK_CLIFF_XRAY?"ON":"OFF");
+  map();
+ });
  const cliffCopy=document.createElement("button");cliffCopy.type="button";cliffCopy.textContent="崖面JSONコピー";
  cliffCopy.addEventListener("click",async()=>{
   const report=window.YK_CLIFF_REPORT;
   if(!report){status.textContent="先に崖面診断をONにしてください";return;}
   const tx=Math.floor(S.x/32),ty=Math.floor(S.y/32),radius=8;
-  const subset={version:GAME_JS_BUILD,area:S.area,heroTile:[tx,ty],camera:report.camera,bounds:report.bounds,tiles:report.tiles,
+  const subset={version:GAME_JS_BUILD,area:S.area,heroTile:[tx,ty],camera:report.camera,bounds:report.bounds,tiles:report.tiles,xrayFaces:report.xrayFaces||0,
    walls:report.walls.filter(w=>Math.abs(w.tile[0]-tx)<=radius&&Math.abs(w.tile[1]-ty)<=radius),
    lips:report.lips.filter(w=>Math.abs(w.tile[0]-tx)<=radius&&Math.abs(w.tile[1]-ty)<=radius)};
   const json=JSON.stringify(subset);
@@ -990,7 +998,7 @@ function fieldDebugOverlay(c,camera){
  const build=document.createElement("button");build.type="button";build.textContent="実行中バージョンコピー";build.style.marginTop="6px";
  build.addEventListener("click",async()=>{const report=runtimeBuildReport();try{await navigator.clipboard.writeText(report);status.textContent="実行中バージョンをコピーしました"}catch(e){status.textContent=report}});
 
- details.append(label,toggle,copy,cliffToggle,cliffCopy,build,status);panel.append(expand,details);document.body.appendChild(panel);
+ details.append(label,toggle,copy,cliffToggle,cliffXray,cliffCopy,build,status);panel.append(expand,details);document.body.appendChild(panel);
  toggle.addEventListener("click",()=>{collisionDebugVisible=!collisionDebugVisible;toggle.textContent="判定表示 "+(collisionDebugVisible?"ON":"OFF");map()});
  copy.addEventListener("click",async()=>{
   const p=fieldFrontPoint(),v="area="+S.area+" tile=("+p.tileX+","+p.tileY+") pixel=("+p.px.toFixed(1)+","+p.py.toFixed(1)+") facing="+S.dir+" blocked="+collision(p.px,p.py);
