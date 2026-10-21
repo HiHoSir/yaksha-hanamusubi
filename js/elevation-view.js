@@ -107,7 +107,7 @@ window.YK_ELEVATION_VIEW=(()=>{
       if(shoreShape){c.save();if(!clipShore(c,shoreShape,tx,ty,point,m)){c.restore();return;}}
       if(shape.cuts.length){
        const clipped=bandPolygon(shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
-       if(clipped.length<3||!clipped.every(Boolean))return;
+       if(clipped.length<3||!clipped.every(Boolean)){if(shoreShape)c.restore();return;}
        c.save();c.beginPath();clipped.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.clip();
       }
       const sx=tx*32%texture.width,sy=(ty*32+v)%texture.height;
