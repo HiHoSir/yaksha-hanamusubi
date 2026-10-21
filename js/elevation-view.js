@@ -235,7 +235,7 @@ window.YK_ELEVATION_VIEW=(()=>{
     if(!side&&!cut)continue;
     // Back-facing cliff walls cannot be seen from the production north-facing camera.
     if(options.groundTile){const mx=tx*32+(ax+bx)/2,my=ty*32+(ay+by)/2;
-     if((by-ay)*(camera.x-mx)-(bx-ax)*(camera.y+1000-my)<=0)continue;
+     if(Math.max(E.level(m,tx,ty,ax/32,ay/32),E.level(m,tx,ty,bx/32,by/32))<3&&(by-ay)*(camera.x-mx)-(bx-ax)*(camera.y+1000-my)<=0)continue;
     }
     const [dx,dy]=side?E.dirs[side]:[0,0],top=ends.map(([u,v])=>E.level(m,tx,ty,u/32,v/32));
     const bottom=ends.map(([u,v],j)=>Math.min(top[j],cut?cut.lower:E.level(m,tx+dx,ty+dy,u/32-dx,v/32-dy)));
