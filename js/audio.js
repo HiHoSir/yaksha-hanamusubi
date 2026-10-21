@@ -75,8 +75,12 @@ window.YK_AUDIO=(()=>{
   if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0;}
  }
  function endEncounterAudio(options={}){
-  stopBattleMusic();encounterMuted=false;
-  if(options.resumeBgm!==false&&currentArea&&soundOn())play();
+  stopBattleMusic();
+  // Keep the field/village track muted for the ENTIRE game-over screen,
+  // including visibility changes and taps, until retry/title explicitly exits.
+  if(options.resumeBgm===false){encounterMuted=true;return;}
+  encounterMuted=false;
+  if(currentArea&&soundOn())play();
  }
  function stopForTitle(){
   stopBattleMusic();encounterMuted=true;requestId++;playPending=false;player.pause();
