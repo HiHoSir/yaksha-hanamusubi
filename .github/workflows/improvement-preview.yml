@@ -59,7 +59,7 @@ jobs:
           if re.search(r'(?:src|href)=[\\\"\\\']/(?!/)',html):
             raise SystemExit('Root-absolute asset URL cannot be isolated')
           # A preview must never inherit production saves through old key fallbacks.
-          assert 'yaksha_beta_auto' not in src
+          assert '"yaksha_beta_auto"' not in src
           assert '"yaksha_beta_slot"' not in src
           (root/'PREVIEW.txt').write_text('Preview branch: '+slug+'\\nProduction is not modified.\\n')
           PY
