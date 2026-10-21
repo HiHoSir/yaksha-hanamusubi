@@ -1,4 +1,4 @@
-name: Publish isolated branch previews
+name: Build isolated improvement preview artifacts
 on:
   workflow_dispatch:
     inputs:
@@ -6,8 +6,6 @@ on:
         description: 'Existing improve/* branch to preview'
         required: true
         type: string
-  repository_dispatch:
-    types: [refresh-improvement-preview]
 permissions:
   contents: read
 concurrency:
@@ -41,10 +39,20 @@ jobs:
           import pathlib,sys
           slug=sys.argv[1]
           root=pathlib.Path('preview/previews')/slug
-          # Preview stays an Actions artifact until isolated hosting and storage are verified.
+          # Each preview has separate save keys even if later hosted on the same origin.
           p=root/'index.html'
-          if not p.is_file():
-            raise SystemExit('Missing preview entry point')
+          save=root/'js/save.js'
+          if not p.is_file() or not save.is_file():
+            raise SystemExit('Missing preview entry point or save module')
+          src=save.read_text()
+          src=src.replace('const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=14;',
+                          'const AUTO="yaksha_preview_'+slug+'_auto", LEGACY="yaksha_preview_'+slug+'_legacy", VER=14;')
+          src=src.replace('"yaksha_beta_slot"', '"yaksha_preview_'+slug+'_slot"')
+          save.write_text(src)
+          # A preview must never inherit production saves through old key fallbacks.
+          assert 'localStorage.getItem("yaksha_beta_auto")' not in src
+          assert '"yaksha_beta_slot"' not in src
+          (root/'PREVIEW.txt').write_text('Preview branch: '+slug+'\\nProduction is not modified.\\n')
           PY
       - name: Upload preview artifact (not public)
         uses: actions/upload-artifact@v4
