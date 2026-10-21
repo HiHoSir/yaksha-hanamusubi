@@ -146,7 +146,7 @@ window.YK_ELEVATION_VIEW=(()=>{
      items.push({depth:ty*32+y+step,order:.25,draw:()=>{
       if(shoreShape){c.save();if(!clipShore(c,shoreShape,tx,ty,point,m)){c.restore();return;}}
       const p=poly.map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
-      if(!p.every(Boolean))return;
+      if(!p.every(Boolean)){if(shoreShape)c.restore();return;}
       const uv=poly.map(([u,w])=>({x:tx*32+u,y:ty*32+w}));
       triangle(c,art.sand,[uv[0],uv[1],uv[2]],[p[0],p[1],p[2]]);
       triangle(c,art.sand,[uv[0],uv[2],uv[3]],[p[0],p[2],p[3]]);
@@ -258,67 +258,42 @@ window.YK_ELEVATION_VIEW=(()=>{
     }
    }
   }
-  // Trace coast edges as connected world-space contours rather than
-  // stroking each 32px tile separately. Shared vertices are unique and
-  // quadratic turns soften right angles without changing water or collision.
-  const coastEdges=[],edgeKeys=new Set();
+  // Stroke the SAME polygon used to clip land and sand, instead of the old
+  // independent square-edge coastline. No dark outline on the inland sand edge.
   for(let ty=minY;ty<=maxY;ty++)for(let tx=minX;tx<=maxX;tx++){
    if(E.outline(m,tx,ty).cuts.length)continue;
-   for(const side of shoreSides(m,tx,ty)){
-    const [a,b]=side==='n'?[[0,0],[32,0]]:side==='e'?[[32,0],[32,32]]:side==='s'?[[32,32],[0,32]]:[[0,32],[0,0]];
-    const p=[tx*32+a[0],ty*32+a[1]],q=[tx*32+b[0],ty*32+b[1]];
-    const key=p.join(',')+'>'+q.join(',');
-    if(edgeKeys.has(key))continue;edgeKeys.add(key);
-    coastEdges.push({p,q,tx,ty,side});
-   }
-  }
-  if(coastEdges.length){
-   const key=p=>p[0]+','+p[1],outgoing=new Map(),incoming=new Map();
-   for(let i=0;i<coastEdges.length;i++){
-    const e=coastEdges[i],k=key(e.p),j=key(e.q);
-    if(!outgoing.has(k))outgoing.set(k,[]);
-    outgoing.get(k).push(i);incoming.set(j,(incoming.get(j)||0)+1);
-   }
-   const seen=new Set(),chains=[];
-   const trace=start=>{
-    const chain=[];let i=start;
-    while(i!==undefined&&!seen.has(i)){
-     seen.add(i);const e=coastEdges[i];chain.push(e);
-     const candidates=outgoing.get(key(e.q))||[];
-     i=candidates.find(j=>!seen.has(j));
-    }
-    if(chain.length)chains.push(chain);
+   const shores=shoreSides(m,tx,ty);
+   if(!shores.length)continue;
+   const poly=shoreOutline(shores),wet=new Set(shores);
+   const edgeWet=(a,b)=>{
+    const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+    if(wet.has('n')&&my<.01||wet.has('e')&&mx>31.99||
+       wet.has('s')&&my>31.99||wet.has('w')&&mx<.01)return true;
+    // The rounded corner belongs to the water boundary only when BOTH
+    // adjacent orthogonal neighbours are wet.
+    return (wet.has('n')&&wet.has('w')&&mx<10&&my<10)||
+           (wet.has('n')&&wet.has('e')&&mx>22&&my<10)||
+           (wet.has('s')&&wet.has('e')&&mx>22&&my>22)||
+           (wet.has('s')&&wet.has('w')&&mx<10&&my>22);
    };
-   for(let i=0;i<coastEdges.length;i++)if(!incoming.has(key(coastEdges[i].p)))trace(i);
-   for(let i=0;i<coastEdges.length;i++)if(!seen.has(i))trace(i);
-   for(const chain of chains){
-    const closed=key(chain[0].p)===key(chain[chain.length-1].q);
-    const vertices=[chain[0].p,...chain.map(e=>e.q)];
-    const depth=Math.max(...vertices.map(p=>p[1]));
-    items.push({depth,order:.5,draw:()=>{
-     const pts=vertices.map(([x,y],i)=>{
-      const e=chain[Math.min(i,chain.length-1)];
-      return point(x,y,E.level(m,e.tx,e.ty,(x-e.tx*32)/32,(y-e.ty*32)/32));
-     });
-     if(!pts.every(Boolean))return;
-     const radius=5;
-     const midway=(a,b,d)=>{const len=Math.hypot(b.x-a.x,b.y-a.y)||1,t=Math.min(d/len,.35);return {x:b.x+(a.x-b.x)*t,y:b.y+(a.y-b.y)*t};};
-     c.save();c.strokeStyle='rgba(27,36,29,.76)';c.lineWidth=Math.max(1,pts.reduce((n,p)=>n+p.scale,0)/pts.length*.6);
-     c.lineCap='round';c.lineJoin='round';c.beginPath();
-     const count=closed?pts.length-1:pts.length;
-     if(closed){
-      const first=midway(pts[count-1],pts[0],radius);
-      c.moveTo(first.x,first.y);
-     }else c.moveTo(pts[0].x,pts[0].y);
-     for(let i=closed?0:1;i<(closed?count:count-1);i++){
-      const prev=pts[(i-1+count)%count],cur=pts[i],next=pts[(i+1)%count];
-      const a=midway(prev,cur,radius),b=midway(next,cur,radius);
-      c.lineTo(a.x,a.y);c.quadraticCurveTo(cur.x,cur.y,b.x,b.y);
-     }
-     if(closed)c.closePath();else c.lineTo(pts[count-1].x,pts[count-1].y);
-     c.stroke();c.restore();
-    }});
+   const edges=[];
+   for(let i=0;i<poly.length;i++){
+    const a=poly[i],b=poly[(i+1)%poly.length];
+    if(edgeWet(a,b))edges.push([a,b]);
    }
+   if(!edges.length)continue;
+   items.push({depth:ty*32+32,order:.5,draw:()=>{
+    c.save();c.strokeStyle='rgba(27,36,29,.76)';
+    const p0=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
+    c.lineWidth=Math.max(1,(p0?.scale||1)*.6);
+    c.lineJoin='round';c.lineCap='round';c.beginPath();
+    for(const [a,b] of edges){
+     const p=point(tx*32+a[0],ty*32+a[1],E.level(m,tx,ty,a[0]/32,a[1]/32));
+     const q=point(tx*32+b[0],ty*32+b[1],E.level(m,tx,ty,b[0]/32,b[1]/32));
+     if(p&&q){c.moveTo(p.x,p.y);c.lineTo(q.x,q.y);}
+    }
+    c.stroke();c.restore();
+   }});
   }
   for(const o of options.objects||m.objects||[]){
    const foot=o.foot??o.y,center=o.foot===undefined?o.x:o.x+o.width/2;
