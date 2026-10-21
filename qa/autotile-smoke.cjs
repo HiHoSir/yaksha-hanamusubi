@@ -15,6 +15,8 @@ class Element{
  }
  setAttribute(name,value){this[name]=String(value)}
  getAttribute(name){return this[name]??null}
+ append(...children){for(const child of children){if(child&&typeof child==='object'){child.owner=this;child.isConnected=true;}}}
+ appendChild(child){this.append(child);return child}
  addEventListener(name,fn){(this.events[name]??=[]).push(fn)}
  fire(name,extra={}){const e={target:this,pointerId:1,preventDefault(){},stopPropagation(){},...extra};for(const fn of this.events[name]||[])fn(e)}
  setPointerCapture(){}getContext(){if(this.id==='worldTerrain')this.snapshot=null;if(this.canvas.width!==this.width)this.canvas.width=this.width;if(this.canvas.height!==this.height)this.canvas.height=this.height;const c=this.canvas.getContext('2d');if(!c.__adapted){const draw=c.drawImage.bind(c);c.drawImage=(im,...args)=>{if((im.id==="worldTerrain"||im.__ykStatic)&&!im.snapshot){im.snapshot=new NativeImage();im.snapshot.src=im.canvas.toBuffer("image/png");loaded.push(im.snapshot);}return draw(im.snapshot||im.canvas||im,...args);};c.__adapted=true;}return c}
@@ -23,7 +25,7 @@ class Element{
 function parse(html,owner=null){for(const m of html.matchAll(/<([a-zA-Z][\w-]*)\b([^>]*)>/g)){const attrs={};for(const a of m[2].matchAll(/([\w-]+)="([^"]*)"/g))attrs[a[1]]=a[2];new Element(m[1],attrs,owner)}}
 parse(fs.readFileSync(path.join(root,'index.html'),'utf8'));
 const el=id=>elements.find(x=>x.id===id)||null;
-const docEvents={};const doc={createElement:tag=>new Element(tag),hidden:false,activeElement:null,getElementById:el,addEventListener:(n,f)=>(docEvents[n]??=[]).push(f),querySelectorAll:s=>elements.filter(e=>{
+const docEvents={};const doc={body:new Element('body'),createElement:tag=>new Element(tag),hidden:false,activeElement:null,getElementById:el,addEventListener:(n,f)=>(docEvents[n]??=[]).push(f),querySelectorAll:s=>elements.filter(e=>{
  if(s.startsWith('.'))return s.slice(1).split('.').every(c=>e.classList.contains(c));
  const m=s.match(/^\[data-([\w-]+)\]$/);return !!(m&&m[1].replace(/-([a-z])/g,(_,c)=>c.toUpperCase()) in e.dataset);
 })};
