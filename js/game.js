@@ -973,10 +973,24 @@ function fieldDebugOverlay(c,camera){
  const toggle=document.createElement("button");toggle.type="button";toggle.textContent="判定表示 ON";
  const copy=document.createElement("button");copy.type="button";copy.textContent="前方座標コピー";copy.style.marginLeft="4px";
  const status=document.createElement("div");status.style.marginTop="6px";status.style.whiteSpace="pre-line";
+ const cliffToggle=document.createElement("button");cliffToggle.type="button";cliffToggle.textContent="崖面診断 "+(window.YK_CLIFF_DEBUG?"ON":"OFF");
+ cliffToggle.addEventListener("click",()=>{window.YK_CLIFF_DEBUG=!window.YK_CLIFF_DEBUG;cliffToggle.textContent="崖面診断 "+(window.YK_CLIFF_DEBUG?"ON":"OFF");map()});
+ const cliffCopy=document.createElement("button");cliffCopy.type="button";cliffCopy.textContent="崖面JSONコピー";
+ cliffCopy.addEventListener("click",async()=>{
+  const report=window.YK_CLIFF_REPORT;
+  if(!report){status.textContent="先に崖面診断をONにしてください";return;}
+  const tx=Math.floor(S.x/32),ty=Math.floor(S.y/32),radius=8;
+  const subset={version:GAME_JS_BUILD,area:S.area,heroTile:[tx,ty],camera:report.camera,bounds:report.bounds,tiles:report.tiles,
+   walls:report.walls.filter(w=>Math.abs(w.tile[0]-tx)<=radius&&Math.abs(w.tile[1]-ty)<=radius),
+   lips:report.lips.filter(w=>Math.abs(w.tile[0]-tx)<=radius&&Math.abs(w.tile[1]-ty)<=radius)};
+  const json=JSON.stringify(subset);
+  try{await navigator.clipboard.writeText(json);status.textContent="崖面JSONをコピーしました ("+subset.walls.length+"面)"}
+  catch(e){status.textContent=json}
+ });
  const build=document.createElement("button");build.type="button";build.textContent="実行中バージョンコピー";build.style.marginTop="6px";
  build.addEventListener("click",async()=>{const report=runtimeBuildReport();try{await navigator.clipboard.writeText(report);status.textContent="実行中バージョンをコピーしました"}catch(e){status.textContent=report}});
 
- details.append(label,toggle,copy,build,status);panel.append(expand,details);document.body.appendChild(panel);
+ details.append(label,toggle,copy,cliffToggle,cliffCopy,build,status);panel.append(expand,details);document.body.appendChild(panel);
  toggle.addEventListener("click",()=>{collisionDebugVisible=!collisionDebugVisible;toggle.textContent="判定表示 "+(collisionDebugVisible?"ON":"OFF");map()});
  copy.addEventListener("click",async()=>{
   const p=fieldFrontPoint(),v="area="+S.area+" tile=("+p.tileX+","+p.tileY+") pixel=("+p.px.toFixed(1)+","+p.py.toFixed(1)+") facing="+S.dir+" blocked="+collision(p.px,p.py);
