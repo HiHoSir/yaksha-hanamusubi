@@ -38,7 +38,8 @@ window.YK_ELEVATION_VIEW=(()=>{
  // Shore geometry is derived from neighbouring water, independent of terrain art.
  const waterKind=t=>t==='sea'||t==='river';
  const shoreSides=(m,x,y)=>{
-  if(waterKind(m[y]?.[x])||m.roads?.has(x+','+y)||m.cornerProtected?.has(x+','+y)||m[y]?.[x]==='bridge')return [];
+  // Object corner protection applies to elevation cuts, not shoreline edges.
+  if(waterKind(m[y]?.[x])||m.roads?.has(x+','+y)||m[y]?.[x]==='bridge')return [];
   return [['n',0,-1],['e',1,0],['s',0,1],['w',-1,0]].filter(([side,dx,dy])=>{
    if(!waterKind(m[y+dy]?.[x+dx]))return false;
    // Only a level, non-ramped bank is a beach. Elevated land is a cliff.
