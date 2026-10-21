@@ -789,7 +789,9 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   const col=motion===1?0:motion===0?1:(row>=2?1:2);
   // Normalize the opaque silhouette, not the transparent 32px cell.
   // This keeps front/back/side at the same visible height and aligns the boots.
-  const bounds=sdFieldBounds(row,col);
+  // Keep one transform for all frames in a direction. Per-frame opaque
+  // bounds made the boots jump as front/back animation frames changed.
+  const bounds=sdFieldBounds(row,0);
   const scale=(28/bounds.height)*(z/.56),foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,20*z,6*z,.28);
