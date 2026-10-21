@@ -1,0 +1,77 @@
+name: Publish isolated branch previews
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Existing improve/* branch to preview'
+        required: true
+        type: string
+  repository_dispatch:
+    types: [refresh-improvement-preview]
+permissions:
+  contents: read
+concurrency:
+  group: improvement-preview
+  cancel-in-progress: false
+jobs:
+  build-preview:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
+        run: |
+          [[ "$SOURCE_BRANCH" =~ ^improve/[a-z0-9][a-z0-9-]*$ ]] || exit 1
+      - name: Check out requested branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_branch }}
+          persist-credentials: false
+      - name: Build isolated preview bundle
+        env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          slug="${SOURCE_BRANCH#improve/}"
+          mkdir -p "preview/previews/$slug"
+          tar --exclude=.git --exclude=.github --exclude=preview -cf - . | (cd "preview/previews/$slug" && tar -xf -)
+          python3 - "$slug" <<'PY'
+          import pathlib,sys
+          slug=sys.argv[1]
+          root=pathlib.Path('preview/previews')/slug
+          # Namespaced browser storage without rewriting game internals.
+          p=root/'index.html'
+          s=p.read_text()
+          script="""<script>
+          (() => {
+            const prefix = 'YK_PREVIEW:' + location.pathname + ':';
+            const original = Storage.prototype;
+            for (const name of ['getItem','setItem','removeItem','key']) {
+              // Storage.prototype changes are intentionally avoided: other origins are unaffected.
+            }
+            const ls = window.localStorage;
+            const get=ls.getItem.bind(ls),set=ls.setItem.bind(ls),remove=ls.removeItem.bind(ls);
+            const clear=ls.clear.bind(ls);
+            const storage = new Proxy(ls, {
+              get(target,prop) {
+                if(prop==='getItem') return key=>get(prefix+key);
+                if(prop==='setItem') return (key,value)=>set(prefix+key,value);
+                if(prop==='removeItem') return key=>remove(prefix+key);
+                if(prop==='clear') return ()=>Object.keys(ls).filter(k=>k.startsWith(prefix)).forEach(k=>remove(k));
+                return Reflect.get(target,prop,target);
+              }
+            });
+            try{Object.defineProperty(window,'localStorage',{configurable:true,value:storage})}catch(e){}
+          })();
+          </script>"""
+          s=s.replace('<head>','<head>\n'+script,1)
+          p.write_text(s)
+          PY
+      - name: Upload preview artifact (not public)
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-${{ github.run_id }}
+          path: preview/
+          retention-days: 7
