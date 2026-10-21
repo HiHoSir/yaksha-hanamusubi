@@ -157,6 +157,7 @@ jobs:
           node qa/elevation.cjs
           node qa/elevation-corners.cjs
           node qa/field-elevation.cjs
+          node qa/field-chunk-cache.cjs
       - name: Reference field composition contract
         run: node qa/reference-field.cjs
       - name: Battle arithmetic contract
