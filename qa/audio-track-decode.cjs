@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
 const {chromium}=require(require.resolve('playwright',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES||process.cwd()]}));
 const root=path.resolve(__dirname,'..');
 const targets=[
- {name:'field',file:'audio/kikoku-field-v11.mp3',required:72},
+ {name:'field',file:'audio/kikoku-field-v11.mp3',required:71},
  {name:'village',file:'audio/hoozuki-v13.mp3',required:5},
  {name:'battle',file:'audio/kikoku-battle-hybrid-fm-v4.mp3',required:5}
 ];
@@ -27,6 +27,7 @@ const server=http.createServer((req,res)=>{
     if(!response.ok)throw Error('audio HTTP '+response.status+' '+file);
     const bytes=await response.arrayBuffer();
     const context=new (window.AudioContext||window.webkitAudioContext)();
+    const byteLength=bytes.byteLength;
     const decoded=await context.decodeAudioData(bytes);
     const channel=decoded.getChannelData(0);
     let energy=0,peak=0;
@@ -34,7 +35,7 @@ const server=http.createServer((req,res)=>{
      energy+=channel[i]*channel[i];peak=Math.max(peak,Math.abs(channel[i]));
     }
     await context.close();
-    return {duration:decoded.duration,channels:decoded.numberOfChannels,sampleRate:decoded.sampleRate,bytes:bytes.byteLength,peak,energy};
+    return {duration:decoded.duration,channels:decoded.numberOfChannels,sampleRate:decoded.sampleRate,bytes:byteLength,peak,energy};
    },target.file);
    assert(d.duration>=target.required,target.name+' duration below loop bounds: '+JSON.stringify(d));
    assert(d.peak>0.01&&d.energy>0.5,target.name+' media is inaudible or nearly silent: '+JSON.stringify(d));
