@@ -9,7 +9,26 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  const run=code=>page.evaluate(code=>window.__qaEval(code),code);
  await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>YK_SETTLEMENT.ready()&&YK_AUTOTILE.ready());
  for(const area of ['village','field']){
-  await run(`state(YK_SAVE.fresh());busy=false;S.area='${area}';S.x=${area==='village'?768:976};S.y=${area==='village'?1190:2192};S.encounterGrace=999;hud();`);
+  // Previous field fixture (976,2192) is an unwalkable mountain tile.
+  // Find a reachable northbound corridor so this tests held-key movement.
+  const fieldStart=area==='field'?await page.evaluate(()=>{
+    const W=YK_WORLD,candidates=[];
+    for(let ty=10;ty<75;ty++)for(let tx=5;tx<75;tx++){
+      const x=tx*32+16,y=ty*32+16;
+      if(!W.mapData.travelReachable.has(tx+','+ty))continue;
+      let clear=true;
+      for(let n=0;n<9;n++){
+        if(!W.walkable(x,y-n*32)||!W.canMove(x,y-n*32,x,y-(n+1)*32)){clear=false;break;}
+      }
+      if(clear)candidates.push({x,y,d:Math.hypot(x-976,y-2192)});
+    }
+    candidates.sort((a,b)=>a.d-b.d);
+    return candidates[0]||null;
+  }):null;
+  if(area==='field')assert(fieldStart,'No walkable northbound field corridor found');
+  const startX=fieldStart?.x??768,startY=fieldStart?.y??1190;
+  await run(`state(YK_SAVE.fresh());busy=false;S.area='${area}';S.x=${startX};S.y=${startY};S.encounterGrace=999;hud();`);
+  if(fieldStart)console.log('field test start',startX,startY);
   await page.evaluate(()=>{window.__hudWrites=0;window.__hudObserver?.disconnect();window.__hudObserver=new MutationObserver(records=>window.__hudWrites+=records.length);window.__hudObserver.observe(document.getElementById('hud'),{childList:true,subtree:true,characterData:true});});
   await page.keyboard.down('ArrowUp');
   const trace=await page.evaluate(()=>new Promise(resolve=>{const out=[],start=performance.now();function sample(t){out.push(window.__qaEval('({at:performance.now(),y:fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*Math.min(1,(performance.now()-fieldMotion.at)/144):S.y,moving:!!fieldMotion})'));if(t-start<850)requestAnimationFrame(sample);else resolve(out);}requestAnimationFrame(sample);}));
