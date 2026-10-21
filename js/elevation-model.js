@@ -20,7 +20,9 @@ window.YK_ELEVATION=(()=>{
   const eligible=cornerDefs.map(([name,cx,cy,dx,dy,ex,ey])=>{
    const a=level(m,tx+dx,ty+dy),b=level(m,tx+ex,ty+ey),d=level(m,tx+dx+ex,ty+dy+ey);
    const ramp=m.ramps?.[ty]?.[tx]||m.ramps?.[ty+dy]?.[tx+dx]||m.ramps?.[ty+ey]?.[tx+ex]||m.ramps?.[ty+dy+ey]?.[tx+dx+ex];
-   return requested>0&&!m.cornerProtected?.has(tx+','+ty)&&!ramp&&base>a&&a===b&&d<=a;
+   // Object footprints block movement, not terrain geometry. Do not suppress
+    // diagonal cliff faces merely because an object contacts this cell.
+    return requested>0&&!ramp&&base>a&&a===b&&d<=a;
   });
   for(const [name,cx,cy,dx,dy,ex,ey] of cornerDefs){
    const index=cornerDefs.findIndex(c=>c[0]===name),a=level(m,tx+dx,ty+dy);
