@@ -122,6 +122,12 @@ window.YK_LANDSCAPE=(()=>{
    const wx=x+(map.textureOrigin?.x||0),wy=y+(map.textureOrigin?.y||0);
    c.drawImage(art.grass,wx%8*32,wy%8*32,32,32,x*32,y*32,32,32);
    const t=groundTile(map,x,y),kind=water(t)?'water':t==='snowMountain'?'snow':t==='rockMountain'?'barren':t;
+   // Projected coast geometry is owned by elevation-view.js, not legacy autotiles.
+   if(map.projectedHeights&&(water(t)||kind==='sand')){
+    const tile=water(t)?art.water:art.sand;
+    c.drawImage(tile,wx%2*32,wy%2*32,32,32,x*32,y*32,32,32);
+    continue;
+   }
    if(!['water','snow','barren','sand'].includes(kind))continue;
    const same=v=>v===undefined||(kind==='water'?water(v):kind==='snow'?(v==='snow'||v==='snowMountain'):kind==='barren'?(v==='barren'||v==='rockMountain'):kind==='sand'?(v==='sand'||water(v)):v===kind);
    if(t==='sea')c.drawImage(art.sand,wx%2*32,wy%2*32,32,32,x*32,y*32,32,32);
@@ -336,7 +342,7 @@ window.YK_LANDSCAPE=(()=>{
  function groundLayer(map){
   if(grounds.has(map))return grounds.get(map);
   const layer=document.createElement('canvas');layer.width=map[0].length*32;layer.height=map.length*32;const c=layer.getContext('2d');c.imageSmoothingEnabled=false;
-  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);if(map.shoreRelief)drawShoreRelief(c,map);else if(!map.projectedHeights)drawHeightFaces(c,map);
+  c.drawImage(floorLayer(map),0,0);c.drawImage(roadLayer(map),0,0);c.drawImage(shadowLayer(map),0,0);if(!map.projectedHeights){if(map.shoreRelief)drawShoreRelief(c,map);else drawHeightFaces(c,map);}
   for(const o of (map.decorations||[]).filter(o=>o.ground)){
    if(o.kind==='wildflowers'){
     // Same 32px cells as Hozuki village, placed sparsely without a square backdrop.
