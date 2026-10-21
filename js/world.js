@@ -15,13 +15,18 @@ window.YK_WORLD=(()=>{
  };
  const places=Object.fromEntries(Object.entries(geography.places).map(([id,cell])=>[id,{point:center(cell),name:descriptions[id][0],note:descriptions[id][1]}]));
  const start=center([37,71]),hub=start;
- const mapData=window.YK_FIELD_TERRAIN.tiles.map(row=>row.slice());
+ // Roads are navigation metadata only. The historical wilderness has no
+ // constructed road surface: use existing grass tiles instead.
+ const mapData=window.YK_FIELD_TERRAIN.tiles.map(row=>row.map(tile=>tile==='road'?'grass':tile));
  mapData.heights=window.YK_FIELD_TERRAIN.heights?.map(row=>row.slice())||mapData.map(row=>row.map(()=>0));
  mapData.heightTransitions=[];mapData.projectedHeights=true;mapData.shoreRelief=true;
  mapData.fieldObjectCollisionDeferred=false;mapData.referencePlacedObjects=true;
  mapData.bridgeWaterCells=new Set(geography.bridgeWaterCells.map(c=>c.join(',')));
  mapData.decorations=geography.decorations.map(o=>({...o,contactTiles:o.contactTiles.map(c=>c.slice()),occupiedTiles:o.occupiedTiles.map(c=>c.slice())}));
- const roads=geography.roads.map(r=>r.map(center));mapData.paths=roads;
+ const roads=geography.roads.map(r=>r.map(center));
+ // Keep routes for directions, elevation corridors and save compatibility,
+ // but never rasterize the old dirt-road overlay on the outdoor field.
+ mapData.paths=[];
  const restStops=geography.restStops.map(o=>({...o,point:center(o.cell)}));
  const guides=[[30,56,'南の地蔵','林の西を通り、天妖の社へ向かうのじゃ。'],[34,46,'川辺の地蔵','東へ川沿いに進むと海の入り江じゃ。'],[56,37,'森の地蔵','北の鳥居が忘れの森の入口じゃ。'],[40,22,'湖畔の地蔵','湖の南を西へ進むと月見の湯じゃ。']].map(([tx,ty,name,tip],id)=>({id,...{x:tx*32+16,y:ty*32+16},name,tip}));
  // Guides stand on the route's walkable cells and never create a new barrier.
