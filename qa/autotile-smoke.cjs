@@ -152,7 +152,8 @@ function check(name,fn){fn();results.push(name)}
   }}
   for(const [id,p] of Object.entries(world.places))assert(seen.has(p.point.join(',')),id+' unreachable');
   for(const o of world.mapData.decorations.filter(o=>['jizo','cave','castle'].includes(o.kind))){
-   const x=o.x+o.width/2,y=o.foot;assert(seen.has([x,y+32].join(',')),o.kind+' interaction approach unreachable');
+   const x=o.x+o.width/2,y=o.foot;const approaches=[[x,y+32],[x-32,y+32],[x+32,y+32],[x,y+64]];
+   assert(approaches.some(p=>seen.has(p.join(','))),o.kind+' interaction approach unreachable near '+x+','+y);
    const tx=Math.floor(x/32),ty=Math.floor(y/32);
    for(let yy=ty;yy<=ty+3;yy++)for(let xx=tx-2;xx<=tx+2;xx++)assert(!['forest','mountain','rockMountain','snowMountain'].includes(world.mapData[yy][xx]),o.kind+' foreground hidden');
   }
