@@ -421,7 +421,7 @@ function stabilizeLoadedState(){
  }
  S.frame=1;return S;
 }
-function restoreState(v){
+function restoreState(v,persist=true){
  state(v);
  if(YK_DESTINATION_SCENES.blocked(S.area,S.x,S.y))[S.x,S.y]=YK_DESTINATION_SCENES.layouts[S.area].spawn.slice();
  // Old autosaves may point at a field position while the world module is still loading.
@@ -431,7 +431,7 @@ function restoreState(v){
   S.x=clamp(Number(S.x)||230,40,728);S.y=clamp(Number(S.y)||534,50,718);S.frame=1;
   return S;
  }
- stabilizeLoadedState();YK_SAVE.auto(S);return S;
+ stabilizeLoadedState();if(persist)YK_SAVE.auto(S);return S;
 }
 function rr(c,x,y,w,h,r,fill,stroke){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.stroke()}}
 function flower(c,x,y,col="#f4a0b8",z=1){c.save();c.translate(x,y);c.fillStyle=col;for(let i=0;i<5;i++){c.rotate(1.256);c.beginPath();c.ellipse(0,-5*z,3*z,6*z,0,0,7);c.fill()}c.fillStyle="#f4d579";c.beginPath();c.arc(0,0,2*z,0,7);c.fill();c.restore()}
@@ -1917,7 +1917,55 @@ function startNewGame(){
 window.__YK_BOOT_START=startNewGame;
 $("newGame").removeAttribute?.("onclick");
 YK_INPUT.tap($("newGame"),startNewGame);
-YK_INPUT.tap($("continueGame"),()=>{const v=YK_SAVE.loadAuto();if(!v)return message("自動保存データがありません");restoreState(v);$("title").classList.remove("show");busy=false;hud()});
+// The title's Continue action selects a deliberate manual save.
+ // Suspension/autosave is a distinct operation and must never silently
+ // take priority over one of the three recorded journey slots.
+ function showTitleLoadSelection(){
+  if(!$("title").classList.contains("show"))return;
+  $("titleMainActions").hidden=true;
+  $("titleLoadSelection").hidden=false;
+  $("titleLoadNotice").textContent="";
+  const list=$("titleLoadSlots");
+  list.replaceChildren();
+  for(const n of [1,2,3]){
+   const info=YK_SAVE.slotInfo(n);
+   const button=document.createElement("button");
+   button.type="button";
+   button.className="titleLoadSlot";
+   button.disabled=!info;
+   const title=document.createElement("strong");
+   title.textContent=n+"番の記録";
+   const detail=document.createElement("small");
+   detail.textContent=info?info.lv+"段 ／ "+info.area+" ／ "+new Date(info.time).toLocaleString("ja-JP"):"記録なし";
+   button.append(title,detail);
+   if(info)YK_INPUT.tap(button,()=>requestAnimationFrame(()=>{
+    const saved=YK_SAVE.loadSlot(n);
+    if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
+    restoreState(saved,false);
+    $("titleLoadSelection").hidden=true;
+    $("title").classList.remove("show");
+    busy=false;hud();
+   }));
+   list.append(button);
+  }
+ }
+ function hideTitleLoadSelection(){
+  $("titleLoadSelection").hidden=true;
+  $("titleMainActions").hidden=false;
+  $("titleLoadNotice").textContent="";
+ }
+ // Delay visual switching until the synthetic click following pointerup has
+ // settled. Otherwise the same tap can land on a newly revealed save slot.
+ YK_INPUT.tap($("continueGame"),()=>requestAnimationFrame(showTitleLoadSelection));
+ YK_INPUT.tap($("titleLoadBack"),()=>requestAnimationFrame(hideTitleLoadSelection));
+ YK_INPUT.tap($("resumeSuspend"),()=>requestAnimationFrame(()=>{
+  const saved=YK_SAVE.loadAuto();
+  if(!saved){$("bootError").textContent="中断セーブがありません。";return;}
+  restoreState(saved);
+  $("titleLoadSelection").hidden=true;
+  $("title").classList.remove("show");
+  busy=false;hud();
+ }));
 YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
