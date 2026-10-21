@@ -244,7 +244,11 @@ window.YK_ELEVATION_VIEW=(()=>{
      const t0=segment/segments,t1=(segment+1)/segments,mix=(a,t)=>a[0]+(a[1]-a[0])*t;
      const span=[t0,t1].map(t=>[mix(coords.map(p=>p[0]),t),mix(coords.map(p=>p[1]),t)]);
      const high=[mix(top,t0),mix(top,t1)],low=[mix(bottom,t0),mix(bottom,t1)];
-     items.push({depth:Math.max(...span.map(p=>p[1])),order:1,draw:()=>{
+     // A cliff projects downward from its top edge. Sort it by the
+      // bottom-facing world-space footprint, rather than the top seam:
+      // otherwise later ground/water strips can paint over the wall.
+      const wallDepth=Math.max(...span.map(p=>p[1]))+Math.max(...high.map((h,j)=>h-low[j]))*rise/Math.max(.6,zoom);
+      items.push({depth:wallDepth,order:1,draw:()=>{
       const bands=Math.max(1,Math.ceil(Math.max(...high.map((h,j)=>h-low[j]))));
       for(let b=0;b<bands;b++){
        const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
