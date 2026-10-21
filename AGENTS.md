@@ -32,6 +32,11 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 - For private Sites/ROM research, do not release protected source graphics on public GitHub Pages.
 - Report verified facts and unresolved blockers precisely; a successful source-code commit does not mean generated binary assets were transferred.
 
+## Improvement branch policy (2026-10-21)
+- For improvement tasks, create a dedicated branch from latest `main`; never directly modify `main` before user approval.
+- Follow [improvement branch workflow](docs/improvement-branch-workflow.md) for conflict checks, preview isolation, merge approval, and separate QA gates.
+- This improvement-specific policy overrides the older direct-to-main default below. The mandatory BETA/cache-version bump still applies when the approved change reaches `main`.
+
 ## GitHub branch and artifact handoff
 - This project normally commits **directly to `main`** using the connected GitHub tools. Do not assume a pull request is needed.
 - GitHub `create_file` / `update_file` on main create actual remote commits. Verify the resulting SHA on main.
