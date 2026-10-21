@@ -25,3 +25,10 @@ Production branch: `main`. All improvement work starts from the current `main` H
 - `improve/audio-<task>`
 
 This workflow supersedes the previous default direct-to-main policy for improvement work. Asset production and GitHub delivery skills still apply.
+
+## Automatic production deployment
+- GitHub Pages uses **GitHub Actions** as its publishing source. A push/merge to `main` triggers `.github/workflows/improvement-preview.yml` and republishes the current `main` root automatically.
+- Each Pages deployment replaces the whole site. The workflow therefore bundles production with only the **approved and registered** preview branches listed in `docs/pages-active-previews.txt`; they remain available after a production merge.
+- A manual `workflow_dispatch` may supply an additional `improve/<slug>` preview branch. Register it in the allowlist through a reviewed change if it must survive later automatic `main` deployments.
+- Remove a completed/stale branch from the allowlist when its preview no longer needs to remain public. Do not publish unapproved branches.
+- All deployments share the `github-pages-site` concurrency group to avoid a manual preview deployment racing an automatic production deployment. Verify Actions success, live HTML version, and device Safari separately.
