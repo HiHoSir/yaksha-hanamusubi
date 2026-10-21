@@ -1940,7 +1940,7 @@ YK_INPUT.tap($("newGame"),startNewGame);
    button.append(title,detail);
    if(info)YK_INPUT.tap(button,()=>{
     const saved=YK_SAVE.loadSlot(n);
-    if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";showTitleLoadSelection();return;}
+    if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
     restoreState(saved);
     $("titleLoadSelection").hidden=true;
     $("title").classList.remove("show");
