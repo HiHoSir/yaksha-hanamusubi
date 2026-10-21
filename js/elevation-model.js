@@ -49,10 +49,12 @@ window.YK_ELEVATION=(()=>{
   }return true;
  }
  function walkable(m,x,y){return inside(m,x,y)&&['grass','forest','sand','snow','barren','road','bridge'].includes(m[y][x])&&!m.occupiedTiles?.has(x+','+y);}
+ function ladderBetween(m,x,y,nx,ny){return (m.ladders||[]).find(l=>(l.lower[0]===x&&l.lower[1]===y&&l.upper[0]===nx&&l.upper[1]===ny)||(l.lower[0]===nx&&l.lower[1]===ny&&l.upper[0]===x&&l.upper[1]===y))||null;}
  // Test BOTH ends of a shared edge: a ramp's side is not a traversable cliff.
  function connected(m,x,y,nx,ny){
   if(!walkable(m,x,y)||!walkable(m,nx,ny)||Math.abs(nx-x)+Math.abs(ny-y)!==1)return false;
   const dx=nx-x,dy=ny-y;
+  if(dy&&ladderBetween(m,x,y,nx,ny))return true;
   for(const t of [0,.5,1]){
    const a=dx?level(m,x,y,dx>0?1:0,t):level(m,x,y,t,dy>0?1:0);
    const b=dx?level(m,nx,ny,dx>0?0:1,t):level(m,nx,ny,t,dy>0?0:1);
@@ -92,7 +94,7 @@ window.YK_ELEVATION=(()=>{
   m.occupiedTiles=new Set(m.objects.flatMap(o=>o.occupiedTiles.map(p=>p.join(','))));
   m.spawn=[7*32+16,15*32+16];return m;
  }
- return {prepare,CELL,dirs,inside,level,height,outline,pointWalkable,canMove,walkable,connected,validate,fixture};
+ return {prepare,CELL,dirs,inside,level,height,outline,pointWalkable,canMove,walkable,connected,ladderBetween,validate,fixture};
 })();
 
 
