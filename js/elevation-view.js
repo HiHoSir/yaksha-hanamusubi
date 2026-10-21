@@ -111,6 +111,9 @@ window.YK_ELEVATION_VIEW=(()=>{
   const minY=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.y))/32)-2),maxY=Math.min(m.length-1,Math.ceil(Math.max(...bounds.map(p=>p.y))/32)+2);
   const point=(x,y,h)=>{const p=YK_LANDSCAPE.project(x,y,camera,zoom);return p&&{...p,y:p.y-h*rise*p.scale};};
   const diagnostic=window.YK_CLIFF_DEBUG===true;
+  // Separate late overlay isolates missing geometry from depth overpainting.
+  const xray=diagnostic&&window.YK_CLIFF_XRAY===true;
+  const xrayFaces=[];
   const cliffReport=diagnostic?{camera:{x:camera.x,y:camera.y},bounds:[minX,minY,maxX,maxY],walls:[],lips:[],tiles:0}:null;
   if(diagnostic)window.YK_CLIFF_REPORT=cliffReport;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;c.clearRect(0,0,640,544);c.drawImage(art.horizon,0,0,640,240);
@@ -258,6 +261,7 @@ window.YK_ELEVATION_VIEW=(()=>{
        const material=m.cliffMaterials?.[ty]?.[tx]||options.cliffMaterial||(['grass','forest'].includes(m[ty][tx])?'grassCliff':'rock');
        const face=art[material]||art.rock;
        if(p.every(Boolean)){
+        if(xray)xrayFaces.push({p,side:side||'diagonal',tile:[tx,ty]});
         quad(c,face,(tx*32)%face.width,(ty*32)%face.height,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
         if(diagnostic){c.save();c.fillStyle='rgba(255,0,180,.32)';c.strokeStyle='#ff00ff';c.lineWidth=1.5;c.beginPath();p.forEach((v,i)=>i?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));c.closePath();c.fill();c.stroke();c.restore();}
        }
@@ -307,7 +311,19 @@ window.YK_ELEVATION_VIEW=(()=>{
    const bounds=heroBounds(art.hero,row,col),scale=28/bounds.height*p.scale;
    c.drawImage(art.hero,col*32,row*32,32,32,p.x-(bounds.left+bounds.width/2)*scale,p.y-(bounds.bottom+1)*scale,32*scale,32*scale);
   }});
-  items.sort((a,b)=>a.depth-b.depth||a.order-b.order);for(const item of items)item.draw();c.restore();
+  items.sort((a,b)=>a.depth-b.depth||a.order-b.order);for(const item of items)item.draw();
+  // Diagnostic only: draw projected face polygons AFTER all depth sorting.
+  // If the cyan shape appears where the normal wall is absent, the face
+  // exists and has been overpainted. No production ordering is changed.
+  if(xray){
+   c.save();c.lineWidth=1.5;c.strokeStyle='#00ffff';c.fillStyle='rgba(0,255,255,.14)';
+   for(const {p} of xrayFaces){
+    c.beginPath();p.forEach((v,i)=>i?c.lineTo(v.x,v.y):c.moveTo(v.x,v.y));c.closePath();c.fill();c.stroke();
+   }
+   c.restore();
+   cliffReport.xrayFaces=xrayFaces.length;
+  }
+  c.restore();
   for(let y=136;y<208;y+=4){const t=(y-136)/72;c.globalAlpha=1-t*t*(3-2*t);c.drawImage(art.horizon,0,y,640,4,0,y,640,4);}c.globalAlpha=1;
   if(options.grid){for(let ty=minY;ty<=maxY;ty++)for(let tx=minX;tx<=maxX;tx++){
    for(const cut of E.outline(m,tx,ty).cuts){
