@@ -106,6 +106,15 @@ window.YK_FIELD_ELEVATION=(()=>{
    const before=reachable.size;
    let installed=false;
    for(const c of ladderCandidates){
+    // Trees and other occupied cells may split one visible plateau into
+    // multiple walkable components. Space entrances by cliff geometry as well
+    // as component membership, so one forest edge never gains a ladder row.
+    const sameCliffCrowded=m.ladders.some(l=>{
+     const [lx,ly]=l.lower,[ux,uy]=l.upper;
+     const sameRise=E.level(m,ux,uy)===E.level(m,c.nx,c.ny);
+     return sameRise&&Math.abs(ly-c.y)<=3&&Math.abs(lx-c.x)<8;
+    });
+    if(sameCliffCrowded)continue;
     m.ladders.push({lower:[c.x,c.y],upper:[c.nx,c.ny]});
     E.prepare(m);
     if(flood().size>before){
