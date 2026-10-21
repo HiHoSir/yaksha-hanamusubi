@@ -65,21 +65,25 @@ window.YK_FIELD_ELEVATION=(()=>{
     if(!seen.has(k)&&E.canMove(m,...center(x,y),...center(nx,ny))){seen.add(k);queue.push([nx,ny]);}
    }}return seen;
   }
-  // Group plateaus by terrain geometry, ignoring forest objects and other
-  // occupancy. Physical collision still applies to the actual ladder tile.
-  function plateauComponent(x,y){
-   const level=E.level(m,x,y),seen=new Set([key(x,y)]),queue=[[x,y]];
-   for(let i=0;i<queue.length;i++){const [cx,cy]=queue[i];
+  // Classify the whole upper landmass by height and land geometry only.
+  // Forest and other props may block walking but must NEVER split a plateau.
+  // This is independent of the strict collision checks used for entrances.
+  const land=(x,y)=>E.inside(m,x,y)&&!water(m[y][x]);
+  const plateauIds=new Map(),plateauCells=new Map();
+  let nextPlateauId=0;
+  for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++){
+   const origin=key(x,y);
+   if(!land(x,y)||plateauIds.has(origin))continue;
+   const id=nextPlateauId++,height=m.heights[y][x],cells=[],queue=[[x,y]];
+   plateauIds.set(origin,id);
+   for(let i=0;i<queue.length;i++){const [cx,cy]=queue[i];cells.push(key(cx,cy));
     for(const [dx,dy] of dirs){
      const nx=cx+dx,ny=cy+dy,k=key(nx,ny);
-     if(seen.has(k)||!E.inside(m,nx,ny)||E.level(m,nx,ny)!==level)continue;
-     if(!['grass','forest','sand','snow','barren','road','bridge'].includes(m[ny][nx]))continue;
-     // Use terrain outline geometry, not tree/prop occupancy.
-     if(E.outline(m,nx,ny).cuts.length&&
-        !E.pointWalkable(m,...center(nx,ny)))continue;
-     seen.add(k);queue.push([nx,ny]);
+     if(!land(nx,ny)||plateauIds.has(k)||m.heights[ny][nx]!==height)continue;
+     plateauIds.set(k,id);queue.push([nx,ny]);
     }
-   }return seen;
+   }
+   plateauCells.set(id,cells);
   }
   const reserved=new Set();
   // Restrict automatic construction to actual unreachable higher ground.
@@ -115,7 +119,7 @@ window.YK_FIELD_ELEVATION=(()=>{
      installed=true;
      // Reserve the WHOLE upper plateau, preventing another ladder to the
      // same contiguous destination from being chosen in a later iteration.
-     for(const tile of plateauComponent(c.nx,c.ny))reserved.add(tile);
+     for(const tile of plateauCells.get(plateauIds.get(key(c.nx,c.ny)))||[])reserved.add(tile);
      break;
     }
     m.ladders.pop();
