@@ -253,22 +253,19 @@ function check(name,fn){fn();results.push(name)}
     for(let j=0;j<=steps;j+=2)assert(land.walkable(m,ax+Math.sign(bx-ax)*j,ay+Math.sign(by-ay)*j),'blocked route '+(ax+Math.sign(bx-ax)*j)+','+(ay+Math.sign(by-ay)*j));
    }
    for(const o of m.decorations){
-    if(['jizo','lantern','town','village','shrine','hermit'].includes(o.kind))assert(!land.walkable(m,o.x+o.width/2,o.foot-12),o.kind+' footprint');
+    for(const foot of land.footprints(o))assert(!land.walkable(m,foot.x+16,foot.y+16),o.kind+' authored occupied cell');
     if(o.kind==='bridge'){assert(land.walkable(m,o.x+o.width/2,o.y+o.height*.5));assert(!land.walkable(m,o.x+o.width/2,o.y+2),'bridge railing');}
    }
    assert.strictEqual(land.floorLayer(m),land.floorLayer(m),'static ground cached');
   }
   assert(!land.walkable(land.fixture(),600,400),'sea');
  });
- check('shrine base blocks approaches from front and sides without blocking the entrance approach',()=>{
-  const m=land.fixture(),o=m.decorations.find(o=>o.kind==='shrine');
-  // Regression: beta40 left the final 8px of the pedestal walkable.
-  for(const x of [240,256,276,288])for(const y of [184,188,192])assert(!land.walkable(m,x,y),'pedestal leak '+x+','+y);
-  assert(land.walkable(m,256,202),'entrance approach');
-  assert(land.walkable(m,304,176),'beside shrine');
-  for(const o of land.placesFixture().decorations)for(const f of land.footprints(o))
-   assert(!land.walkable(land.placesFixture(),f.x+f.width/2,f.y+f.height-1),o.kind+' base');
-  const places=land.placesFixture();assert(land.walkable(places,452,192),'torii center');
+ check('explicit object occupancy blocks only authored cells',()=>{
+  const m=land.fixture(),tile=[8,6],px=tile[0]*32+16,py=tile[1]*32+16;
+  assert(land.walkable(m,px,py),'control walkable cell must start unobstructed');
+  m.decorations.push({kind:'shrine',x:tile[0]*32,y:tile[1]*32,width:32,height:32,foot:tile[1]*32+32,occupiedTiles:[tile]});
+  assert.equal(land.footprints(m.decorations.at(-1)).length,1);
+  assert(!land.walkable(m,px,py),'authored shrine foundation must block');
  });
  check('object shadows are cached with uniform subtle alpha and leave empty ground clear',()=>{
   const m=land.fixture(),layer=land.shadowLayer(m),p=layer.getContext('2d').getImageData(0,0,640,544).data;
