@@ -94,24 +94,45 @@ window.YK_ELEVATION_VIEW=(()=>{
    // Overlay shoreline sand on the LAND side. No water expansion, collision
    // changes or tile-specific coordinate lists. All edges use world geometry.
    if(shores.length){
-    const shoreWidth=7;
+    // One land-side sand footprint per tile, assembled from ALL wet neighbours.
+    // A smooth distance field blends corners without overlapping side rectangles.
+    // Only the outer water-facing edge receives an outline.
+    const shoreWidth=8,step=4,wet=new Set(shores);
+    const distance=(u,v)=>{
+     const d=[];
+     if(wet.has('n'))d.push(v);
+     if(wet.has('s'))d.push(32-v);
+     if(wet.has('w'))d.push(u);
+     if(wet.has('e'))d.push(32-u);
+     return Math.min(...d);
+    };
+    // Deterministic world-space variation gives the inland sand edge a
+    // natural silhouette while remaining fixed under camera movement.
+    const widthAt=(u,v)=>shoreWidth+1.4*Math.sin((tx*32+u)*.16+(ty*32+v)*.09)
+                                      +1.0*Math.sin((tx*32+u)*.07-(ty*32+v)*.22);
+    for(let y=0;y<32;y+=step)for(let x=0;x<32;x+=step){
+     const cx=x+step/2,cy=y+step/2;
+     if(distance(cx,cy)>widthAt(cx,cy))continue;
+     const poly=[[x,y],[x+step,y],[x+step,y+step],[x,y+step]];
+     items.push({depth:ty*32+y+step,order:.25,draw:()=>{
+      const p=poly.map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
+      if(!p.every(Boolean))return;
+      const uv=poly.map(([u,w])=>({x:tx*32+u,y:ty*32+w}));
+      triangle(c,art.sand,[uv[0],uv[1],uv[2]],[p[0],p[1],p[2]]);
+      triangle(c,art.sand,[uv[0],uv[2],uv[3]],[p[0],p[2],p[3]]);
+     }});
+    }
+    // Build a single outline path from the topology of exposed coast edges.
+    // All endpoints are exact world vertices, so neighbouring cells connect.
     for(const side of shores){
-     const poly=shorePoly(side,shoreWidth);
-     items.push({depth:ty*32+32,order:.25,draw:()=>{
-      const projected=poly.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
-      if(!projected.every(Boolean))return;
-      const uv=poly.map(([u,v])=>({x:tx*32+u,y:ty*32+v}));
-      // Two triangles preserve the original sand texture in perspective.
-      triangle(c,art.sand,[uv[0],uv[1],uv[2]],[projected[0],projected[1],projected[2]]);
-      triangle(c,art.sand,[uv[0],uv[2],uv[3]],[projected[0],projected[2],projected[3]]);
-      // Draw the outline ONLY on the shared sand/water edge, never
-      // along the inner sand/grass border or within the sand strip.
-      const coast=side==='n'?[[0,0],[32,0]]:side==='s'?[[0,32],[32,32]]:side==='w'?[[0,0],[0,32]]:[[32,0],[32,32]];
-      const ends=coast.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
+     const coast=side==='n'?[[0,0],[32,0]]:side==='s'?[[0,32],[32,32]]:side==='w'?[[0,0],[0,32]]:[[32,0],[32,32]];
+     items.push({depth:ty*32+32,order:.5,draw:()=>{
+      const ends=coast.map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
       if(!ends.every(Boolean))return;
-      c.save();c.strokeStyle='rgba(27,36,29,.76)';c.lineWidth=Math.max(1,(ends[0].scale+ends[1].scale)*.6);c.lineCap='round';
-      c.beginPath();c.moveTo(ends[0].x,ends[0].y);
       const dx=ends[1].x-ends[0].x,dy=ends[1].y-ends[0].y,len=Math.hypot(dx,dy)||1;
+      c.save();c.strokeStyle='rgba(27,36,29,.76)';
+      c.lineWidth=Math.max(1,(ends[0].scale+ends[1].scale)*.6);c.lineCap='round';c.lineJoin='round';
+      c.beginPath();c.moveTo(ends[0].x,ends[0].y);
       for(let k=1;k<8;k++){
        const t=k/8,x=tx*32+coast[0][0]+(coast[1][0]-coast[0][0])*t,y=ty*32+coast[0][1]+(coast[1][1]-coast[0][1])*t;
        const wobble=Math.sin(x*.27+y*.39)*1.2*Math.sin(Math.PI*t);
