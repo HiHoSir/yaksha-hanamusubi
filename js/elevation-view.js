@@ -150,7 +150,9 @@ window.YK_ELEVATION_VIEW=(()=>{
        c.save();c.beginPath();clipped.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();c.clip();
       }
       const sx=tx*32%texture.width,sy=(ty*32+v)%texture.height;
-      if(Math.abs(p[0].y-p[1].y)<1e-6&&Math.abs(p[2].y-p[3].y)<1e-6){
+      // The fast rectangular blit is valid only when BOTH projected sides are vertical.
+       // Perspective shifts x across depth, especially near screen edges.
+       if(Math.abs(p[0].y-p[1].y)<1e-6&&Math.abs(p[2].y-p[3].y)<1e-6&&Math.abs(p[0].x-p[3].x)<.01&&Math.abs(p[1].x-p[2].x)<.01){
        const left=Math.min(p[0].x,p[3].x),right=Math.max(p[1].x,p[2].x);
        c.drawImage(texture,sx,sy,32,band,left,p[0].y,right-left+.3,p[3].y-p[0].y+.6);
       }else quad(c,texture,sx,sy,32,band,p);
