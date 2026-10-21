@@ -30,6 +30,11 @@ window.YK_WORLD=(()=>{
  // On high terraces, mountain sprites obscure the cliff silhouette.
  // Reuse the existing 32px forest object instead; preserve the original
  // occupied/contact cells so movement and saved positions remain stable.
+ // Clear the mountain cluster around field tile (28,35), including
+ // its previously converted tree sprites. Keep unrelated objects intact.
+ const clearMountainCluster=o=>['newMountainLarge','newMountainSmall'].includes(o.kind)
+  &&o.contactTiles.some(([x,y])=>x>=23&&x<=32&&y>=31&&y<=39);
+ mapData.decorations=mapData.decorations.filter(o=>!clearMountainCluster(o));
  mapData.decorations=mapData.decorations.flatMap(o=>{
   if(!['newMountainLarge','newMountainSmall'].includes(o.kind))return [o];
   const elevated=o.contactTiles.some(([x,y])=>(mapData.heights[y]?.[x]||0)>=2);
