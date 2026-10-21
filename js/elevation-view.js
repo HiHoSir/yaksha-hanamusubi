@@ -45,6 +45,33 @@ window.YK_ELEVATION_VIEW=(()=>{
   const w=width;
   return {n:[[0,0],[32,0],[32,w],[0,w]],e:[[32,0],[32,32],[32-w,32],[32-w,0]],s:[[0,32],[32,32],[32,32-w],[0,32-w]],w:[[0,0],[w,0],[w,32],[0,32]]}[side];
  };
+ // Shared shoreline mask for the visible land surface and its sand overlay.
+ // Round convex land corners only when both orthogonal neighbours are water.
+ // The removed corner reveals the already rendered water below; collision
+ // and height geometry remain unchanged.
+ function shoreOutline(shores){
+  const wet=new Set(shores),corners=[
+   [0,0,'w','n',[0,1],[1,0]],
+   [32,0,'n','e',[-1,0],[0,1]],
+   [32,32,'e','s',[0,-1],[-1,0]],
+   [0,32,'s','w',[1,0],[0,-1]]
+  ],poly=[],radius=10;
+  for(const [x,y,a,b,back,forward] of corners){
+   if(!(wet.has(a)&&wet.has(b))){poly.push([x,y]);continue;}
+   const from=[x+back[0]*radius,y+back[1]*radius],to=[x+forward[0]*radius,y+forward[1]*radius];
+   poly.push(from);
+   for(let i=1;i<=6;i++){
+    const t=i/6,u=1-t;
+    poly.push([u*u*from[0]+2*u*t*x+t*t*to[0],u*u*from[1]+2*u*t*y+t*t*to[1]]);
+   }
+  }
+  return poly;
+ }
+ function clipShore(c,poly,tx,ty,point,m){
+  const p=poly.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
+  if(!p.every(Boolean))return false;
+  c.beginPath();p.forEach((q,i)=>i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y));c.closePath();c.clip();return true;
+ }
  const groundTiles=new WeakMap();
  function groundTile(surface,tx,ty){
   if(!groundTiles.has(surface))groundTiles.set(surface,new Map());
@@ -72,11 +99,12 @@ window.YK_ELEVATION_VIEW=(()=>{
    const center=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
    if(!center||center.y<112||center.y>600||center.x+32*center.scale<0||center.x-32*center.scale>640)continue;
    const band=options.groundTile?(center.y<280?32:16):8;
-   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),shores=!shape.cuts.length?shoreSides(m,tx,ty):[];
+   const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),shores=!shape.cuts.length?shoreSides(m,tx,ty):[],shoreShape=shores.length?shoreOutline(shores):null;
    for(let v=0;v<32;v+=band){const py=ty*32+v;
     items.push({depth:py+band,order:0,draw:()=>{
      const p=[[0,v],[32,v],[32,v+band],[0,v+band]].map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
      if(p.every(Boolean)){
+      if(shoreShape){c.save();if(!clipShore(c,shoreShape,tx,ty,point,m)){c.restore();return;}}
       if(shape.cuts.length){
        const clipped=bandPolygon(shape.polygon,v,v+band).map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
        if(clipped.length<3||!clipped.every(Boolean))return;
@@ -88,6 +116,7 @@ window.YK_ELEVATION_VIEW=(()=>{
        c.drawImage(texture,sx,sy,32,band,left,p[0].y,right-left+.3,p[3].y-p[0].y+.6);
       }else quad(c,texture,sx,sy,32,band,p);
       if(shape.cuts.length)c.restore();
+      if(shoreShape)c.restore();
      }
     }});
    }
@@ -115,11 +144,13 @@ window.YK_ELEVATION_VIEW=(()=>{
      if(distance(cx,cy)>widthAt(cx,cy))continue;
      const poly=[[x,y],[x+step,y],[x+step,y+step],[x,y+step]];
      items.push({depth:ty*32+y+step,order:.25,draw:()=>{
+      if(shoreShape){c.save();if(!clipShore(c,shoreShape,tx,ty,point,m)){c.restore();return;}}
       const p=poly.map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
       if(!p.every(Boolean))return;
       const uv=poly.map(([u,w])=>({x:tx*32+u,y:ty*32+w}));
       triangle(c,art.sand,[uv[0],uv[1],uv[2]],[p[0],p[1],p[2]]);
       triangle(c,art.sand,[uv[0],uv[2],uv[3]],[p[0],p[2],p[3]]);
+      if(shoreShape)c.restore();
      }});
     }
 
