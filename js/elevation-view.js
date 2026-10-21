@@ -128,7 +128,14 @@ window.YK_ELEVATION_VIEW=(()=>{
   // Tile tops are sampled in short world-space strips to follow perspective and slopes.
   for(let ty=minY;ty<=maxY;ty++)for(let tx=minX;tx<=maxX;tx++){
    const center=point(tx*32+16,ty*32+16,E.level(m,tx,ty));
-   if(!center||center.y<112||center.y>600||center.x+32*center.scale<0||center.x-32*center.scale>640)continue;
+   if(!center)continue;
+    // A projected tile can intersect the viewport even when its centre is outside.
+    // Use conservative corner bounds; the canvas clip handles the final edge.
+    const tileCorners=[[0,0],[32,0],[32,32],[0,32]].map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
+    if(tileCorners.every(Boolean)){
+     const xs=tileCorners.map(p=>p.x),ys=tileCorners.map(p=>p.y);
+     if(Math.max(...xs)<-2||Math.min(...xs)>642||Math.max(...ys)<110||Math.min(...ys)>602)continue;
+    }
    if(diagnostic)cliffReport.tiles++;
    const band=options.groundTile?(center.y<280?32:16):8;
    const kind=m[ty][tx],im=art[kind]||art.grass,road=m.roads?.has(tx+','+ty),texture=options.groundTile?(()=>{const t=options.groundTile(tx,ty);return groundTile(t.surface,t.x/32,t.y/32);})():options.groundTexture?groundTile(options.groundTexture,tx,ty):road?art.road:im,shape=E.outline(m,tx,ty),shores=!shape.cuts.length?shoreSides(m,tx,ty):[],shoreShape=shores.length?shoreOutline(shores,tx,ty):null;
