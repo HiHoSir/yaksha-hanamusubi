@@ -288,7 +288,7 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.51.1
           npx playwright install chromium
           failed=0
-          for test in title-entrance title-save-selection hizuki-art ${{ steps.select.outputs.tests }}; do
+          for test in audio-track-decode title-entrance title-save-selection hizuki-art ${{ steps.select.outputs.tests }}; do
             echo "::group::Browser smoke: $test"
             if node "qa/$test.cjs"; then
               echo "PASS $test"
