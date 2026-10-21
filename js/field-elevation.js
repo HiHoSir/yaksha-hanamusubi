@@ -49,6 +49,15 @@ window.YK_FIELD_ELEVATION=(()=>{
   for(let y=31;y<=39;y++)for(let x=23;x<=32;x++){
    if(!water(m[y]?.[x])&&m.heights[y][x]>1)m.heights[y][x]=1;
   }
+  // The localized highland simplification may lower an existing object's
+  // single-level foundation after supportHeight was first assigned.
+  // Refresh metadata only for actually flat foundations; never force terrain
+  // heights to a stale object height or hide a mixed-height footprint.
+  for(const o of m.decorations){
+   if(o.ground||o.supportHeight==null)continue;
+   const levels=(o.contactTiles||[]).filter(([x,y])=>m[y]?.[x]&&!water(m[y][x])).map(([x,y])=>m.heights[y][x]);
+   if(levels.length&&levels.every(h=>h===levels[0]))o.supportHeight=levels[0];
+  }
   m.cornerProtected=new Set(m.decorations.flatMap(o=>(o.contactTiles||[]).map(c=>c.join(','))));
   // Build connections from the player's reachable land, one inaccessible
   // elevated component at a time. Prefer south-facing cliff ladders.
