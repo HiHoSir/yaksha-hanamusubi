@@ -41,33 +41,10 @@ jobs:
           import pathlib,sys
           slug=sys.argv[1]
           root=pathlib.Path('preview/previews')/slug
-          # Namespaced browser storage without rewriting game internals.
+          # Preview stays an Actions artifact until isolated hosting and storage are verified.
           p=root/'index.html'
-          s=p.read_text()
-          script="""<script>
-          (() => {
-            const prefix = 'YK_PREVIEW:' + location.pathname + ':';
-            const original = Storage.prototype;
-            for (const name of ['getItem','setItem','removeItem','key']) {
-              // Storage.prototype changes are intentionally avoided: other origins are unaffected.
-            }
-            const ls = window.localStorage;
-            const get=ls.getItem.bind(ls),set=ls.setItem.bind(ls),remove=ls.removeItem.bind(ls);
-            const clear=ls.clear.bind(ls);
-            const storage = new Proxy(ls, {
-              get(target,prop) {
-                if(prop==='getItem') return key=>get(prefix+key);
-                if(prop==='setItem') return (key,value)=>set(prefix+key,value);
-                if(prop==='removeItem') return key=>remove(prefix+key);
-                if(prop==='clear') return ()=>Object.keys(ls).filter(k=>k.startsWith(prefix)).forEach(k=>remove(k));
-                return Reflect.get(target,prop,target);
-              }
-            });
-            try{Object.defineProperty(window,'localStorage',{configurable:true,value:storage})}catch(e){}
-          })();
-          </script>"""
-          s=s.replace('<head>','<head>\n'+script,1)
-          p.write_text(s)
+          if not p.is_file():
+            raise SystemExit('Missing preview entry point')
           PY
       - name: Upload preview artifact (not public)
         uses: actions/upload-artifact@v4
