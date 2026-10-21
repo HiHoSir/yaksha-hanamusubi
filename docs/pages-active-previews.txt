@@ -1,0 +1,3 @@
+# Approved improvement preview branches retained across main deployments.
+# Keep only branches authorized for publication; one improve/<slug> per line.
+improve/ui-dpad-touch
