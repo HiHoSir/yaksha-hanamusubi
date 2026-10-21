@@ -23,10 +23,9 @@ window.YK_FIELD_ELEVATION=(()=>{
   for(const cell of Object.values(geography.places))corridor(...cell,2);
   for(const stop of geography.restStops)corridor(...stop.cell,2);
   for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(water(m[y][x]))m.heights[y][x]=0;
-  // Two deliberate, straight approaches: northern shrine 0→1→2, waterfall 0→1.
+  // Keep the authored raised destinations, but retire every legacy ramp.
   const terraces=[{x:40,from:3,to:7,h:2},{x:40,from:9,to:9,h:1},{x:67,from:18,to:20,h:1}];
   for(const t of terraces)for(let y=t.from;y<=t.to;y++)for(let x=t.x-1;x<=t.x+1;x++)set(x,y,t.h);
-  for(const [cx,y,h] of [[40,10,0],[40,8,1],[67,21,0]])for(let x=cx-1;x<=cx+1;x++){set(x,y,h);if(!water(m[y][x]))m.ramps[y][x]='n';}
   // Foundations are authored contact cells, never sprite bounds. Equalize a
   // multi-cell foundation; route reservations win except explicit raised entries.
   for(const o of m.decorations){
@@ -44,34 +43,68 @@ window.YK_FIELD_ELEVATION=(()=>{
    if(!water(m[y]?.[x])&&m.heights[y][x]>1)m.heights[y][x]=1;
   }
   m.cornerProtected=new Set(m.decorations.flatMap(o=>(o.contactTiles||[]).map(c=>c.join(','))));
-  // Immutable topology gets a cache shared by rendering and collision.
+  // Build connections from the player's reachable land, one inaccessible
+  // elevated component at a time. Prefer south-facing cliff ladders.
+  // Only if no safe south-facing edge exists, form a validated ramp instead.
   E.prepare(m);
-  // Find safe cliff edges between reachable lowland and isolated upper ground.
-  const initialQueue=[[37,71]],initialSeen=new Set(['37,71']);
-  for(let i=0;i<initialQueue.length;i++){const [x,y]=initialQueue[i];for(const [dx,dy] of Object.values(E.dirs)){
-   const nx=x+dx,ny=y+dy,key=nx+','+ny;
-   if(!initialSeen.has(key)&&E.canMove(m,x*32+16,y*32+16,nx*32+16,ny*32+16)){initialSeen.add(key);initialQueue.push([nx,ny]);}
-  }}
   m.ladders=[];
-  const candidates=[];
-  for(const key of initialSeen){const [x,y]=key.split(',').map(Number),uy=y-1;
-   if(uy<1||x<1||x>=m[0].length-1||!E.walkable(m,x,y)||!E.walkable(m,x,uy))continue;
-   if(initialSeen.has(x+','+uy)||m.ramps[y]?.[x]||m.ramps[uy]?.[x])continue;
-   if(E.level(m,x,uy)-E.level(m,x,y)!==1)continue;
-   if(E.outline(m,x,y).cuts.length||E.outline(m,x,uy).cuts.length)continue;
-   if(!E.pointWalkable(m,x*32+16,y*32+16)||!E.pointWalkable(m,x*32+16,uy*32+16))continue;
-   candidates.push({x,y,uy});
+  const dirs=[[0,-1,'n'],[0,1,'s'],[-1,0,'w'],[1,0,'e']];
+  const key=(x,y)=>x+','+y,center=(x,y)=>[x*32+16,y*32+16];
+  const pass=(x,y)=>E.walkable(m,x,y)&&E.pointWalkable(m,...center(x,y));
+  function flood(){
+   const queue=[[37,71]],seen=new Set([key(37,71)]);
+   for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of dirs){
+    const nx=x+dx,ny=y+dy,k=key(nx,ny);
+    if(!seen.has(k)&&E.canMove(m,...center(x,y),...center(nx,ny))){seen.add(k);queue.push([nx,ny]);}
+   }}return seen;
   }
-  candidates.sort((a,b)=>a.y-b.y||a.x-b.x);
-  for(const q of candidates){if(m.ladders.length>=6)break;
-   if(m.ladders.some(l=>Math.hypot(l.lower[0]-q.x,l.lower[1]-q.y)<7))continue;
-   m.ladders.push({lower:[q.x,q.y],upper:[q.x,q.uy]});
+  const reserved=new Set();
+  // Restrict automatic construction to actual unreachable higher ground.
+  // Multiple levels may need more than one connector.
+  for(let iteration=0;iteration<400;iteration++){
+   const reachable=flood(),ladderCandidates=[],rampCandidates=[];
+   for(const entry of reachable){
+    const [x,y]=entry.split(',').map(Number);
+    if(!pass(x,y))continue;
+    for(const [dx,dy,dir] of dirs){
+     const nx=x+dx,ny=y+dy,nkey=key(nx,ny);
+     if(reachable.has(nkey)||!pass(nx,ny)||reserved.has(nkey))continue;
+     if(E.level(m,nx,ny)!==E.level(m,x,y)+1)continue;
+     if(m.ramps[y]?.[x]||m.ramps[ny]?.[nx])continue;
+     if(dy===-1&&!E.outline(m,x,y).cuts.length&&!E.outline(m,nx,ny).cuts.length){
+      ladderCandidates.push({x,y,nx,ny});
+     }
+     // A ramp occupies a lower-level tile. Its opposite neighbor must remain
+     // at the same lower level, and both endpoints must be unobstructed.
+     const bx=x-dx,by=y-dy;
+     if(!pass(bx,by)||!reachable.has(key(bx,by)))continue;
+     if(E.level(m,bx,by)!==E.level(m,x,y))continue;
+     if(protectedCells.has(key(x,y))||m.cornerProtected.has(key(x,y)))continue;
+     rampCandidates.push({x,y,nx,ny,bx,by,dir});
+    }
+   }
+   const before=reachable.size;
+   let installed=false;
+   for(const c of ladderCandidates){
+    m.ladders.push({lower:[c.x,c.y],upper:[c.nx,c.ny]});
+    E.prepare(m);
+    if(flood().size>before){installed=true;reserved.add(key(c.nx,c.ny));break;}
+    m.ladders.pop();
+   }
+   if(!installed)for(const c of rampCandidates){
+    const old=m.ramps[c.y][c.x];
+    m.ramps[c.y][c.x]=c.dir;
+    E.prepare(m);
+    if(E.canMove(m,...center(c.bx,c.by),...center(c.x,c.y))&&
+       E.canMove(m,...center(c.x,c.y),...center(c.nx,c.ny))&&flood().size>before){
+     installed=true;reserved.add(key(c.nx,c.ny));break;
+    }
+    m.ramps[c.y][c.x]=old;E.prepare(m);
+   }
+   if(!installed)break;
   }
-  const queue=[[37,71]],seen=new Set(['37,71']);
-  for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of Object.values(E.dirs)){
-   const nx=x+dx,ny=y+dy,key=nx+','+ny;
-   if(!seen.has(key)&&E.canMove(m,x*32+16,y*32+16,nx*32+16,ny*32+16)){seen.add(key);queue.push([nx,ny]);}
-  }}m.travelReachable=seen;
+  E.prepare(m);
+  m.travelReachable=flood();
   return m;
  }
  return {prepare};
