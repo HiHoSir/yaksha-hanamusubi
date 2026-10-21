@@ -397,7 +397,14 @@ window.YK_LANDSCAPE=(()=>{
  }
  // Build only small visible ground chunks. Avoid several 2560² temporary
  // canvases on mobile when preparing the elevated world.
+ // Keep the authored 8x8 texture chunks, but bound their lifetime.
+ // A full exploration previously retained every visited chunk for the session.
+ // Eviction removes only the cache reference; never shrink/reuse a surface
+ // because deferred draw commands may still reference it this frame.
+ const ELEVATION_CHUNK_LIMIT=64;
  const elevationChunks=new WeakMap();
+ let chunkTouch=0;
+ function elevationChunkStats(map){return {count:elevationChunks.get(map)?.size||0,limit:ELEVATION_CHUNK_LIMIT};}
  function elevationTexture(map,tx,ty){
   if(!elevationChunks.has(map))elevationChunks.set(map,new Map());
   const cache=elevationChunks.get(map),bx=Math.floor(tx/8)*8,by=Math.floor(ty/8)*8,key=bx+','+by;
@@ -410,9 +417,18 @@ window.YK_LANDSCAPE=(()=>{
    chunk.decorations=map.decorations.filter(o=>o.x+o.width>=ox*32-32&&o.x<=ex*32+32&&o.foot>=oy*32-32&&o.y<=ey*32+32).map(o=>({...o,x:o.x-ox*32,y:o.y-oy*32,foot:o.foot-oy*32}));
    const surface=groundLayer(chunk);
    for(const layers of [floors,roads,shadows]){const temp=layers.get(chunk);if(temp){temp.width=1;temp.height=1;}layers.delete(chunk);}
-   cache.set(key,{surface,ox,oy});
+   cache.set(key,{surface,ox,oy,lastUsed:++chunkTouch});
+   if(cache.size>ELEVATION_CHUNK_LIMIT){
+    let oldestKey=null,oldestStamp=Infinity;
+    for(const [candidate,entry] of cache){
+     if(entry.lastUsed<oldestStamp){oldestStamp=entry.lastUsed;oldestKey=candidate;}
+    }
+    if(oldestKey!==null)cache.delete(oldestKey);
+   }
   }
-  const {surface,ox,oy}=cache.get(key);return {surface,x:(tx-ox)*32,y:(ty-oy)*32};
+  const entry=cache.get(key);
+  entry.lastUsed=++chunkTouch;
+  const {surface,ox,oy}=entry;return {surface,x:(tx-ox)*32,y:(ty-oy)*32};
  }
  function drawQuarter(c,map,actor,zoom=1.4,settings={}){
   if(!ready())return false;
@@ -477,7 +493,7 @@ window.YK_LANDSCAPE=(()=>{
   c.restore();return true;
  }
  function drawAsset(c,k,x,y,w,h){if(!ready())return false;c.imageSmoothingEnabled=false;c.drawImage(art[k],x,y,w,h);return true;}
- return {cameraPresets,perspectiveScale,mode7LikeMatrix,groundLayer,drawQuarter,project,unproject,quarterFixture,footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside};
+ return {cameraPresets,perspectiveScale,mode7LikeMatrix,groundLayer,drawQuarter,project,unproject,quarterFixture,footprints,shadowLayer,walkable,floorLayer,specs,keys,placeKeys,placesFixture,errors,load,ready,fixture,draw,objects,drawAsset,contains,adjacent,roadAllowed,roadLayer,groundInside,elevationChunkStats};
 })();
 
 
