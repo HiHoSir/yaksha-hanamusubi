@@ -143,37 +143,33 @@ window.YK_ELEVATION_VIEW=(()=>{
    // Overlay shoreline sand on the LAND side. No water expansion, collision
    // changes or tile-specific coordinate lists. All edges use world geometry.
    if(shores.length){
-    // One land-side sand footprint per tile, assembled from ALL wet neighbours.
-    // A smooth distance field blends corners without overlapping side rectangles.
-    // Only the outer water-facing edge receives an outline.
-    const shoreWidth=8,step=4,wet=new Set(shores);
-    const distance=(u,v)=>{
-     const d=[];
-     if(wet.has('n'))d.push(v);
-     if(wet.has('s'))d.push(32-v);
-     if(wet.has('w'))d.push(u);
-     if(wet.has('e'))d.push(32-u);
-     return Math.min(...d);
-    };
-    // Deterministic world-space variation gives the inland sand edge a
-    // natural silhouette while remaining fixed under camera movement.
-    const widthAt=(u,v)=>shoreWidth+1.4*Math.sin((tx*32+u)*.16+(ty*32+v)*.09)
-                                      +1.0*Math.sin((tx*32+u)*.07-(ty*32+v)*.22);
-    for(let y=0;y<32;y+=step)for(let x=0;x<32;x+=step){
-     const cx=x+step/2,cy=y+step/2;
-     if(distance(cx,cy)>widthAt(cx,cy))continue;
-     const poly=[[x,y],[x+step,y],[x+step,y+step],[x,y+step]];
-     items.push({depth:ty*32+y+step,order:.25,draw:()=>{
-      if(shoreShape){c.save();if(!clipShore(c,shoreShape.poly,tx,ty,point,m)){c.restore();return;}}
-      const p=poly.map(([u,w])=>point(tx*32+u,ty*32+w,E.level(m,tx,ty,u/32,w/32)));
-      if(!p.every(Boolean)){if(shoreShape)c.restore();return;}
-      const uv=poly.map(([u,w])=>({x:tx*32+u,y:ty*32+w}));
-      triangle(c,art.sand,[uv[0],uv[1],uv[2]],[p[0],p[1],p[2]]);
-      triangle(c,art.sand,[uv[0],uv[2],uv[3]],[p[0],p[2],p[3]]);
-      if(shoreShape)c.restore();
+    // Sand follows the SAME water-facing polygon segments as the shoreline.
+    // A thin inward band replaces the former 4px square-cell overlay.
+    const edge=shoreShape.poly,flags=shoreShape.boundary;
+    const center=[16,16];
+    for(let i=0;i<edge.length;i++){
+     const j=(i+1)%edge.length;
+     if(!flags[i]||!flags[j])continue;
+     const a=edge[i],b=edge[j],dx=b[0]-a[0],dy=b[1]-a[1];
+     const len=Math.hypot(dx,dy);if(len<.01)continue;
+     // Clockwise polygon: interior is on the right side of each segment.
+     const inward=[-dy/len,dx/len];
+     const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+     if((center[0]-mid[0])*inward[0]+(center[1]-mid[1])*inward[1]<0){inward[0]*=-1;inward[1]*=-1;}
+     const width=8+1.2*Math.sin((tx*32+mid[0])*.11+(ty*32+mid[1])*.17);
+     const poly=[a,b,[b[0]+inward[0]*width,b[1]+inward[1]*width],[a[0]+inward[0]*width,a[1]+inward[1]*width]];
+     items.push({depth:ty*32+Math.max(a[1],b[1])+width,order:.25,draw:()=>{
+      c.save();
+      if(!clipShore(c,shoreShape.poly,tx,ty,point,m)){c.restore();return;}
+      const p=poly.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
+      if(p.every(Boolean)){
+       const uv=poly.map(([u,v])=>({x:tx*32+u,y:ty*32+v}));
+       triangle(c,art.sand,[uv[0],uv[1],uv[2]],[p[0],p[1],p[2]]);
+       triangle(c,art.sand,[uv[0],uv[2],uv[3]],[p[0],p[2],p[3]]);
+      }
+      c.restore();
      }});
     }
-
    }
    // The removed triangle exposes lower ground, not an empty cutout.
    for(const cut of shape.cuts){
