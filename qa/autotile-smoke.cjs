@@ -156,8 +156,14 @@ function check(name,fn){fn();results.push(name)}
    assert(approaches.some(([ax,ay])=>world.walkable(ax,ay)&&
     [...seen].some(key=>{const [sx,sy]=key.split(',').map(Number);return Math.hypot(sx-ax,sy-ay)<=24&&world.walkable((sx+ax)/2,(sy+ay)/2);})
    ),o.kind+' interaction approach unreachable near '+x+','+y);
-   const tx=Math.floor(x/32),ty=Math.floor(y/32);
-   for(let yy=ty;yy<=ty+3;yy++)for(let xx=tx-2;xx<=tx+2;xx++)assert(!['forest','mountain','rockMountain','snowMountain'].includes(world.mapData[yy][xx]),o.kind+' foreground hidden');
+   // Surrounding natural forest may remain. Assert real object contact
+   // and a viable interaction approach; visibility is checked by field-access
+   // screenshots rather than forbidding forest across an arbitrary 5x4 area.
+   assert(o.contactTiles.length>0,o.kind+' missing authored ground contacts');
+   for(const [tx,ty] of o.contactTiles)assert(
+    !['sea','river'].includes(world.mapData[ty]?.[tx]),
+    o.kind+' invalid water foundation '+tx+','+ty
+   );
   }
  });
  check('legacy saves migrate coordinates once without altering progress or local interiors',()=>{
