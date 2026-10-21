@@ -104,13 +104,19 @@ window.YK_ELEVATION_VIEW=(()=>{
       // Two triangles preserve the original sand texture in perspective.
       triangle(c,art.sand,[uv[0],uv[1],uv[2]],[projected[0],projected[1],projected[2]]);
       triangle(c,art.sand,[uv[0],uv[2],uv[3]],[projected[0],projected[2],projected[3]]);
-      const inner=side==='n'?[[0,shoreWidth],[32,shoreWidth]]:side==='s'?[[0,32-shoreWidth],[32,32-shoreWidth]]:side==='w'?[[shoreWidth,0],[shoreWidth,32]]:[[32-shoreWidth,0],[32-shoreWidth,32]];
-      const ends=inner.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
+      // Draw the outline ONLY on the shared sand/water edge, never
+      // along the inner sand/grass border or within the sand strip.
+      const coast=side==='n'?[[0,0],[32,0]]:side==='s'?[[0,32],[32,32]]:side==='w'?[[0,0],[0,32]]:[[32,0],[32,32]];
+      const ends=coast.map(([u,v])=>point(tx*32+u,ty*32+v,E.level(m,tx,ty,u/32,v/32)));
       if(!ends.every(Boolean))return;
       c.save();c.strokeStyle='rgba(27,36,29,.76)';c.lineWidth=Math.max(1,(ends[0].scale+ends[1].scale)*.6);c.lineCap='round';
       c.beginPath();c.moveTo(ends[0].x,ends[0].y);
       const dx=ends[1].x-ends[0].x,dy=ends[1].y-ends[0].y,len=Math.hypot(dx,dy)||1;
-      for(let k=1;k<8;k++){const t=k/8,x=tx*32+inner[0][0]+(inner[1][0]-inner[0][0])*t,y=ty*32+inner[0][1]+(inner[1][1]-inner[0][1])*t;const wobble=Math.sin(x*.27+y*.39)*1.2*Math.sin(Math.PI*t);c.lineTo(ends[0].x+dx*t-dy/len*wobble,ends[0].y+dy*t+dx/len*wobble);}
+      for(let k=1;k<8;k++){
+       const t=k/8,x=tx*32+coast[0][0]+(coast[1][0]-coast[0][0])*t,y=ty*32+coast[0][1]+(coast[1][1]-coast[0][1])*t;
+       const wobble=Math.sin(x*.27+y*.39)*1.2*Math.sin(Math.PI*t);
+       c.lineTo(ends[0].x+dx*t-dy/len*wobble,ends[0].y+dy*t+dx/len*wobble);
+      }
       c.lineTo(ends[1].x,ends[1].y);c.stroke();c.restore();
      }});
     }
