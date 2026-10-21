@@ -334,12 +334,13 @@ function check(name,fn){fn();results.push(name)}
   el('ok').fire('click');assert(land.walkable(sandbox.__qaEval('DEBUG_LANDSCAPE'),sandbox.gameState.x-48,sandbox.gameState.y-100));
   el('cancel').fire('click');openLandscape();
  });
- check('touch movement stops at the shrine pedestal from right and front',()=>{
+ check('legacy debug shrine artwork has no ghost collision without authored occupied cells',()=>{
   sandbox.gameState.x=358;sandbox.gameState.y=276;tap('left');advance(160);
-  assert.equal(sandbox.gameState.x-48,294,'right side stop');
+  assert.equal(sandbox.gameState.x,326,'leftward movement remains unblocked by unoccupied shrine art');
   sandbox.__YK_DEBUG_PAGE=1;sandbox.__qaEval('map()');shot('07-shrine-side');
   sandbox.gameState.x=304;sandbox.gameState.y=324;tap('up');advance(160);
-  assert.equal(sandbox.gameState.y-100,200,'front stop');shot('08-shrine-front');
+  assert.equal(sandbox.gameState.y,292,'upward movement remains unblocked by unoccupied shrine art');
+  shot('08-shrine-front');
   sandbox.__YK_DEBUG_PAGE=0;sandbox.__qaEval('map()');
  });
  el('ok').fire('click');assert.equal(sandbox.__YK_DEBUG_PAGE,1);shot('02-landscape-2x');
