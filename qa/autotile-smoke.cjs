@@ -17,6 +17,7 @@ class Element{
  getAttribute(name){return this[name]??null}
  append(...children){for(const child of children){if(child&&typeof child==='object'){child.owner=this;child.isConnected=true;}}}
  appendChild(child){this.append(child);return child}
+ remove(){elements=elements.filter(element=>element!==this&&element.owner!==this);this.isConnected=false}
  replaceChildren(...children){elements=elements.filter(x=>x.owner!==this);this.append(...children)}
  addEventListener(name,fn){(this.events[name]??=[]).push(fn)}
  fire(name,extra={}){const e={target:this,pointerId:1,preventDefault(){},stopPropagation(){},...extra};for(const fn of this.events[name]||[])fn(e)}
