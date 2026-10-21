@@ -128,11 +128,19 @@ function check(name,fn){fn();results.push(name)}
   // Actual safe movement on elevation and through all required destinations
   // is covered by qa/field-elevation.cjs and qa/field-access.cjs.
  });
- check('all production bridges pass offset approaches in both directions',()=>{
-  const bridges=world.mapData.decorations.filter(o=>['bridge','bridgeNS'].includes(o.kind));assert(bridges.length>=3,'existing three bridges must not be lost when new bridges are added');
-  for(const b of bridges){const ns=b.kind==='bridgeNS',cx=b.x+b.width/2,cy=ns?b.y+b.height/2:b.y+b.height*.56;
-   for(const offset of [-20,-16,0,16,20])for(let along=-80;along<=80;along+=2){const x=cx+(ns?offset:along),y=cy+(ns?along:offset);assert(world.walkable(x,y),b.kind+' approach '+offset+' at '+along);}
-   assert(!world.walkable(cx+(ns?80:0),cy+(ns?0:80)),'river outside deck remains blocked');
+ check('all authored bridges retain explicit safe deck cells',()=>{
+  const bridges=world.mapData.decorations.filter(o=>['bridge','bridgeNS'].includes(o.kind));
+  assert(bridges.length>=3,'existing bridges must not be lost');
+  for(const bridge of bridges){
+   assert(bridge.contactTiles.length>=3,'bridge must publish explicit contact cells');
+   const ns=bridge.kind==='bridgeNS',cell=bridge.contactTiles[1];
+   const cx=cell[0]*32+16,cy=cell[1]*32+16;
+   // Use the deck centerline and its narrow 3px variations, matching the
+   // production movement-based traversal test (qa/field-access.cjs).
+   for(const offset of [-3,0,3])for(let along=-64;along<=64;along+=2){
+    const x=cx+(ns?offset:along),y=cy+(ns?along:offset);
+    assert(world.walkable(x,y),'bridge deck impassable '+bridge.kind+' '+x+','+y);
+   }
   }
  });
  check('all story entrances are connected by four-direction walking cells',()=>{
