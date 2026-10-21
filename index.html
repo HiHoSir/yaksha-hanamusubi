@@ -83,9 +83,18 @@
   </div>
   <div class="titlebox">
     <div class="subtitle">— 鬼と花と、忘れられた約束 —</div>
-    <button id="newGame" class="primary" type="button" onclick="window.__YK_BOOT_START&&window.__YK_BOOT_START()">はじめから</button>
-    <button id="continueGame">つづきから</button>
-    <button id="enemyDebugBtn" type="button" style="font-size:14px;opacity:.82">BATTLE DEBUG</button>
+    <div id="titleMainActions">
+      <button id="newGame" class="primary" type="button" onclick="window.__YK_BOOT_START&&window.__YK_BOOT_START()">はじめから</button>
+      <button id="continueGame" type="button">つづきから</button>
+      <button id="resumeSuspend" type="button">中断から再開</button>
+      <button id="enemyDebugBtn" type="button" style="font-size:14px;opacity:.82">BATTLE DEBUG</button>
+    </div>
+    <div id="titleLoadSelection" hidden>
+      <h2 id="titleLoadHeading">旅の記録を選ぶ</h2>
+      <div id="titleLoadSlots" aria-live="polite"></div>
+      <p id="titleLoadNotice" role="status" aria-live="polite"></p>
+      <button id="titleLoadBack" type="button">もどる</button>
+    </div>
     <div class="version">BETA 16.1.7</div><div id="bootError" style="font-size:12px;min-height:18px"></div>
   </div>
   <script>
