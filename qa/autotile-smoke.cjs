@@ -129,7 +129,7 @@ function check(name,fn){fn();results.push(name)}
   // is covered by qa/field-elevation.cjs and qa/field-access.cjs.
  });
  check('all production bridges pass offset approaches in both directions',()=>{
-  const bridges=world.mapData.decorations.filter(o=>['bridge','bridgeNS'].includes(o.kind));assert.equal(bridges.length,3);
+  const bridges=world.mapData.decorations.filter(o=>['bridge','bridgeNS'].includes(o.kind));assert(bridges.length>=3,'existing three bridges must not be lost when new bridges are added');
   for(const b of bridges){const ns=b.kind==='bridgeNS',cx=b.x+b.width/2,cy=ns?b.y+b.height/2:b.y+b.height*.56;
    for(const offset of [-20,-16,0,16,20])for(let along=-80;along<=80;along+=2){const x=cx+(ns?offset:along),y=cy+(ns?along:offset);assert(world.walkable(x,y),b.kind+' approach '+offset+' at '+along);}
    assert(!world.walkable(cx+(ns?80:0),cy+(ns?0:80)),'river outside deck remains blocked');
