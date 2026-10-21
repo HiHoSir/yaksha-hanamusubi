@@ -9,7 +9,7 @@ await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false
 for(const id of ['inn','shop','teahouse','osumiHome','farmHome','weaverHome','riverHome']){
 await run(`busy=false;S.area='village';const d=YK_SETTLEMENT.doors.find(d=>d.id==='${id}');S.x=d.x;S.y=d.y+4;action();`);await page.waitForFunction(()=>window.gameState.area!=='village');
 assert.equal(await run('S.lastInterior'),id);assert(await run('!collision(S.x,S.y)'),'spawn '+id);
-const check=await run(`(()=>{const q=[[S.x,S.y]],seen=new Set();for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!collision(a,b)){seen.add(k);q.push([a,b]);}}}return {exit:q.some(([x,y])=>YK_INTERIOR_BASE.exit({...S,x,y})),npc:areaNPCs().every(n=>q.some(([x,y])=>Math.hypot(x-n.x,y-n.y)<140))};})()`);assert(check.exit&&check.npc,JSON.stringify({id,check}));
+const check=await run(`(()=>{const q=[[S.x,S.y]],seen=new Set();for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!collision(a,b)){seen.add(k);q.push([a,b]);}}}return {exit:q.some(([x,y])=>id==='teahouse'?YK_INDOOR_NATIVE_DEBUG.exit(x,y):YK_INTERIOR_BASE.exit({...S,x,y})),npc:areaNPCs().every(n=>q.some(([x,y])=>Math.hypot(x-n.x,y-n.y)<140))};})()`);assert(check.exit&&check.npc,JSON.stringify({id,check}));
 await run('map()');await page.waitForTimeout(300);if(['inn','shop','teahouse','osumiHome'].includes(id))await page.screenshot({path:path.join(out,'interior-'+id+'.png')});
 if(id==='teahouse'){
  const composite=await run(`(()=>{
