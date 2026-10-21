@@ -2,7 +2,7 @@
 // The same elevation sampler positions terrain vertices, roads, feet and objects.
 window.YK_ELEVATION_VIEW=(()=>{
  const E=window.YK_ELEVATION;
- const sources={grass:'assets/terrain/grass-v1/grass.png',sand:'assets/terrain/landscape-v1/sand.png',snow:'assets/terrain/landscape-v1/snow.png',rock:'assets/terrain/landscape-v1/barren.png',sea:'assets/terrain/landscape-v1/water.png',road:'assets/terrain/landscape-v3/road.png',horizon:'assets/terrain/quarter-v1/horizon.png',trees:'assets/field-map-objects-v3/trees.png',shrine:'assets/field-map-objects-v3/shrine.png',hero:'assets/characters/hizuki/field-sd-v1/walk-atlas-32.png'};
+ const sources={grass:'assets/terrain/grass-v1/grass.png',sand:'assets/terrain/landscape-v1/sand.png',snow:'assets/terrain/landscape-v1/snow.png',rock:'assets/terrain/landscape-v1/barren.png',grassCliff:'assets/terrain/cliffs-v1/grass-cliff-32.png',sea:'assets/terrain/landscape-v1/water.png',road:'assets/terrain/landscape-v3/road.png',horizon:'assets/terrain/quarter-v1/horizon.png',trees:'assets/field-map-objects-v3/trees.png',shrine:'assets/field-map-objects-v3/shrine.png',hero:'assets/characters/hizuki/field-sd-v1/walk-atlas-32.png'};
  async function load(){const pairs=await Promise.all(Object.entries(sources).map(([k,src])=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve([k,im]);im.onerror=()=>reject(Error(src));im.src=src;})));return Object.fromEntries(pairs);}
  const padded=new WeakMap();
  function repeatPadding(im){
@@ -267,8 +267,8 @@ window.YK_ELEVATION_VIEW=(()=>{
       for(let b=0;b<bands;b++){
        const hi=high.map((h,j)=>h+(low[j]-h)*b/bands),lo=high.map((h,j)=>h+(low[j]-h)*(b+1)/bands);
        const p=[point(...span[0],hi[0]),point(...span[1],hi[1]),point(...span[1],lo[1]),point(...span[0],lo[0])];
-       const material=m.cliffMaterials?.[ty]?.[tx]||options.cliffMaterial||(['grass','forest'].includes(m[ty][tx])?'grassCliff':'rock');
-       const face=art[material]||art.rock;
+       const material=m.cliffMaterials?.[ty]?.[tx]||options.cliffMaterial||'grassCliff';
+       const face=art[material]||art.grassCliff||art.rock;
        if(p.every(Boolean)){
         if(xray)xrayFaces.push({p,side:side||'diagonal',tile:[tx,ty]});
         quad(c,face,(tx*32)%face.width,(ty*32)%face.height,32,32,p,side==='w'?.12:side==='e'?.35:cut?.28:.22);
