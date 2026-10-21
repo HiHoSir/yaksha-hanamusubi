@@ -568,3 +568,16 @@ body:has(#title.show) #stage{min-height:0}
   left:50%;top:7%;width:150vw;height:112%;
  }
 }
+/* Four-way touch controller: one continuous cross, no diagonal or analog hit zone. */
+#pad .virtualStick{display:none!important}
+#pad .dpad{display:block;pointer-events:auto;left:max(16px,calc(env(safe-area-inset-left) + 12px));top:auto;bottom:calc(10px + env(safe-area-inset-bottom));width:156px;height:156px;transform:none;opacity:.88;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#pad .dpad .dir{width:52px;height:52px;border-radius:5px;margin:0;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#pad .dpad #up{left:52px;top:0}
+#pad .dpad #left{left:0;top:52px}
+#pad .dpad #right{left:104px;top:52px}
+#pad .dpad #down{left:52px;top:104px}
+#pad .dpad .diagonal{display:none!important}
+#pad .dpad::before{content:"";position:absolute;left:52px;top:52px;width:52px;height:52px;background:#17324f;border:2px solid #b99a62;border-radius:5px;pointer-events:none}
+#pad .dpad .dir:active{background:#3b6080}
+#pad .dpad,#pad .dpad *,#pad .round{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:none}
+@media(max-height:720px){#pad .dpad{transform:scale(.84);transform-origin:left bottom}}
