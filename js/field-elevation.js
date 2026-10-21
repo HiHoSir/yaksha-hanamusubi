@@ -26,6 +26,13 @@ window.YK_FIELD_ELEVATION=(()=>{
   // Keep the authored raised destinations, but retire every legacy ramp.
   const terraces=[{x:40,from:3,to:7,h:2},{x:40,from:9,to:9,h:1},{x:67,from:18,to:20,h:1}];
   for(const t of terraces)for(let y=t.from;y<=t.to;y++)for(let x=t.x-1;x<=t.x+1;x++)set(x,y,t.h);
+  // Final shrine approach: retain the deliberate two-stage north-facing slope.
+  // (40,8) is the final upper approach, so it is intentionally NOT a ladder.
+  // The lower ramp at (40,10) joins ground 0→1; (40,8) joins 1→2.
+  for(const [cy,base] of [[10,0],[8,1]])for(let x=39;x<=41;x++){
+   set(x,cy,base);
+   if(m[cy]?.[x]&&!water(m[cy][x]))m.ramps[cy][x]='n';
+  }
   // Foundations are authored contact cells, never sprite bounds. Equalize a
   // multi-cell foundation; route reservations win except explicit raised entries.
   for(const o of m.decorations){
