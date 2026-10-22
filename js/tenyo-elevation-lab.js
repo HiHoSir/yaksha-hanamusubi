@@ -3,7 +3,7 @@
  let m=null,actor=null,art,motion=null,held=null,tour=[],raf=0;
  const directions={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
  function status(message){$('status').textContent=message||('現在の高さ：'+E.height(m,actor.x,actor.y).toFixed(1)+' 段'+(motion?' · 移動中':''));}
- function paint(){if(!art||!m)return;const camera={x:actor.x,y:actor.y+210,preset:0};const result=V.render(c,m,art,actor,{camera,rise:Number($('rise').value),grid:$('grid').checked,cliffMaterial:$('cliff').value});if(result?.point){const p=result.point(actor.x,actor.y,E.height(m,actor.x,actor.y));if(p){c.save();c.fillStyle='rgba(7,20,24,.78)';c.fillRect(8,214,210,28);c.fillStyle='#fff';c.font='15px system-ui';c.fillText('緋月  ('+Math.floor(actor.x/32)+','+Math.floor(actor.y/32)+')',16,234);c.restore();}}}
+ function paint(){if(!art||!m)return;const camera={x:actor.x,y:actor.y,preset:0};const result=V.render(c,m,art,actor,{camera,rise:Number($('rise').value),grid:$('grid').checked,cliffMaterial:$('cliff').value});if(result?.point){const p=result.point(actor.x,actor.y,E.height(m,actor.x,actor.y));if(p){c.save();c.fillStyle='rgba(7,20,24,.78)';c.fillRect(8,214,210,28);c.fillStyle='#fff';c.font='15px system-ui';c.fillText('緋月  ('+Math.floor(actor.x/32)+','+Math.floor(actor.y/32)+')',16,234);c.restore();}}}
  function step(dir){if(!art||!m||motion)return false;const [dx,dy]=directions[dir],x=Math.floor(actor.x/32),y=Math.floor(actor.y/32);actor.dir=dir;
   if(!E.connected(m,x,y,x+dx,y+dy)||!E.canMove(m,actor.x,actor.y,actor.x+dx*32,actor.y+dy*32)){status('段差・斜めの縁・水辺・障害物には入れません。坂道を通ってください。');paint();return false;}
   motion={x:actor.x,y:actor.y,nx:actor.x+dx*32,ny:actor.y+dy*32,start:performance.now()};schedule();return true;
