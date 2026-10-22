@@ -40,7 +40,7 @@ function compile(spec){
  }
  const blocks=new Set(['forest','mountain','rockMountain','sea','river','wall']);
  const start=(spec.start||[.05,.5]).map((v,i)=>Math.round(Number(v)*(i?h-1:w-1)));
- const end=(spec.end||[.95,.5]).map((v,i)=>Math.round(Number(v)*(i?w-1:h-1)));
+ const end=(spec.end||[.95,.5]).map((v,i)=>Math.round(Number(v)*(i?h-1:w-1)));
  function walk(x,y){return inside(x,y)&&!blocks.has(tiles[y][x])}
  const seen=new Set(),q=[];if(walk(...start)){q.push(start);seen.add(start.join(','))}
  for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,b=y+dy,k=a+','+b;if(walk(a,b)&&!seen.has(k)){seen.add(k);q.push([a,b])}}}
@@ -49,5 +49,24 @@ function compile(spec){
  if(transitions)errors.push(transitions+' steep elevation edges require cliff/ramp review');
  return {version:1,kind:spec.kind||'field',tileSize:32,width:w,height:h,seed,tiles,elevation:height,start,end,validation:{pass:errors.length===0,errors,reachableCells:seen.size},source:'semantic-plan; requires visual review'};
 }
-root.YK_MAP_PLAN={compile,terrains};
+// Restricted Japanese brief interpreter: deterministic templates, not an AI inference API.
+// This returns an editable proposal; unknown nuances must be reviewed by a person/AI.
+function fromBrief(text,options={}){
+ const brief=String(text||'').trim();if(!brief)throw Error('マップの説明を入力してください');
+ const w=Math.max(8,Math.min(128,Math.round(Number(options.width)||48)));
+ const h=Math.max(8,Math.min(128,Math.round(Number(options.height)||32)));
+ const seed=Math.round(Number(options.seed)||17);
+ const forest=/森|林|樹海/.test(brief),mountain=/山|崖|峠|岩/.test(brief),cave=/洞窟|洞穴/.test(brief),water=/川|渓流|滝|湖/.test(brief);
+ const kind=cave?'cave':forest?'forest':mountain?'mountain':'field';
+ const zones=[];
+ if(forest){zones.push({terrain:'forest',x:.26,y:.25,rx:.28,ry:.27},{terrain:'forest',x:.73,y:.75,rx:.25,ry:.28});}
+ if(mountain){zones.push({terrain:'mountain',x:.68,y:.18,rx:.24,ry:.16,level:1});}
+ if(cave){zones.push({terrain:'wall',x:.5,y:.07,rx:.48,ry:.11},{terrain:'wall',x:.5,y:.93,rx:.48,ry:.1});}
+ if(water){zones.push({terrain:'river',x:.53,y:.22,rx:.06,ry:.2},{terrain:'river',x:.53,y:.78,rx:.06,ry:.2});}
+ const pathTerrain=/道を整備|街道/.test(brief)?'road':'grass';
+ const paths=[{terrain:pathTerrain,width:3,points:[[.05,.5],[.28,.5],[.5,.5],[.75,.5],[.95,.5]]}];
+ const warnings=['キーワードによる構造の下書きです。文章の細かな意図をAIが理解した結果ではありません。','水辺の接続・高低差・自然な地形は目視確認が必要です。'];
+ return {kind,width:w,height:h,seed,base:'grass',start:[.05,.5],end:[.95,.5],zones,paths,brief,warnings};
+}
+root.YK_MAP_PLAN={compile,fromBrief,terrains};
 })(window);
