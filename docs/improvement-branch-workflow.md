@@ -12,6 +12,13 @@ Production branch: `main`. All improvement work starts from the current `main` H
 - After approval, merge through a reviewed non-force update, obeying repository branch protection. On `main`, bump displayed BETA version and all HTML cache-busting versions in the same delivery as required by AGENTS.md.
 - Validate Actions, Pages deployment, and iPhone Safari separately; only report checks actually performed.
 
+## Mandatory Pages publication before device QA
+- iPhone Safari real-device QA requires a reachable GitHub Pages deployment containing the exact commit under test. A branch commit, local test, successful Actions run, or unverified preview URL is not sufficient.
+- Include Pages publication as a required workflow step **before** requesting or reporting device QA. For unmerged improvements, publish an approved isolated branch preview using the existing Pages preview workflow, without replacing production or sharing production save storage.
+- Verify in order: source/automated tests → commit SHA → GitHub Actions deployment result → actual Pages URL responding with the intended build/assets → iPhone Safari real-device test → user approval → merge to main → production Pages publication verification → production device regression when applicable.
+- If the preview cannot be published, explicitly mark device QA **BLOCKED (Pages not published)**; do not imply the user can test an unpublished branch. Arrange a publishable preview before asking for real-device validation.
+- Distinguish **Actions passed**, **Pages published and verified**, and **Safari device tested** as independent statuses. Never infer one from another.
+
 ## Preview policy
 - Branch previews must not overwrite production Pages. Prefer isolated preview deployment with a distinct base path and distinct save-storage namespace.
 - Do not expose protected or private assets on a public preview.
