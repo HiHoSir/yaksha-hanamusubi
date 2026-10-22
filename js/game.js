@@ -905,6 +905,9 @@ function npc(c,x,y,type,name,dir="d",frame=1){
    const k={man:"man",ferryman:"ferryman",miko:"miko",guard:"guard",traveler:"traveler",hotkeeper:"hotkeeper"}[type]||"woman";
    const dk={d:"down",l:"left",r:"right",u:"up"}[dir]||"down",legacy=B9NPC[k];
    const old=legacy?.frames?.[dk]?.[idx]||legacy?.legacy;
+   // Non-village NPCs use lazy legacy sprites; request them before testing readiness.
+   // Otherwise miko/guard images stay datasetSrc-only and never render.
+   if(old&&!old.src&&old.datasetSrc){old.onload=assetLoaded;ensureImage(old);}
    if(old&&old.complete&&old.naturalWidth){c.save();c.imageSmoothingEnabled=false;c.drawImage(old,x-27,y-53,54,65);c.restore()}
  }else{
    // Deliberately no old doll fallback: show a neutral loading marker instead of shipping mismatched art.
