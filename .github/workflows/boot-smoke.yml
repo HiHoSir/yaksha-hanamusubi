@@ -185,6 +185,8 @@ jobs:
           assert.equal(copy,env.gameState);
           console.log('Runtime state contract OK');
           NODE
+      - name: Build version consistency
+        run: node qa/runtime-build-contract.cjs
       - name: Boot dependency contract
         run: |
           node - <<'NODE'
