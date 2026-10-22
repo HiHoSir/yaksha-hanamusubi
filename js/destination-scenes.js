@@ -2,7 +2,7 @@
 // Hand-authored walk polygons follow clear ground; illustrations have no depth layers.
 window.YK_DESTINATION_SCENES=(()=>{
  const layouts={
-  shrine:{spawn:[70,330],floor:[[27,310],[145,310],[210,240],[560,240],[690,310],[690,680],[170,705],[125,400],[27,360]]},
+  shrine:{spawn:[552,744],floor:[]},
   cove:{spawn:[70,430],floor:[[27,405],[140,400],[185,245],[570,245],[590,330],[680,370],[610,590],[640,690],[210,690],[145,470],[27,455]]},
   forest:{spawn:[70,430],floor:[[27,410],[175,390],[220,280],[580,270],[700,390],[695,520],[580,640],[240,640],[145,465],[27,450]]},
   fox:{spawn:[70,380],floor:[[27,360],[160,360],[260,260],[590,255],[700,365],[705,570],[600,700],[325,705],[170,430],[27,410]]},
@@ -13,7 +13,7 @@ window.YK_DESTINATION_SCENES=(()=>{
  function contains(poly,x,y){let yes=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){
   const a=poly[i],b=poly[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])yes=!yes;
  }return yes;}
- function blocked(area,x,y){return !!layouts[area]&&!contains(layouts[area].floor,x,y);}
+ function blocked(area,x,y){if(area==='shrine')return window.YK_TENYO?.blocked(x,y)??true;return !!layouts[area]&&!contains(layouts[area].floor,x,y);}
  function draw(c,area,change){if(!layouts[area])return false;
   if(!images[area]){const im=images[area]=new Image();im.onload=change;im.src='assets/scenes/destinations-v1/'+area+'.webp';}
   const im=images[area];if(!im.complete||!im.naturalWidth)return false;c.drawImage(im,0,0,768,768);return true;
