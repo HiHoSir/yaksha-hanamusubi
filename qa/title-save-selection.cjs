@@ -46,12 +46,15 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.evaluate(()=>window.gameState.gold),333,'chosen manual slot must be restored');
   assert.equal(await page.evaluate(()=>window.gameState.sound),true,'legacy mute flag in a save must not override current device sound preference');
   assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().area),'village','chosen game area should control BGM');
+  await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='village',null,{timeout:15000});
+  assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().contextState),'running','BGM must be playing after manual save load');
   assert.equal(await page.evaluate(()=>window.YK_SAVE.loadAuto().gold),777,'manual loading must not overwrite suspension');
   await page.reload();await ready();
   await page.locator('#resumeSuspend').tap();
   await page.waitForFunction(()=>!document.querySelector('#title').classList.contains('show'));
   assert.equal(await page.evaluate(()=>window.gameState.gold),777,'dedicated suspension button loads autosave');
   assert.equal(await page.evaluate(()=>window.gameState.sound),true,'suspension must preserve device sound preference');
+  await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='village',null,{timeout:15000});
   await page.reload();await ready();
   await page.evaluate(()=>{localStorage.removeItem('yaksha_beta_auto');localStorage.removeItem('yaksha_beta');});
   await page.locator('#resumeSuspend').tap();
