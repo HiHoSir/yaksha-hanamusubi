@@ -47,7 +47,7 @@ function compile(spec){
  const errors=[];if(!walk(...start))errors.push('start blocked');if(!walk(...end))errors.push('end blocked');else if(!seen.has(end.join(',')))errors.push('start/end disconnected');
  let transitions=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(x+1<w&&Math.abs(height[y][x]-height[y][x+1])>1)transitions++;if(y+1<h&&Math.abs(height[y][x]-height[y+1][x])>1)transitions++}
  if(transitions)errors.push(transitions+' steep elevation edges require cliff/ramp review');
- return {version:1,kind:spec.kind||'field',tileSize:32,width:w,height:h,seed,tiles,height,start,end,validation:{pass:errors.length===0,errors,reachableCells:seen.size},source:'semantic-plan; requires visual review'};
+ return {version:1,kind:spec.kind||'field',tileSize:32,width:w,height:h,seed,tiles,elevation:height,start,end,validation:{pass:errors.length===0,errors,reachableCells:seen.size},source:'semantic-plan; requires visual review'};
 }
 root.YK_MAP_PLAN={compile,terrains};
 })(window);
