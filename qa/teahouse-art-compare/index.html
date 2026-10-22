@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>花見茶屋・作画統一検査</title>
+<style>
+:root{color-scheme:dark}body{margin:0;padding:16px;background:#171c20;color:#f4f0e6;font:15px system-ui,sans-serif}h1{font-size:21px}h2{font-size:17px;margin:0 0 12px}p{line-height:1.6}.group{margin:20px 0;padding:14px;border:1px solid #555;border-radius:10px}.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.sample{background:#30383b;padding:12px;border-radius:8px}.sample img{display:block;max-width:100%;height:auto;image-rendering:pixelated;margin:12px auto;background:repeating-conic-gradient(#aaa 0 25%,#777 0 50%) 0 0/16px 16px}.sample small{display:block;overflow-wrap:anywhere;color:#d2d2d2}.sample strong{display:block}.sample img.enlarge{width:256px;max-width:100%}.sample img.pillar{width:96px}.controls{display:flex;align-items:center;gap:12px}a{color:#9bd1ff}
+</style></head><body>
+<h1>花見茶屋：鬼灯の里との作画比較</h1>
+<p>既存の採用素材と試作素材を原寸ドット表示で確認するための検査ページです。ゲーム内の画像・当たり判定は変更しません。室内原画と現行村の建物を比較し、修正対象を確定します。</p>
+<div class="group"><h2>鬼灯の里：現行建物</h2><div class="pair">
+<div class="sample"><strong>茶屋</strong><img src="../../assets/settlements/common-v1/tea.png"><small>assets/settlements/common-v1/tea.png</small></div>
+<div class="sample"><strong>住宅</strong><img src="../../assets/settlements/common-v1/home.png"><small>assets/settlements/common-v1/home.png</small></div>
+<div class="sample"><strong>商店</strong><img src="../../assets/settlements/common-v1/shop.png"><small>assets/settlements/common-v1/shop.png</small></div>
+</div></div>
+<div class="group"><h2>花見茶屋：現行試作オブジェクト</h2><div class="pair">
+<div class="sample"><strong>座卓 64×40</strong><img class="enlarge" src="../../assets/interiors/prototypes/teahouse-table-dango-64x40.png"><small>接地2×1マス。拡大4倍。</small></div>
+<div class="sample"><strong>柱 32×160</strong><img class="pillar" src="../../assets/interiors/prototypes/pillar-32x160.png"><small>接地1×1マス。拡大3倍。実際の描画は32px部品の組立を優先。</small></div>
+<div class="sample"><strong>板張り床</strong><img src="../../assets/interiors/prototypes/teahouse-wood-floor-4x4-preview.png"><small>4×4セル、継ぎ目を確認。</small></div>
+<div class="sample"><strong>奥壁</strong><img src="../../assets/interiors/prototypes/teahouse-back-wall-clean-256x96-v2.png"><small>漆喰・腰板と木柱の調和を確認。</small></div>
+</div></div>
+<div class="group"><h2>承認済みの室内構図</h2><div class="sample"><img src="../../design-reference/interiors/base-v1/teahouse.png"><small>原画は構図・素材感の基準。実装では32pxマスと同一カメラを維持。</small></div></div>
+<p>確認項目：輪郭の太さ、木材の明暗、色数、視点、緋月とのサイズ感。実機の室内描画検査は別工程です。</p>
+</body></html>
