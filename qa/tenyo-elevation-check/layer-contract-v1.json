@@ -1,0 +1,102 @@
+{
+  "schema": "tenyo-layer-contract-v1",
+  "status": "draft-not-production",
+  "tileSize": 32,
+  "coordinateSpace": "authored-grid-48x48",
+  "source": "tenyo_shrine_grid_v3_checked.json",
+  "layers": [
+    "ground",
+    "elevation-and-cliffs",
+    "walkable-ground-decoration",
+    "depth-sorted-objects",
+    "actors",
+    "foreground-occlusion"
+  ],
+  "objects": [
+    {
+      "id": "main_shrine",
+      "type": "architecture",
+      "candidateRect": [
+        18,
+        4,
+        13,
+        6
+      ],
+      "art": "assets/field-map-objects-v3/shrine.png",
+      "artStatus": "existing small field icon; NOT verified for 13x6 structure",
+      "collisionStatus": "proposal only",
+      "depthFootTile": [
+        24,
+        10
+      ],
+      "foregroundStatus": "requires separately validated roof/columns"
+    },
+    {
+      "id": "left_auxiliary",
+      "type": "architecture",
+      "candidateRect": [
+        11,
+        10,
+        6,
+        4
+      ],
+      "artStatus": "not mapped",
+      "collisionStatus": "proposal only"
+    },
+    {
+      "id": "right_auxiliary",
+      "type": "architecture",
+      "candidateRect": [
+        34,
+        20,
+        7,
+        5
+      ],
+      "artStatus": "not mapped",
+      "collisionStatus": "proposal only"
+    },
+    {
+      "id": "torii",
+      "type": "architecture",
+      "candidateRect": [
+        20,
+        26,
+        9,
+        3
+      ],
+      "artStatus": "not mapped",
+      "collisionStatus": "posts only, passage open; exact occupiedTiles unresolved"
+    },
+    {
+      "id": "west_bridge",
+      "type": "bridge",
+      "candidateRect": [
+        7,
+        25,
+        5,
+        2
+      ],
+      "artStatus": "not mapped",
+      "collisionStatus": "bank connections unresolved"
+    },
+    {
+      "id": "east_bridge",
+      "type": "bridge",
+      "candidateRect": [
+        38,
+        32,
+        5,
+        2
+      ],
+      "artStatus": "not mapped",
+      "collisionStatus": "bank connections unresolved"
+    }
+  ],
+  "rules": {
+    "occupancy": "explicit integer occupiedTiles only; never infer from candidateRect or art bounds",
+    "depth": "shared world foot depth; roof/columns occlusion independently authored",
+    "projection": "YK_LANDSCAPE with YK_ELEVATION.height at ground contact",
+    "character": "bluebob-v1/walk-atlas-256.png; village 58px convention",
+    "images": "no generated art until source/footprint alignment approved"
+  }
+}
