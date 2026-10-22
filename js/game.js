@@ -1848,10 +1848,23 @@ async function transitionArea(destination,commit){
  function paint(t){
   if(!running)return;
   const c=canvas.getContext('2d');c.clearRect(0,0,144,144);
+  // Always render the exact SD atlas used by the field, regardless of the current area or art selector.
+  ensureImage(HIZUKI_FIELD_SD);
   const a=(t-started)/270,dirs=['d','l','u','r'];
   const direction=dirs[Math.floor(a/(Math.PI/2))%4];
   const x=72+Math.cos(a)*24,y=78+Math.sin(a)*12;
-  try{hero(c,x,y,direction,Math.floor(t/130)%3,S.outfit,1);}catch(_){c.fillStyle='#f2e7ce';c.fillRect(x-6,y-14,12,20);}
+  if(layerReady(HIZUKI_FIELD_SD)){
+   const row=HIZUKI_4DIR_ROW[direction]??0;
+   const motion=Math.floor(t/130)%3;
+   const col=motion===1?0:motion===0?1:(row>=2?1:2);
+   const bounds=sdFieldBounds(row,0);
+   const scale=28/bounds.height;
+   const foot=y+9;
+   c.save();c.imageSmoothingEnabled=false;
+   c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
+    x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
+   c.restore();
+  }
   requestAnimationFrame(paint);
  }
  requestAnimationFrame(paint);
