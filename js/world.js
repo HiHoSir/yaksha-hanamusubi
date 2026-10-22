@@ -22,7 +22,14 @@ window.YK_WORLD=(()=>{
  mapData.heightTransitions=[];mapData.projectedHeights=true;mapData.shoreRelief=true;
  mapData.fieldObjectCollisionDeferred=false;mapData.referencePlacedObjects=true;
  mapData.bridgeWaterCells=new Set(geography.bridgeWaterCells.map(c=>c.join(',')));
- mapData.decorations=geography.decorations.map(o=>({...o,contactTiles:o.contactTiles.map(c=>c.slice()),occupiedTiles:o.occupiedTiles.map(c=>c.slice())}));
+ mapData.decorations=geography.decorations.map(o=>{
+  const contactTiles=o.contactTiles.map(c=>c.slice());
+  // Entrance footprints are walkable: transition happens only after the hero overlaps them.
+  // Preserve collision on every other cell of the same landmark.
+  const entrance=o.destination||o.placeId;
+  const occupiedTiles=o.occupiedTiles.filter(([x,y])=>!entrance||!contactTiles.some(([cx,cy])=>cx===x&&cy===y)).map(c=>c.slice());
+  return {...o,contactTiles,occupiedTiles};
+ });
  const roads=geography.roads.map(r=>r.map(center));
  // Keep routes for directions, elevation corridors and save compatibility,
  // but never rasterize the old dirt-road overlay on the outdoor field.

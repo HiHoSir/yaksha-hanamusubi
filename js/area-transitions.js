@@ -10,6 +10,17 @@ window.YK_AREA_TRANSITIONS=(()=>{
   if(world?.places?.[area]&&area!=='village'&&x<42)return 'field';
   return null;
  }
+ // Enter only on the destination object's authored contact cells, never on its artwork bounds.
+ function contact(world,x,y){
+  const tx=Math.floor(x/32),ty=Math.floor(y/32);
+  for(const [id,place] of Object.entries(world?.places||{})){
+   const objects=world.mapData?.decorations||[];
+   const matches=objects.filter(o=>o.destination===id||o.placeId===id||o.id===id);
+   if(matches.some(o=>o.contactTiles?.some(([cx,cy])=>cx===tx&&cy===ty)))return id;
+   if(!matches.length&&Math.floor(place.point[0]/32)===tx&&Math.floor(place.point[1]/32)===ty)return id;
+  }
+  return null;
+ }
  // Apply location-specific runtime state only. Caller handles input, messages and saves.
  function apply(state,destination,world,areas){
   const previous=state.area;
@@ -23,5 +34,5 @@ window.YK_AREA_TRANSITIONS=(()=>{
   state.frame=1;state.encounterSteps=0;state.encounterGrace=areas[destination]?.grace||0;
   return state;
  }
- return {exit,apply};
+ return {exit,apply,contact};
 })();
