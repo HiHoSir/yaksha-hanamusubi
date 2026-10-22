@@ -25,6 +25,10 @@ window.YK_AUDIO=(()=>{
  const player=new Audio();player.preload="auto";player.playsInline=true;player.loop=false;
  let seeking=false,playPending=false,playError="",requestId=0,backgroundPaused=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
+ // A title-screen tap may unlock AudioContext, but must never start the
+ // already-selected field/village music before a save slot is loaded.
+ function titleVisible(){return !!document.getElementById?.("title")?.classList.contains("show");}
+ function bgmAllowed(){return !encounterMuted&&!titleVisible();}
  function zone(area){return area==="field"?"field":"village"}
  let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
  let resumeSerial=0,restorePending=false;
@@ -131,7 +135,7 @@ window.YK_AUDIO=(()=>{
   }catch(e){bufferError="tap "+String(e)}
  }
  async function playBuffer(key){
-  if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn()||encounterMuted)return;
+  if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn()||!bgmAllowed())return;
   if(bufferKey===key&&bufferSource)return;
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
@@ -144,7 +148,7 @@ window.YK_AUDIO=(()=>{
    let buffer=decodedBuffers[key];
    if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
     buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
-   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key||encounterMuted)return;
+   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key||!bgmAllowed())return;
    // Safari can accept start() on a suspended/interrupted context without
    // producing sound. Keep the decoded buffer and create the source only once
    // the context really reports running; resume callbacks/taps will retry.
@@ -165,13 +169,13 @@ window.YK_AUDIO=(()=>{
     // Retry once the pending loader relinquishes ownership, never creating
     // a silent/stale node or restarting after a track change.
     if(deferredUntilRunning&&ctx?.state==="running"&&currentArea===key&&!bufferSource)
-     queueMicrotask(()=>{if(gen===bufferGeneration&&!backgroundPaused&&!document.hidden&&soundOn()&&!encounterMuted)void playBuffer(key);});
+     queueMicrotask(()=>{if(gen===bufferGeneration&&!backgroundPaused&&!document.hidden&&soundOn()&&bgmAllowed())void playBuffer(key);});
    }
   }
  }
  function attenuate(){if(bufferTest){if(bufferGain)bufferGain.gain.value=performance.now()<duckUntil?.23:.4;}else player.volume=performance.now()<duckUntil?.23:.4}
  function play(){
-  if(encounterMuted)return;
+  if(!bgmAllowed())return;
   if(bufferTest){if(currentArea)void playBuffer(currentArea);return}
   if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused||!currentArea||!player.paused||playPending)return;
   const id=requestId;playPending=true;
@@ -192,7 +196,7 @@ window.YK_AUDIO=(()=>{
   // The game may load a different area while BGM is temporarily muted
   // (battle, game-over, title). Track the *desired* area even during mute;
   // otherwise unmuting resumes the previous zone's music or stays silent.
-  if(encounterMuted){if(key!==currentArea)setTrack(key);return;}
+  if(!bgmAllowed()){if(key!==currentArea)setTrack(key);return;}
   if(key!==currentArea)setTrack(key);
   if(!soundOn()){player.pause();if(bufferTest){bufferGeneration++;bufferLoading="";if(bufferSource){try{bufferSource.stop()}catch{}bufferSource.disconnect();bufferSource=null}bufferKey="";bufferOffset=0}return}
   attenuate();play()
@@ -257,7 +261,7 @@ window.YK_AUDIO=(()=>{
   applySessionTest();
   if(!bufferTest){play();return;}
   if(battleMusicActive){const p=battlePlayer.play();if(p?.catch)p.catch(()=>{});return;}
-  if(!currentArea)return;
+  if(!currentArea||!bgmAllowed())return;
   if(ctx?.state==="running"){if(!bufferSource&&!bufferLoading)void playBuffer(currentArea);}
   else resumeContext();
  }
@@ -265,7 +269,7 @@ window.YK_AUDIO=(()=>{
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseForBackground();else resumeFromBackground()});
  window.addEventListener("pagehide",pauseForBackground);
  window.addEventListener("pageshow",resumeFromBackground);
- function diagnostics(){return {battleMusicActive,battlePaused:battlePlayer.paused,battleTime:battlePlayer.currentTime,area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,restorePending,lifecycleTrace:lifecycleTrace.slice(),contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
+ function diagnostics(){return {battleMusicActive,battlePaused:battlePlayer.paused,battleTime:battlePlayer.currentTime,area:currentArea,enabledByGesture,soundOn:soundOn(),paused:player.paused,readyState:player.readyState,networkState:player.networkState,time:player.currentTime,duration:player.duration,src:player.currentSrc,lastError,playError,backgroundPaused,hidden:document.hidden,silentTest,bufferTest,bufferKey,bufferLoading,bufferError,bufferOffset,restorePending,titleVisible:titleVisible(),lifecycleTrace:lifecycleTrace.slice(),contextState:ctx?.state||"none",audioSessionTest,audioSessionResult,sessionType:navigator.audioSession?.type??"unsupported",sessionState:navigator.audioSession?.state??"unknown"}}
  function sound(freq=.0,dur=.08,type="triangle",gainLevel=.035,cutoff=1400){
   try{if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused)return;ctx??=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==="suspended")ctx.resume();
    const now=ctx.currentTime,o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
