@@ -1,0 +1,30 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>茶店 床・壁 透過レイヤー検査</title><style>body{font:15px system-ui;background:#192126;color:#fff;margin:16px}canvas{image-rendering:pixelated;width:min(96vw,640px);background:repeating-conic-gradient(#777 0 25%,#444 0 50%) 0 0/24px 24px}button{padding:12px;margin:6px;background:#354;color:#fff;border:1px solid #888}section{margin:20px 0}</style>
+<h1>茶店：同一原点の透過画像レイヤー</h1><p>間取りJSONから床・壁の透過画像を構成。320×352px、床原点(0,96)。画像は独立して保存できます。</p>
+<div><label><input id="floorOn" type="checkbox" checked>床</label> <label><input id="wallsOn" type="checkbox" checked>壁</label></div><canvas id="preview" width="320" height="352"></canvas><section><button id="floorSave">床PNG保存</button><button id="wallsSave">壁PNG保存</button><button id="bothSave">合成PNG保存</button></section><p id="status">読み込み中</p>
+<script>
+(async()=>{
+ const status=document.getElementById('status'),root='../../';
+ const layout=await (await fetch(root+'data/interiors/teahouse-layout-10x8.json')).json();
+ const files={road:'assets/terrain/landscape-v3/road.png',wood:'assets/interiors/prototypes/teahouse-wood-floor-4x4-preview.png',plaster:'assets/interiors/prototypes/plaster-wall-32-candidate.png',panel:'assets/interiors/prototypes/wood-wainscot-32-candidate.png'};
+ const imgs={};for(const [k,p] of Object.entries(files)){const im=new Image();im.src=root+p;await im.decode();imgs[k]=im}
+ const mk=()=>{const c=document.createElement('canvas');c.width=320;c.height=352;return c};
+ const floor=mk(),walls=mk(),fg=floor.getContext('2d'),wg=walls.getContext('2d');
+ fg.imageSmoothingEnabled=wg.imageSmoothingEnabled=false;
+ const wall=mk(),wc=wall.getContext('2d');wall.width=32;wall.height=96;
+ wc.drawImage(imgs.plaster,0,0,32,23,0,0,32,23);wc.drawImage(imgs.plaster,0,0,32,32,0,23,32,56);wc.drawImage(imgs.panel,0,0,32,17,0,79,32,17);
+ for(let y=0;y<8;y++)for(let x=0;x<10;x++){
+  const t=layout.tiles[y][x],wood=['wood','table','cushion','raised','tatami','futon'].includes(t),img=wood?imgs.wood:imgs.road,m=wood?4:2;
+  fg.drawImage(img,(x%m)*32,(y%m)*32,32,32,x*32,96+y*32,32,32);
+  if(t==='wall')wg.drawImage(wall,x*32,96+(y+1)*32-96);
+ }
+ const preview=document.getElementById('preview'),ctx=preview.getContext('2d');
+ function draw(){ctx.clearRect(0,0,320,352);if(document.getElementById('floorOn').checked)ctx.drawImage(floor,0,0);if(document.getElementById('wallsOn').checked)ctx.drawImage(walls,0,0)}
+ for(const id of ['floorOn','wallsOn'])document.getElementById(id).onchange=draw;
+ function save(c,name){c.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)},'image/png')}
+ document.getElementById('floorSave').onclick=()=>save(floor,'teahouse-floor.png');
+ document.getElementById('wallsSave').onclick=()=>save(walls,'teahouse-walls.png');
+ document.getElementById('bothSave').onclick=()=>{const c=mk(),g=c.getContext('2d');g.drawImage(floor,0,0);g.drawImage(walls,0,0);save(c,'teahouse-composite.png')};
+ draw();status.textContent='生成完了：同じ320×352pxの透過キャンバス（上余白96px）';
+})().catch(e=>{document.getElementById('status').textContent='生成失敗: '+e.message});
+</script></html>
