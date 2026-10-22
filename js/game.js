@@ -1452,7 +1452,8 @@ function move(dx,dy,dir){
  fieldLadderMotion=ladder?{from:YK_ELEVATION.height(YK_WORLD.mapData,startX,startY),to:YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y)}:null;
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
- const from=S.area,ex=exitArea();\n const contact=from==="field"?YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y):null;
+ const from=S.area,ex=exitArea();
+ const contact=from==="field"?YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y):null;
  if(contact){enterWorldPlace(contact);}
  else if(ex&&ex!==S.area){requestAreaExit(ex);}
  else encounter();
