@@ -7,7 +7,8 @@ window.YK_AREA_TRANSITIONS=(()=>{
    if(x>villageLayout.exit.rect[0]&&x<villageLayout.exit.rect[2]&&y>villageLayout.exit.rect[1]&&y<villageLayout.exit.rect[3])return villageLayout.exit.to;
    if(inside(x,y,villageLayout.northExit.rect))return villageLayout.northExit.to;
   }
-  if(area==='shrine')return window.YK_TENYO?.exit(x,y)?'field':null;\n  if(world?.places?.[area]&&area!=='village'&&x<42)return 'field';
+  if(area==='shrine')return window.YK_TENYO?.exit(x,y)?'field':null;
+  if(world?.places?.[area]&&area!=='village'&&x<42)return 'field';
   return null;
  }
  // Enter only on the destination object's authored contact cells, never on its artwork bounds.
