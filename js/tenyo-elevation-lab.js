@@ -35,10 +35,17 @@
  document.addEventListener('keydown',e=>{if(!keys[e.key]||['SELECT','INPUT'].includes(e.target.tagName))return;e.preventDefault();tour=[];held=keys[e.key];step(held);});
  document.addEventListener('keyup',e=>{if(keys[e.key]===held)held=null;});
  window.addEventListener('blur',()=>{held=null;tour=[];});document.addEventListener('visibilitychange',()=>{if(document.hidden){held=null;tour=[];}});
- Promise.all([V.load(),YK_TENYO_V3()]).then(([a,d])=>{art=a;m=d.tiles.map(row=>row.map(t=>t==='river'?'sea':t==='forest'?'forest':t==='grass'?'grass':'road'));m.heights=d.elevation;m.ramps=d.ramps;m.cornerCut=30;m.roads=new Set();m.objects=[];m.occupiedTiles=new Set();for(const o of d.objectContactCandidates){if(o.collision!=='blocked')continue;for(let y=o.y;y<o.y+o.height;y++)for(let x=o.x;x<o.x+o.width;x++)m.occupiedTiles.add(x+','+y);
-  const cx=(o.x+o.width/2)*32,foot=(o.y+o.height)*32;
-  if(/shrine|社殿|本殿/i.test(o.id||o.name||''))m.objects.push({kind:'shrine',x:cx,y:foot,foot,width:64,height:64});
-  else if(/torii|鳥居/i.test(o.id||o.name||''))m.objects.push({kind:'torii',x:cx,y:foot,foot,width:48,height:64});
- }m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0,draw:drawVillageHizuki};const errors=E.validate(m);$('status').textContent='地形読み込み完了 / 高さ検査 '+errors.length+'件';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
+ Promise.all([V.load(),YK_TENYO_V3()]).then(([a,d])=>{art=a;m=d.tiles.map(row=>row.map(t=>t==='river'?'sea':t==='forest'?'forest':t==='grass'?'grass':'road'));m.heights=d.elevation;m.ramps=d.ramps;m.cornerCut=30;m.roads=new Set();m.objects=[];m.occupiedTiles=new Set();
+ // DEBUG ONLY: authored proposal rectangles are NOT final occupiedTiles.
+ // Keep the prior provisional collision until exact contact cells are approved.
+ for(const o of d.objectContactCandidates){
+  if(o.collision==='blocked')for(let y=o.y;y<o.y+o.height;y++)for(let x=o.x;x<o.x+o.width;x++)m.occupiedTiles.add(x+','+y);
+  const centerX=(o.x+o.width/2)*32,footY=(o.y+o.height)*32;
+  const names={main_shrine:'本殿候補',left_auxiliary:'左社殿候補',right_auxiliary:'右社殿候補',torii:'鳥居候補',west_bridge:'西橋候補',east_bridge:'東橋候補'};
+  m.objects.push({id:o.id,x:centerX,y:footY,foot:footY,width:1,height:1,
+   render:(ctx,p)=>{ctx.save();ctx.globalAlpha=1;ctx.fillStyle='rgba(14,30,39,.88)';ctx.strokeStyle='#f3ce6c';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.font='12px sans-serif';const label=names[o.id]||o.id,w=ctx.measureText(label).width+12;ctx.fillStyle='rgba(14,30,39,.88)';ctx.fillRect(p.x-w/2,p.y-26,w,19);ctx.fillStyle='#fff0bd';ctx.fillText(label,p.x-w/2+6,p.y-12);ctx.restore()}
+  });
+ }
+ m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0,draw:drawVillageHizuki};const errors=E.validate(m);$('status').textContent='地形読み込み完了 / 高さ検査 '+errors.length+'件';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
 })();
 
