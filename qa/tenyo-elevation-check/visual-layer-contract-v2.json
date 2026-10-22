@@ -1,0 +1,174 @@
+{
+  "schema": "tenyo-visual-layer-contract-v2",
+  "status": "DESIGN REFERENCE — not a game asset",
+  "reference": "tenyo_shrine/tenyo_concept_only.png",
+  "referencePixels": [
+    520,
+    497
+  ],
+  "worldGrid": [
+    48,
+    48
+  ],
+  "tilePixels": 32,
+  "view": "oblique elevated 2D illustration; align village-style heroine feet to walkable terraces, not source-image bounding boxes",
+  "artPolicy": "New purpose-built architecture art permitted; field object reuse not required",
+  "regions": [
+    {
+      "id": "main_shrine",
+      "imageBox": [
+        211,
+        41,
+        194,
+        117
+      ],
+      "worldCandidate": [
+        19,
+        5,
+        10,
+        7
+      ],
+      "layers": [
+        "back",
+        "walls",
+        "roof_foreground"
+      ],
+      "foot": "front porch at image y 150; precise foot grid pending"
+    },
+    {
+      "id": "left_side_shrine",
+      "imageBox": [
+        135,
+        108,
+        83,
+        65
+      ],
+      "layers": [
+        "building_back",
+        "eaves_foreground"
+      ],
+      "foot": "front threshold image y 167"
+    },
+    {
+      "id": "right_side_shrine",
+      "imageBox": [
+        420,
+        185,
+        70,
+        91
+      ],
+      "layers": [
+        "building_back",
+        "eaves_foreground"
+      ],
+      "foot": "front threshold image y 271"
+    },
+    {
+      "id": "upper_stairs",
+      "imageBox": [
+        270,
+        171,
+        54,
+        85
+      ],
+      "layers": [
+        "walkable_stairs",
+        "side_rails_foreground"
+      ],
+      "contact": "stair flight must connect elevated terraces"
+    },
+    {
+      "id": "torii",
+      "imageBox": [
+        250,
+        254,
+        88,
+        81
+      ],
+      "layers": [
+        "rear_beam",
+        "posts",
+        "front_beam_foreground"
+      ],
+      "contact": "passage center walkable; block only posts"
+    },
+    {
+      "id": "lower_stairs",
+      "imageBox": [
+        270,
+        333,
+        55,
+        92
+      ],
+      "layers": [
+        "walkable_stairs",
+        "side_rails_foreground"
+      ],
+      "contact": "must connect lower approach to gate"
+    },
+    {
+      "id": "west_bridge",
+      "imageBox": [
+        48,
+        225,
+        87,
+        64
+      ],
+      "layers": [
+        "walkable_deck",
+        "rail_front"
+      ],
+      "contact": "connect west banks only"
+    },
+    {
+      "id": "east_bridge",
+      "imageBox": [
+        383,
+        301,
+        78,
+        60
+      ],
+      "layers": [
+        "walkable_deck",
+        "rail_front"
+      ],
+      "contact": "connect east banks only"
+    },
+    {
+      "id": "waterfalls_and_streams",
+      "imageBox": [
+        0,
+        30,
+        519,
+        466
+      ],
+      "layers": [
+        "water_underlay",
+        "waterfalls",
+        "foam_foreground"
+      ],
+      "contact": "impassable except bridge decks"
+    },
+    {
+      "id": "cherry_trees",
+      "imageBox": [
+        80,
+        4,
+        435,
+        467
+      ],
+      "layers": [
+        "trunks",
+        "canopy_foreground"
+      ],
+      "contact": "trunks only"
+    }
+  ],
+  "acceptance": [
+    "No flattened image presented as navigable full 48x48 map",
+    "Each architecture layer has explicit world foot anchor and occlusion mask",
+    "Hero uses village atlas, not field SD",
+    "Actual collision cells separate from visual bounds",
+    "No sprite sheet generation until grid dimensions and foot positions finalized"
+  ]
+}
