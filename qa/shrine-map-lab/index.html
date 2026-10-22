@@ -1,0 +1,26 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>天妖の社｜既存絵を使った構造化試作</title>
+<style>body{margin:0;background:#152222;color:#f3eee4;font:15px system-ui}main{max-width:920px;margin:auto;padding:15px}canvas{width:100%;max-width:768px;image-rendering:auto;touch-action:manipulation;border:1px solid #64706d}button{padding:10px;margin:4px;border-radius:7px;background:#e8d5ae;border:0}pre{white-space:pre-wrap;word-break:break-word;background:#263637;padding:10px}a{color:#a5e9de}label{display:inline-block;margin:5px}</style>
+<main><h1>天妖の社｜既存マップからの構造化試作</h1><p>現行ゲームが使用している「天妖の社」の背景画像と通行ポリゴンをそのまま読み込みます。32pxグリッドに変換した結果を重ね、セルをタップして修正できます。新しい画像生成やゲーム本編の変更はしていません。</p>
+<label><input type="checkbox" id="grid" checked>32pxグリッド</label><label><input type="checkbox" id="walk" checked>通行判定</label><label><input type="checkbox" id="markers" checked>NPC・開始地点</label><p><button id="edit">セル編集：オフ</button><button id="export">構造JSONを保存</button><button id="reset">元の通行判定に戻す</button></p>
+<canvas id="canvas" width="768" height="768"></canvas><pre id="status">読み込み中</pre>
+<p>この試作は既存イラストを32px単位の通行可能セルに変換したものです。鳥居・社殿・石段・桜などの輪郭を自動認識したものではありません。前後遮蔽、物体の占有マス、カメラ投影への移植は未対応です。</p>
+<script src="../../js/destination-scenes.js"></script><script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),c=$('canvas'),ctx=c.getContext('2d'),size=24,step=32,layout=YK_DESTINATION_SCENES.layouts.shrine;
+const original=layout.floor,inside=(x,y)=>{let hit=false;for(let i=0,j=original.length-1;i<original.length;j=i++){const a=original[i],b=original[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])hit=!hit}return hit};
+const create=()=>Array.from({length:size},(_,y)=>Array.from({length:size},(_,x)=>inside(x*step+16,y*step+16)?1:0));
+let cells=create(),editing=false,img=new Image(),loaded=false;
+const markers=[{name:'開始位置',x:layout.spawn[0],y:layout.spawn[1],color:'#ffe38a'},{name:'白妙',x:515,y:370,color:'#e0a8fa'},{name:'社守',x:210,y:530,color:'#92d4fa'}];
+function reachable(){const sx=Math.floor(layout.spawn[0]/32),sy=Math.floor(layout.spawn[1]/32),seen=new Set(),q=[];if(cells[sy]?.[sx]){seen.add(sx+','+sy);q.push([sx,sy])}for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,b=y+dy,k=a+','+b;if(a>=0&&a<size&&b>=0&&b<size&&cells[b][a]&&!seen.has(k)){seen.add(k);q.push([a,b])}}}return seen}
+function render(){ctx.clearRect(0,0,768,768);if(loaded)ctx.drawImage(img,0,0,768,768);else{ctx.fillStyle='#485654';ctx.fillRect(0,0,768,768)}
+const seen=reachable();let total=0;for(let y=0;y<size;y++)for(let x=0;x<size;x++){const open=cells[y][x];if(open)total++;if($('walk').checked){ctx.fillStyle=open?(seen.has(x+','+y)?'rgba(57,221,142,.16)':'rgba(255,170,40,.45)'):'rgba(206,52,52,.22)';ctx.fillRect(x*step,y*step,step,step)}if($('grid').checked){ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=.65;ctx.strokeRect(x*step+.5,y*step+.5,step,step)}}
+if($('markers').checked)for(const m of markers){ctx.fillStyle=m.color;ctx.beginPath();ctx.arc(m.x,m.y,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.stroke();ctx.font='bold 15px system-ui';ctx.strokeText(m.name,m.x+10,m.y-10);ctx.fillText(m.name,m.x+10,m.y-10)}
+$('status').textContent='現行素材：assets/scenes/destinations-v1/shrine.webp\n原本通行領域：js/destination-scenes.js / shrine.floor\n32pxセル：24×24、通行可能 '+total+'、開始位置から到達可能 '+seen.size+'\n※元の判定はピクセル単位の多角形です。グリッド変換で境界の形は変わります。';}
+for(const id of ['grid','walk','markers'])$(id).onchange=render;
+$('edit').onclick=()=>{editing=!editing;$('edit').textContent='セル編集：'+(editing?'オン':'オフ')};
+c.onclick=e=>{if(!editing)return;const rect=c.getBoundingClientRect(),x=Math.floor((e.clientX-rect.left)/rect.width*size),y=Math.floor((e.clientY-rect.top)/rect.height*size);if(cells[y]?.[x]!==undefined){cells[y][x]=1-cells[y][x];render()}};
+$('reset').onclick=()=>{cells=create();render()};
+$('export').onclick=()=>{const data={schema:'shrine-map-draft-v1',area:'shrine',name:'天妖の社',sourceImage:'assets/scenes/destinations-v1/shrine.webp',sourceCollision:'js/destination-scenes.js / shrine.floor',tileSize:32,width:24,height:24,walkable:cells,originalFloorPolygon:original,spawn:layout.spawn,npcs:markers.slice(1).map(({name,x,y})=>({name,x,y})),notes:['既存イラスト再利用','グリッド境界は近似','物体の占有と遮蔽は未検査']};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='tenyo-shrine-map-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)};
+img.onload=()=>{loaded=true;render()};img.onerror=()=>{$('status').textContent='背景画像の読み込みに失敗しました';render()};img.src='../../assets/scenes/destinations-v1/shrine.webp';render();
+})();
+</script></main></html>
