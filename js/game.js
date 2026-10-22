@@ -412,6 +412,8 @@ function stabilizeLoadedState(){
  }else if(area==="teahouse"||area==="osumiHome"||area==="villageRoom"){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
    if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||YK_INTERIOR_BASE.spawn(S);}
+ }else if(area==="shrine"){
+   if(!Number.isFinite(S.x)||!Number.isFinite(S.y)||YK_TENYO.blocked(S.x,S.y)||S.y>=15.5*YK_TENYO.CELL)[S.x,S.y]=YK_TENYO.spawn.slice();
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
    if(collision(S.x,S.y)){
