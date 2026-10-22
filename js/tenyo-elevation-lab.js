@@ -39,6 +39,6 @@
   const cx=(o.x+o.width/2)*32,foot=(o.y+o.height)*32;
   if(/shrine|社殿|本殿/i.test(o.id||o.name||''))m.objects.push({kind:'shrine',x:cx,y:foot,foot,width:64,height:64});
   else if(/torii|鳥居/i.test(o.id||o.name||''))m.objects.push({kind:'torii',x:cx,y:foot,foot,width:48,height:64});
- }m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0};const errors=E.validate(m);$('status').textContent='地形読み込み完了 / 高さ検査 '+errors.length+'件';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
+ }m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0,draw:drawVillageHizuki};const errors=E.validate(m);$('status').textContent='地形読み込み完了 / 高さ検査 '+errors.length+'件';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
 })();
 
