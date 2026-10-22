@@ -1,7 +1,7 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>マップ構造AI案の検査</title>
 <style>body{font:15px system-ui;max-width:960px;margin:auto;padding:16px;background:#142124;color:#eee}textarea{box-sizing:border-box;width:100%;min-height:310px;background:#253638;color:#fff;font:13px monospace;padding:10px}button{padding:12px;margin:8px 8px 8px 0}canvas{max-width:100%;image-rendering:pixelated;background:#344}pre{white-space:pre-wrap;background:#243438;padding:10px}a{color:#8de2e4}</style>
 <h1>汎用マップ構造プランナー（試作）</h1><p>AIが提案するのは全セルではなく、地形領域・通路・入口出口の少数のルール。32pxセルへの展開と経路検査はプログラムが行います。既存ゲームへの取り込みは未実装です。</p>
-<label>構造提案JSON（編集可能）</label><textarea id="spec"></textarea>
+<label>作りたいマップを文章で説明</label><textarea id="brief" style="min-height:90px">深い森を抜ける自然な通路。途中に川があり、北東には山が見える。</textarea><p><button id="briefRun">文章から構造の下書きを作る</button></p><label>構造提案JSON（編集可能）</label><textarea id="spec"></textarea>
 <p><button id="run">配置を生成・検査</button><button id="save">配置JSONを保存</button><button id="example">別の構造例</button></p><pre id="status">未実行</pre><canvas id="view"></canvas>
 <p>画像生成用の指示文（構造データと現行カメラの厳密な照合が必要です）</p><pre id="prompt"></pre>
 <script src="../../js/map-plan-compiler.js"></script><script>
@@ -12,6 +12,7 @@ const examples=[
 {kind:'mountain',width:48,height:32,seed:24,base:'grass',start:[.05,.5],end:[.95,.5],zones:[{terrain:'mountain',x:.42,y:.25,rx:.4,ry:.26,level:1},{terrain:'rockMountain',x:.7,y:.8,rx:.3,ry:.23,level:2}],paths:[{terrain:'grass',width:2,points:[[.05,.5],[.3,.53],[.53,.58],[.78,.5],[.95,.5]]}]}
 ];let current=null,idx=0;$('spec').value=JSON.stringify(examples[0],null,2);
 const palette={grass:'#95bf69',forest:'#43754c',mountain:'#677e70',rockMountain:'#7e7d74',river:'#58a5c4',sea:'#398cbd',sand:'#dfca8d',road:'#b99b6d',wood:'#c59b52',wall:'#4c4744'};
+$('briefRun').onclick=()=>{try{const old=JSON.parse($('spec').value);const next=YK_MAP_PLAN.fromBrief($('brief').value,{width:old.width,height:old.height,seed:old.seed});$('spec').value=JSON.stringify(next,null,2);$('run').click();$('status').textContent+='\\n※文章のキーワードから作った下書きです。地形の詳細は未解釈です。';}catch(e){$('status').textContent='入力エラー: '+e.message}};
 $('example').onclick=()=>{$('spec').value=JSON.stringify(examples[++idx%examples.length],null,2);$('run').click()};
 $('run').onclick=()=>{try{current=YK_MAP_PLAN.compile(JSON.parse($('spec').value));const c=$('view');c.width=current.width*8;c.height=current.height*8;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;for(let y=0;y<current.height;y++)for(let x=0;x<current.width;x++){ctx.fillStyle=palette[current.tiles[y][x]]||'#f0f';ctx.fillRect(x*8,y*8,8,8);if(current.elevation[y][x]){ctx.fillStyle='#ffffff55';ctx.fillRect(x*8,y*8,8,2)}}
 for(const [pt,col] of [[current.start,'#fff'],[current.end,'#ffdf20']]){ctx.fillStyle=col;ctx.fillRect(pt[0]*8,pt[1]*8,8,8)}
