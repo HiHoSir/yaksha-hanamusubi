@@ -25,6 +25,35 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
   im.src='assets/interiors/prototypes/pillar-repeat-v2-'+role+'-32.png?v=15.57.127';
  }
 
+ // Preview-only: derive a one-pixel outer silhouette from the existing table alpha.
+ // The source PNG, internal dango detail, collision and projection stay untouched.
+ const tableOutline={enabled:true,color:'#291c17',alphaThreshold:96};
+ let outlinedTable=null;
+ function rebuildTableOutline(){
+  const source=sprites.table;
+  if(!source.complete||!source.naturalWidth||!source.naturalHeight)return;
+  const w=source.naturalWidth,h=source.naturalHeight;
+  const base=document.createElement('canvas');base.width=w;base.height=h;
+  const b=base.getContext('2d',{willReadFrequently:true});
+  b.drawImage(source,0,0);
+  const rgba=b.getImageData(0,0,w,h).data;
+  const opaque=(x,y)=>x>=0&&x<w&&y>=0&&y<h&&rgba[(y*w+x)*4+3]>=tableOutline.alphaThreshold;
+  const result=document.createElement('canvas');result.width=w+2;result.height=h+2;
+  const ctx=result.getContext('2d');ctx.imageSmoothingEnabled=false;
+  const outline=ctx.createImageData(w+2,h+2);
+  const rgb=[41,28,23];
+  for(let y=-1;y<=h;y++)for(let x=-1;x<=w;x++){
+   if(opaque(x,y))continue;
+   if(!opaque(x-1,y)&&!opaque(x+1,y)&&!opaque(x,y-1)&&!opaque(x,y+1))continue;
+   const i=((y+1)*(w+2)+(x+1))*4;
+   outline.data[i]=rgb[0];outline.data[i+1]=rgb[1];outline.data[i+2]=rgb[2];outline.data[i+3]=255;
+  }
+  ctx.putImageData(outline,0,0);
+  ctx.drawImage(source,1,1);
+  outlinedTable=result;
+ }
+ sprites.table.addEventListener('load',rebuildTableOutline);
+ if(sprites.table.complete&&sprites.table.naturalWidth)rebuildTableOutline();
  // The same ground projection and depth queue as settlement.draw() uses.
  const road=new Image();let roadReady=false;
  road.onload=()=>{roadReady=true;groundsDirty=true};road.src='assets/terrain/landscape-v3/road.png?v=15.57.116';
@@ -152,7 +181,10 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
      q.save();q.fillStyle='rgba(38,24,16,.23)';
      q.beginPath();q.ellipse(l+W*.5,base+shift*.35,W*.39,Math.max(1,3*p.scale),0,0,Math.PI*2);q.fill();
      q.restore();
-     q.drawImage(image,l,t+shift,W,H);
+     if(tableOutline.enabled&&outlinedTable){
+      const dx=W/64,dy=H/40;
+      q.drawImage(outlinedTable,l-dx,t+shift-dy,W+2*dx,H+2*dy);
+     }else q.drawImage(image,l,t+shift,W,H);
     }else q.drawImage(image,l,t,W,H);
    }});
   }
