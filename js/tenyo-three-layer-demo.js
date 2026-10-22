@@ -1,7 +1,7 @@
 import {canWalkTenyo,tenyoCellAt,moveTenyoFootpoint,TENYO_COLLISION} from './tenyo-three-layer-collision.js';
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
 const status=document.getElementById('status'),debug=document.getElementById('debug');
-const W=768,H=512,paths=['assets/maps/tenyo/layer-background.webp','assets/maps/tenyo/layer-trees.webp','assets/maps/tenyo/layer-shrine.webp'];
+const W=768,H=512,VIEW_SCALE=2,VIEW_W=W/VIEW_SCALE,VIEW_H=H/VIEW_SCALE,paths=['assets/maps/tenyo/layer-background.webp','assets/maps/tenyo/layer-trees.webp','assets/maps/tenyo/layer-shrine.webp'];
 const layers=paths.map(src=>{const im=new Image();im.src=src+'?v=2';return im});
 const hero=new Image();hero.src='assets/characters/hizuki/bluebob-v1/walk-atlas-256.png';
 let col=11,row=15,x=col*32+16,y=row*32+16,dir=0,frame=0,held=null,last=0;
@@ -26,11 +26,16 @@ function draw(t){
   if(progress>=1){x=step.toX;y=step.toY;step=null;frame=0;}
  }else frame=0;
  if(held){const [dx,dy]=held;dir=dy>0?0:dy<0?1:dx>0?2:3;}
- ctx.clearRect(0,0,W,H);
+ ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,H);
+ // Follow the actor, clamped to the exact image bounds; never expose outside pixels.
+ const camX=Math.max(0,Math.min(W-VIEW_W,x-VIEW_W/2));
+ const camY=Math.max(0,Math.min(H-VIEW_H,y-VIEW_H/2));
+ ctx.setTransform(VIEW_SCALE,0,0,VIEW_SCALE,-camX*VIEW_SCALE,-camY*VIEW_SCALE);
  if(layers[0].complete&&layers[0].naturalWidth)ctx.drawImage(layers[0],0,0,W,H);
  if(layers[2].complete&&layers[2].naturalWidth)ctx.drawImage(layers[2],0,0,W,H);
  if(hero.complete&&hero.naturalWidth){ctx.fillStyle='#102b294a';ctx.beginPath();ctx.ellipse(x,y,11,4,0,0,Math.PI*2);ctx.fill();
- ctx.drawImage(hero,frame*256,dir*256,256,256,x-23,y-47,46,46);}
+ const body=232,anchor=248,scale=58/body;
+ ctx.drawImage(hero,frame*256,dir*256,256,256,x-128*scale,y-anchor*scale,256*scale,256*scale);}
  else{ctx.fillStyle='#75d5ef';ctx.fillRect(x-8,y-32,16,31);}
  // The separate transparent tree canopy is drawn above the hero, enabling leaf occlusion.
  if(layers[1].complete&&layers[1].naturalWidth)ctx.drawImage(layers[1],0,0,W,H);
@@ -52,6 +57,7 @@ function draw(t){
  ctx.fillStyle=type==='.'?'#35d26b55':type==='L'?'#f0ac3788':type==='S'?'#e6394677':'#1c2a3560';
  ctx.fillRect(col*32,row*32,32,32);ctx.strokeStyle='#ffffff66';ctx.strokeRect(col*32,row*32,32,32);
  }}
+ ctx.setTransform(1,0,0,1,0,0);
  const tile=tenyoCellAt(col*64+32,row*64+32);
  status.textContent='マス '+col+','+row+' / '+(tile==='L'?'葉の縁（進入許可）':tile==='.'?'歩行可能':'歩行不可');
  requestAnimationFrame(draw);
