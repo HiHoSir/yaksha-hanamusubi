@@ -1034,7 +1034,7 @@ function map(frameTime=performance.now()){
 
  if(S.area==="shrine"){
   const shrineNpc=areaNPCs();
-  YK_TENYO.draw(g,S,(x,y)=>hero(g,x,y,S.dir,S.frame,S.outfit,.56),(i,x,y)=>{const n=shrineNpc[i];if(n)npc(g,x,y,n.type,n.name,n.dir||"d",n.frame??1)},(x,y)=>{
+  YK_TENYO.draw(g,{...S,...YK_CAMERA.position(S,fieldMotion,frameTime)},(x,y)=>hero(g,x,y,S.dir,S.frame,S.outfit,.56),(i,x,y)=>{const n=shrineNpc[i];if(n)npc(g,x,y,n.type,n.name,n.dir||"d",n.frame??1)},(x,y)=>{
    const c=E.chests.find(c=>c.area==="shrine");if(!c)return;
    const im=CHEST_ART[S.chests[c.id]?"open":"closed"];if(layerReady(im))g.drawImage(im,x-22,y-38,44,44);
   });
@@ -1417,7 +1417,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
  exit:{to:"field",rect:[720,1230,816,1280]},northExit:{to:"field",rect:[710,0,830,58]}};
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
-function collision(x,y,ignoreNPC=false){if(S.area==="shrine")return YK_TENYO.blocked(x,y)||(!ignoreNPC&&npcBlocked(x,y));if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
+function collision(x,y,ignoreNPC=false){if(S.area==="shrine")return YK_TENYO.blocked(x,y)||(Math.abs(x-600)<19&&Math.abs(y-600)<16)||(!ignoreNPC&&npcBlocked(x,y));if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
 function exitArea(){if(S.area==="shrine"&&YK_TENYO.exit(S.x,S.y))return "field";if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 let fieldEntryWaiting=false;
 function YK_TENYO_STEP(x,y,dx,dy,speed,blocked){
