@@ -2,6 +2,8 @@
  const $=id=>document.getElementById(id),E=YK_ELEVATION,V=YK_ELEVATION_VIEW,c=$('terrain').getContext('2d');
  let m=null,actor=null,art,motion=null,held=null,tour=[],raf=0;
  const directions={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
+ const objectArt={};const objectSources={main_shrine:'assets/field-map-objects-v3/shrine.png',torii:'assets/field-map-objects-v3/torii.png',left_auxiliary:'assets/field-map-objects-v3/shrine.png',right_auxiliary:'assets/field-map-objects-v3/shrine.png'};
+ for(const [id,src] of Object.entries(objectSources)){const im=new Image();im.onload=()=>paint();im.onerror=()=>console.warn('Tenyo provisional art unavailable:',src);im.src=src;objectArt[id]=im;}
  const hizuki=new Image();hizuki.src='assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=tenyo-hd1';hizuki.onload=()=>paint();
  function drawVillageHizuki(x,y,scale){if(!hizuki.complete||!hizuki.naturalWidth)return;const row={d:0,u:1,r:2,l:3}[actor.dir]??0,col=Math.max(0,Math.min(2,actor.frame||0));const bodyScale=(58/232)*(scale/.56),foot=y+9*scale; c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(x,foot,31*scale,10*scale,0,0,Math.PI*2);c.fill();c.drawImage(hizuki,col*256,row*256,256,256,x-128*bodyScale,foot-248*bodyScale,256*bodyScale,256*bodyScale);c.restore()}
  function status(message){$('status').textContent=message||('現在の高さ：'+E.height(m,actor.x,actor.y).toFixed(1)+' 段'+(motion?' · 移動中':''));}
@@ -42,8 +44,15 @@
   if(o.collision==='blocked')for(let y=o.y;y<o.y+o.height;y++)for(let x=o.x;x<o.x+o.width;x++)m.occupiedTiles.add(x+','+y);
   const centerX=(o.x+o.width/2)*32,footY=(o.y+o.height)*32;
   const names={main_shrine:'本殿候補',left_auxiliary:'左社殿候補',right_auxiliary:'右社殿候補',torii:'鳥居候補',west_bridge:'西橋候補',east_bridge:'東橋候補'};
-  m.objects.push({id:o.id,x:centerX,y:footY,foot:footY,width:1,height:1,
-   render:(ctx,p)=>{ctx.save();ctx.globalAlpha=1;ctx.fillStyle='rgba(14,30,39,.88)';ctx.strokeStyle='#f3ce6c';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.font='12px sans-serif';const label=names[o.id]||o.id,w=ctx.measureText(label).width+12;ctx.fillStyle='rgba(14,30,39,.88)';ctx.fillRect(p.x-w/2,p.y-26,w,19);ctx.fillStyle='#fff0bd';ctx.fillText(label,p.x-w/2+6,p.y-12);ctx.restore()}
+  const image=objectArt[o.id];
+  // The source sprite is an existing field icon, NOT an approved full-scale shrine layer.
+  // Render at its native world scale while preserving independent authored contact cells.
+  const visualWidth=o.id==='torii'?64:64,visualHeight=64;
+  m.objects.push({id:o.id,x:centerX-visualWidth/2,y:footY,foot:footY,width:visualWidth,height:visualHeight,
+   render:(ctx,p)=>{ctx.save();ctx.globalAlpha=1;
+    if(image?.complete&&image.naturalWidth){const w=visualWidth*p.scale,h=visualHeight*p.scale;ctx.imageSmoothingEnabled=false;ctx.drawImage(image,p.x-w/2,p.y-h,w,h);}
+    ctx.fillStyle='rgba(14,30,39,.88)';ctx.strokeStyle='#f3ce6c';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.font='12px sans-serif';const label=names[o.id]||o.id,w=ctx.measureText(label).width+12;ctx.fillStyle='rgba(14,30,39,.88)';ctx.fillRect(p.x-w/2,p.y-26,w,19);ctx.fillStyle='#fff0bd';ctx.fillText(label,p.x-w/2+6,p.y-12);ctx.restore()}
   });
  }
  m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0,draw:drawVillageHizuki};const errors=E.validate(m);$('status').textContent='地形読み込み完了 / 高さ検査 '+errors.length+'件';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
