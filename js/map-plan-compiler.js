@@ -39,7 +39,7 @@ function compile(spec){
   }
  }
  const blocks=new Set(['forest','mountain','rockMountain','sea','river','wall']);
- const start=(spec.start||[.05,.5]).map((v,i)=>Math.round(Number(v)*(i?w-1:h-1)));
+ const start=(spec.start||[.05,.5]).map((v,i)=>Math.round(Number(v)*(i?h-1:w-1)));
  const end=(spec.end||[.95,.5]).map((v,i)=>Math.round(Number(v)*(i?w-1:h-1)));
  function walk(x,y){return inside(x,y)&&!blocks.has(tiles[y][x])}
  const seen=new Set(),q=[];if(walk(...start)){q.push(start);seen.add(start.join(','))}
