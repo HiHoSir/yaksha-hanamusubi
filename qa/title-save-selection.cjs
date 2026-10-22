@@ -16,9 +16,9 @@ const server=http.createServer((req,res)=>{
   const page=await browser.newPage({viewport:{width:393,height:667},isMobile:true,hasTouch:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
-   const common={saveVersion:14,worldRevision:119,area:'village',x:768,y:920,lv:3,quest:2,hp:70,maxhp:70,mp:12,maxmp:12,outfit:'normal'};
+   const common={saveVersion:14,worldRevision:119,area:'village',x:768,y:920,lv:3,quest:2,hp:70,maxhp:70,mp:12,maxmp:12,outfit:'normal',sound:false};
    localStorage.setItem('yaksha_beta_auto',JSON.stringify({...common,gold:777,lv:7}));
-   localStorage.setItem('yaksha_beta_slot1',JSON.stringify({...common,gold:111,lv:1}));
+   localStorage.setItem('yaksha_beta_slot1',JSON.stringify({...common,area:'field',x:1072,y:2192,gold:111,lv:1}));
    localStorage.setItem('yaksha_beta_slot3',JSON.stringify({...common,gold:333,lv:3}));
   });
   const address='http://127.0.0.1:'+server.address().port+'/';
@@ -28,6 +28,9 @@ const server=http.createServer((req,res)=>{
   await page.locator('#continueGame').tap();
   await page.locator('#titleLoadSelection').waitFor({state:'visible'});
   const diag=await page.evaluate(()=>({pickerHidden:document.querySelector('#titleLoadSelection').hidden,pickerDisplay:getComputedStyle(document.querySelector('#titleLoadSelection')).display,mainHidden:document.querySelector('#titleMainActions').hidden,titleShow:document.querySelector('#title').classList.contains('show'),buttonVisible:getComputedStyle(document.querySelector('#continueGame')).display,pickerRect:document.querySelector('#titleLoadSelection').getBoundingClientRect().toJSON()}));assert(await page.locator('#titleLoadSelection').isVisible(),'manual save picker must open '+JSON.stringify(diag)+' errors '+JSON.stringify(errors));
+  const titleAudio=await page.evaluate(()=>YK_AUDIO.diagnostics());
+  assert.equal(titleAudio.bufferKey,'','title save chooser must not start field BGM');
+  assert.equal(titleAudio.titleVisible,true,'audio must recognize title state');
   assert(!await page.locator('#titleMainActions').isVisible(),'main actions must hide while picking');
   assert.equal(await page.locator('#titleLoadSlots button').count(),3);
   assert.equal(await page.locator('#titleLoadSlots button').nth(1).isDisabled(),true,'empty manual slot cannot load');
@@ -41,11 +44,26 @@ const server=http.createServer((req,res)=>{
   await page.locator('#titleLoadSlots button').last().tap();
   await page.waitForFunction(()=>!document.querySelector('#title').classList.contains('show'));
   assert.equal(await page.evaluate(()=>window.gameState.gold),333,'chosen manual slot must be restored');
+  assert.equal(await page.evaluate(()=>window.gameState.sound),true,'legacy mute flag in a save must not override current device sound preference');
+  assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().area),'village','chosen game area should control BGM');
+  await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='village',null,{timeout:15000});
+  assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().contextState),'running','BGM must be playing after manual save load');
   assert.equal(await page.evaluate(()=>window.YK_SAVE.loadAuto().gold),777,'manual loading must not overwrite suspension');
   await page.reload();await ready();
   await page.locator('#resumeSuspend').tap();
   await page.waitForFunction(()=>!document.querySelector('#title').classList.contains('show'));
   assert.equal(await page.evaluate(()=>window.gameState.gold),777,'dedicated suspension button loads autosave');
+  assert.equal(await page.evaluate(()=>window.gameState.sound),true,'suspension must preserve device sound preference');
+  await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='village',null,{timeout:15000});
+  await page.reload();await ready();
+  await page.locator('#continueGame').tap();
+  await page.locator('#titleLoadSelection').waitFor({state:'visible'});
+  assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().bufferKey),'','field autosave must not begin on title picker');
+  await page.locator('#titleLoadSlots button').first().tap();
+  await page.waitForFunction(()=>!document.querySelector('#title').classList.contains('show'));
+  assert.equal(await page.evaluate(()=>window.gameState.area),'field','field slot should restore field area');
+  await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='field',null,{timeout:15000});
+  assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().contextState),'running','field music must start after slot confirmed');
   await page.reload();await ready();
   await page.evaluate(()=>{localStorage.removeItem('yaksha_beta_auto');localStorage.removeItem('yaksha_beta');});
   await page.locator('#resumeSuspend').tap();

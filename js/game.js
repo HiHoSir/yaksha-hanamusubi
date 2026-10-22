@@ -421,8 +421,17 @@ function stabilizeLoadedState(){
  }
  S.frame=1;return S;
 }
+// Sound is an iPhone/browser preference, not a property of the chosen save slot.
+// A legacy silent save must not unexpectedly mute a user-enabled session.
+const SOUND_SETTING_KEY="yaksha_beta_sound_preference";
+function preferredSound(){
+ try{const saved=localStorage.getItem(SOUND_SETTING_KEY);if(saved!==null)return saved==="1";}catch{}
+ return S.sound!==false;
+}
 function restoreState(v,persist=true){
+ const activeSound=preferredSound();
  state(v);
+ S.sound=activeSound;
  if(YK_DESTINATION_SCENES.blocked(S.area,S.x,S.y))[S.x,S.y]=YK_DESTINATION_SCENES.layouts[S.area].spawn.slice();
  // Old autosaves may point at a field position while the world module is still loading.
  // Restore data first; defer world-dependent stabilization until it is actually available.
@@ -919,7 +928,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.10";
+const GAME_JS_BUILD="16.1.11";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1890,7 +1899,11 @@ YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area===
 document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{if(!battle||battleLocked)return;selectCmd(i);battleConfirm()}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));
-$("soundToggle").addEventListener("change",e=>{S.sound=e.target.checked;YK_SAVE.auto(S);YK_AUDIO.syncBgm(S.area)});
+$("soundToggle").addEventListener("change",e=>{
+ S.sound=e.target.checked;
+ try{localStorage.setItem(SOUND_SETTING_KEY,S.sound?"1":"0");}catch{}
+ YK_SAVE.auto(S);YK_AUDIO.syncBgm(S.area);
+});
 syncEncounterDebug();
 setFieldCollisionDebugOff(fieldCollisionDebugOff);
 $("fieldCollisionDebugOff")?.addEventListener("change",e=>setFieldCollisionDebugOff(e.target.checked));
@@ -1900,7 +1913,7 @@ let startingNewGame=false;
 function startNewGame(){
  if(startingNewGame||!$("title").classList.contains("show"))return;
  startingNewGame=true;busy=true;YK_INPUT.stopAll();
- const sound=S.sound!==false;
+ const sound=preferredSound();
  YK_AUDIO.stopBgmForEncounter();
  let completed=false;
  const enterStory=()=>{
@@ -1908,7 +1921,7 @@ function startNewGame(){
   state(YK_SAVE.fresh());S.sound=sound;
   if(typeof YK_WORLD!=="undefined"&&YK_WORLD){S.area="village";S.x=768;S.y=760;S.dir="u";S.frame=1;S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;}
   YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;startingNewGame=false;
-  YK_AUDIO.endEncounterAudio();hud();
+  hud();YK_AUDIO.endEncounterAudio();
   message("里の異変を確かめよう。里長を探そう。　十字キーで移動 ／ Aで話す",4200);
  };
  if(window.YK_PROLOGUE)YK_PROLOGUE.play({sound,onComplete:enterStory});else enterStory();
@@ -1941,10 +1954,10 @@ YK_INPUT.tap($("newGame"),startNewGame);
    if(info)YK_INPUT.tap(button,()=>requestAnimationFrame(()=>{
     const saved=YK_SAVE.loadSlot(n);
     if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
-    restoreState(saved,false);YK_AUDIO.endEncounterAudio();
+    restoreState(saved,false);
     $("titleLoadSelection").hidden=true;
     $("title").classList.remove("show");
-    busy=false;hud();
+    busy=false;hud();YK_AUDIO.endEncounterAudio();
    }));
    list.append(button);
   }
@@ -1961,12 +1974,12 @@ YK_INPUT.tap($("newGame"),startNewGame);
  YK_INPUT.tap($("resumeSuspend"),()=>requestAnimationFrame(()=>{
   const saved=YK_SAVE.loadAuto();
   if(!saved){$("bootError").textContent="中断セーブがありません。";return;}
-  restoreState(saved);YK_AUDIO.endEncounterAudio();
+  restoreState(saved);
   $("titleLoadSelection").hidden=true;
   $("title").classList.remove("show");
-  busy=false;hud();
+  busy=false;hud();YK_AUDIO.endEncounterAudio();
  }));
-YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());YK_AUDIO.endEncounterAudio();$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{YK_AUDIO.stopForTitle();$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
+YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud();YK_AUDIO.endEncounterAudio()});YK_INPUT.tap($("goTitleBtn"),()=>{YK_AUDIO.stopForTitle();$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
  if(e.key==="Escape"){if(battle){e.preventDefault();battleBack();return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
