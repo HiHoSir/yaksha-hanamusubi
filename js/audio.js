@@ -25,6 +25,8 @@ window.YK_AUDIO=(()=>{
  const player=new Audio();player.preload="auto";player.playsInline=true;player.loop=false;
  let seeking=false,playPending=false,playError="",requestId=0,backgroundPaused=false;
  function soundOn(){return !window.gameState||window.gameState.sound!==false}
+ // No world BGM while the title/menu is visible, including the save picker.
+ function titleVisible(){return !!document.getElementById?.('title')?.classList.contains('show')}
  function zone(area){return area==="field"?"field":"village"}
  let bufferSource=null,bufferGain=null,bufferKey="",bufferLoading="",bufferError="",bufferGeneration=0,bufferStartedAt=0,bufferOffset=0;
  let resumeSerial=0,restorePending=false;
@@ -105,7 +107,7 @@ window.YK_AUDIO=(()=>{
    if(p?.then)p.then(()=>{
     if(serial!==resumeSerial||document.hidden||backgroundPaused)return;
     restorePending=false;traceAudio("resume-resolved");
-    if(bufferTest&&currentArea&&!bufferSource&&!bufferLoading)void playBuffer(currentArea);
+    if(bufferTest&&currentArea&&!bufferSource&&!bufferLoading&&!titleVisible())void playBuffer(currentArea);
    },e=>{bufferError="resume "+String(e?.name||e)});
   }catch(e){bufferError="resume "+String(e?.name||e)}
  }
@@ -131,7 +133,7 @@ window.YK_AUDIO=(()=>{
   }catch(e){bufferError="tap "+String(e)}
  }
  async function playBuffer(key){
-  if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn()||encounterMuted)return;
+  if(!bufferTest||!enabledByGesture||backgroundPaused||document.hidden||!soundOn()||encounterMuted||titleVisible())return;
   if(bufferKey===key&&bufferSource)return;
   if(bufferLoading===key)return;
   const gen=++bufferGeneration;bufferLoading=key;
@@ -144,7 +146,7 @@ window.YK_AUDIO=(()=>{
    let buffer=decodedBuffers[key];
    if(!buffer){const resp=await fetch(tracks[key].url);if(!resp.ok)throw Error("HTTP "+resp.status);
     buffer=await ctx.decodeAudioData(await resp.arrayBuffer());decodedBuffers[key]=buffer;}
-   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key||encounterMuted)return;
+   if(gen!==bufferGeneration||backgroundPaused||document.hidden||!soundOn()||currentArea!==key||encounterMuted||titleVisible())return;
    // Safari can accept start() on a suspended/interrupted context without
    // producing sound. Keep the decoded buffer and create the source only once
    // the context really reports running; resume callbacks/taps will retry.
@@ -171,7 +173,7 @@ window.YK_AUDIO=(()=>{
  }
  function attenuate(){if(bufferTest){if(bufferGain)bufferGain.gain.value=performance.now()<duckUntil?.23:.4;}else player.volume=performance.now()<duckUntil?.23:.4}
  function play(){
-  if(encounterMuted)return;
+  if(encounterMuted||titleVisible())return;
   if(bufferTest){if(currentArea)void playBuffer(currentArea);return}
   if(!soundOn()||!enabledByGesture||document.hidden||backgroundPaused||!currentArea||!player.paused||playPending)return;
   const id=requestId;playPending=true;
@@ -243,7 +245,7 @@ window.YK_AUDIO=(()=>{
   backgroundPaused=false;
   if(battleMusicActive&&soundOn()&&enabledByGesture){const p=battlePlayer.play();if(p?.catch)p.catch(e=>{lastError="battle resume "+String(e?.name||e)})}
   applySessionTest();
-  if(!enabledByGesture||!soundOn())return;
+  if(!enabledByGesture||!soundOn()||titleVisible())return;
   // Rebuild the stopped node only when the context can run, rather than marking
   // a silent source as active while Safari is still interrupted.
   restorePending=true;
@@ -253,7 +255,7 @@ window.YK_AUDIO=(()=>{
  // Safari sometimes resumes page visibility before its audio context can run again.
  // Preserve the decoded track and retry reconstruction only on a subsequent gesture.
  function recoverFromGesture(){
-  if(document.hidden||backgroundPaused||!soundOn()||!enabledByGesture)return;
+  if(document.hidden||backgroundPaused||!soundOn()||!enabledByGesture||titleVisible())return;
   applySessionTest();
   if(!bufferTest){play();return;}
   if(battleMusicActive){const p=battlePlayer.play();if(p?.catch)p.catch(()=>{});return;}
