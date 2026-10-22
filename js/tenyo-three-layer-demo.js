@@ -21,11 +21,18 @@ function draw(t){
  else{ctx.fillStyle='#75d5ef';ctx.fillRect(x-8,y-32,16,31);}
  // The separate transparent tree canopy is drawn above the hero, enabling leaf occlusion.
  if(layers[1].complete&&layers[1].naturalWidth)ctx.drawImage(layers[1],0,0,W,H);
- // Roof-only overlay from the same transparent shrine asset. Preserve exact alignment;
- // avoid bringing the shrine's lower structure in front of the actor or trees.
+ // Repaint ONLY the roof silhouette over trees; the shrine body stays in its original layer.
+ // Coordinates are measured in the original 1536x1024 shrine PNG and share its origin.
  if(layers[2].complete&&layers[2].naturalWidth){
-  const roofBottom=164; // source pixels in the 1536x1024 shrine layer
-  ctx.drawImage(layers[2],0,0,layers[2].naturalWidth,roofBottom,0,0,W,roofBottom*H/layers[2].naturalHeight);
+  const roofOutline=[
+   [595,0],[948,0],[948,137],[943,151],[931,158],[884,158],
+   [855,151],[827,138],[809,122],[790,113],[768,108],
+   [746,113],[728,127],[710,143],[690,156],[613,158],
+   [596,151],[589,140],[589,0]
+  ];
+  ctx.save();ctx.beginPath();
+  roofOutline.forEach(([px,py],i)=>{if(i===0)ctx.moveTo(px/2,py/2);else ctx.lineTo(px/2,py/2)});
+  ctx.closePath();ctx.clip();ctx.drawImage(layers[2],0,0,W,H);ctx.restore();
  }
  if(debug.checked){for(let row=0;row<16;row++)for(let col=0;col<24;col++){
  const type=TENYO_COLLISION.rows[row][col];
