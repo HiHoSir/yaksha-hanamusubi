@@ -21,6 +21,12 @@ function draw(t){
  else{ctx.fillStyle='#75d5ef';ctx.fillRect(x-8,y-32,16,31);}
  // The separate transparent tree canopy is drawn above the hero, enabling leaf occlusion.
  if(layers[1].complete&&layers[1].naturalWidth)ctx.drawImage(layers[1],0,0,W,H);
+ // Roof-only overlay from the same transparent shrine asset. Preserve exact alignment;
+ // avoid bringing the shrine's lower structure in front of the actor or trees.
+ if(layers[2].complete&&layers[2].naturalWidth){
+  const roofBottom=164; // source pixels in the 1536x1024 shrine layer
+  ctx.drawImage(layers[2],0,0,layers[2].naturalWidth,roofBottom,0,0,W,roofBottom*H/layers[2].naturalHeight);
+ }
  if(debug.checked){for(let row=0;row<16;row++)for(let col=0;col<24;col++){
  const type=TENYO_COLLISION.rows[row][col];
  ctx.fillStyle=type==='.'?'#35d26b55':type==='L'?'#f0ac3788':type==='S'?'#e6394677':'#1c2a3560';
