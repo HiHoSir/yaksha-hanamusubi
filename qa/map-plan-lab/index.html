@@ -13,7 +13,7 @@ const examples=[
 ];let current=null,idx=0;$('spec').value=JSON.stringify(examples[0],null,2);
 const palette={grass:'#95bf69',forest:'#43754c',mountain:'#677e70',rockMountain:'#7e7d74',river:'#58a5c4',sea:'#398cbd',sand:'#dfca8d',road:'#b99b6d',wood:'#c59b52',wall:'#4c4744'};
 $('example').onclick=()=>{$('spec').value=JSON.stringify(examples[++idx%examples.length],null,2);$('run').click()};
-$('run').onclick=()=>{try{current=YK_MAP_PLAN.compile(JSON.parse($('spec').value));const c=$('view');c.width=current.width*8;c.height=current.height*8;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;for(let y=0;y<current.height;y++)for(let x=0;x<current.width;x++){ctx.fillStyle=palette[current.tiles[y][x]]||'#f0f';ctx.fillRect(x*8,y*8,8,8);if(current.height[y][x]){ctx.fillStyle='#ffffff55';ctx.fillRect(x*8,y*8,8,2)}}
+$('run').onclick=()=>{try{current=YK_MAP_PLAN.compile(JSON.parse($('spec').value));const c=$('view');c.width=current.width*8;c.height=current.height*8;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;for(let y=0;y<current.height;y++)for(let x=0;x<current.width;x++){ctx.fillStyle=palette[current.tiles[y][x]]||'#f0f';ctx.fillRect(x*8,y*8,8,8);if(current.elevation[y][x]){ctx.fillStyle='#ffffff55';ctx.fillRect(x*8,y*8,8,2)}}
 for(const [pt,col] of [[current.start,'#fff'],[current.end,'#ffdf20']]){ctx.fillStyle=col;ctx.fillRect(pt[0]*8,pt[1]*8,8,8)}
 $('status').textContent=JSON.stringify(current.validation,null,2);
 $('prompt').textContent='構造データからの制作案：'+current.kind+'、'+current.width+'×'+current.height+'セル、1セル32ワールドpx。地形画像は平面的なトップダウン素材として制作し、既存ゲームの遠近投影は描画エンジン側に委ねる。高低差・当たり判定は画像に焼き込まず別データ。既存採用済みマップチップと視点・配色・ピクセル輪郭を統一。生成前にカメラ実装と既存素材を再検証。';
