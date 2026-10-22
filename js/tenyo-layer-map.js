@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const canvas=document.getElementById('map'),ctx=canvas.getContext('2d'),status=document.getElementById('status'),W=520,H=497;
-const image=new Image();image.src='assets/maps/tenyo/tenyo-concept-background.png';
+const image=new Image();image.src='assets/maps/tenyo/tenyo-concept-background.jpg?v=1';
 const hero=new Image();hero.src='assets/characters/hizuki/bluebob-v1/walk-atlas-256.png';
 const walk=[
 [[235,496],[285,496],[278,448],[244,448]],
