@@ -3,7 +3,7 @@
  let m=null,actor=null,art,motion=null,held=null,tour=[],raf=0;
  const directions={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
  function status(message){$('status').textContent=message||('現在の高さ：'+E.height(m,actor.x,actor.y).toFixed(1)+' 段'+(motion?' · 移動中':''));}
- function paint(){if(art&&m)V.render(c,m,art,actor,{rise:Number($('rise').value),grid:$('grid').checked,cliffMaterial:$('cliff').value});}
+ function paint(){if(!art||!m)return;const camera={x:actor.x,y:actor.y+210,preset:0};const result=V.render(c,m,art,actor,{camera,rise:Number($('rise').value),grid:$('grid').checked,cliffMaterial:$('cliff').value});if(result?.point){const p=result.point(actor.x,actor.y,E.height(m,actor.x,actor.y));if(p){c.save();c.fillStyle='rgba(7,20,24,.78)';c.fillRect(8,214,210,28);c.fillStyle='#fff';c.font='15px system-ui';c.fillText('緋月  ('+Math.floor(actor.x/32)+','+Math.floor(actor.y/32)+')',16,234);c.restore();}}}
  function step(dir){if(!art||!m||motion)return false;const [dx,dy]=directions[dir],x=Math.floor(actor.x/32),y=Math.floor(actor.y/32);actor.dir=dir;
   if(!E.connected(m,x,y,x+dx,y+dy)||!E.canMove(m,actor.x,actor.y,actor.x+dx*32,actor.y+dy*32)){status('段差・斜めの縁・水辺・障害物には入れません。坂道を通ってください。');paint();return false;}
   motion={x:actor.x,y:actor.y,nx:actor.x+dx*32,ny:actor.y+dy*32,start:performance.now()};schedule();return true;
@@ -32,6 +32,10 @@
  document.addEventListener('keydown',e=>{if(!keys[e.key]||['SELECT','INPUT'].includes(e.target.tagName))return;e.preventDefault();tour=[];held=keys[e.key];step(held);});
  document.addEventListener('keyup',e=>{if(keys[e.key]===held)held=null;});
  window.addEventListener('blur',()=>{held=null;tour=[];});document.addEventListener('visibilitychange',()=>{if(document.hidden){held=null;tour=[];}});
- Promise.all([V.load(),YK_TENYO_V3()]).then(([a,d])=>{art=a;m=d.tiles.map(row=>row.map(t=>t==='river'?'sea':t==='forest'?'forest':t==='grass'?'grass':'road'));m.heights=d.elevation;m.ramps=d.ramps;m.cornerCut=30;m.roads=new Set();m.objects=[];m.occupiedTiles=new Set();for(const o of d.objectContactCandidates){if(o.collision!=='blocked')continue;for(let y=o.y;y<o.y+o.height;y++)for(let x=o.x;x<o.x+o.width;x++)m.occupiedTiles.add(x+','+y)}m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0};const errors=E.validate(m);$('status').textContent='地形読み込み完了 / 高さ検査 '+errors.length+'件';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
+ Promise.all([V.load(),YK_TENYO_V3()]).then(([a,d])=>{art=a;m=d.tiles.map(row=>row.map(t=>t==='river'?'sea':t==='forest'?'forest':t==='grass'?'grass':'road'));m.heights=d.elevation;m.ramps=d.ramps;m.cornerCut=30;m.roads=new Set();m.objects=[];m.occupiedTiles=new Set();for(const o of d.objectContactCandidates){if(o.collision!=='blocked')continue;for(let y=o.y;y<o.y+o.height;y++)for(let x=o.x;x<o.x+o.width;x++)m.occupiedTiles.add(x+','+y);
+  const cx=(o.x+o.width/2)*32,foot=(o.y+o.height)*32;
+  if(/shrine|社殿|本殿/i.test(o.id||o.name||''))m.objects.push({kind:'shrine',x:cx,y:foot,foot,width:64,height:64});
+  else if(/torii|鳥居/i.test(o.id||o.name||''))m.objects.push({kind:'torii',x:cx,y:foot,foot,width:48,height:64});
+ }m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0};const errors=E.validate(m);$('status').textContent='地形読み込み完了 / 高さ検査 '+errors.length+'件';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
 })();
 
