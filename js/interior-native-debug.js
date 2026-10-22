@@ -1,6 +1,7 @@
 // Native indoor QA: reuse actual game canvas, actor renderer and movement; no iframe.
 window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  const W=10,H=8,S=32,ox=224,oy=272;
+ const authoredLayers=window.YK_TEAHOUSE_LAYERS;
  // The layout editor is the coordinate authority. Opt-in with ?indoorLayout=editor.
  // Its exported JSON is stored per room on the same origin; no image regeneration.
  const defaultTables=[[2,2],[6,2],[2,4],[6,4]];
@@ -170,16 +171,13 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
    // Existing village road tile, untouched: 2x2 quadrants of road.png.
    if(roadReady)g.drawImage(road,(x%2)*32,(y%2)*32,32,32,X,Y,32,32);
    else {g.fillStyle='#95734e';g.fillRect(X,Y,32,32)}
-   if(y>=1&&y<=5&&x>=1&&x<=8){
+   if((authoredLayers?.floorType(authoredLayers.get(x,y))==='wood')||(!authoredLayers&&y>=1&&y<=5&&x>=1&&x<=8)){
     // Real 32px atlas cells, repeating every four tiles in both axes.
     if(woodReady)g.drawImage(woodFloor,(x%4)*S,(y%4)*S,S,S,X,Y,S,S);
     else {g.fillStyle='#bc915c';g.fillRect(X,Y,S,S)}
 
    }
-   if((y===0||y===7||x===0||x===9)){
-    // DEBUG ART ONLY: wall contact cells. Real three-layer wall art pending.
-    g.fillStyle='#63472f';g.fillRect(X,Y,32,32);
-   }
+   // Wall occupancy is authored separately. No debug-colored wall rectangles in the floor layer.
   }
   // Walkable floor decorations are baked into the ground BEFORE perspective projection.
   for(const [tx,ty] of placements)for(const cx of [tx-1,tx+2]){
@@ -232,6 +230,16 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
    wallImage,wallEdges,fullBackWall,fullBackWallReady
   });
 
+  // Side and entrance wall segments use the same illustrated wall sprite and
+  // world-cell origin as the floor; no hand-aligned overlay or new texture.
+  if(authoredLayers){
+   for(const [tx,ty] of authoredLayers.wallCells()){
+    if(ty===0)continue; // The existing 3-part rear-wall compositor owns row zero.
+    const x=ox+tx*S,y=oy+(ty+1)*S;
+    objects.push({kind:'wall-side',x,foot:y-.01,width:S,height:96,
+     draw:(q,l,t,w,h)=>{q.imageSmoothingEnabled=false;q.drawImage(wallImage,l,t,w,h)}});
+   }
+  }
   for(const [x,y] of pillars)add('pillar',x*32,y*32,32,32,122);
   if(npcDraw)for(const resident of npcActors){
    objects.push({kind:'resident',x:resident.x-.5,foot:resident.y,width:1,height:1,
