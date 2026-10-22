@@ -1,0 +1,106 @@
+{
+  "version": 2,
+  "project": "yaksha-hanamusubi",
+  "room": "teahouse",
+  "tileSize": 32,
+  "width": 10,
+  "height": 8,
+  "tiles": [
+    [
+      "wall",
+      "wall",
+      "wall",
+      "wall",
+      "wall",
+      "wall",
+      "wall",
+      "wall",
+      "wall",
+      "wall"
+    ],
+    [
+      "wall",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wall"
+    ],
+    [
+      "wall",
+      "cushion",
+      "table",
+      "table",
+      "cushion",
+      "cushion",
+      "table",
+      "table",
+      "cushion",
+      "wall"
+    ],
+    [
+      "wall",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wood",
+      "wall"
+    ],
+    [
+      "wall",
+      "cushion",
+      "table",
+      "table",
+      "cushion",
+      "cushion",
+      "table",
+      "table",
+      "cushion",
+      "wall"
+    ],
+    [
+      "wall",
+      "raised",
+      "raised",
+      "raised",
+      "raised",
+      "raised",
+      "raised",
+      "raised",
+      "raised",
+      "wall"
+    ],
+    [
+      "wall",
+      "road",
+      "road",
+      "road",
+      "stone",
+      "stone",
+      "road",
+      "road",
+      "road",
+      "wall"
+    ],
+    [
+      "wall",
+      "wall",
+      "wall",
+      "road",
+      "entrance",
+      "entrance",
+      "road",
+      "wall",
+      "wall",
+      "wall"
+    ]
+  ]
+}
