@@ -1,7 +1,32 @@
 // Native indoor QA: reuse actual game canvas, actor renderer and movement; no iframe.
 window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  const W=10,H=8,S=32,ox=224,oy=272;
- const placements=[[2,2],[6,2],[2,4],[6,4]],pillars=[[0,0],[9,0],[0,7],[9,7]];
+ // The layout editor is the coordinate authority. Opt-in with ?indoorLayout=editor.
+ // Its exported JSON is stored per room on the same origin; no image regeneration.
+ const defaultTables=[[2,2],[6,2],[2,4],[6,4]];
+ const defaultPillars=[[0,0],[9,0],[0,7],[9,7]];
+ function readEditorLayout(){
+  if(new URLSearchParams(location.search).get('indoorLayout')!=='editor')return null;
+  try{
+   const raw=localStorage.getItem('yaksha.roomEditor.multi.v1.teahouse');
+   if(!raw)return null;
+   const data=JSON.parse(raw),tiles=data.tiles;
+   if(data.room!=='teahouse'||data.tileSize!==S||data.width!==W||data.height!==H||
+      !Array.isArray(tiles)||tiles.length!==H||!tiles.every(row=>Array.isArray(row)&&row.length===W))return null;
+   const tables=[],posts=[];
+   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    if(tiles[y][x]==='pillar')posts.push([x,y]);
+    if(tiles[y][x]==='table'){
+     // A 2x1 table is one entity, never a merged connected component.
+     if(x+1<W&&tiles[y][x+1]==='table'&&(x===0||tiles[y][x-1]!=='table'))tables.push([x,y]);
+    }
+   }
+   return {tiles,tables,posts};
+  }catch(e){console.warn('Indoor layout editor data rejected',e);return null}
+ }
+ const editorLayout=readEditorLayout();
+ const placements=editorLayout?editorLayout.tables:defaultTables;
+ const pillars=editorLayout?editorLayout.posts:defaultPillars;
  const sprites={};
  sprites.table=new Image();sprites.table.src='assets/interiors/prototypes/teahouse-table-dango-64x40.png?v=15.57.118';
  sprites.stone=new Image();sprites.stone.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAMAAACVQ462AAAAYFBMVEUAAACsqKO5saWrpZqhnZdnZFhVVUqCfXiUjYRyb3CcmphKSkLIv6tAQD2JjVOamGl7fEkwMC8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACOIIxyAAAAIHRSTlMA//////////////////////8AAAAAAAAAAAAAAAAAAFCw8GQAAAGKSURBVHja7VTblsMgCKwCXqMk//+zO6Cbbvu8j5nTNIowDEj7ej148J+QDBRmzjXXuo1VRP76iFQujvoVPZlINR4bkRhcFCMFArhkj4IBZwbzyDeJnFN1nucMhhjxLBqso1uOHUchBmI2myrpVtfntOgzWzgvjhX5hu8gCeFQ5BtlPdPW78l5Rzs/HAO5mm8uuilCKC5BIuXcGiI5/Lr7cjHEDznws0rmZCwbN5MgaAh61bZ2S2IqvGr6KMEZijMQNwgpwSQkPqApxrY8uNCqYqf1lt1ovoNHa4rGkylIUqLfFXy5qJ7Ku9g7P9zxWPxbClp4ah0gGFKFo2kwuyr73bOVaLm8cO8b29tPbWjs6iQZASQIRpCmlMMPaF05Pryyk21i5j0M2BEu7kyS+xqEIblK6lfOgpdUzLLNNZFPN7gLpkR6xQKNMxMcOxxl7FEcyeIvWCAKBBV8gBiw7k5rp+YAOxx6T9Kv949hjOs1rp5St28EDKAbi1lw2rvtkXes0AvG5x/owf/hB9+BEQQUwhK5AAAAAElFTkSuQmCC';
@@ -130,6 +155,10 @@ window.YK_INDOOR_NATIVE_DEBUG=(()=>{
  function blocked(x,y){
   const [cx,cy]=cell(x,y);
   if(cx<1||cx>8||cy<1||cy>6)return true;
+  if(editorLayout){
+   const type=editorLayout.tiles[cy]?.[cx];
+   return type==='wall'||type==='pillar'||type==='table'||type==='counter'||type==='hearth'||type==='weapon';
+  }
   return placements.some(([tx,ty])=>cy===ty&&cx>=tx&&cx<tx+2);
  }
  function floor(){
