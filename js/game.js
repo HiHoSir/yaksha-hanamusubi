@@ -1921,7 +1921,7 @@ function startNewGame(){
   state(YK_SAVE.fresh());S.sound=sound;
   if(typeof YK_WORLD!=="undefined"&&YK_WORLD){S.area="village";S.x=768;S.y=760;S.dir="u";S.frame=1;S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;}
   YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;startingNewGame=false;
-  YK_AUDIO.endEncounterAudio();hud();
+  hud();YK_AUDIO.endEncounterAudio();
   message("里の異変を確かめよう。里長を探そう。　十字キーで移動 ／ Aで話す",4200);
  };
  if(window.YK_PROLOGUE)YK_PROLOGUE.play({sound,onComplete:enterStory});else enterStory();
@@ -1954,10 +1954,10 @@ YK_INPUT.tap($("newGame"),startNewGame);
    if(info)YK_INPUT.tap(button,()=>requestAnimationFrame(()=>{
     const saved=YK_SAVE.loadSlot(n);
     if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
-    restoreState(saved,false);YK_AUDIO.endEncounterAudio();
+    restoreState(saved,false);
     $("titleLoadSelection").hidden=true;
     $("title").classList.remove("show");
-    busy=false;hud();
+    busy=false;hud();YK_AUDIO.endEncounterAudio();
    }));
    list.append(button);
   }
@@ -1974,12 +1974,12 @@ YK_INPUT.tap($("newGame"),startNewGame);
  YK_INPUT.tap($("resumeSuspend"),()=>requestAnimationFrame(()=>{
   const saved=YK_SAVE.loadAuto();
   if(!saved){$("bootError").textContent="中断セーブがありません。";return;}
-  restoreState(saved);YK_AUDIO.endEncounterAudio();
+  restoreState(saved);
   $("titleLoadSelection").hidden=true;
   $("title").classList.remove("show");
-  busy=false;hud();
+  busy=false;hud();YK_AUDIO.endEncounterAudio();
  }));
-YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());YK_AUDIO.endEncounterAudio();$("gameover").classList.remove("show");busy=false;hud()});YK_INPUT.tap($("goTitleBtn"),()=>{YK_AUDIO.stopForTitle();$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
+YK_INPUT.tap($("retryBtn"),()=>{restoreState(YK_SAVE.loadAuto()||YK_SAVE.fresh());$("gameover").classList.remove("show");busy=false;hud();YK_AUDIO.endEncounterAudio()});YK_INPUT.tap($("goTitleBtn"),()=>{YK_AUDIO.stopForTitle();$("gameover").classList.remove("show");$("title").classList.add("show");busy=true});
 document.addEventListener("keydown",e=>{
  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
  if(e.key==="Escape"){if(battle){e.preventDefault();battleBack();return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){e.preventDefault();close(id);return;}}}
