@@ -1411,8 +1411,9 @@ function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.ma
 function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
 function collision(x,y,ignoreNPC=false){if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
 function exitArea(){if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
+let fieldEntryWaiting=false;
 function move(dx,dy,dir){
- if(busy)return;
+ if(busy||fieldEntryWaiting)return;
  if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
  const fieldStyle=["field","village","teahouse","osumiHome","villageRoom"].includes(S.area);
  if(fieldStyle&&(fieldMotion||dx&&dy))return;
@@ -1454,7 +1455,15 @@ function move(dx,dy,dir){
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  const contact=from==="field"?YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y):null;
- if(contact){enterWorldPlace(contact);}
+ if(contact){
+  // Complete the already-started field walking step before the fade begins.
+  // Otherwise the screen darkens immediately and the player never sees the overlap.
+  fieldEntryWaiting=true;
+  setTimeout(()=>{
+   fieldEntryWaiting=false;
+   if(S.area==="field"&&!busy)enterWorldPlace(contact);
+  },fieldMotion?.duration||YK_MOVEMENT.duration("field"));
+ }
  else if(ex&&ex!==S.area){requestAreaExit(ex);}
  else encounter();
  hud(!fieldStyle);if(S.walk%10===0)YK_SAVE.auto(S)
