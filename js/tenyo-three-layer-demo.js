@@ -4,15 +4,28 @@ const status=document.getElementById('status'),debug=document.getElementById('de
 const W=768,H=512,paths=['assets/maps/tenyo/layer-background.webp','assets/maps/tenyo/layer-trees.webp','assets/maps/tenyo/layer-shrine.webp'];
 const layers=paths.map(src=>{const im=new Image();im.src=src+'?v=2';return im});
 const hero=new Image();hero.src='assets/characters/hizuki/bluebob-v1/walk-atlas-256.png';
-let x=384,y=492,dir=0,frame=0,held=null,elapsed=0,last=0,walkTime=0;
-const speed=78; // displayed pixels per second; 32px = one world tile
+let col=11,row=15,x=col*32+16,y=row*32+16,dir=0,frame=0,held=null,last=0;
+let step=null,repeatAt=0;
+const STEP_MS=190; // exactly one 32px cell per completed step
+function tryStep(dx,dy,now){
+ if(step||!held)return;
+ const nextCol=col+dx,nextRow=row+dy;
+ if(!canWalkTenyo(nextCol*64+32,nextRow*64+32)){repeatAt=now+STEP_MS;return;}
+ step={fromX:x,fromY:y,toX:nextCol*32+16,toY:nextRow*32+16,start:now};
+ col=nextCol;row=nextRow;repeatAt=now+STEP_MS;
+}
+function setDirection(direction){held=direction;repeatAt=0;}
 function draw(t){
- const dt=Math.min(0.05,(t-(last||t))/1000);last=t;
- if(held){const [dx,dy]=held;const next=moveTenyoFootpoint(x*2,y*2,dx*speed*dt*2,dy*speed*dt*2);
-  const moving=Math.abs(next.x-x*2)+Math.abs(next.y-y*2)>0.001;
-  x=next.x/2;y=next.y/2;walkTime+=moving?dt:0;frame=moving?1+Math.floor(walkTime*6)%2:0;
-  dir=dy>0?0:dy<0?1:dx>0?2:3;
+ last=t;
+ if(held&&!step&&t>=repeatAt)tryStep(held[0],held[1],t);
+ if(step){
+  const progress=Math.min(1,(t-step.start)/STEP_MS);
+  x=step.fromX+(step.toX-step.fromX)*progress;
+  y=step.fromY+(step.toY-step.fromY)*progress;
+  frame=1+Math.floor(progress*4)%2;
+  if(progress>=1){x=step.toX;y=step.toY;step=null;frame=0;}
  }else frame=0;
+ if(held){const [dx,dy]=held;dir=dy>0?0:dy<0?1:dx>0?2:3;}
  ctx.clearRect(0,0,W,H);
  if(layers[0].complete&&layers[0].naturalWidth)ctx.drawImage(layers[0],0,0,W,H);
  if(layers[2].complete&&layers[2].naturalWidth)ctx.drawImage(layers[2],0,0,W,H);
@@ -39,17 +52,17 @@ function draw(t){
  ctx.fillStyle=type==='.'?'#35d26b55':type==='L'?'#f0ac3788':type==='S'?'#e6394677':'#1c2a3560';
  ctx.fillRect(col*32,row*32,32,32);ctx.strokeStyle='#ffffff66';ctx.strokeRect(col*32,row*32,32,32);
  }}
- const tile=tenyoCellAt(x*2,y*2);
- status.textContent='足元 '+Math.floor(x/32)+','+Math.floor(y/32)+' / '+(tile==='L'?'葉の縁（進入許可）':tile==='.'?'歩行可能':'歩行不可');
+ const tile=tenyoCellAt(col*64+32,row*64+32);
+ status.textContent='マス '+col+','+row+' / '+(tile==='L'?'葉の縁（進入許可）':tile==='.'?'歩行可能':'歩行不可');
  requestAnimationFrame(draw);
 }
 for(const button of document.querySelectorAll('[data-dir]')){
  const direction=button.dataset.dir.split(',').map(Number);
- button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);held=direction});
+ button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);setDirection(direction)});
  for(const name of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(name,()=>held=null);
 }
 const keys={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
-document.addEventListener('keydown',e=>{if(keys[e.key]){e.preventDefault();held=keys[e.key]}});
+document.addEventListener('keydown',e=>{if(keys[e.key]){e.preventDefault();if(!held||held!==keys[e.key])setDirection(keys[e.key])}});
 document.addEventListener('keyup',e=>{if(keys[e.key])held=null});
 window.addEventListener('blur',()=>held=null);
 requestAnimationFrame(draw);
