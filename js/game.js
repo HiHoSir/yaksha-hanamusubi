@@ -1350,7 +1350,7 @@ function action(){
   const stop=YK_WORLD.restStops.find(o=>Math.hypot(S.x-o.point[0],S.y-o.point[1])<=48);
   if(stop){enterFieldRestStop(stop);return true;}
  }
- if(S.area==="field"){const k=YK_WORLD.near(S.x,S.y);if(k){enterWorldPlace(k);return true;}if(inspectObject())return true;openCommands();return true;}
+ if(S.area==="field"){const k=YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y);if(k){enterWorldPlace(k);return true;}if(inspectObject())return true;openCommands();return true;}
  if(openNearbyChest())return true;
  if(villageDoorAction())return true;
  if(S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom"){
@@ -1452,12 +1452,10 @@ function move(dx,dy,dir){
  fieldLadderMotion=ladder?{from:YK_ELEVATION.height(YK_WORLD.mapData,startX,startY),to:YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y)}:null;
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
- const from=S.area,ex=exitArea();
- if(ex&&ex!==S.area){
-   fieldMotion=null;
-   YK_AREA_TRANSITIONS.apply(S,ex,YK_WORLD,D.areas);
-   walkPhase=0;YK_INPUT.stopAll();message(D.areas[ex].name);YK_SAVE.auto(S)
- }else encounter();
+ const from=S.area,ex=exitArea();\n const contact=from==="field"?YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y):null;
+ if(contact){enterWorldPlace(contact);}
+ else if(ex&&ex!==S.area){requestAreaExit(ex);}
+ else encounter();
  hud(!fieldStyle);if(S.walk%10===0)YK_SAVE.auto(S)
 }function renderBattlePartyCards(){
  const root=$("battlePartyCards");if(!root)return;
@@ -1825,14 +1823,70 @@ function worldHint(text){
  el.textContent=text;$("stage").appendChild(el);
 }
 
+let areaTransitionPending=false;
+function waitAreaAssets(destination){
+ const images=[IMG[destination],destination==='field'?HIZUKI_FIELD_SD:null].filter(Boolean);
+ return Promise.all(images.map(im=>new Promise((resolve,reject)=>{
+  if(im.complete){im.naturalWidth?resolve():reject(new Error('画像を読み込めません'));return;}
+  im.addEventListener('load',resolve,{once:true});
+  im.addEventListener('error',()=>reject(new Error('画像を読み込めません')),{once:true});
+ })));
+}
+async function transitionArea(destination,commit){
+ if(areaTransitionPending||busy||!destination)return false;
+ areaTransitionPending=true;busy=true;YK_INPUT.stopAll();fieldMotion=null;fieldLadderMotion=null;
+ const veil=document.createElement('div');
+ veil.setAttribute('role','status');veil.setAttribute('aria-label','地図を読み込んでいます');
+ Object.assign(veil.style,{position:'fixed',inset:'0',zIndex:'110',background:'#090d14',opacity:'0',transition:'opacity 400ms ease',display:'grid',placeItems:'center',pointerEvents:'auto'});
+ const canvas=document.createElement('canvas');canvas.width=144;canvas.height=144;
+ canvas.style.cssText='width:144px;height:144px;image-rendering:pixelated';
+ const label=document.createElement('div');label.textContent='旅の支度中…';label.style.cssText='color:#f2e7ce;text-align:center;font:14px sans-serif;letter-spacing:.15em';
+ const stack=document.createElement('div');stack.append(canvas,label);veil.append(stack);document.body.append(veil);
+ let running=true;
+ const started=performance.now();
+ function paint(t){
+  if(!running)return;
+  const c=canvas.getContext('2d');c.clearRect(0,0,144,144);
+  const a=(t-started)/270,dirs=['d','l','u','r'];
+  const direction=dirs[Math.floor(a/(Math.PI/2))%4];
+  const x=72+Math.cos(a)*24,y=78+Math.sin(a)*12;
+  try{hero(c,x,y,direction,Math.floor(t/130)%3,S.outfit,1);}catch(_){c.fillStyle='#f2e7ce';c.fillRect(x-6,y-14,12,20);}
+  requestAnimationFrame(paint);
+ }
+ requestAnimationFrame(paint);
+ requestAnimationFrame(()=>{veil.style.opacity='1';});
+ try{
+  await new Promise(resolve=>setTimeout(resolve,420));
+  await waitAreaAssets(destination);
+  commit();
+  map();hud();
+  veil.style.opacity='0';
+  await new Promise(resolve=>setTimeout(resolve,420));
+  return true;
+ }catch(error){
+  veil.style.opacity='0';
+  message('地図の読み込みに失敗しました。もう一度お試しください。',2500);
+  return false;
+ }finally{
+  running=false;veil.remove();busy=false;areaTransitionPending=false;
+ }
+}
+function requestAreaExit(destination){
+ return transitionArea(destination,()=>{
+  YK_AREA_TRANSITIONS.apply(S,destination,YK_WORLD,D.areas);
+  walkPhase=0;YK_SAVE.auto(S);
+ });
+}
 function enterWorldPlace(k){
  const p=YK_WORLD.places[k];if(!p)return;
- // Discovery is geographical; story progression is controlled by event conditions.
- fieldMotion=null;S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
- [S.x,S.y]=k==="village"?YK_SETTLEMENT.spawn.slice():(YK_DESTINATION_SCENES.layouts[k]?.spawn||[70,430]).slice();
- S.dir=k==="village"?"u":"r";S.frame=1;walkPhase=0;
- S.encounterSteps=0;S.encounterGrace=D.areas[k].grace||9;
- YK_INPUT.stopAll();YK_SAVE.auto(S);message(p.name);hud();
+ // Preserve the existing spawn/save semantics; only commit after destination assets load.
+ return transitionArea(k,()=>{
+  S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
+  [S.x,S.y]=k==="village"?YK_SETTLEMENT.spawn.slice():(YK_DESTINATION_SCENES.layouts[k]?.spawn||[70,430]).slice();
+  S.dir=k==="village"?"u":"r";S.frame=1;walkPhase=0;
+  S.encounterSteps=0;S.encounterGrace=D.areas[k].grace||9;
+  YK_SAVE.auto(S);
+ });
 }
 function drawWorldPins(c,labels){
  for(const [k,p] of Object.entries(YK_WORLD.places)){
