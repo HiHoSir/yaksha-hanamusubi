@@ -107,8 +107,8 @@ window.YK_ELEVATION_VIEW=(()=>{
  function render(c,m,art,actor,options={}){
   const rise=options.rise||20,zoom=1.4,camera=options.camera||{x:256,y:options.cameraY||400,preset:0},items=[];
   const bounds=[];for(const sy of [120,240,400,700])for(const sx of [-160,800])bounds.push(YK_LANDSCAPE.unproject(sx,sy,camera,zoom));
-  const minX=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.x))/32)-2),maxX=Math.min(m[0].length-1,Math.ceil(Math.max(...bounds.map(p=>p.x))/32)+2);
-  const minY=Math.max(0,Math.floor(Math.min(...bounds.map(p=>p.y))/32)-2),maxY=Math.min(m.length-1,Math.ceil(Math.max(...bounds.map(p=>p.y))/32)+2);
+  const minX=Math.max(0,Math.floor((options.orthographic?camera.x-640/1.4:Math.min(...bounds.map(p=>p.x)))/32)-2),maxX=Math.min(m[0].length-1,Math.ceil((options.orthographic?camera.x+640/1.4:Math.max(...bounds.map(p=>p.x)))/32)+2);
+  const minY=Math.max(0,Math.floor((options.orthographic?camera.y-544/1.4:Math.min(...bounds.map(p=>p.y)))/32)-2),maxY=Math.min(m.length-1,Math.ceil((options.orthographic?camera.y+544/1.4:Math.max(...bounds.map(p=>p.y)))/32)+2);
   // Exact world-space vertices are projected repeatedly by ground strips,
   // cliff faces and shoreline overlays. Keep this cache within one render:
   // camera movement can never reuse coordinates from an earlier frame.
@@ -116,7 +116,7 @@ window.YK_ELEVATION_VIEW=(()=>{
   const point=(x,y,h)=>{
    const key=x+','+y+','+h;
    if(projectedVertices.has(key))return projectedVertices.get(key);
-   const p=YK_LANDSCAPE.project(x,y,camera,zoom);
+   const p=options.orthographic?{x:320+(x-camera.x)*.72,y:340+(y-camera.y)*.72,scale:.72}:YK_LANDSCAPE.project(x,y,camera,zoom);
    const projected=p&&{...p,y:p.y-h*rise*p.scale};
    projectedVertices.set(key,projected);
    return projected;
