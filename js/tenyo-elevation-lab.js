@@ -2,8 +2,34 @@
  const $=id=>document.getElementById(id),E=YK_ELEVATION,V=YK_ELEVATION_VIEW,c=$('terrain').getContext('2d');
  let m=null,actor=null,art,motion=null,held=null,tour=[],raf=0;
  const directions={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
- const objectArt={};const objectSources={main_shrine:'assets/field-map-objects-v3/shrine.png',torii:'assets/field-map-objects-v3/torii.png',left_auxiliary:'assets/field-map-objects-v3/shrine.png',right_auxiliary:'assets/field-map-objects-v3/shrine.png'};
- for(const [id,src] of Object.entries(objectSources)){const im=new Image();im.onload=()=>paint();im.onerror=()=>{console.warn('Tenyo provisional art unavailable:',src);if(m)status('画像読込失敗: '+src);};im.src=src;objectArt[id]=im;}
+ // Shrine architecture is drawn at world footprint scale, not with 2x2 field-map icons.
+ function shrineArchitecture(ctx,p,kind,worldWidth){
+  const w=worldWidth*p.scale,h=(kind==='torii'?105:kind==='main_shrine'?175:118)*p.scale;
+  ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+  const x=p.x,y=p.y;
+  if(kind==='torii'){
+   const half=w*.40,top=y-h*.95;
+   ctx.fillStyle='#433f3c';ctx.fillRect(x-half-9*p.scale,y-12*p.scale,18*p.scale,12*p.scale);ctx.fillRect(x+half-9*p.scale,y-12*p.scale,18*p.scale,12*p.scale);
+   ctx.fillStyle='#b53b2b';ctx.fillRect(x-half-5*p.scale,top+14*p.scale,10*p.scale,h-14*p.scale);ctx.fillRect(x+half-5*p.scale,top+14*p.scale,10*p.scale,h-14*p.scale);
+   ctx.fillStyle='#c64b36';ctx.fillRect(x-half-14*p.scale,top+21*p.scale,w*.8+28*p.scale,10*p.scale);
+   ctx.fillStyle='#352d37';ctx.beginPath();ctx.moveTo(x-half-22*p.scale,top+10*p.scale);ctx.quadraticCurveTo(x,top+24*p.scale,x+half+22*p.scale,top+10*p.scale);ctx.lineTo(x+half+19*p.scale,top+2*p.scale);ctx.quadraticCurveTo(x,top+16*p.scale,x-half-19*p.scale,top+2*p.scale);ctx.fill();
+   ctx.fillStyle='#f1cf81';ctx.fillRect(x-2*p.scale,top+23*p.scale,4*p.scale,19*p.scale);
+  }else if(kind==='main_shrine'||kind==='left_auxiliary'||kind==='right_auxiliary'){
+   const roofTop=y-h,base=y-15*p.scale,buildingW=w*.88;
+   ctx.fillStyle='#706d66';ctx.fillRect(x-w*.5,base,w,15*p.scale);
+   ctx.fillStyle='#723f35';ctx.fillRect(x-buildingW/2,y-h*.61,buildingW,h*.61-15*p.scale);
+   ctx.fillStyle='#c26b4a';
+   for(let i=-2;i<=2;i++){let px=x+i*buildingW/5;ctx.fillRect(px-3*p.scale,y-h*.62,6*p.scale,h*.62-15*p.scale);}
+   ctx.fillStyle='#342d36';ctx.beginPath();ctx.moveTo(x-w*.58,y-h*.62);ctx.lineTo(x-w*.36,y-h*.88);ctx.lineTo(x,roofTop);ctx.lineTo(x+w*.36,y-h*.88);ctx.lineTo(x+w*.58,y-h*.62);ctx.lineTo(x+w*.5,y-h*.56);ctx.lineTo(x,y-h*.85);ctx.lineTo(x-w*.5,y-h*.56);ctx.fill();
+   ctx.strokeStyle='#b47d50';ctx.lineWidth=4*p.scale;ctx.beginPath();ctx.moveTo(x-w*.52,y-h*.60);ctx.lineTo(x,y-h*.86);ctx.lineTo(x+w*.52,y-h*.60);ctx.stroke();
+   ctx.fillStyle='#241f28';ctx.fillRect(x-16*p.scale,base-46*p.scale,32*p.scale,46*p.scale);
+   ctx.strokeStyle='#b98b59';ctx.lineWidth=2*p.scale;ctx.strokeRect(x-16*p.scale,base-46*p.scale,32*p.scale,46*p.scale);
+  }else if(kind==='west_bridge'||kind==='east_bridge'){
+   ctx.strokeStyle='#a64034';ctx.lineWidth=9*p.scale;ctx.beginPath();ctx.moveTo(x-w/2,y-6*p.scale);ctx.quadraticCurveTo(x,y-54*p.scale,x+w/2,y-6*p.scale);ctx.stroke();
+   ctx.strokeStyle='#e0a276';ctx.lineWidth=3*p.scale;ctx.beginPath();ctx.moveTo(x-w/2,y-19*p.scale);ctx.quadraticCurveTo(x,y-69*p.scale,x+w/2,y-19*p.scale);ctx.stroke();
+  }
+  ctx.restore();
+ }
  const hizuki=new Image();hizuki.src='assets/characters/hizuki/bluebob-v1/walk-atlas-256.png?v=tenyo-hd1';hizuki.onload=()=>paint();
  function drawVillageHizuki(x,y,scale){if(!hizuki.complete||!hizuki.naturalWidth)return;const row={d:0,u:1,r:2,l:3}[actor.dir]??0,col=Math.max(0,Math.min(2,actor.frame||0));const bodyScale=(58/232)*(scale/.56),foot=y+9*scale; c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(x,foot,31*scale,10*scale,0,0,Math.PI*2);c.fill();c.drawImage(hizuki,col*256,row*256,256,256,x-128*bodyScale,foot-248*bodyScale,256*bodyScale,256*bodyScale);c.restore()}
  function status(message){$('status').textContent=message||('現在の高さ：'+E.height(m,actor.x,actor.y).toFixed(1)+' 段'+(motion?' · 移動中':''));}
@@ -44,17 +70,12 @@
   if(o.collision==='blocked')for(let y=o.y;y<o.y+o.height;y++)for(let x=o.x;x<o.x+o.width;x++)m.occupiedTiles.add(x+','+y);
   const centerX=(o.x+o.width/2)*32,footY=(o.y+o.height)*32;
   const names={main_shrine:'本殿候補',left_auxiliary:'左社殿候補',right_auxiliary:'右社殿候補',torii:'鳥居候補',west_bridge:'西橋候補',east_bridge:'東橋候補'};
-  const image=objectArt[o.id];
-  // The source sprite is an existing field icon, NOT an approved full-scale shrine layer.
-  // Render at its native world scale while preserving independent authored contact cells.
-  const visualWidth=64,visualHeight=64;
+  // World width follows authored footprint; depth and collision remain separate.
+  const visualWidth=o.width*32,visualHeight=(o.id==='torii'?120:o.id.includes('bridge')?90:210);
   m.objects.push({id:o.id,x:centerX-visualWidth/2,y:footY,foot:footY,width:visualWidth,height:visualHeight,
-   render:(ctx,p)=>{ctx.save();ctx.globalAlpha=1;
-    if(image?.complete&&image.naturalWidth){const w=visualWidth*p.scale,h=visualHeight*p.scale;ctx.imageSmoothingEnabled=false;ctx.drawImage(image,p.x-w/2,p.y-h,w,h);}
-    ctx.fillStyle='rgba(14,30,39,.88)';ctx.strokeStyle='#f3ce6c';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.font='12px sans-serif';const label=names[o.id]||o.id,w=ctx.measureText(label).width+12;ctx.fillStyle='rgba(14,30,39,.88)';ctx.fillRect(p.x-w/2,p.y-26,w,19);ctx.fillStyle='#fff0bd';ctx.fillText(label,p.x-w/2+6,p.y-12);ctx.restore()}
+   render:(ctx,p)=>shrineArchitecture(ctx,p,o.id,visualWidth)
   });
  }
- m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0,draw:drawVillageHizuki};const errors=E.validate(m);const candidateCount=m.objects.length,imagesReady=Object.entries(objectArt).filter(([k,v])=>v.complete&&v.naturalWidth).length; $('status').textContent='地形検査 '+errors.length+'件 / 配置候補 '+candidateCount+'件 / 既存画像 '+imagesReady+'/'+Object.keys(objectArt).length+'枚（小型仮素材）';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
+ m.spawn=[d.spawn[0]*32+16,d.spawn[1]*32+16];m.goal=d.mainShrineApproach;E.prepare(m);actor={x:m.spawn[0],y:m.spawn[1],dir:'u',frame:0,draw:drawVillageHizuki};const errors=E.validate(m);const candidateCount=m.objects.length; $('status').textContent='地形検査 '+errors.length+'件 / 専用描画 '+candidateCount+'件（社殿・鳥居・橋）';$('tour').disabled=false;paint();}).catch(err=>status('素材・マップを読み込めませんでした：'+err.message));
 })();
 
