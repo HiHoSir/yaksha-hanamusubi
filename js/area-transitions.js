@@ -16,7 +16,7 @@ window.YK_AREA_TRANSITIONS=(()=>{
   for(const [id,place] of Object.entries(world?.places||{})){
    const objects=world.mapData?.decorations||[];
    const matches=objects.filter(o=>o.destination===id||o.placeId===id||o.id===id);
-   if(matches.some(o=>o.contactTiles?.some(([cx,cy])=>cx===tx&&cy===ty)))return id;
+   if(matches.some(o=>o.contactTiles?.some(([cx,cy])=>{\n    if(cx===tx&&cy===ty)return true;\n    // Solid landmarks cannot be stood on: entering an adjacent walkable cell counts as contact.\n    return o.occupiedTiles?.some(([ox,oy])=>ox===cx&&oy===cy)&&Math.abs(cx-tx)+Math.abs(cy-ty)===1;\n   })))return id;
    if(!matches.length&&Math.floor(place.point[0]/32)===tx&&Math.floor(place.point[1]/32)===ty)return id;
   }
   return null;
