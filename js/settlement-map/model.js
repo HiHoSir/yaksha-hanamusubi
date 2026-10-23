@@ -1,0 +1,30 @@
+((root,f)=>{const api=f(typeof module==='object'&&module.exports?require('./catalog.js'):root.SMCatalog);if(typeof module==='object'&&module.exports)module.exports=api;else root.SMModel=api;})(globalThis,C=>{
+'use strict';const clone=v=>JSON.parse(JSON.stringify(v)),key=p=>p.join(','),inside=(m,p)=>Array.isArray(p)&&p.length===2&&p.every(Number.isInteger)&&p[0]>=0&&p[1]>=0&&p[0]<m.width&&p[1]<m.height;
+function createMap(width=17,height=15){const m={version:1,tileSize:32,width,height,background:null,terrainBlocks:[],terrainPassages:[],objects:[],entrances:[],spawn:[0,0]};return checked(m);}
+function validate(m){const errors=[];if(!m||typeof m!=='object'||Array.isArray(m))return ['地図の形式が違います'];
+if(m.version!==1||m.tileSize!==32)errors.push('version=1・32px形式が必要です');
+if(!Number.isInteger(m.width)||!Number.isInteger(m.height)||m.width<4||m.width>96||m.height<4||m.height>96)return ['地図寸法は4〜96の整数です'];
+const cells=(a,label)=>{if(!Array.isArray(a)||a.length>9216){errors.push(label+'の形式が違います');return;}const seen=new Set();for(const p of a){if(!inside(m,p))errors.push(label+'が範囲外・非整数です');else if(seen.has(key(p)))errors.push(label+'が重複しています');else seen.add(key(p));}};
+cells(m.terrainBlocks,'地形判定');cells(m.terrainPassages,'明示通行セル');if(!inside(m,m.spawn))errors.push('出現点が範囲外です');
+if(m.background!==null){if(typeof m.background!=='string'||m.background.length>6000000||!/^data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/]*={0,2}$/.test(m.background))errors.push('背景は6MB未満のPNGデータが必要です');}
+if(!Array.isArray(m.objects)||m.objects.length>2000||!Array.isArray(m.entrances)||m.entrances.length>2000)return [...errors,'オブジェクト/入口の形式または数が不正です'];
+const ids=new Set(),blocked=new Set();for(const o of m.objects){if(!o||typeof o!=='object'){errors.push('物体が不正です');continue;}const t=C.byId[o.templateId];if(!t){errors.push('未知の素材です');continue;}if(typeof o.id!=='string'||!o.id||o.id.length>100||ids.has(o.id))errors.push('物体IDが不正・重複です');ids.add(o.id);
+if(!Number.isInteger(o.x)||!Number.isInteger(o.y)||o.x<0||o.y<0||o.x+t.displayCells[0]>m.width||o.y+t.displayCells[1]>m.height)errors.push('物体の表示範囲が地図外です');
+cells(o.occupiedTiles,'物体占有');if(Array.isArray(o.occupiedTiles))for(const p of o.occupiedTiles){if(!inside(m,p))continue;const k=key(p);if(blocked.has(k))errors.push('占有マスが重複しています');blocked.add(k);}}
+const eids=new Set();for(const e of m.entrances){if(!e||typeof e.id!=='string'||eids.has(e.id)||!inside(m,e.marker)||!inside(m,e.approach))errors.push('入口IDまたは座標が不正です');else eids.add(e.id);if(e?.objectId&&!ids.has(e.objectId))errors.push('入口の関連物体が存在しません');}return [...new Set(errors)];}
+function checked(m){const e=validate(m);if(e.length)throw Error(e.join('／'));return m;}
+function collision(m){const s=new Set(m.terrainBlocks.map(key));for(const p of m.terrainPassages)s.delete(key(p));for(const o of m.objects)for(const p of o.occupiedTiles)s.add(key(p));return s;}
+function flood(m,from){const blocked=collision(m),seen=new Set(),q=[];if(!inside(m,from)||blocked.has(key(from)))return seen;seen.add(key(from));q.push(from);for(let i=0;i<q.length;i++)for(const [dx,dy]of [[0,-1],[1,0],[0,1],[-1,0]]){const p=[q[i][0]+dx,q[i][1]+dy],k=key(p);if(inside(m,p)&&!blocked.has(k)&&!seen.has(k)){seen.add(k);q.push(p);}}return seen;}
+function path(m,from,to){const b=collision(m);if(!inside(m,from)||!inside(m,to)||b.has(key(from))||b.has(key(to)))return null;const q=[from],seen=new Map([[key(from),null]]);for(let i=0;i<q.length;i++){const p=q[i];if(key(p)===key(to)){const out=[];let v=p;while(seen.get(key(v))){out.push(v);v=seen.get(key(v));}return out.reverse();}for(const [dx,dy]of [[0,-1],[1,0],[0,1],[-1,0]]){const n=[p[0]+dx,p[1]+dy],k=key(n);if(inside(m,n)&&!b.has(k)&&!seen.has(k)){seen.set(k,p);q.push(n);}}}return null;}
+const uid=()=> 'o-'+globalThis.crypto.randomUUID();
+function place(m,id,x,y){const n=clone(m),t=C.byId[id];if(!t)throw Error('未知の素材');const o={id:uid(),templateId:id,x,y,occupiedTiles:t.occupiedTiles.map(([dx,dy])=>[x+dx,y+dy])};n.objects.push(o);if(t.entranceLocal)n.entrances.push({id:'e-'+o.id,objectId:o.id,name:t.name,marker:[x+t.entranceLocal[0],y+t.entranceLocal[1]],approach:[x+t.approachLocal[0],y+t.approachLocal[1]]});return checked(n);}
+function move(m,id,x,y){const n=clone(m),o=n.objects.find(o=>o.id===id);if(!o)throw Error('物体が見つかりません');const dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;o.occupiedTiles=o.occupiedTiles.map(p=>[p[0]+dx,p[1]+dy]);for(const e of n.entrances.filter(e=>e.objectId===id)){e.marker=[e.marker[0]+dx,e.marker[1]+dy];e.approach=[e.approach[0]+dx,e.approach[1]+dy];}return checked(n);}
+function remove(m,id){const n=clone(m);n.objects=n.objects.filter(o=>o.id!==id);n.entrances=n.entrances.filter(e=>e.objectId!==id);return checked(n);}
+function duplicate(m,id,x,y){const source=m.objects.find(o=>o.id===id);if(!source)throw Error('物体が見つかりません');let n=clone(m),copy=clone(source),newid=uid();copy.id=newid;n.objects.push(copy);n.entrances.push(...m.entrances.filter(e=>e.objectId===id).map(e=>({...clone(e),id:'e-'+newid,objectId:newid})));return move(n,newid,x,y);}
+function resize(m,width,height){return checked({...clone(m),width,height});}
+function serialize(m){return JSON.stringify(checked(m),null,2);}
+function parse(text){if(typeof text!=='string'||text.length>8000000)throw Error('JSONが大きすぎます');return checked(JSON.parse(text));}
+function audit(m){const errors=validate(m);if(errors.length)return {errors,reachable:new Set(),targets:[]};const reachable=flood(m,m.spawn),targets=m.entrances.map(e=>({...e,reachable:reachable.has(key(e.approach))}));if(!reachable.size)errors.push('出現点が通行不可です');return {errors,reachable,targets};}
+function collisionData(m){checked(m);return {version:1,tileSize:32,width:m.width,height:m.height,blocked:[...collision(m)].map(k=>k.split(',').map(Number)),spawn:clone(m.spawn),entrances:clone(m.entrances)};}
+return {createMap,validate,checked,clone,key,inside,collision,flood,path,place,move,remove,duplicate,resize,serialize,parse,audit,collisionData};
+});
