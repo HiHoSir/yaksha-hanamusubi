@@ -18,10 +18,11 @@ window.YK_TENYO=(()=>{
   c.save();c.setTransform(ZOOM,0,0,ZOOM,-cameraX*ZOOM,-cameraY*ZOOM);
   if(imgs[0].complete&&imgs[0].naturalWidth)c.drawImage(imgs[0],0,0,WIDTH,HEIGHT);
   if(imgs[2].complete&&imgs[2].naturalWidth)c.drawImage(imgs[2],0,0,WIDTH,HEIGHT);
-  if(imgs[3].complete&&imgs[3].naturalWidth)c.drawImage(imgs[3],0,0,WIDTH,HEIGHT);
   const actors=[...npcs.map((p,i)=>({...p,kind:'npc',i})),{x:state.x,y:state.y,kind:'hero'},{x:chest[0],y:chest[1],kind:'chest'}].sort((a,b)=>a.y-b.y);
   for(const a of actors){if(a.kind==='npc')drawNpc(a.i,a.x,a.y);else if(a.kind==='hero')drawHero(a.x,a.y);else drawChest(a.x,a.y);}
   if(imgs[1].complete&&imgs[1].naturalWidth)c.drawImage(imgs[1],0,0,WIDTH,HEIGHT);
+  // Torii is a foreground silhouette: it must occlude the hero and NPCs.
+  if(imgs[3].complete&&imgs[3].naturalWidth)c.drawImage(imgs[3],0,0,WIDTH,HEIGHT);
   if(imgs[2].complete&&imgs[2].naturalWidth){c.save();c.beginPath();roof.forEach(([x,y],i)=>{if(!i)c.moveTo(x*.75,y*.75);else c.lineTo(x*.75,y*.75)});c.closePath();c.clip();c.drawImage(imgs[2],0,0,WIDTH,HEIGHT);c.restore();}
   c.restore();
  }
