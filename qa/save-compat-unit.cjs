@@ -7,13 +7,14 @@ const localStorage={
  removeItem:key=>store.delete(key)
 };
 const ctx={localStorage,Date,console};ctx.window=ctx;
-for(const file of ['js/data.js','js/equipment.js','js/field-terrain.js','js/elevation-model.js','js/field-elevation.js','js/world.js','js/save.js','js/game-state.js']){
+for(const file of ['js/data.js','js/equipment.js','js/field-terrain.js','js/elevation-model.js','js/field-elevation.js','js/world.js','js/save.js','js/story-events.js','js/game-state.js']){
  vm.runInNewContext(fs.readFileSync(file,'utf8'),ctx,{filename:file});
 }
 const save=ctx.YK_SAVE;
 // Reference-map revision repairs obstructed field positions without changing progress.
 const blocked=ctx.YK_WORLD.mapData.decorations.find(o=>o.occupiedTiles.length).occupiedTiles[0];
 const oldField={...save.fresh(),worldRevision:108,area:'field',x:blocked[0]*32+16,y:blocked[1]*32+16,worldPosition:blocked.map(v=>v*32+16),quest:2,gold:321,petals:5};
+delete oldField.storyFlags; // Genuine legacy snapshots predate this field.
 const repaired=save.migrate(oldField);
 assert.notDeepEqual([repaired.x,repaired.y],[oldField.x,oldField.y]);
 assert.equal(repaired.worldRevision,ctx.YK_WORLD.revision);
@@ -25,9 +26,11 @@ for(const worldRevision of [109,110,111,112,113,118]){
  assert.equal(prior.gold,321);assert.equal(prior.quest,2);
 }
 const initial=save.fresh();
+assert.deepEqual(JSON.parse(JSON.stringify(initial.storyFlags)),{},'new saves start with no completed event');
 assert.equal(initial.saveVersion,14);
 assert.ok(Array.isArray(initial.worldPosition));
 const legacy={...JSON.parse(JSON.stringify(initial)),saveVersion:9,area:'village',villageRevision:1,worldRevision:87,quest:2,petals:7,gold:1234,chests:{opened:true},outfit:'removed-costume'};
+delete legacy.storyFlags;
 const migrated=save.migrate(legacy);
 assert.equal(migrated.quest,2);assert.equal(migrated.petals,7);assert.equal(migrated.gold,1234);
 assert.equal(migrated.chests.opened,true);
@@ -46,7 +49,9 @@ assert.equal(save.slotInfo(2).lv,slot.lv);
 assert.equal(save.loadAuto().gold,initial.gold,'manual slot must not overwrite suspension');
 // Explicitly verify independent manual slots and automatic save updates.
 const first=save.fresh();first.gold=111;first.quest=1;
+ctx.YK_STORY_EVENTS.restore(first,ctx.YK_DATA.story,{quest:1});
 const third=save.fresh();third.gold=333;third.quest=3;
+ctx.YK_STORY_EVENTS.restore(third,ctx.YK_DATA.story,{quest:3});
 assert.equal(save.saveSlot(1,first),true);
 assert.equal(save.saveSlot(3,third),true);
 assert.equal(save.loadSlot(1).gold,111);
@@ -62,6 +67,18 @@ assert.equal(save.loadSlot(1).gold,111);
 assert.equal(save.loadSlot(2).gold,1234);
 assert.equal(save.loadSlot(3).gold,333);
 assert.equal(ctx.YK_GAME_STATE.restore(legacy).quest,2);
+const preservedSlot=save.loadSlot(1);
+for(let quest=0;quest<=6;quest++){
+ const raw={...legacy,quest};delete raw.storyFlags;
+ const moved=save.migrate(raw);assert.equal(moved.quest,quest);assert.equal(moved.petals,7);
+ for(let i=0;i<6;i++)assert.equal(!!moved.storyFlags[ctx.YK_DATA.story[i].id],i<quest);
+ save.saveSlot(1,moved);assert.deepEqual(JSON.parse(JSON.stringify(save.loadSlot(1).storyFlags)),JSON.parse(JSON.stringify(moved.storyFlags)));
+}
+for(const storyFlags of [null,[],true,{unknown:true},{shrine_knot:true},{village_bell:'true'}]){
+ const repaired=save.migrate({...legacy,quest:6,storyFlags});assert.equal(repaired.quest,0,'bad new flags must not fall back to a forged quest counter');
+ assert.equal(repaired.gold,1234);assert.equal(repaired.petals,7);
+}
+save.saveSlot(1,preservedSlot); // Restore the independent slot used by corruption checks below.
 store.set('yaksha_beta_auto','{broken');
 assert.equal(save.loadAuto(),null);
 assert.equal(save.loadSlot(1).gold,111,'corrupt autosave must not damage manual slot');

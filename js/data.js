@@ -76,6 +76,16 @@ const story=[
  {area:"waterfall",speaker:"滝童",target:"fox",objective:"龍神の滝で花びらを水鏡に映す",lines:["滝童『お姉ちゃん、花びらを水にかざして！ 水鏡は、忘れられた景色を映すんだ。』","水面に、九本の尾を持つ白い影と、手を取り合う二人の姿が揺れた。","緋月『この景色……知らないはずなのに、胸が苦しい。』","滝童『西の九尾の祠へ行けば、白狐の使いに会えるよ。だけど、見えたものが全部、本当とは限らないんだ。』"],unlock:"水鏡が九尾の祠を示した。西へ向かおう。途中の月見の湯で休むこともできる。"},
  {area:"fox",speaker:"白狐の使い",target:null,objective:"九尾の祠で忘れた約束の真相を聞く",lines:["白狐の使い『よく来たね、緋月。花契りは世界の憎しみを鎮めた。だが、消されたのは憎しみだけではない。』","白狐の使い『誰かの名も、帰る場所も、守ると誓った約束も……人々は忘れた。』","緋月『だったら思い出せばいい。全部取り戻して、もう一度やり直せば！』","白狐の使い『それができるなら、どれほどよかったか。……お前が忘れたのは誰かの名ではない。お前自身が交わした約束だ。』","緋月『わたしの……約束？』","白狐の使い『続きを知りたければ、海の向こうへ行くことだ。だが真実は、誰もが望む姿とは限らないよ。』"],unlock:"第1章『花の声が消える里』完。緋月の忘れた約束を探す旅は、新たな大陸へ続く。"}
 ];
+// Stable event IDs are save keys. Keep these names when editing dialogue or adding chapters.
+const storyPhases=[
+ {id:'village_bell',requires:[],before:["里の皆も、落ち着かぬ様子じゃ。"],after:["旅の途中でも、困ったときは里へ戻っておいで。","緋月、お前も無事でいてくれよ。"]},
+ {id:'shrine_knot',requires:['village_bell'],before:["天妖の社へようこそ。お参りですか。","里で気になることがあれば、まず里長さまにお尋ねになるとよいでしょう。"],after:["結び札は、あなたの旅を見守っています。","答えを急がず、出会う人の言葉に耳を傾けてください。"]},
+ {id:'cove_petal',requires:['shrine_knot'],before:["今日は穏やかな潮だ。浜を歩くなら、足元に気をつけな。"],after:["あの花びらは、お前さんに預けた。","俺もここで、波の音を聞きながら待っているよ。"]},
+ {id:'forest_memory',requires:['cove_petal'],before:["森で道に迷ったのですか。慌てず、来た道を確かめてください。"],after:["あの声をどう受け止めるかは、あなたが決めることです。","どうか、自分の心まで置き去りにしないで。"]},
+ {id:'waterfall_mirror',requires:['forest_memory'],before:["滝のしぶき、冷たいよ！ 岩の上は滑るから気をつけてね。"],after:["水鏡に映った景色、忘れないでね。","また休みたくなったら、ここにおいでよ。"]},
+ {id:'fox_truth',requires:['waterfall_mirror'],battle:'kagekyubi',before:["ここまで来るとは、物好きだね。","けれど、今のお前に語ることはない。自分の旅を続けるといい。"],after:["お前が選んだ旅路を、見届けるとしよう。","海の向こうでも、自分の心の声を忘れるな。"]}
+];
+story.forEach((event,i)=>Object.assign(event,storyPhases[i]));
 const objectives=[...story.map(s=>s.objective),"手がかりを得た。各地を探索する（物語の続きは制作中）"];
 const vegetables={radish:{name:'だいこん',hp:18,mp:0},carrot:{name:'にんじん',hp:12,mp:0},cucumber:{name:'きゅうり',hp:8,mp:2}};
 return {vegetables,outfits,areas,enemies,enemyDefense,enemyProfiles,objectives,story,rareKinds,relics,rareRules};
