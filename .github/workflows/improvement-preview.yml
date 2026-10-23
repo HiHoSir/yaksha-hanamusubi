@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - improve/tenyo-three-layer-collision
   workflow_dispatch:
     inputs:
       source_branch:
@@ -29,7 +28,7 @@ jobs:
       - name: Assemble production and approved preview branches
         shell: bash
         env:
-          REQUESTED_PREVIEW: ${{ inputs.source_branch || (github.ref_name == 'improve/tenyo-three-layer-collision' && github.ref_name) || '' }}
+          REQUESTED_PREVIEW: ${{ inputs.source_branch || '' }}
         run: |
           set -euo pipefail
           mkdir -p site
@@ -87,13 +86,6 @@ jobs:
             done
           fi
           test -f site/index.html
-      - name: Validate Tenyo preview movement and routes
-        if: github.ref_name == 'improve/tenyo-three-layer-collision' || inputs.source_branch == 'improve/tenyo-three-layer-collision'
-        working-directory: site/previews/tenyo-three-layer-collision
-        run: |
-          node qa/tenyo-input.cjs
-          node qa/destination-scenes.cjs
-          node qa/runtime-build-contract.cjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload complete Pages site
