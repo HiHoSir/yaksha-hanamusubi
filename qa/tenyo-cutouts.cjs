@@ -24,6 +24,17 @@ const {createCanvas,loadImage}=canvas;
  class LocalImage{set src(value){this.image=images[value.match(/layer-([\w-]+)/)[1]];this.complete=true;this.naturalWidth=1536;this.srcValue=value}get src(){return this.srcValue}}
  const env={console,Image:LocalImage,fetch:async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('assets/maps/tenyo/walkability-48x32.json'))})};env.window=env;
  vm.runInNewContext(fs.readFileSync('js/tenyo-main-scene.js','utf8'),env);
+ // IMG_6683: the standing cell is column 14,row 6 (world 348,156).
+ // Its head overlaps a tree trunk at source (464,168); that trunk belongs
+ // behind actors. A southern forest pixel must still cover an actor.
+ function marker(x,y){
+  const c=createCanvas(768,768),g=c.getContext('2d');
+  const wrapped=new Proxy(g,{get(t,k){if(k==='drawImage')return(im,...args)=>t.drawImage(im.image||im,...args);const v=t[k];return typeof v==='function'?v.bind(t):v},set(t,k,v){t[k]=v;return true}});
+  env.YK_TENYO.draw(wrapped,{x,y},(px,py)=>{g.fillStyle='#ff00ff';g.fillRect(px-20,py-58,40,58)},()=>{},()=>{});
+  return g;
+ }
+ assert.deepEqual(Array.from(marker(348,156).getImageData(384,189,1,1).data),[255,0,255,255],'northern trunk must be behind the actor head');
+ assert.notDeepEqual(Array.from(marker(420,420).getImageData(384,360,1,1).data),[255,0,255,255],'southern foreground foliage must still cover the actor');
  const results='qa/results/tenyo';fs.mkdirSync(results,{recursive:true});
  // Compare the actual renderer to a full-image reference without actors.
  for(const [x,y] of [[564,708],[588.25,503.9],[588.5,504.1],[300.3,300.7],[564,180]]){
@@ -40,14 +51,17 @@ const {createCanvas,loadImage}=canvas;
   let max=0,changed=0;for(let i=0;i<p.length;i++){const d=Math.abs(p[i]-q[i]);max=Math.max(max,d);if(d>1)changed++}
   assert.equal(changed,0,`camera ${x},${y}: no seam/color drift (max ${max})`);
  }
- // Use the production protagonist scale and queue, plus verify a dense leaf
- // pixel is painted after the actor, not merely that callbacks were ordered.
- const hero=await loadImage('assets/characters/hizuki/field-sd-v1/walk-atlas-32.png');
- for(const [label,x,y] of [['forest-edge',420,420],['gate-behind',588,492],['gate-front',588,516],['shrine',564,180]]){
+ // Use the actual main-game shrine hero/shadow functions and adopted 58px
+ // canonical atlas. The 32px SD sheet is only selected by hero() in field.
+ const heroAtlas=await loadImage('assets/characters/hizuki/bluebob-v1/walk-atlas-256.png');
+ Object.assign(env,{characterScale:()=>1,hizukiArt:'sd',S:{area:'shrine'},HIZUKI_4DIR:heroAtlas,HIZUKI_4DIR_ROW:{d:0,u:1,r:2,l:3},ensureImage:()=>{},layerReady:im=>!!im});
+ const game=fs.readFileSync('js/game.js','utf8');
+ vm.runInNewContext(game.slice(game.indexOf('function shadow('),game.indexOf('// Measure opaque character bounds')),env);
+ for(const [label,x,y] of [['north-head',348,156],['north-boundary',348,180],['forest-edge',420,420],['gate-behind',588,492],['gate-front',588,516],['shrine',564,180]]){
   const c=createCanvas(768,768),g=c.getContext('2d');
   const wrapped=new Proxy(g,{get(t,k){if(k==='drawImage')return(im,...args)=>t.drawImage(im.image||im,...args);const v=t[k];return typeof v==='function'?v.bind(t):v},set(t,k,v){t[k]=v;return true}});
-  env.YK_TENYO.draw(wrapped,{x,y},(px,py)=>g.drawImage(hero,0,0,32,32,px-16,py-30,32,32),()=>{},()=>{});
+  env.YK_TENYO.draw(wrapped,{x,y},(px,py)=>env.hero(g,px,py,'u',0,'normal',.56),()=>{},()=>{});
   fs.writeFileSync(results+'/'+label+'.png',c.toBuffer('image/png'));
  }
- console.log('PASS Tenyo cutouts: disjoint source alpha; five fractional cameras without seams; protagonist inspection renders saved');
+ console.log('PASS Tenyo cutouts: disjoint source alpha; five fractional cameras without seams; northern head visible / southern foliage foreground; actual main-game hero renders saved');
 })().catch(e=>{console.error(e);process.exit(1)});

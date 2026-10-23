@@ -10,7 +10,7 @@ function order(y){
  return calls;
 }
 const before=(list,a,b)=>{assert(list.includes(a),a+' missing');assert(list.includes(b),b+' missing');assert(list.indexOf(a)<list.indexOf(b),a+' must draw below '+b+': '+list.join(' -> '));};
-for(const y of [444,492,503.9,504,504.1,516,708]){
+for(const y of [156,167.9,168,168.1,180,444,492,503.9,504,504.1,516,708]){
  const list=order(y);
  before(list,'background','torii-base');before(list,'torii-base','trees-back');
  before(list,'trees-back','shrine');before(list,'shrine','hero');
