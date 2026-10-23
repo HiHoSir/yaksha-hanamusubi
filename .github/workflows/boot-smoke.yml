@@ -159,7 +159,9 @@ jobs:
       - name: NPC interaction geometry contract
         run: node qa/interaction-unit.cjs
       - name: Story event progression contract
-        run: node qa/story-events-unit.cjs
+        run: |
+          node qa/story-events-unit.cjs
+          node qa/story-action-unit.cjs
       - name: Field elevation and corner contract
         run: |
           node qa/elevation.cjs

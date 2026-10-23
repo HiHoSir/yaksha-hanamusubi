@@ -935,7 +935,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.21";
+const GAME_JS_BUILD="16.1.22";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1379,12 +1379,13 @@ function action(){
  if(n){faceNPC(n);n.frame=1;
   if(n.service==="shop"||(n.type==="merchant"&&n.service===undefined)){openShop();return true;}
   if(n.service==="rest")return talk({n:n.name,t:[...(n.talk||[]),"旅の疲れを癒やしていきなさい。","体と技が全回復した。"]},()=>{S.hp=S.maxhp;S.mp=S.maxmp;YK_SAVE.auto(S);hud();},120);
-  const event=YK_STORY_EVENTS.match(S,D.story,n.name);
+  const conversation=YK_STORY_EVENTS.resolve(S,D.story,n.name,n.talk);
+  const event=conversation.kind==='event'?conversation.event:null;
   if(event){const stage=S.quest;
-   if(S.area==="fox"&&n.name==="白狐の使い")return talk({n:n.name,t:["影九尾を退ければ、忘れた約束の続きを話そう。"]},()=>beginEncounter(true,true),120);
-   return talk({n:n.name,t:event.lines},()=>{if(!YK_STORY_EVENTS.complete(S,event,stage))return;YK_SAVE.auto(S);message(event.unlock,4200);},120);
+   if(event.battle&&!S.storyFlags[YK_STORY_EVENTS.battleFlag(event.battle)])return talk({n:n.name,t:["影九尾を退ければ、忘れた約束の続きを話そう。"]},()=>{if(YK_STORY_EVENTS.match(S,D.story,n.name)===event&&!S.storyFlags[YK_STORY_EVENTS.battleFlag(event.battle)])beginEncounter(true,true)},120);
+   return talk({n:n.name,t:event.lines},()=>{if(!YK_STORY_EVENTS.complete(S,event,stage,D.story))return;YK_SAVE.auto(S);message(event.unlock,4200);},120);
   }
-  return talk({n:n.name,t:n.talk},null,120);
+  return talk({n:n.name,t:conversation.lines},null,120);
  }
  if(S.area==="hotspring"){
   hotBathing=false;YK_INPUT.stopAll();
@@ -1770,6 +1771,7 @@ function foe(){
 function win(){
  if(!battle||battle.rewarded)return;
  battle.rewarded=true;YK_BATTLE_RULES.grantVictoryBase(S,battle);
+ if(battle.boss)YK_STORY_EVENTS.recordBattleWin(S,D.story,'kagekyubi');
  let loot=YK_BATTLE_RULES.grantRareLoot(S,battle,D.rareRules,D.relics,Math.random);
  const equipmentDrop=E.drop(S,battle.baseName);if(equipmentDrop)loot+=` ／ ${E.items[equipmentDrop].name}を入手！`;
  battle.rewardText=`${battle.name}を こらしめた！ 心の数 ${battle.xp} ／ ${battle.gold}両${loot}`;
@@ -1778,7 +1780,7 @@ function win(){
  $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),1100);battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.("victory");
  YK_SAVE.auto(S);renderBattle();
 }
-function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText,wasBoss=!!battle?.boss;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(wasBoss&&reward){const event=D.story[S.quest];if(event?.area==="fox"){const stage=S.quest;talk({n:"白狐の使い",t:event.lines},()=>{if(YK_STORY_EVENTS.complete(S,event,stage)){YK_SAVE.auto(S);message(event.unlock,4200)}},120)}}}
+function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText,wasBoss=!!battle?.boss;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(wasBoss&&reward){const event=YK_STORY_EVENTS.match(S,D.story,"白狐の使い");if(event?.battle&&S.storyFlags[YK_STORY_EVENTS.battleFlag(event.battle)]){const stage=S.quest;talk({n:"白狐の使い",t:event.lines},()=>{if(YK_STORY_EVENTS.complete(S,event,stage,D.story)){YK_SAVE.auto(S);message(event.unlock,4200)}},120)}}}
 function defeat(){battleTrace("defeat");YK_AUDIO.endEncounterAudio({resumeBgm:false});$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
 function renderRelics(){
  const owned=Object.entries(D.relics).filter(([id])=>S.relics[id]);
