@@ -232,11 +232,12 @@ function sdFieldBounds(row,col){
  }catch(error){return fallback;}
 }
 
-// Optional one-cell SD art for the world field only. Original village/interior art stays intact.
+// Shared SD walking art for every map. Keep map projection and physical movement independent.
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
 HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v1/walk-atlas-32.png?v=16.0.42";
+if(hizukiArt==="sd")ensureImage(HIZUKI_FIELD_SD);
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -793,8 +794,8 @@ function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  z*=characterScale();
  if(hizukiArt==="pixel")ensureImage(HIZUKI_PIXEL);
- if(hizukiArt==="sd"&&S.area==="field")ensureImage(HIZUKI_FIELD_SD);
- if(outfit==="normal"&&hizukiArt==="sd"&&S.area==="field"&&layerReady(HIZUKI_FIELD_SD)){
+ if(hizukiArt==="sd")ensureImage(HIZUKI_FIELD_SD);
+ if(outfit==="normal"&&hizukiArt==="sd"&&layerReady(HIZUKI_FIELD_SD)){
   const row=HIZUKI_4DIR_ROW[dir]??0;
   const motion=Math.max(0,Math.min(2,Number(frame)||0));
   // Atlas columns: neutral, raised foot, opposite foot (side uses neutral/raised).
