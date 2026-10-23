@@ -1,15 +1,18 @@
 ((root,f)=>{const api=f(typeof module==='object'&&module.exports?require('./catalog.js'):root.SMCatalog);if(typeof module==='object'&&module.exports)module.exports=api;else root.SMModel=api;})(globalThis,C=>{
 'use strict';const clone=v=>JSON.parse(JSON.stringify(v)),key=p=>p.join(','),inside=(m,p)=>Array.isArray(p)&&p.length===2&&p.every(Number.isInteger)&&p[0]>=0&&p[1]>=0&&p[0]<m.width&&p[1]<m.height;
-function createMap(width=17,height=15){const m={version:1,tileSize:32,width,height,background:null,terrainBlocks:[],terrainPassages:[],objects:[],entrances:[],spawn:[0,0]};return checked(m);}
+function createMap(width=17,height=15,tileSize=32){const m={version:2,placement:'ground-bottom-left',tileSize,width,height,background:null,terrainBlocks:[],terrainPassages:[],objects:[],entrances:[],spawn:[0,0]};return checked(m);}
+function visualRect(m,o){const t=C.byId[o.templateId],s=m.tileSize/32,r=t.sourceRect;return {x:o.x*m.tileSize+Math.floor((t.displayCells[0]*32-r[2])/2)*s,y:(o.y+1)*m.tileSize-r[3]*s,width:r[2]*s,height:r[3]*s};}
 function validate(m){const errors=[];if(!m||typeof m!=='object'||Array.isArray(m))return ['地図の形式が違います'];
-if(m.version!==1||m.tileSize!==32)errors.push('version=1・32px形式が必要です');
+if(m.version!==2||m.placement!=='ground-bottom-left')errors.push('version=2・接地下辺形式が必要です');
+if(!Number.isInteger(m.tileSize)||m.tileSize<16||m.tileSize>64)return ['1マスは16〜64pxの整数です'];
 if(!Number.isInteger(m.width)||!Number.isInteger(m.height)||m.width<4||m.width>96||m.height<4||m.height>96)return ['地図寸法は4〜96の整数です'];
+if(m.width*m.height*m.tileSize*m.tileSize>16777216)return ['描画サイズが大きすぎます。マス数か1マスのpxを減らしてください（上限1677万px）'];
 const cells=(a,label)=>{if(!Array.isArray(a)||a.length>9216){errors.push(label+'の形式が違います');return;}const seen=new Set();for(const p of a){if(!inside(m,p))errors.push(label+'が範囲外・非整数です');else if(seen.has(key(p)))errors.push(label+'が重複しています');else seen.add(key(p));}};
 cells(m.terrainBlocks,'地形判定');cells(m.terrainPassages,'明示通行セル');if(!inside(m,m.spawn))errors.push('出現点が範囲外です');
 if(m.background!==null){if(typeof m.background!=='string'||m.background.length>6000000||!/^data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/]*={0,2}$/.test(m.background))errors.push('背景は6MB未満のPNGデータが必要です');}
 if(!Array.isArray(m.objects)||m.objects.length>2000||!Array.isArray(m.entrances)||m.entrances.length>2000)return [...errors,'オブジェクト/入口の形式または数が不正です'];
 const ids=new Set(),blocked=new Set();for(const o of m.objects){if(!o||typeof o!=='object'){errors.push('物体が不正です');continue;}const t=C.byId[o.templateId];if(!t){errors.push('未知の素材です');continue;}if(typeof o.id!=='string'||!o.id||o.id.length>100||ids.has(o.id))errors.push('物体IDが不正・重複です');ids.add(o.id);
-if(!Number.isInteger(o.x)||!Number.isInteger(o.y)||o.x<0||o.y<0||o.x+t.displayCells[0]>m.width||o.y+t.displayCells[1]>m.height)errors.push('物体の表示範囲が地図外です');
+const rect=visualRect(m,o);if(!inside(m,[o.x,o.y])||o.x+t.displayCells[0]>m.width||rect.x<0||rect.y<0||rect.x+rect.width>m.width*m.tileSize||rect.y+rect.height>m.height*m.tileSize)errors.push('物体の接地・表示範囲が地図外です');
 cells(o.occupiedTiles,'物体占有');if(Array.isArray(o.occupiedTiles))for(const p of o.occupiedTiles){if(!inside(m,p))continue;const k=key(p);if(blocked.has(k))errors.push('占有マスが重複しています');blocked.add(k);}}
 const eids=new Set();for(const e of m.entrances){if(!e||typeof e.id!=='string'||eids.has(e.id)||!inside(m,e.marker)||!inside(m,e.approach))errors.push('入口IDまたは座標が不正です');else eids.add(e.id);if(e?.objectId&&!ids.has(e.objectId))errors.push('入口の関連物体が存在しません');if(e&&inside(m,e.marker)&&inside(m,e.approach)){const distance=Math.abs(e.marker[0]-e.approach[0])+Math.abs(e.marker[1]-e.approach[1]);if(e.objectId&&distance!==1)errors.push('建物の接近セルは入口の上下左右に隣接させてください');if(!e.objectId&&distance!==0)errors.push('地図出口の入口と接近セルは同じセルにしてください');}}return [...new Set(errors)];}
 function checked(m){const e=validate(m);if(e.length)throw Error(e.join('／'));return m;}
@@ -21,10 +24,11 @@ function place(m,id,x,y){const n=clone(m),t=C.byId[id];if(!t)throw Error('未知
 function move(m,id,x,y){const n=clone(m),o=n.objects.find(o=>o.id===id);if(!o)throw Error('物体が見つかりません');const dx=x-o.x,dy=y-o.y;o.x=x;o.y=y;o.occupiedTiles=o.occupiedTiles.map(p=>[p[0]+dx,p[1]+dy]);for(const e of n.entrances.filter(e=>e.objectId===id)){e.marker=[e.marker[0]+dx,e.marker[1]+dy];e.approach=[e.approach[0]+dx,e.approach[1]+dy];}return checked(n);}
 function remove(m,id){const n=clone(m);n.objects=n.objects.filter(o=>o.id!==id);n.entrances=n.entrances.filter(e=>e.objectId!==id);return checked(n);}
 function duplicate(m,id,x,y){const source=m.objects.find(o=>o.id===id);if(!source)throw Error('物体が見つかりません');let n=clone(m),copy=clone(source),newid=uid();copy.id=newid;n.objects.push(copy);n.entrances.push(...m.entrances.filter(e=>e.objectId===id).map(e=>({...clone(e),id:'e-'+newid,objectId:newid})));return move(n,newid,x,y);}
-function resize(m,width,height){return checked({...clone(m),width,height});}
+function resize(m,width,height,tileSize=m.tileSize){return checked({...clone(m),width,height,tileSize});}
 function serialize(m){return JSON.stringify(checked(m),null,2);}
-function parse(text){if(typeof text!=='string'||text.length>8000000)throw Error('JSONが大きすぎます');return checked(JSON.parse(text));}
+function migrateV1(m){if(!m||m.version!==1)return m;if(m.tileSize!==32||!Array.isArray(m.objects))throw Error('旧JSONの形式が違います');const n=clone(m);n.version=2;n.placement='ground-bottom-left';for(const o of n.objects){const t=C.byId[o.templateId];if(!t||!Number.isInteger(o.x)||!Number.isInteger(o.y)||!Array.isArray(o.occupiedTiles))throw Error('旧JSONの物体が不正です');const old=[];if(t.kind==='object'&&t.id!=='bridge')for(let y=0;y<t.displayCells[1];y++)for(let x=0;x<t.displayCells[0];x++)old.push([o.x+x,o.y+y]);const same=o.occupiedTiles.length===old.length&&old.every(p=>o.occupiedTiles.some(q=>Array.isArray(q)&&key(q)===key(p)));o.y+=t.displayCells[1]-1;if(same)o.occupiedTiles=t.occupiedTiles.map(([dx,dy])=>[o.x+dx,o.y+dy]);}return n;}
+function parse(text){if(typeof text!=='string'||text.length>8000000)throw Error('JSONが大きすぎます');return checked(migrateV1(JSON.parse(text)));}
 function audit(m){const errors=validate(m);if(errors.length)return {errors,reachable:new Set(),targets:[]};const reachable=flood(m,m.spawn),targets=m.entrances.map(e=>({...e,reachable:reachable.has(key(e.approach))}));if(!reachable.size)errors.push('出現点が通行不可です');return {errors,reachable,targets};}
-function collisionData(m){checked(m);return {version:1,tileSize:32,width:m.width,height:m.height,blocked:[...collision(m)].map(k=>k.split(',').map(Number)),spawn:clone(m.spawn),entrances:clone(m.entrances)};}
-return {createMap,validate,checked,clone,key,inside,collision,flood,path,place,move,remove,duplicate,resize,serialize,parse,audit,collisionData};
+function collisionData(m){checked(m);return {version:2,placement:m.placement,tileSize:m.tileSize,width:m.width,height:m.height,blocked:[...collision(m)].map(k=>k.split(',').map(Number)),spawn:clone(m.spawn),entrances:clone(m.entrances)};}
+return {createMap,validate,checked,clone,key,inside,visualRect,collision,flood,path,place,move,remove,duplicate,resize,serialize,parse,audit,collisionData};
 });

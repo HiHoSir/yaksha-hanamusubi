@@ -20,3 +20,7 @@ Final declined-to-judge rulings: visual art/seams remain candidates, terrain war
 Task 4: BLOCKED for publication/browser/device QA. Connector exposes no workflow_dispatch action. Local Playwright browser unavailable; official browser download failed. Cloud browser explicitly rejected file://; no workaround attempted.
 Task 2/3: remote complete at 4459106f447d31b8f0b442e2f8136fe7d9623ac1. All 39 delivered source/test/doc/PNG files match local SHA and byte size; 25 PNGs present. Diff against main is restricted to editor assets/modules/page/tests/spec/QA; production files unchanged.
 Task 4: public Actions workflow page verified. Browser is signed out and has no Run workflow control; no login or credential probing attempted. User-side manual dispatch on main with source_branch=improve/settlement-map-editor is the verified remaining publication step. Improvement branch is retained; no merge approved or performed.
+# sm-2 接地配置・可変グリッド更新（2026-10-24）
+
+既存ブランチecdeaa05を更新。接地左下座標、木1セル・小住宅3セルなど明示接地占有、下辺描画、深度ソート、version1読込移行、縦横4〜96セルと1マス16〜64px、地面PNG出力を実装。31検査PASS。元PNG25点は変更なし。詳細は docs/settlement-editor-contact-placement.md。
+
