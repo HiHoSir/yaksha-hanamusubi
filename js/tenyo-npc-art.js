@@ -9,7 +9,7 @@ window.YK_TENYO_NPC=(()=>{
    const im=images[type]=new Image();
    im.onload=()=>{resolve();redraw();};
    im.onerror=()=>{failed=true;reject(new Error('社の人物画像を読み込めません: '+name));redraw();};
-   im.src='assets/characters/tenyo-npc-v1/'+name+'.png?v=16.1.20';
+   im.src='assets/characters/tenyo-npc-v1/'+name+'.png?v=16.1.21';
    if(im.complete&&im.naturalWidth)im.onload();
   })));
   pending.catch(()=>{});

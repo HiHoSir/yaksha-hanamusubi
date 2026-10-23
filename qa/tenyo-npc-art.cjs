@@ -32,7 +32,7 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  assert(calls.slice(-3).every(c=>c[2]===512),'static pose ignores walk frame');
  const actual=JSON.parse(JSON.stringify(manifest.characters.find(c=>c.id==='guardian').frames));assert.deepEqual(actual.map(f=>f.sourceCell),[[0,0],[1,0],[1,1],[0,1]],'guardian left/right cells are reordered');
  // Render both real main-game NPC callbacks beside the canonical hero through
- // the shared shrine layer queue, at their unchanged authored positions.
+ // the shared shrine layer queue, at their shared authored cell centers.
  env.fetch=async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('assets/maps/tenyo/walkability-48x32.json'))});
  vm.runInNewContext(fs.readFileSync('js/tenyo-main-scene.js','utf8'),env);await env.YK_TENYO.whenReady();
  Object.assign(env,{characterScale:()=>1,hizukiArt:'sd',S:{area:'shrine'},HIZUKI_4DIR:await loadImage('assets/characters/hizuki/bluebob-v1/walk-atlas-256.png'),HIZUKI_4DIR_ROW:{d:0,u:1,r:2,l:3},ensureImage(){},layerReady:im=>!!im});
@@ -48,16 +48,16 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  const pending=[];const broken={console,Image:class{constructor(){pending.push(this)}}};broken.window=broken;vm.runInNewContext(moduleSource,broken);
  const readiness=broken.YK_TENYO_NPC.whenReady();pending[1].onerror();await assert.rejects(readiness,/社.*画像/);assert(broken.YK_TENYO_NPC.failed());
  assert.equal(broken.YK_TENYO_NPC.draw(ctx,0,0,'guard','d'),false,'old art remains available on failure');
- const start=game.indexOf(' shrine:[{x:552');const end=game.indexOf('\n cove:',start);
- const residents=vm.runInNewContext('('+game.slice(start+' shrine:'.length,end).trim().replace(/,$/,'')+')');
- assert.deepEqual(Array.from(residents,n=>[n.x,n.y,n.name]),[[552,264,'白妙'],[696,360,'社守']]);
+ const start=game.indexOf(' shrine:[');const end=game.indexOf('\n cove:',start);
+ const residents=vm.runInNewContext('('+game.slice(start+' shrine:'.length,end).trim().replace(/,$/,'')+')',{YK_TENYO:env.YK_TENYO});
+ assert.deepEqual(Array.from(residents,n=>[n.x,n.y,n.name]),[[588,156,'白妙'],[708,372,'社守']]);
  assert(residents.every(n=>n.stationary),'no wandering without walking artwork');
  const settlement=fs.readFileSync('js/settlement.js','utf8');
  const wanderContext={previousTick:0};
  vm.runInNewContext(settlement.slice(settlement.indexOf(' function updateResidents('),settlement.indexOf('\nconst floweringTreeCache')),wanderContext);
  residents[0].dir='l';residents[1].dir='r';
  for(let t=50;t<=20000;t+=50)assert.equal(wanderContext.updateResidents(t,{area:'shrine',x:1000,y:700},residents,()=>false,true,()=>.5),false);
- assert.deepEqual(Array.from(residents,n=>[n.x,n.y,n.dir]),[[552,264,'l'],[696,360,'r']],'standing residents keep positions and conversation facing');
+ assert.deepEqual(Array.from(residents,n=>[n.x,n.y,n.dir]),[[588,156,'l'],[708,372,'r']],'standing residents keep positions and conversation facing');
  const wait=game.match(/function waitAreaAssets\(destination\)\{([\s\S]*?)\n\}/)[0];const context={YK_TENYO:{whenReady:()=>Promise.resolve()},YK_TENYO_NPC:{whenReady:()=>Promise.reject(Error('NPC load error'))},assetLoaded(){}};
  vm.runInNewContext(wait+';this.wait=waitAreaAssets',context);await assert.rejects(context.wait('shrine'),/NPC load error/);
  console.log('PASS Tenyo NPC art: eight static directions, source-cell order, alpha, size/sole, real main path, lazy loading and failure safety');
