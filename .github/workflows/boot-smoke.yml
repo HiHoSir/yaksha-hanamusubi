@@ -125,6 +125,11 @@ jobs:
         run: node qa/camera-position-unit.cjs
       - name: Area transitions contract
         run: node qa/area-transitions-unit.cjs
+      - name: Tenyo authored movement and layer contracts
+        run: |
+          node qa/destination-scenes.cjs
+          node qa/tenyo-input.cjs
+          node qa/tenyo-layers.cjs
       - name: Cache version consistency contract
         run: |
           node - <<'NODE'
