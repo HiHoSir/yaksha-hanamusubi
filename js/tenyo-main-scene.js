@@ -25,5 +25,5 @@ window.YK_TENYO=(()=>{
   if(imgs[2].complete&&imgs[2].naturalWidth)c.drawImage(imgs[2],0,0,WIDTH,HEIGHT);
   c.restore();
  }
- return {CELL,WIDTH,HEIGHT,spawn,npcs,chest,blocked,exit,draw,tile};
+ return {CELL,WALK_CELL,WIDTH,HEIGHT,spawn,npcs,chest,blocked,exit,draw,tile};
 })();
