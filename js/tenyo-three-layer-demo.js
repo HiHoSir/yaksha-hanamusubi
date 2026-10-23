@@ -33,7 +33,7 @@ function draw(t){
   ctx.drawImage(hero,frame*256,dir*256,256,256,px-128*scale,py-248*scale,256*scale,256*scale);
  },()=>{},()=>{},debug.checked);
  const col=Math.floor(x/scene.WALK_CELL),row=Math.floor(y/scene.WALK_CELL);
- status.textContent='BETA 16.1.15｜マス '+col+','+row+' / '+(scene.blocked(x,y)?'歩行不可':'歩行可能')+'｜48×32・1入力1マス';
+ status.textContent='BETA 16.1.16｜マス '+col+','+row+' / '+(scene.blocked(x,y)?'歩行不可':'歩行可能')+'｜48×32・1入力1マス';
  requestAnimationFrame(draw);
 }
 for(const button of document.querySelectorAll('[data-dir]')){
