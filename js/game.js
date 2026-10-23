@@ -934,7 +934,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.16";
+const GAME_JS_BUILD="16.1.17";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1040,12 +1040,13 @@ function map(frameTime=performance.now()){
  }
 
  if(S.area==="shrine"){
+  YK_TENYO.load(assetLoaded);
   const shrineNpc=areaNPCs();
   YK_TENYO.draw(g,{...S,...YK_CAMERA.position(S,fieldMotion,frameTime)},(x,y)=>hero(g,x,y,S.dir,S.frame,S.outfit,.56),(i,x,y)=>{const n=shrineNpc[i];if(n)npc(g,x,y,n.type,n.name,n.dir||"d",n.frame??1)},(x,y)=>{
    const c=E.chests.find(c=>c.area==="shrine");if(!c)return;
    const im=CHEST_ART[S.chests[c.id]?"open":"closed"];if(layerReady(im))g.drawImage(im,x-22,y-38,44,44);
   },collisionDebugVisible);
-  worldHint(YK_TENYO.exit(S.x,S.y)?"南の参道からフィールドへ戻れます":"白妙に話しかけ、社を調べよう");return;
+  worldHint(YK_TENYO.failed()?"社の画像を読み込めません。再読み込みしてください":YK_TENYO.exit(S.x,S.y)?"南の参道からフィールドへ戻れます":"白妙に話しかけ、社を調べよう");return;
  }
  if(S.area==="field"){
   YK_LANDSCAPE.load(assetLoaded);YK_AUTOTILE.load(assetLoaded);
@@ -1850,6 +1851,7 @@ function worldHint(text){
 
 let areaTransitionPending=false;
 function waitAreaAssets(destination){
+ if(destination==='shrine')return YK_TENYO.whenReady();
  const images=[IMG[destination],destination==='field'?HIZUKI_FIELD_SD:null].filter(Boolean);
  return Promise.all(images.map(im=>new Promise((resolve,reject)=>{
   if(im.complete){im.naturalWidth?resolve():reject(new Error('画像を読み込めません'));return;}

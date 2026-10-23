@@ -50,3 +50,5 @@ for(const [id,l] of Object.entries(scenes.layouts)){
  assert(fs.existsSync('assets/scenes/destinations-v1/'+id+'.webp'));
  console.log(id+': entrance, exit, all NPC and chest approaches reachable');
 }
+
+for(const layer of ['torii-base','torii-upper','trees-back','trees-front'])assert(fs.existsSync('assets/maps/tenyo/layer-'+layer+'.png'));
