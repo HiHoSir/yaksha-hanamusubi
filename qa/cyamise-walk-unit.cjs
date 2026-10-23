@@ -1,5 +1,8 @@
 const assert=require('assert/strict');
 const R=require('../js/cyamise-walk-rules.js');
+// Mirror the adopted left wall and walking corridor around center column5.
+for(let y=0;y<8;y++)for(let x=0;x<=10;x++)assert.equal(R.walkable(x,y),R.walkable(10-x,y),`mirror cell (${x},${y})`);
+assert.equal(R.step({x:9,y:4},1,0),null,'right wall matches the left wall');
 assert(R.walkable(5,6));assert(R.walkable(1,4));
 for(const o of R.objects){assert.equal(o.occupiedTiles.length,2);for(const [x,y] of o.occupiedTiles)assert.equal(R.walkable(x,y),false,o.id);}
 for(const p of [[-1,4],[12,4],[5,-1],[5,8],[0,4],[11,4],[1,2]])assert.equal(R.walkable(...p),false);

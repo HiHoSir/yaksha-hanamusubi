@@ -5,7 +5,7 @@ const width=12,height=8,tileSize=32,origin={x:11.5,y:2.5};
 const objects=[];
 for(const x of [2,7])for(const [row,type] of [[3,'bench-back'],[4,'table'],[5,'bench-front']])objects.push({id:type+'-'+x,type,occupiedTiles:[[x,row],[x+1,row]],depth:origin.y+(row+1)*tileSize});
 const occupiedTiles=[];
-for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(y<2||x===0||x===11||(y===2&&(x<4||x>6)))occupiedTiles.push([x,y]);
+for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(y<2||x===0||x>=10||(y===2&&(x<4||x>6)))occupiedTiles.push([x,y]);
 for(const o of objects)occupiedTiles.push(...o.occupiedTiles);
 const blocked=new Set(occupiedTiles.map(p=>p.join(',')));
 const walkable=(x,y)=>Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&x<width&&y>=0&&y<height&&!blocked.has(x+','+y);
