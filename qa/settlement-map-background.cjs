@@ -1,0 +1,3 @@
+const a=require('node:assert/strict'),{createCanvas}=require('@napi-rs/canvas'),M=require('../js/settlement-map/model.js'),R=require('../js/settlement-map/render.js');
+const background=createCanvas(544,480),b=background.getContext('2d');b.fillStyle='red';b.fillRect(32,32,1,1);
+for(const [w,h]of [[17,15],[20,20],[4,4]]){const cv=createCanvas(w*32,h*32),c=cv.getContext('2d');R.draw(c,M.createMap(w,h),{images:{},backgroundImage:background,forExport:true});a.equal(c.getImageData(32,32,1,1).data[3],255,'resizing must not rescale background landmarks');a.equal(c.getImageData(37,37,1,1).data[3],0);}console.log('PASS background stays at native coordinates and is clipped on resize');
