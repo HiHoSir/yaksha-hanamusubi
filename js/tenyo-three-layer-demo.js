@@ -2,11 +2,12 @@
 const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
 const status=document.getElementById('status'),debug=document.getElementById('debug');
 const scene=window.YK_TENYO,STEP_MS=144;
+const npcArt=window.YK_TENYO_NPC,npcFacing=document.getElementById('npcFacing');npcArt.load();
 const hero=new Image();hero.src='assets/characters/hizuki/bluebob-v1/walk-atlas-256.png';
 let [x,y]=scene.spawn,dir=0,frame=0,held=null,step=null,repeatAt=0;
 function tryStep(dx,dy,now){
  if(step)return;
- const destination=scene.step(x,y,dx,dy,()=>false);
+ const destination=scene.step(x,y,dx,dy,scene.npcBlocked);
  dir=dy>0?0:dy<0?1:dx>0?2:3;
  repeatAt=now+STEP_MS;
  if(destination.x===x&&destination.y===y)return;
@@ -31,9 +32,9 @@ function draw(t){
   if(!hero.complete||!hero.naturalWidth)return;
   const scale=58/232;
   ctx.drawImage(hero,frame*256,dir*256,256,256,px-128*scale,py+9*.56-248*scale,256*scale,256*scale);
- },()=>{},()=>{},debug.checked);
+ },(i,px,py)=>npcArt.draw(ctx,px,py,['miko','guard'][i],npcFacing?.value||'d'),()=>{},debug.checked);
  const col=Math.floor(x/scene.WALK_CELL),row=Math.floor(y/scene.WALK_CELL);
- status.textContent='BETA 16.1.19｜マス '+col+','+row+' / '+(scene.blocked(x,y)?'歩行不可':'歩行可能')+'｜48×32・1入力1マス';
+ status.textContent='BETA 16.1.21｜マス '+col+','+row+' / '+(scene.blocked(x,y)?'歩行不可':'歩行可能')+'｜48×32・1入力1マス';
  requestAnimationFrame(draw);
 }
 for(const button of document.querySelectorAll('[data-dir]')){

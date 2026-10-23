@@ -289,6 +289,8 @@ jobs:
         if: steps.select.outputs.terrain == 'true'
         run: |
           npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100
+          node qa/tenyo-npc-art.cjs
+          node qa/tenyo-npc-grid.cjs
           node qa/tenyo-cutouts.cjs
           node qa/autotile-smoke.cjs
           node qa/field-render-parity.cjs
