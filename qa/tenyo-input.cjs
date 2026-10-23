@@ -10,6 +10,7 @@ function fixture(){
  const document={...handlers(),getElementById:id=>elements[id],querySelectorAll:()=>buttons};
  const env={document,console,Image:class{},performance:{now:()=>now},fetch:async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('assets/maps/tenyo/walkability-48x32.json'))}),requestAnimationFrame:f=>raf=f,addEventListener(){}};
  env.window=env;vm.createContext(env);
+ vm.runInContext(fs.readFileSync('js/tenyo-npc-art.js','utf8'),env);
  vm.runInContext(fs.readFileSync('js/tenyo-main-scene.js','utf8'),env);
  // Load the legacy dependency too, so the regression fails on behavior rather
  // than on the old page's ES module syntax when run against the baseline.

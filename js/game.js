@@ -883,6 +883,7 @@ function villageNpcAtlasHeight(atlas,col,row,child){
  return Math.max(28,Math.min(120,target*224/npcPixels));
 }
 function npc(c,x,y,type,name,dir="d",frame=1){
+ if(S.area==="shrine"&&YK_TENYO_NPC.draw(c,x,y,type,dir,characterScale()))return;
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
  const set=NPC_ASSETS[type];
  const atlas=npcArt!=="legacy"&&layerReady(set?.refreshed)?set.refreshed:set?.atlas;
@@ -934,7 +935,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.19";
+const GAME_JS_BUILD="16.1.20";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1041,12 +1042,13 @@ function map(frameTime=performance.now()){
 
  if(S.area==="shrine"){
   YK_TENYO.load(assetLoaded);
+  YK_TENYO_NPC.load(assetLoaded);
   const shrineNpc=areaNPCs();
   YK_TENYO.draw(g,{...S,...YK_CAMERA.position(S,fieldMotion,frameTime)},(x,y)=>hero(g,x,y,S.dir,S.frame,S.outfit,.56),(i,x,y)=>{const n=shrineNpc[i];if(n)npc(g,x,y,n.type,n.name,n.dir||"d",n.frame??1)},(x,y)=>{
    const c=E.chests.find(c=>c.area==="shrine");if(!c)return;
    const im=CHEST_ART[S.chests[c.id]?"open":"closed"];if(layerReady(im))g.drawImage(im,x-22,y-38,44,44);
   },collisionDebugVisible);
-  worldHint(YK_TENYO.failed()?"社の画像を読み込めません。再読み込みしてください":YK_TENYO.exit(S.x,S.y)?"南の参道からフィールドへ戻れます":"白妙に話しかけ、社を調べよう");return;
+  worldHint((YK_TENYO.failed()||YK_TENYO_NPC.failed())?"社の画像を読み込めません。再読み込みしてください":YK_TENYO.exit(S.x,S.y)?"南の参道からフィールドへ戻れます":"白妙に話しかけ、社を調べよう");return;
  }
  if(S.area==="field"){
   YK_LANDSCAPE.load(assetLoaded);YK_AUTOTILE.load(assetLoaded);
@@ -1119,7 +1121,7 @@ function map(frameTime=performance.now()){
  village:YK_SETTLEMENT.residents,
  teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","このごろ、同じお団子を二度買うお客さまがいるんです。買った記憶がないんですって。","でも約束した相手は、ずっと覚えていたいものですね。"]}],
  osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、緋月さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたら、見知らぬ地蔵の絵が出てきたのよ。","変ねえ。あの地蔵には毎朝挨拶している気がするのに、いつからあったのか思い出せないわ。"]}],
- shrine:[{x:552,y:264,type:"miko",name:"白妙",talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]},{x:696,y:360,type:"guard",name:"社守",talk:["この先は妖の気配が濃い。","刀を抜けるよう備えておけ。"]}],
+ shrine:[{x:552,y:264,type:"miko",name:"白妙",stationary:true,talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]},{x:696,y:360,type:"guard",name:"社守",stationary:true,talk:["この先は妖の気配が濃い。","刀を抜けるよう備えておけ。"]}],
  cove:[{x:585,y:570,type:"ferryman",name:"漁師・潮平",talk:["潮風の向こうに、不思議な花びらが舞っていたよ。"]},{x:190,y:450,type:"child",name:"浜の子",talk:["白い貝が光る夜は、森の道が開くんだって！"]}],
  forest:[{x:530,y:390,type:"traveler",name:"旅の薬師",talk:["この森は同じ道へ戻される。","花の灯りを追うんだ。"]}],
  waterfall:[{x:150,y:590,type:"child",name:"滝童",talk:["龍神さまの水鏡は、九尾の祠への道を映すよ。"]}],
@@ -1851,7 +1853,7 @@ function worldHint(text){
 
 let areaTransitionPending=false;
 function waitAreaAssets(destination){
- if(destination==='shrine')return YK_TENYO.whenReady();
+ if(destination==='shrine')return Promise.all([YK_TENYO.whenReady(),YK_TENYO_NPC.whenReady(assetLoaded)]);
  const images=[IMG[destination],destination==='field'?HIZUKI_FIELD_SD:null].filter(Boolean);
  return Promise.all(images.map(im=>new Promise((resolve,reject)=>{
   if(im.complete){im.naturalWidth?resolve():reject(new Error('画像を読み込めません'));return;}

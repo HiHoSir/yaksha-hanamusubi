@@ -11,7 +11,7 @@ function setup(){const images=[];class Image{constructor(){this.complete=false;t
  broken.scene.draw(ctx,{x:564,y:708},()=>actors++,()=>actors++,()=>actors++);assert.equal(actors,4,'one failed cutout cannot permanently hide all actors');
  const game=fs.readFileSync('js/game.js','utf8');
  const wait=game.match(/function waitAreaAssets\(destination\)\{([\s\S]*?)\n\}/)[0];
- const context={YK_TENYO:{whenReady:()=>Promise.reject(Error('cutout missing'))},IMG:{}};
+ const context={assetLoaded(){},YK_TENYO_NPC:{whenReady:()=>Promise.resolve()},YK_TENYO:{whenReady:()=>Promise.reject(Error('cutout missing'))},IMG:{}};
  vm.runInNewContext(wait+';this.wait=waitAreaAssets;',context);await assert.rejects(context.wait('shrine'),/cutout missing/);
  assert(game.includes('YK_TENYO.load(assetLoaded)'),'main scene connects redraw callback');
  console.log('PASS Tenyo loading: delayed PNG awaited, redraw without input, failed transition rejected, actors retained on error');

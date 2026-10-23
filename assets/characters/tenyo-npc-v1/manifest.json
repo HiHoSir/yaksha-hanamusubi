@@ -1,0 +1,285 @@
+{
+  "format": "yaksha-static-npc-v1",
+  "cellSize": [
+    256,
+    256
+  ],
+  "directions": [
+    "d",
+    "u",
+    "l",
+    "r"
+  ],
+  "visibleHeight": 232,
+  "footAnchor": [
+    128,
+    248
+  ],
+  "adultHeightRatio": 0.96,
+  "characters": [
+    {
+      "id": "shirotae",
+      "name": "白妙",
+      "type": "miko",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "sourceSha256": "a9d7ab01f58862baf1d5cceebf0fd2a60fdd33fed107b300b7dcfc0a85eea383",
+      "frames": [
+        {
+          "direction": "d",
+          "sourceCell": [
+            0,
+            0
+          ],
+          "sourceRect": [
+            0,
+            0,
+            627,
+            637
+          ],
+          "sourceBounds": [
+            159,
+            56,
+            563,
+            627
+          ],
+          "sourceFoot": [
+            355.415,
+            627
+          ],
+          "scale": 0.4063047285464098,
+          "destination": [
+            47,
+            15,
+            166,
+            234
+          ]
+        },
+        {
+          "direction": "u",
+          "sourceCell": [
+            1,
+            0
+          ],
+          "sourceRect": [
+            627,
+            0,
+            1254,
+            637
+          ],
+          "sourceBounds": [
+            68,
+            56,
+            481,
+            627
+          ],
+          "sourceFoot": [
+            275.136,
+            627
+          ],
+          "scale": 0.4063047285464098,
+          "destination": [
+            43,
+            271,
+            169,
+            234
+          ]
+        },
+        {
+          "direction": "l",
+          "sourceCell": [
+            0,
+            1
+          ],
+          "sourceRect": [
+            0,
+            637,
+            627,
+            1254
+          ],
+          "sourceBounds": [
+            212,
+            10,
+            571,
+            556
+          ],
+          "sourceFoot": [
+            342.768,
+            556
+          ],
+          "scale": 0.4249084249084249,
+          "destination": [
+            72,
+            527,
+            154,
+            234
+          ]
+        },
+        {
+          "direction": "r",
+          "sourceCell": [
+            1,
+            1
+          ],
+          "sourceRect": [
+            627,
+            637,
+            1254,
+            1254
+          ],
+          "sourceBounds": [
+            56,
+            10,
+            416,
+            556
+          ],
+          "sourceFoot": [
+            284.414,
+            556
+          ],
+          "scale": 0.4249084249084249,
+          "destination": [
+            30,
+            783,
+            155,
+            234
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guardian",
+      "name": "社守",
+      "type": "guard",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "sourceSha256": "01ab6a613c3f5261cf0d8dd82e9c609273827fe2fca500067feded0ae93d612b",
+      "frames": [
+        {
+          "direction": "d",
+          "sourceCell": [
+            0,
+            0
+          ],
+          "sourceRect": [
+            0,
+            0,
+            627,
+            645
+          ],
+          "sourceBounds": [
+            214,
+            54,
+            542,
+            634
+          ],
+          "sourceFoot": [
+            382.633,
+            634
+          ],
+          "scale": 0.4,
+          "destination": [
+            60,
+            15,
+            133,
+            234
+          ]
+        },
+        {
+          "direction": "u",
+          "sourceCell": [
+            1,
+            0
+          ],
+          "sourceRect": [
+            627,
+            0,
+            1254,
+            645
+          ],
+          "sourceBounds": [
+            84,
+            70,
+            413,
+            634
+          ],
+          "sourceFoot": [
+            246.064,
+            634
+          ],
+          "scale": 0.41134751773049644,
+          "destination": [
+            61,
+            271,
+            137,
+            234
+          ]
+        },
+        {
+          "direction": "l",
+          "sourceCell": [
+            1,
+            1
+          ],
+          "sourceRect": [
+            627,
+            645,
+            1254,
+            1254
+          ],
+          "sourceBounds": [
+            82,
+            16,
+            369,
+            564
+          ],
+          "sourceFoot": [
+            221.546,
+            564
+          ],
+          "scale": 0.4233576642335766,
+          "destination": [
+            68,
+            527,
+            123,
+            234
+          ]
+        },
+        {
+          "direction": "r",
+          "sourceCell": [
+            0,
+            1
+          ],
+          "sourceRect": [
+            0,
+            645,
+            627,
+            1254
+          ],
+          "sourceBounds": [
+            258,
+            11,
+            545,
+            564
+          ],
+          "sourceFoot": [
+            406.133,
+            564
+          ],
+          "scale": 0.41952983725135623,
+          "destination": [
+            65,
+            783,
+            122,
+            234
+          ]
+        }
+      ]
+    }
+  ]
+}
