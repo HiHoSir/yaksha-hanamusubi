@@ -2,3 +2,4 @@
 # Keep only branches authorized for publication; one improve/<slug> per line.
 improve/ui-dpad-touch
 improve/sd-all-maps
+improve/hozuki-topview
