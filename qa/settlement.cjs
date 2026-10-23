@@ -48,8 +48,15 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await run('S.x=1190;S.y=760;map();');
  const a=await run('(()=>{const c=document.createElement("canvas");c.width=c.height=768;YK_SETTLEMENT.draw(c.getContext("2d"),S,[],null,100);return c.toDataURL();})()');
  const b=await run('(()=>{const c=document.createElement("canvas");c.width=c.height=768;YK_SETTLEMENT.draw(c.getContext("2d"),S,[],null,900);return c.toDataURL();})()');assert.notEqual(a,b,'water changes while stationary');
- await run('S.x=768;S.y=1228;move(0,1,"d");');assert.equal(await run('S.area'),'field');
- await run('enterWorldPlace("village");S.x=768;S.y=72;move(0,-1,"u");');assert.equal(await run('S.area'),'field');
+ await run('S.x=768;S.y=1228;move(0,1,"d");');
+ // Field exits now await asset loading and the transition veil before committing.
+ await page.waitForFunction(()=>window.__qaEval('S.area==="field"&&!areaTransitionPending'));
+ assert.equal(await run('S.area'),'field');
+ await run('enterWorldPlace("village");');
+ assert.equal(await run('S.area'),'village');
+ await run('S.x=768;S.y=72;move(0,-1,"u");');
+ await page.waitForFunction(()=>window.__qaEval('S.area==="field"&&!areaTransitionPending'));
+ assert.equal(await run('S.area'),'field');
  const old=await run('YK_SAVE.migrate({...YK_SAVE.fresh(),area:"village",villageRevision:2,x:373,y:690,gold:900,quest:2})');assert.equal(old.x,768);assert.equal(old.y,1190);assert.equal(old.gold,900);assert.equal(old.quest,2);
  await run('state({...YK_SAVE.fresh(),area:"village",x:1056,y:696});YK_SAVE.auto(S);restoreState(YK_SAVE.loadAuto());');assert.equal(await run('S.x'),1056);assert.equal(await run('S.y'),696);
  const riverRender=await page.evaluate(()=>{

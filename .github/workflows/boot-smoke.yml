@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -125,6 +125,12 @@ jobs:
         run: node qa/camera-position-unit.cjs
       - name: Area transitions contract
         run: node qa/area-transitions-unit.cjs
+      - name: Tenyo authored movement and layer contracts
+        run: |
+          node qa/destination-scenes.cjs
+          node qa/tenyo-input.cjs
+          node qa/tenyo-layers.cjs
+          node qa/tenyo-loading.cjs
       - name: Cache version consistency contract
         run: |
           node - <<'NODE'
@@ -283,6 +289,7 @@ jobs:
         if: steps.select.outputs.terrain == 'true'
         run: |
           npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100
+          node qa/tenyo-cutouts.cjs
           node qa/autotile-smoke.cjs
           node qa/field-render-parity.cjs
 
