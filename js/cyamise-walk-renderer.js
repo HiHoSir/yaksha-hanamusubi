@@ -9,9 +9,10 @@ function background(c,art){c.drawImage(art,0,0,384,256);for(const x of [280,950]
 function object(c,art,o){const s=shapes[o.type],x=R.origin.x+(o.occupiedTiles[0][0]+1)*32,dx=x-s.foot[0]/4,dy=o.depth-s.foot[1]/4;c.save();c.translate(dx,dy);c.beginPath();s.points.forEach(([x,y],i)=>i?c.lineTo(x/4,y/4):c.moveTo(x/4,y/4));c.closePath();c.clip();c.drawImage(art,0,0,384,256);c.restore();}
 function draw(c,art,hero,position,{grid=true,collision=true,dir='d',frame=1}={}){
  c.save();c.imageSmoothingEnabled=false;c.clearRect(0,0,384,256);background(c,art);
- const foot=position.foot||R.foot(position.x,position.y);
+ // The logical cell center drives movement; the entire visible sprite is centered here.
+ const center=position.foot||R.foot(position.x,position.y),foot={x:center.x,y:center.y+14};
  const queue=R.objects.map(o=>({depth:o.depth,draw:()=>object(c,art,o)}));
- queue.push({depth:foot.y,draw:()=>{const row=({d:0,u:1,r:2,l:3})[dir]??0,col=frame===1?0:frame===0?1:(row>=2?1:2);const bounds=[{left:4,width:23,height:28},{left:4,width:24,height:30},{left:5,width:21,height:26},{left:5,width:21,height:26}][row],scale=28/bounds.height;c.drawImage(hero,col*32,row*32,32,32,foot.x-(bounds.left+bounds.width/2)*scale,foot.y-31*scale,32*scale,32*scale);}});
+ queue.push({depth:foot.y,draw:()=>{const row=({d:0,u:1,r:2,l:3})[dir]??0,col=frame===1?0:frame===0?1:(row>=2?1:2);const bounds=[{left:4,top:3,width:23,height:28},{left:3,top:1,width:25,height:30},{left:5,top:5,width:22,height:26},{left:5,top:5,width:22,height:26}][row],scale=28/bounds.height;c.drawImage(hero,col*32,row*32,32,32,center.x-(bounds.left+bounds.width/2)*scale,center.y-(bounds.top+bounds.height/2)*scale,32*scale,32*scale);}});
  queue.sort((a,b)=>a.depth-b.depth).forEach(o=>o.draw());
  if(collision){c.fillStyle='rgba(244,52,75,.25)';for(const [x,y] of R.occupiedTiles)c.fillRect(R.origin.x+x*32,R.origin.y+y*32,32,32);}
  if(grid){c.lineWidth=.35;c.strokeStyle='rgba(255,255,255,.65)';for(let x=0;x<=R.width;x++){c.beginPath();c.moveTo(R.origin.x+x*32,0);c.lineTo(R.origin.x+x*32,256);c.stroke();}for(let y=0;y<=R.height;y++){c.beginPath();c.moveTo(0,R.origin.y+y*32);c.lineTo(384,R.origin.y+y*32);c.stroke();}}

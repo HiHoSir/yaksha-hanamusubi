@@ -9,7 +9,7 @@ function paint(t=performance.now()){
  if(motion){const k=Math.min(1,(t-motion.at)/140),a=R.foot(pos.x,pos.y),b=R.foot(motion.to.x,motion.to.y);foot={x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k};frame=k<.5?0:2;if(k===1){pos=motion.to;motion=null;foot=null;frame=1;}}
  if(ready)CYAMISE_RENDERER.draw(ctx,art,hero,{...pos,foot},{grid:document.getElementById('grid').checked,collision:document.getElementById('collision').checked,dir,frame});
  if(!motion&&route.length){const n=route.shift();attempt(n.x-pos.x,n.y-pos.y);}
- if(motion)requestAnimationFrame(paint);else if(ready)status.textContent=`現在 (${pos.x}, ${pos.y}) ／ 足元はマス中央 ／ 1マスずつ移動`;
+ if(motion)requestAnimationFrame(paint);else if(ready)status.textContent=`現在 (${pos.x}, ${pos.y}) ／ グラフィック全体がマス内 ／ 1マスずつ移動`;
 }
 function attempt(dx,dy){if(!ready||motion)return false;dir=dx<0?'l':dx>0?'r':dy<0?'u':'d';const next=R.step(pos,dx,dy);if(!next){status.textContent='通行不可：壁・家具のマスです';paint();status.textContent='通行不可：壁・家具のマスです';return false;}motion={to:next,at:performance.now()};requestAnimationFrame(paint);return true;}
 function stop(){held=null;clearInterval(repeat);repeat=null;}
