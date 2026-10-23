@@ -1426,8 +1426,8 @@ function collision(x,y,ignoreNPC=false){if(S.area==="shrine")return YK_TENYO.blo
 function exitArea(){if(S.area==="shrine"&&YK_TENYO.exit(S.x,S.y))return "field";if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 let fieldEntryWaiting=false;
 function YK_TENYO_STEP(x,y,dx,dy,speed,blocked){
- // Input vectors are 22px impulses, not unit directions. Normalize before grid movement.
- const norm=Math.hypot(dx,dy)||1,dist=YK_TENYO.CELL*speed;
+ // Use the same 24px world-space stride as the 48x32 authored collision grid.
+ const norm=Math.hypot(dx,dy)||1,dist=YK_TENYO.WALK_CELL*speed;
  const vx=dx/norm*dist,vy=dy/norm*dist,steps=Math.ceil(dist/2);
  for(let i=1;i<=steps;i++)if(blocked(x+vx*i/steps,y+vy*i/steps))return {x,y};
  return {x:x+vx,y:y+vy};
