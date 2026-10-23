@@ -1,6 +1,7 @@
 """Lossless fixed-origin layer partitions. Run from the repository root (Pillow)."""
 from pathlib import Path
-from PIL import Image, ImageChops
+import json
+from PIL import Image, ImageChops, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1] / 'assets/maps/tenyo'
 SIZE = (1536, 1024)
@@ -27,9 +28,31 @@ if __name__ == '__main__':
     base_mask = Image.new('L', SIZE)
     base_mask.paste(255, (0, CUT_Y, SIZE[0], SIZE[1]))
     partition('layer-torii.webp', base_mask, ['torii-base', 'torii-upper'])
-    # Only foliage directly under the shrine silhouette belongs behind it.
-    # This is a visual mask, never a collision mask.
+    # Each hand-authored region follows a coherent forest cluster. Nearer
+    # clusters own shared source pixels first, preserving the flattened art.
+    # These visual depth anchors never create or change occupied tiles.
+    spec = json.loads((ROOT / 'forest-occlusion.json').read_text())
+    assert tuple(spec['sourceSize']) == SIZE and spec['visualOnly'] is True
+    original = Image.open(ROOT / 'layer-trees.webp').convert('RGBA')
     shrine = Image.open(ROOT / 'layer-shrine.webp').convert('RGBA')
     shrine_mask = shrine.getchannel('A').point(lambda a: 255 if a else 0)
-    partition('layer-trees.webp', shrine_mask, ['trees-back', 'trees-front'])
-    print('Tenyo: four 1536x1024 RGBA cutouts; source pixels/origin retained')
+    claimed = shrine_mask.copy()
+    empty = Image.new('RGBA', SIZE)
+    parts = [('trees-back', Image.composite(original, empty, shrine_mask))]
+    for group in reversed(spec['groups']):
+        mask = Image.new('L', SIZE)
+        ImageDraw.Draw(mask).polygon([tuple(p) for p in group['polygon']], fill=255)
+        mask = ImageChops.subtract(mask, claimed)
+        parts.append((group['name'], Image.composite(original, empty, mask)))
+        claimed = ImageChops.lighter(claimed, mask)
+    parts.append(('trees-front', Image.composite(original, empty, ImageChops.invert(claimed))))
+    merged_alpha = Image.new('L', SIZE)
+    reconstructed = empty.copy()
+    for name, part in parts:
+        part.save(ROOT / ('layer-' + name + '.png'), optimize=True)
+        merged_alpha = ImageChops.add(merged_alpha, part.getchannel('A'))
+        # Parts are disjoint; byte-wise addition recovers even transparent RGB.
+        reconstructed = ImageChops.add(reconstructed, part)
+    assert merged_alpha.tobytes() == original.getchannel('A').tobytes()
+    assert reconstructed.tobytes() == original.tobytes()
+    print('Tenyo: 8 forest clusters + shrine back/foreground, exact source RGBA retained')

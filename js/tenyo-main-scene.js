@@ -5,19 +5,21 @@ window.YK_TENYO=(()=>{
  const CELL=48,WIDTH=1152,HEIGHT=768,ZOOM=1.5,WALK_CELL=24;
  let rows=["################################################","################################################","################################################","################.############..#...#############","#############.#.....#########..#...#############","############..#.....###...###......#..##########","############........###...###......#...#########","##########............................##########","##########............................##########","##########..............................########","##########..............................########","##########..............................########","###########............................#########","############...........................#########","##############.........................#########","##############.......................###########","###############...................#..###########","################.................###############","##################............##################","##################...##...##.###################","#######################...######################","#####################.......####################","#####################.......####################","#####################......#####################","#####################......#####################","####################.........###################","####################.........###################","####################.........###################","####################.........###################","####################........####################","#####################.......####################","#####################......#####################"];
  // JSON is the editable source; embedded rows provide a safe fallback until it loads.
- fetch('assets/maps/tenyo/walkability-48x32.json?v=16.1.17').then(r=>{if(!r.ok)throw Error('walkability fetch');return r.json()}).then(d=>{if(d.columns===48&&d.rows===32&&Array.isArray(d.grid)&&d.grid.length===32&&d.grid.every(r=>typeof r==='string'&&r.length===48&&/^[.#]+$/.test(r)))rows=d.grid;}).catch(e=>console.warn('Tenyo walkability fallback:',e));
+ fetch('assets/maps/tenyo/walkability-48x32.json?v=16.1.19').then(r=>{if(!r.ok)throw Error('walkability fetch');return r.json()}).then(d=>{if(d.columns===48&&d.rows===32&&Array.isArray(d.grid)&&d.grid.length===32&&d.grid.every(r=>typeof r==='string'&&r.length===48&&/^[.#]+$/.test(r)))rows=d.grid;}).catch(e=>console.warn('Tenyo walkability fallback:',e));
  const spawn=[Math.floor(11.5*CELL/WALK_CELL)*WALK_CELL+WALK_CELL/2,Math.floor(14.5*CELL/WALK_CELL)*WALK_CELL+WALK_CELL/2];
  const npcs=[{x:11.5*CELL,y:5.5*CELL},{x:14.5*CELL,y:7.5*CELL}];
  const chest=[12.5*CELL,12.5*CELL];
+ // Authored visual group roots; collision remains the separate walkability JSON.
+ const forestGroups=[{"name":"forest-north-cap","sourceFootY":144},{"name":"forest-north-east","sourceFootY":176},{"name":"forest-north-west","sourceFootY":192},{"name":"forest-east-upper","sourceFootY":224},{"name":"forest-east-side","sourceFootY":288},{"name":"forest-west-upper","sourceFootY":304},{"name":"forest-west-side","sourceFootY":512},{"name":"forest-east-middle","sourceFootY":512}];
  const imgs={},pending=[];
  let redraw=()=>{},failed=false;
- for(const name of ['background','shrine','torii-base','torii-upper','trees-back','trees-front']){
+ for(const name of ['background','shrine','torii-base','torii-upper','trees-back','trees-front',...forestGroups.map(g=>g.name)]){
   const im=new Image();
   pending.push(new Promise((resolve,reject)=>{
    im.onload=()=>{resolve();redraw();};
    im.onerror=()=>{failed=true;reject(new Error('天妖の社の画像を読み込めません: '+name));redraw();};
   }));
-  im.src='assets/maps/tenyo/layer-'+name+(['background','shrine'].includes(name)?'.webp?v=4':'.png?v=16.1.17');
+  im.src='assets/maps/tenyo/layer-'+name+(['background','shrine'].includes(name)?'.webp?v=4':'.png?v=16.1.19');
   imgs[name]=im;
   if(im.complete&&im.naturalWidth)im.onload();
  }
@@ -55,14 +57,16 @@ window.YK_TENYO=(()=>{
   drawLayer(c,'shrine');
   // state.x/y is the interpolated rendered foot supplied by the game camera.
   // At the contact edge itself, draw the gate before the actor (actor in front).
-  const actors=[{kind:'torii',y:TORII_CONTACT_FRONT},...npcs.map((p,i)=>({...p,kind:'npc',i})),{x:state.x,y:state.y,kind:'hero'},{x:chest[0],y:chest[1],kind:'chest'}].sort((a,b)=>a.y-b.y);
+  const actors=[...forestGroups.map(g=>({kind:'forest',name:g.name,y:g.sourceFootY*.75})),{kind:'torii',y:TORII_CONTACT_FRONT},...npcs.map((p,i)=>({...p,kind:'npc',i})),{x:state.x,y:state.y,kind:'hero'},{x:chest[0],y:chest[1],kind:'chest'}].sort((a,b)=>a.y-b.y);
   for(const a of actors){
-   if(a.kind==='torii')drawLayer(c,'torii-upper');
+   if(a.kind==='forest')drawLayer(c,a.name);
+   else if(a.kind==='torii')drawLayer(c,'torii-upper');
    else if(a.kind==='npc')drawNpc(a.i,a.x,a.y);
    else if(a.kind==='hero')drawHero(a.x,a.y);
    else drawChest(a.x,a.y);
   }
-  // Visible foliage always covers Hizuki, NPCs and the upper gate.
+  // The remaining southern forest is fixed foreground; surrounding upper
+  // clusters share the rendered-foot queue instead of a horizontal cut.
   drawLayer(c,'trees-front');
   if(debugGrid){
    c.lineWidth=1/ZOOM;
@@ -74,5 +78,5 @@ window.YK_TENYO=(()=>{
   }
   c.restore();
  }
- return {load,whenReady,failed:()=>failed,CELL,WALK_CELL,WIDTH,HEIGHT,spawn,npcs,chest,blocked,exit,draw,tile,center,step};
+ return {forestGroups,load,whenReady,failed:()=>failed,CELL,WALK_CELL,WIDTH,HEIGHT,spawn,npcs,chest,blocked,exit,draw,tile,center,step};
 })();

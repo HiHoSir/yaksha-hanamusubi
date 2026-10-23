@@ -10,8 +10,9 @@ function order(y){
  return calls;
 }
 const before=(list,a,b)=>{assert(list.includes(a),a+' missing');assert(list.includes(b),b+' missing');assert(list.indexOf(a)<list.indexOf(b),a+' must draw below '+b+': '+list.join(' -> '));};
-for(const y of [444,492,503.9,504,504.1,516,708]){
+for(const y of [143.9,144,144.1,156,167.9,168,168.1,180,239.9,240,240.1,383.9,384,384.1,444,492,503.9,504,504.1,516,708]){
  const list=order(y);
+ for(const group of scene.forestGroups){before(list,'shrine',group.name);if(y<group.sourceFootY*.75)before(list,'hero',group.name);else before(list,group.name,'hero');before(list,group.name,'trees-front');}
  before(list,'background','torii-base');before(list,'torii-base','trees-back');
  before(list,'trees-back','shrine');before(list,'shrine','hero');
  for(const actor of ['hero','npc0','npc1','chest','torii-upper'])before(list,actor,'trees-front');

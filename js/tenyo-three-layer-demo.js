@@ -29,11 +29,11 @@ function draw(t){
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);
  scene.draw(ctx,{x,y},(px,py)=>{
   if(!hero.complete||!hero.naturalWidth)return;
-  const scale=58*.56/232;
-  ctx.drawImage(hero,frame*256,dir*256,256,256,px-128*scale,py-248*scale,256*scale,256*scale);
+  const scale=58/232;
+  ctx.drawImage(hero,frame*256,dir*256,256,256,px-128*scale,py+9*.56-248*scale,256*scale,256*scale);
  },()=>{},()=>{},debug.checked);
  const col=Math.floor(x/scene.WALK_CELL),row=Math.floor(y/scene.WALK_CELL);
- status.textContent='BETA 16.1.17｜マス '+col+','+row+' / '+(scene.blocked(x,y)?'歩行不可':'歩行可能')+'｜48×32・1入力1マス';
+ status.textContent='BETA 16.1.19｜マス '+col+','+row+' / '+(scene.blocked(x,y)?'歩行不可':'歩行可能')+'｜48×32・1入力1マス';
  requestAnimationFrame(draw);
 }
 for(const button of document.querySelectorAll('[data-dir]')){
