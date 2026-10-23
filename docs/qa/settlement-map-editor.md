@@ -26,7 +26,7 @@ UI配線の回帰検査はNode VMで実モデルとブラウザI/O代替を使�
 
 ## 公開と実機
 
-- GitHub: 実PNGのblob SHA/サイズと参照を照合して登録する。登録成功と公開成功を区別する。
+- GitHub: 実装コミット4459106f447d31b8f0b442e2f8136fe7d9623ac1に登録済み。PNG25点を含む39ファイルのSHA/サイズをリモートtreeで照合した。登録成功と公開成功を区別する。
 - Pages: 未公開。既存workflowはpush mainまたはworkflow_dispatchで起動する。改善ブランチpushだけでは公開されない。
 - 接続にworkflow_dispatchの開始アクションがない。既存の「Deploy production and approved improvement previews」をmainから手動実行し、source_branchに improve/settlement-map-editor を指定する必要がある。mainや許可リストを無断で書き換えて回避しない。
 - ローカルPlaywrightはブラウザ実体がなく、公式ダウンロードも失敗。クラウドブラウザのfile://はセキュリティポリシーで拒否された。回避を試していない。
