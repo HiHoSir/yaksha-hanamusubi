@@ -1425,13 +1425,6 @@ function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
 function collision(x,y,ignoreNPC=false){if(S.area==="shrine")return YK_TENYO.blocked(x,y)||(Math.abs(x-600)<19&&Math.abs(y-600)<16)||(!ignoreNPC&&npcBlocked(x,y));if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
 function exitArea(){if(S.area==="shrine"&&YK_TENYO.exit(S.x,S.y))return "field";if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 let fieldEntryWaiting=false;
-function YK_TENYO_STEP(x,y,dx,dy,speed,blocked){
- // Use the same 24px world-space stride as the 48x32 authored collision grid.
- const norm=Math.hypot(dx,dy)||1,dist=YK_TENYO.WALK_CELL*speed;
- const vx=dx/norm*dist,vy=dy/norm*dist,steps=Math.ceil(dist/2);
- for(let i=1;i<=steps;i++)if(blocked(x+vx*i/steps,y+vy*i/steps))return {x,y};
- return {x:x+vx,y:y+vy};
-}
 function move(dx,dy,dir){
  if(busy||fieldEntryWaiting)return;
  if(S.area==="debugField"){moveDebug(dx,dy,dir);return;}
@@ -1466,7 +1459,7 @@ function move(dx,dy,dir){
  }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
- const destination=S.area==="shrine"?YK_TENYO_STEP(S.x,S.y,dx,dy,Number($("speedSelect").value)||1,collision):YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,ladder?1:(Number($("speedSelect").value)||1),YK_WORLD.size,collision);
+ const destination=S.area==="shrine"?YK_TENYO.step(S.x,S.y,dx,dy,collision):YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,ladder?1:(Number($("speedSelect").value)||1),YK_WORLD.size,collision);
  S.x=destination.x;S.y=destination.y;
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:ladder?400:YK_MOVEMENT.duration(S.area)};
