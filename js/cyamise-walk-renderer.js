@@ -11,7 +11,7 @@ function draw(c,art,hero,position,{grid=true,collision=true,dir='d',frame=1}={})
  c.save();c.imageSmoothingEnabled=false;c.clearRect(0,0,384,256);background(c,art);
  const foot=position.foot||R.foot(position.x,position.y);
  const queue=R.objects.map(o=>({depth:o.depth,draw:()=>object(c,art,o)}));
- queue.push({depth:foot.y,draw:()=>{const row=({d:0,u:1,r:2,l:3})[dir]??0,col=frame===1?0:frame===0?1:(row>=2?1:2);c.drawImage(hero,col*32,row*32,32,32,foot.x-15.5,foot.y-31,32,32);}});
+ queue.push({depth:foot.y,draw:()=>{const row=({d:0,u:1,r:2,l:3})[dir]??0,col=frame===1?0:frame===0?1:(row>=2?1:2);const bounds=[{left:4,width:23,height:28},{left:4,width:24,height:30},{left:5,width:21,height:26},{left:5,width:21,height:26}][row],scale=28/bounds.height;c.drawImage(hero,col*32,row*32,32,32,foot.x-(bounds.left+bounds.width/2)*scale,foot.y-31*scale,32*scale,32*scale);}});
  queue.sort((a,b)=>a.depth-b.depth).forEach(o=>o.draw());
  if(collision){c.fillStyle='rgba(244,52,75,.25)';for(const [x,y] of R.occupiedTiles)c.fillRect(R.origin.x+x*32,R.origin.y+y*32,32,32);}
  if(grid){c.lineWidth=.35;c.strokeStyle='rgba(255,255,255,.65)';for(let x=0;x<=R.width;x++){c.beginPath();c.moveTo(R.origin.x+x*32,0);c.lineTo(R.origin.x+x*32,256);c.stroke();}for(let y=0;y<=R.height;y++){c.beginPath();c.moveTo(0,R.origin.y+y*32);c.lineTo(384,R.origin.y+y*32);c.stroke();}}
