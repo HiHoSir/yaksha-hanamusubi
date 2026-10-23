@@ -4,13 +4,20 @@ window.YK_TENYO=(()=>{
  let rows=["################################################","################################################","################################################","################.############..#...#############","#############.#.....#########..#...#############","############..#.....###...###......#..##########","############........###...###......#...#########","##########............................##########","##########............................##########","##########..............................########","##########..............................########","##########..............................########","###########............................#########","############...........................#########","##############.........................#########","##############.......................###########","###############...................#..###########","################.................###############","##################............##################","##################...#....##.###################","######################....######################","#####################.......####################","#####################.......####################","#####################......#####################","#####################......#####################","####################.........###################","####################.........###################","####################.........###################","####################.........###################","####################........####################","#####################.......####################","#####################......#####################"];
  // JSON is the editable source; embedded rows provide a safe fallback until it loads.
  fetch('assets/maps/tenyo/walkability-48x32.json?v=1').then(r=>{if(!r.ok)throw Error('walkability fetch');return r.json()}).then(d=>{if(d.columns===48&&d.rows===32&&Array.isArray(d.grid)&&d.grid.length===32&&d.grid.every(r=>typeof r==='string'&&r.length===48&&/^[.#]+$/.test(r)))rows=d.grid;}).catch(e=>console.warn('Tenyo walkability fallback:',e));
- const spawn=[11.5*CELL,14.5*CELL];
+ const spawn=[Math.floor(11.5*CELL/WALK_CELL)*WALK_CELL+WALK_CELL/2,Math.floor(14.5*CELL/WALK_CELL)*WALK_CELL+WALK_CELL/2];
  const npcs=[{x:11.5*CELL,y:5.5*CELL},{x:14.5*CELL,y:7.5*CELL}];
  const chest=[12.5*CELL,12.5*CELL];
  const imgs=['background','trees','shrine','torii'].map(k=>{const im=new Image();im.src='assets/maps/tenyo/layer-'+k+'.webp?v=4';return im});
  const roof=[[595,0],[948,0],[948,137],[943,151],[931,158],[884,158],[855,151],[827,138],[809,122],[790,113],[768,108],[746,113],[728,127],[710,143],[690,156],[613,158],[596,151],[589,140],[589,0]];
  function tile(x,y){const col=Math.floor(x/WALK_CELL),row=Math.floor(y/WALK_CELL);return rows[row]?.[col]||'#';}
  function blocked(x,y){return tile(x,y)!=='.';}
+ function center(x,y){return [Math.floor(x/WALK_CELL)*WALK_CELL+WALK_CELL/2,Math.floor(y/WALK_CELL)*WALK_CELL+WALK_CELL/2];}
+ function step(x,y,dx,dy,collision){
+  if(Boolean(dx)===Boolean(dy))return {x,y};
+  const [cx,cy]=center(x,y),nx=cx+Math.sign(dx)*WALK_CELL,ny=cy+Math.sign(dy)*WALK_CELL;
+  if(blocked(nx,ny)||collision(nx,ny))return {x,y};
+  return {x:nx,y:ny};
+ }
  function exit(x,y){return y>=15.5*CELL&&x>=11*CELL&&x<=13*CELL;}
  function draw(c,state,drawHero,drawNpc,drawChest){
   const cameraX=Math.max(0,Math.min(WIDTH-768/ZOOM,state.x-768/ZOOM/2));
@@ -25,5 +32,5 @@ window.YK_TENYO=(()=>{
   if(imgs[2].complete&&imgs[2].naturalWidth)c.drawImage(imgs[2],0,0,WIDTH,HEIGHT);
   c.restore();
  }
- return {CELL,WALK_CELL,WIDTH,HEIGHT,spawn,npcs,chest,blocked,exit,draw,tile};
+ return {CELL,WALK_CELL,WIDTH,HEIGHT,spawn,npcs,chest,blocked,exit,draw,tile,center,step};
 })();
