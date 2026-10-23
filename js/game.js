@@ -413,6 +413,7 @@ function stabilizeLoadedState(){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
    if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||YK_INTERIOR_BASE.spawn(S);}
  }else if(area==="shrine"){
+   if(Number.isFinite(S.x)&&Number.isFinite(S.y))[S.x,S.y]=YK_TENYO.center(S.x,S.y);
    if(!Number.isFinite(S.x)||!Number.isFinite(S.y)||YK_TENYO.blocked(S.x,S.y)||S.y>=15.5*YK_TENYO.CELL)[S.x,S.y]=YK_TENYO.spawn.slice();
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
@@ -933,7 +934,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.13";
+const GAME_JS_BUILD="16.1.14";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -946,8 +947,9 @@ let collisionDebugVisible=collisionDebugEnabled;
 function fieldFrontPoint(){
  const dirs={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
  const [dx,dy]=dirs[S.dir]||[0,1];
- const px=S.x+dx*32,py=S.y+dy*32;
- return {px,py,tileX:Math.floor(px/32),tileY:Math.floor(py/32)};
+ const cell=S.area==="shrine"?YK_TENYO.WALK_CELL:32;
+ const px=S.x+dx*cell,py=S.y+dy*cell;
+ return {px,py,tileX:Math.floor(px/cell),tileY:Math.floor(py/cell)};
 }
 function fieldDebugOverlay(c,camera){
  if(!collisionDebugVisible||S.area!=="field")return;
@@ -1019,7 +1021,7 @@ function fieldDebugOverlay(c,camera){
   try{await navigator.clipboard.writeText(v);status.textContent="コピーしました\\n"+v}
   catch(e){const t=document.createElement("textarea");t.value=v;panel.append(t);t.select();try{document.execCommand("copy");status.textContent="コピーしました"}catch(_){status.textContent="文字列を選択してコピー"}t.remove()}
  });
- window.setInterval(()=>{if(!panel.isConnected)return;const p=fieldFrontPoint();label.textContent="HTML "+(window.__YK_HTML_BUILD||"?")+" / JS "+GAME_JS_BUILD+"\\n判定: 赤=通行不可 / 黄=物体 / 水色=前方";status.textContent="前方 ("+p.tileX+","+p.tileY+") "+(S.area==="field"?(collision(p.px,p.py)?"通行不可":"通行可"):"フィールド外")},500);
+ window.setInterval(()=>{if(!panel.isConnected)return;const p=fieldFrontPoint();label.textContent="HTML "+(window.__YK_HTML_BUILD||"?")+" / JS "+GAME_JS_BUILD+"\\n判定: 赤=通行不可 / 黄=物体 / 水色=前方";status.textContent="前方 ("+p.tileX+","+p.tileY+") "+(["field","shrine"].includes(S.area)?(collision(p.px,p.py)?"通行不可":"通行可"):"フィールド外")},500);
 }
 function map(frameTime=performance.now()){
  if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
@@ -1042,7 +1044,7 @@ function map(frameTime=performance.now()){
   YK_TENYO.draw(g,{...S,...YK_CAMERA.position(S,fieldMotion,frameTime)},(x,y)=>hero(g,x,y,S.dir,S.frame,S.outfit,.56),(i,x,y)=>{const n=shrineNpc[i];if(n)npc(g,x,y,n.type,n.name,n.dir||"d",n.frame??1)},(x,y)=>{
    const c=E.chests.find(c=>c.area==="shrine");if(!c)return;
    const im=CHEST_ART[S.chests[c.id]?"open":"closed"];if(layerReady(im))g.drawImage(im,x-22,y-38,44,44);
-  });
+  },collisionDebugVisible);
   worldHint(YK_TENYO.exit(S.x,S.y)?"南の参道からフィールドへ戻れます":"白妙に話しかけ、社を調べよう");return;
  }
  if(S.area==="field"){
@@ -1983,7 +1985,7 @@ function padActivate(){
  if(control.type==="checkbox"){control.click();return true;}
  control.click();return true;
 }
-const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!padNavigate(dir)&&!fieldPad(dir)&&!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
+const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!padNavigate(dir)&&!fieldPad(dir)&&!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom","shrine"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
 YK_INPUT.tap($("ok"),()=>padActivate()?undefined:battle?battleConfirm():$('commandMenu').classList.contains('show')?fieldConfirm():action());YK_INPUT.tap($("cancel"),()=>{if($("dialog").classList.contains("show")){nextDialog();return;}if($("title").classList.contains("show"))return;if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
 YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):openCommands());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
