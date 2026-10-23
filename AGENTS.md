@@ -2,9 +2,17 @@
 
 This repository contains reusable task skills in `.agents/skills/`. Read relevant SKILL.md files **before** coding, creating images or changing deployed assets.
 
+## 新規・再制作マップの共通基準（2026-10-23）
+- 屋内・村・フィールドなどの探索マップを新規作成／再制作する際は、最初に [共通マップ制作規約](docs/topview-map-standard.md) と [asset-design](.agents/skills/asset-design/SKILL.md) を読む。生成には [トップビュープロンプト](.agents/skills/asset-design/templates/topview-map-prompt.md) を使う。
+- 採用基準は正投影トップビュー、32pxマス、SDキャラの可視全体を原則28px以内でセル中央へ配置、上下左右のセル単位移動、明示した整数 `occupiedTiles`。前景分割は実際に張り出して遮蔽が必要な物体だけに使う。
+- この対象では、下記や旧資料の「室内約58px」「足元をマス中央」「旧base-v1の構図・斜め視点を維持」「常に建築3分割」より新規約を優先する。外見の正本は維持する。既存マップ・戦闘・セーブを規約登録だけで自動移行しない。
+- 歩行範囲のみを修正する依頼では、家具・椅子の配置、部屋寸法、床の行数を維持する。奥の家具の手前の床など、空いている接近セルの不要な通行不可を直す。間取り変更へ読み替えない。
+- トップビューの基準画像は `design-reference/maps/topview-v1/cyamise-approved.png`。旧内装資料は配色・世界観の資料として使い、新しいカメラを旧パースへ戻さない。
+
 ## Skill registry
 | Work | Skill |
 | --- | --- |
+| New/rebuilt exploration maps: top view, SD cell movement and collision | [共通規約](docs/topview-map-standard.md) + [asset-design](.agents/skills/asset-design/SKILL.md) |
 | GitHub binary uploads, commits, CI, deployment | [github-artifact-delivery](.agents/skills/github-artifact-delivery/SKILL.md) |
 | Hizuki walking illustrations, limb corrections and pixel variants | [hizuki-walk-assets](.agents/skills/hizuki-walk-assets/SKILL.md) |
 | High-resolution enemy sprites (intact/worn) | [battle-enemy-hd-assets](.agents/skills/battle-enemy-hd-assets/SKILL.md) |

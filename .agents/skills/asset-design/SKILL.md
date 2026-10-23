@@ -1,8 +1,13 @@
 ---
 name: asset-design
-description: Preflight, author and deliver 32px game tiles, walkable floor decorations, furniture and architecture for yaksha-hanamusubi while minimizing image-generation attempts. Invoke explicitly as $asset-design in compatible coding agents; in ChatGPT ask to follow asset-design.
+description: Use when creating or rebuilding exploration maps, generating 32px terrain or floor tiles, or designing furniture and architecture for yaksha-hanamusubi.
 ---
 # Asset Design — generation-first quality and cost discipline
+
+## New/rebuilt exploration maps — mandatory routing
+Read [the common top-view map standard](../../../docs/topview-map-standard.md) before designing any new or rebuilt exploration map, indoors or outdoors. Use [the reusable prompt](templates/topview-map-prompt.md) and the actual approved SD atlas and top-view reference. These rules take precedence over legacy 58px, foot-centered placement, perspective/base-v1 composition and mandatory three-part architecture defaults for this scope. Do not migrate unrelated existing maps or battle rendering.
+Keep the whole visible SD character centered inside a 32px cell (normally within 28px), use explicit integer occupied cells and cardinal cell movement, and split foreground only where actual overhang requires it. A walking-area-only request preserves furniture positions and room dimensions; repair unnecessary blocked approach cells instead.
+The standard defines shared behavior, not tea-shop-specific coordinates or universal furniture sizes.
 
 ## Mandatory entry gate — before calling any image generator
 1. **Read** repository `AGENTS.md`, this SKILL.md, the category-specific skill and approved source assets. If inaccessible, say so; DO NOT pretend to have read them.
