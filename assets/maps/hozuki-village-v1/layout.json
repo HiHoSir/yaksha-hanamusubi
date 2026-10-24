@@ -5905,6 +5905,198 @@
           4
         ]
       ]
+    },
+    {
+      "id": "refresh-sakura-7-1",
+      "templateId": "tree_sakura_pale",
+      "x": 7,
+      "y": 1,
+      "occupiedTiles": [
+        [
+          7,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-7-2",
+      "templateId": "tree_sakura_pale",
+      "x": 7,
+      "y": 2,
+      "occupiedTiles": [
+        [
+          7,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-7-3",
+      "templateId": "tree_sakura_pale",
+      "x": 7,
+      "y": 3,
+      "occupiedTiles": [
+        [
+          7,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-13-1",
+      "templateId": "tree_sakura_pale",
+      "x": 13,
+      "y": 1,
+      "occupiedTiles": [
+        [
+          13,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-13-2",
+      "templateId": "tree_sakura_pale",
+      "x": 13,
+      "y": 2,
+      "occupiedTiles": [
+        [
+          13,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-13-3",
+      "templateId": "tree_sakura_pale",
+      "x": 13,
+      "y": 3,
+      "occupiedTiles": [
+        [
+          13,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-2-10",
+      "templateId": "tree_sakura_pale",
+      "x": 2,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          2,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-3-10",
+      "templateId": "tree_sakura_pale",
+      "x": 3,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          3,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-4-10",
+      "templateId": "tree_sakura_pale",
+      "x": 4,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          4,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-5-10",
+      "templateId": "tree_sakura_pale",
+      "x": 5,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          5,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-6-10",
+      "templateId": "tree_sakura_pale",
+      "x": 6,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          6,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-7-10",
+      "templateId": "tree_sakura_pale",
+      "x": 7,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          7,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-12-16",
+      "templateId": "tree_sakura_pale",
+      "x": 12,
+      "y": 16,
+      "occupiedTiles": [
+        [
+          12,
+          16
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-17-10",
+      "templateId": "tree_sakura_pale",
+      "x": 17,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          17,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-15-10",
+      "templateId": "tree_sakura_pale",
+      "x": 15,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          15,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "refresh-sakura-13-10",
+      "templateId": "tree_sakura_pale",
+      "x": 13,
+      "y": 10,
+      "occupiedTiles": [
+        [
+          13,
+          10
+        ]
+      ]
     }
   ],
   "entrances": [

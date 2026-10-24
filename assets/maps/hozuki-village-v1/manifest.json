@@ -8,13 +8,13 @@
   "sources": [
     {
       "file": "layout.json",
-      "sha256": "a365ee6e3b4b33b3274700deec76fdb8f2aaa4283d94163d8a7a9236e43d2263",
-      "size": 119547
+      "sha256": "303ed146fbfd6092d95e6d9c2371250c8fc40b43cfdfce0bb18e754afa4930b0",
+      "size": 122687
     },
     {
       "file": "collision.json",
-      "sha256": "9e717d76db5b3968425164983b98268bab9109636c9ceab6b00b5c13ace58189",
-      "size": 8747
+      "sha256": "fe2dfb7d0a31e153560a392501ffad3bf6bb71ce144f495ee604e148aa2447ff",
+      "size": 9244
     },
     {
       "file": "ground.png",
@@ -23,8 +23,8 @@
     },
     {
       "file": "reference.png",
-      "sha256": "94c562900f992e897da7489c497fb84e0743c7391d138a9b7a094111d6f4aa41",
-      "size": 344535
+      "sha256": "9b79194b16eb79e7255713fa11e8cf6cb1195c0f73ade938c47e9f6a4928da40",
+      "size": 350465
     }
   ],
   "referenceRole": "original user-exported composite, not a depth layer",
@@ -43,5 +43,75 @@
       "gamma": 1.85
     }
   },
-  "save": "none"
+  "save": "none",
+  "refresh": {
+    "date": "2026-10-25",
+    "addedTrees": [
+      [
+        7,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        7,
+        3
+      ],
+      [
+        13,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        13,
+        3
+      ],
+      [
+        2,
+        10
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        6,
+        10
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        12,
+        16
+      ],
+      [
+        17,
+        10
+      ],
+      [
+        15,
+        10
+      ],
+      [
+        13,
+        10
+      ]
+    ],
+    "layoutProvenance": "previous layout plus 16 authored collision cells; exact visual reconstruction checked against uploaded composite"
+  }
 }

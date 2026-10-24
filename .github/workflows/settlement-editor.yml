@@ -2,7 +2,7 @@ name: Settlement editor and approved Jizo
 on:
   push:
     branches: [main]
-    paths: ['settlement-map-editor.html', 'js/settlement-map/**', 'js/landscape.js', 'js/world.js', 'assets/settlement-editor/**', 'assets/terrain/places-v1/jizo.png', 'qa/editor-jizo*', '.github/workflows/settlement-editor.yml']
+    paths: ['settlement-map-editor.html', 'js/settlement-map/**', 'js/landscape.js', 'js/world.js', 'assets/settlement-editor/**', 'assets/terrain/places-v1/jizo.png', 'qa/editor-jizo*', 'qa/hozuki-refresh*', 'js/hozuki-village-*.js', 'assets/maps/hozuki-village-v1/**', '.github/workflows/settlement-editor.yml']
 permissions:
   contents: read
 jobs:
@@ -16,11 +16,14 @@ jobs:
           node-version: 24
       - run: npm install --no-save --package-lock=false @napi-rs/canvas@0.1.80 jsdom@30.1.3 playwright@1.51.1
       - run: npx playwright install --with-deps chromium
-      - run: node --test qa/editor-jizo-integration.test.cjs qa/settlement-map-*.test.cjs qa/hozuki-game.test.cjs qa/hozuki-game-art.test.cjs qa/hozuki-camera-grass.test.cjs
+      - run: node --test --test-concurrency=1 qa/hozuki-refresh.test.cjs qa/editor-jizo-integration.test.cjs qa/settlement-map-*.test.cjs qa/hozuki-game.test.cjs qa/hozuki-game-art.test.cjs qa/hozuki-camera-grass.test.cjs
       - run: node qa/editor-jizo-browser.cjs
+      - run: node qa/hozuki-refresh-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: settlement-editor-and-jizo
-          path: qa/results/editor-main/
+          path: |
+            qa/results/editor-main/
+            qa/results/hozuki-refresh/
           if-no-files-found: ignore
