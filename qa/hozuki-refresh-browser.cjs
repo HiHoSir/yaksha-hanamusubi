@@ -20,8 +20,9 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await page.waitForFunction(()=>window.gameState.area==='villageRoom');a.equal(await page.evaluate(()=>gameState.lastInterior),'inn');
  await page.waitForTimeout(600);await page.evaluate(()=>__qaEval('busy=false;leaveInterior();'));await page.waitForFunction(()=>gameState.area==='village');
  a.deepEqual(await page.evaluate(()=>[gameState.x,gameState.y]),[112,144]);
- await page.waitForTimeout(600);await page.evaluate(()=>__qaEval('busy=false;S.x=336;S.y=336;S.dir="u";YK_SAVE.auto(S);restoreState(YK_SAVE.loadAuto(),false);map();'));
- a.deepEqual(await page.evaluate(()=>[gameState.x,gameState.y]),[336,336]);a.equal(await page.evaluate(()=>gameState.quest),1);
+ await page.waitForTimeout(600);await page.evaluate(()=>__qaEval('busy=false;S.x=112;S.y=144;S.dir="u";YK_SAVE.auto(S);restoreState(YK_SAVE.loadAuto(),false);map();'));
+ a.deepEqual(await page.evaluate(()=>[gameState.x,gameState.y]),[112,144]);a.equal(await page.evaluate(()=>gameState.quest),1);
+ await page.evaluate(()=>__qaEval('const safe=[336,304];if(!YK_HOZUKI.blocked(...safe)){[S.x,S.y]=safe;map();}'));
  await page.screenshot({path:path.join(out,'village-cherry-mobile.png')});
  const report=await page.evaluate(()=>__qaEval('({html:__YK_HTML_BUILD,game:__YK_RUNNING_GAME_BUILD,hero:HIZUKI_FIELD_SD.datasetSrc,outline:!!window.YKSpriteOutline,ready:YK_HOZUKI.ready()})'));
  a.equal(report.html,report.game);a(report.hero.includes('field-sd-v2'));a(report.outline);a(report.ready);a.deepEqual(errors,[]);
