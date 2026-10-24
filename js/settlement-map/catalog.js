@@ -34,5 +34,6 @@ for(const [key,name]of [['cobble','石畳'],['gravel','砂利'],['soil','裸土'
 for(const [key,name]of [['fence','木柵'],['hedge','生垣']])packAsset('auto_'+key,name+'（自動接続）',[1,1],true,true,{src:packDir+key+'-16.png',preview:packDir+key+'-preview.png',autotile:true,cardinalAuto:true,paintable:true,paintGroup:'boundary'});
 
 for(const [id,name]of [['building_belltower','鐘撞堂'],['building_jinja','神社']])packAsset(id,name,[3,2],false,false,{src:'assets/settlement-editor/religious-v1/'+id+'.png',pack:'religious-v1',entranceLocal:[1,0],approachLocal:[1,1],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]]});
+for(const [id,name]of [['komainu_left','狛犬（左）'],['komainu_right','狛犬（右）']])packAsset(id,name,[1,1],true,false,{src:'assets/settlement-editor/religious-v1/'+id+'.png',pack:'religious-v1'});
 return {templates,byId};
 });
