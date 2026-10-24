@@ -1,0 +1,10 @@
+{
+  "asset": "victory-full.png",
+  "canvas": [1024, 1536],
+  "alphaBoundsAt16": [92, 14, 1003, 1515],
+  "source": "image_gen edit of battle-expressions-v1/battle-end.png; attack-03.png used only for lower-body/boots reference",
+  "purpose": "Complete the approved victory pose with both legs and boots, matching the attack canvas dimensions.",
+  "layout": "Original approved 16.1.35 large battle overlay. Only victory artwork changes. Idle, attack, skill and centered level-up placement are restored.",
+  "originalPreserved": "../battle-expressions-v1/battle-end.png",
+  "build": "16.1.38"
+}

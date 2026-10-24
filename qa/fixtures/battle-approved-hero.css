@@ -1,0 +1,15 @@
+/* Approved 16.1.35 actor composition. Update only after explicit visual approval. */
+#battle #battleHeroOverlay{position:absolute!important;padding:0!important;z-index:1!important;left:-12vw!important;bottom:-27vh!important;width:min(88vw,610px)!important;height:105vh!important;object-fit:contain!important;object-position:left bottom!important;pointer-events:none!important;filter:drop-shadow(1px 2px 3px rgba(18,22,36,.6))!important;transform-origin:30% 75%!important;}
+@media(orientation:landscape){#battle #battleHeroOverlay{left:-4vw!important;bottom:-26vh!important;width:50vw!important;height:125vh!important}}
+
+#battle #battleHeroOverlay.battleHeroLevelUp{
+ left:50%!important;right:auto!important;top:4%!important;bottom:auto!important;
+ width:min(125vw,1150px)!important;height:125%!important;
+ object-fit:contain!important;object-position:center top!important;
+ transform-origin:center top!important;
+}
+@media(orientation:portrait){
+ #battle #battleHeroOverlay.battleHeroLevelUp{
+  left:50%!important;top:7%!important;width:150vw!important;height:112%!important;
+ }
+}
