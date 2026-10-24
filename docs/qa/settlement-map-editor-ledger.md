@@ -1,4 +1,5 @@
 # SDD ledger — plan: docs/superpowers/plans/2026-10-24-settlement-map-editor.md
+sm-6 (2026-10-24): user requested 1-cell bridge autotiles. Reused approved bridge-source art; 17 states, 32px cells, transparent 256x96 atlas. New bridge and bridge-only erase buttons; old 2-cell IDs retained hidden for save compatibility. Model bridge tests RED before implementation, then GREEN. Full scoped suite 55/55 PASS, including connected RGBA edges, water-only passage restoration, actual DOM brush/erase/Undo. Native preview inspected. Remote upload/deployment and actual iPhone Safari must be checked separately.
 Baseline: main 74234d9d038a9c0b65fdda39fd4fe2a69e5abdc8; improvement plan commit bbdbf9ae39b93a899e34bba42dac4e49f7c630f8.
 Execution: native, approved by user.
 Ruling: use a scoped connector-backed workspace, not a synthetic local git repository — the authoritative improvement branch is remote and no checkout exists; local git task scripts do not apply. Cost: remote SHA/tree checks and ledger replace local git helper bookkeeping.

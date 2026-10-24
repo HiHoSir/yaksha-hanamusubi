@@ -15,7 +15,9 @@ const byId=Object.fromEntries(templates.map(t=>[t.id,t]));
 for(const id of ['auto_road','auto_river']){byId[id].autotile=true;byId[id].paintable=true;byId[id].paintGroup='surface';byId[id].preview='assets/settlement-editor/terrain-v1/'+(id==='auto_road'?'road':'river')+'-preview.png';}
 byId.auto_river.water=true;byId.ground_grass.paintable=true;byId.ground_grass.paintGroup='base';
 byId.garden_crop.paintable=true;byId.garden_crop.paintGroup='farm';
-byId.bridge.name='木の橋（横）';byId.bridge.bridgePassages=[[0,0],[1,0]];byId.bridge_vertical.bridgePassages=[[0,-1],[0,0]];
+byId.bridge.name='木の橋（横・旧2マス）';byId.bridge.bridgePassages=[[0,0],[1,0]];byId.bridge_vertical.bridgePassages=[[0,-1],[0,0]];
+byId.bridge.hidden=true;byId.bridge_vertical.hidden=true;
+const bridgeTile={id:'auto_bridge',name:'橋（1マス・自動接続）',src:'assets/settlement-editor/terrain-v1/bridge-17.png',preview:'assets/settlement-editor/terrain-v1/bridge-preview.png',displayCells:[1,1],kind:'terrain',sourceRect:[0,0,32,32],layer:'ground',occupiedTiles:[],entranceLocal:null,approachLocal:null,autotile:true,bridgeAuto:true,paintable:true,paintGroup:'bridge',bridgePassages:[[0,0]]};templates.push(bridgeTile);byId.auto_bridge=bridgeTile;
 for(const id of ['terrain_grass','terrain_dirt','terrain_river'])byId[id].hidden=true;
 return {templates,byId};
 });
