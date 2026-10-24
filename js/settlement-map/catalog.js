@@ -43,5 +43,7 @@ for(const [key,name]of [['sakura_pale','桜（淡桃）'],['sakura_pink','桜（
   packAsset(id,label+'・'+name,size,true,false,{src:'assets/settlement-editor/seasonal-trees-v1/'+id+'.png',sourceRect:rect,pack:'seasonal-trees-v1'});
  }
 }
+// Jizo are independent objects: a tall silhouette never adds upper collision cells.
+for(const [id,name,size]of [['jizo_small','小さな地蔵',[1,1]],['jizo_kasa','笠地蔵',[1,1]],['jizo_bosatsu','地蔵菩薩立像',[1,2]]])packAsset(id,name,size,true,false,{src:'assets/settlement-editor/jizo-v1/'+id+'.png',pack:'jizo-v1'});
 return {templates,byId};
 });

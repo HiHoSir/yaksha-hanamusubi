@@ -1,0 +1,65 @@
+[
+  {
+    "id": "jizo_small",
+    "displayCells": [
+      1,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "sourceRect": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "anchor": "ground-bottom-center",
+    "layer": "object"
+  },
+  {
+    "id": "jizo_kasa",
+    "displayCells": [
+      1,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "sourceRect": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "anchor": "ground-bottom-center",
+    "layer": "object"
+  },
+  {
+    "id": "jizo_bosatsu",
+    "displayCells": [
+      1,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "sourceRect": [
+      0,
+      0,
+      32,
+      64
+    ],
+    "anchor": "ground-bottom-center",
+    "layer": "object"
+  }
+]
