@@ -3,6 +3,7 @@
 全6衣装の歩行素材と、攻撃・被弾ポーズ計12枚を組み込んだ実機確認版です。
 
 - ゲーム：`index.html`
+- 村用マップ制作：[村マップエディタ](settlement-map-editor.html)（main・71素材、地蔵／桜／紅葉を含む）
 - 歩行・ベース比較：`sprite-preview.html`
 - 攻撃・被弾確認：`battle-preview.html`
 - 詳細：`BETA15_28_STATUS.md`

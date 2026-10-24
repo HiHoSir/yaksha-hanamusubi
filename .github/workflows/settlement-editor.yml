@@ -1,0 +1,26 @@
+name: Settlement editor and approved Jizo
+on:
+  push:
+    branches: [main]
+    paths: ['settlement-map-editor.html', 'js/settlement-map/**', 'js/landscape.js', 'js/world.js', 'assets/settlement-editor/**', 'assets/terrain/places-v1/jizo.png', 'qa/editor-jizo*', '.github/workflows/settlement-editor.yml']
+permissions:
+  contents: read
+jobs:
+  editor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false @napi-rs/canvas@0.1.80 jsdom@26.1.0 playwright@1.51.1
+      - run: npx playwright install --with-deps chromium
+      - run: node --test qa/editor-jizo-integration.test.cjs qa/settlement-map-*.test.cjs qa/hozuki-game.test.cjs qa/hozuki-game-art.test.cjs qa/hozuki-camera-grass.test.cjs
+      - run: node qa/editor-jizo-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: settlement-editor-and-jizo
+          path: qa/results/editor-main/
+          if-no-files-found: ignore

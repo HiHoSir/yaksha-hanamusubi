@@ -1,13 +1,13 @@
 // Original terrain art. Display sizes are independent of the 32px movement grid.
 window.YK_LANDSCAPE=(()=>{
- const specs={newVillage:[64,32],newHouse:[32,32],newTorii:[32,32],newCaveLarge:[64,32],newFort:[64,32],newPagoda:[32,64],newTrees:[32,32],newMountainSmall:[32,32],newMountainLarge:[128,64],bridgeNS:[48,96],castle:[64,64],sacredTree:[64,64],stoneMonument:[32,32],waterfall:[80,96],horizon:[640,240],grass:[256,256],grassCliff:[32,32],ladder:[32,96],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[24,40],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
+ const specs={newVillage:[64,32],newHouse:[32,32],newTorii:[32,32],newCaveLarge:[64,32],newFort:[64,32],newPagoda:[32,64],newTrees:[32,32],newMountainSmall:[32,32],newMountainLarge:[128,64],bridgeNS:[48,96],castle:[64,64],sacredTree:[64,64],stoneMonument:[32,32],waterfall:[80,96],horizon:[640,240],grass:[256,256],grassCliff:[32,32],ladder:[32,96],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[32,32],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
  const placeKeys=['village','town','hermit','jizo','cave','torii'];
  const oldKeys=['water','snow','barren','sand'];
  const keys=Object.keys(specs),water=t=>t==='sea'||t==='river';let started=false;
  function ready(){return keys.every(k=>decoded[k]&&art[k]?.complete&&art[k].naturalWidth===specs[k][0]&&art[k].naturalHeight===specs[k][1]&&!errors[k]);}
  function load(change=()=>{}){
   if(started)return;started=true;
-  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};const src=k==='newVillage'?'assets/field-map-objects-v3/village.png':k==='newHouse'?'assets/field-map-objects-v3/house.png':k==='newTorii'?'assets/field-map-objects-v3/torii.png':k==='newCaveLarge'?'assets/field-map-objects-v3/cave-large.png':k==='newFort'?'assets/field-map-objects-v3/fort.png':k==='newPagoda'?'assets/field-map-objects-v3/pagoda.png':k==='newTrees'?'assets/field-map-objects-v3/trees.png':k==='newMountainSmall'?'assets/field-map-objects-v3/mountain-small.png':k==='newMountainLarge'?'assets/field-map-objects-v3/mountain-large.png':k==='stoneMonument'?'assets/field-map-objects-v3/stone-monument.png':k==='sacredTree'?'assets/field-map-objects-v3/sacred-tree.png':k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':k==='grassCliff'?'assets/terrain/cliffs-v1/grass-cliff-32.png?v=16.0.121':k==='ladder'?'assets/terrain/ladder-v1/wood-ladder-32x96.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';im.src=src+((k==='castle'||k==='shrine')?'?v=16.0.107':'');}
+  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};const src=k==='newVillage'?'assets/field-map-objects-v3/village.png':k==='newHouse'?'assets/field-map-objects-v3/house.png':k==='newTorii'?'assets/field-map-objects-v3/torii.png':k==='newCaveLarge'?'assets/field-map-objects-v3/cave-large.png':k==='newFort'?'assets/field-map-objects-v3/fort.png':k==='newPagoda'?'assets/field-map-objects-v3/pagoda.png':k==='newTrees'?'assets/field-map-objects-v3/trees.png':k==='newMountainSmall'?'assets/field-map-objects-v3/mountain-small.png':k==='newMountainLarge'?'assets/field-map-objects-v3/mountain-large.png':k==='stoneMonument'?'assets/field-map-objects-v3/stone-monument.png':k==='sacredTree'?'assets/field-map-objects-v3/sacred-tree.png':k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':k==='grassCliff'?'assets/terrain/cliffs-v1/grass-cliff-32.png?v=16.0.121':k==='ladder'?'assets/terrain/ladder-v1/wood-ladder-32x96.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';im.src=src+(k==='jizo'?'?v=16.1.39':'')+((k==='castle'||k==='shrine')?'?v=16.0.107':'');}
  }
  function fixture(){
   const m=Array.from({length:17},()=>Array(20).fill('grass'));
@@ -59,8 +59,8 @@ window.YK_LANDSCAPE=(()=>{
    {kind:'village',x:64,y:244,width:112,height:80,foot:324},
    {kind:'town',x:410,y:228,width:144,height:104,foot:332},
    {kind:'torii',x:420,y:134,width:64,height:64,foot:198},
-   {kind:'jizo',x:218,y:296,width:24,height:40,foot:336},
-   {kind:'jizo',x:368,y:296,width:24,height:40,foot:336},
+   {kind:'jizo',x:214,y:304,width:32,height:32,foot:336},
+   {kind:'jizo',x:364,y:304,width:32,height:32,foot:336},
    {kind:'bridge',x:288,y:332,width:96,height:56,foot:388,ground:true},
    {kind:'flowers',x:168,y:370,width:40,height:24,foot:394,ground:true},
    {kind:'flowers',x:542,y:372,width:40,height:24,foot:396,ground:true}
@@ -274,7 +274,7 @@ window.YK_LANDSCAPE=(()=>{
    {kind:'hermit',x:292,y:552,width:72,height:72,foot:624},
    {kind:'shrine',x:720,y:512,width:80,height:80,foot:592},
    {kind:'waterfall',x:616,y:268,width:80,height:96,foot:364},
-   {kind:'jizo',x:420,y:1088,width:24,height:40,foot:1128},
+   {kind:'jizo',x:416,y:1096,width:32,height:32,foot:1128},
    {kind:'torii',x:728,y:602,width:64,height:64,foot:666},
    {kind:'flowers',x:526,y:952,width:40,height:24,foot:976,ground:true},
    {kind:'flowers',x:530,y:1216,width:40,height:24,foot:1240,ground:true}
