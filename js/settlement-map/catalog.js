@@ -32,5 +32,7 @@ for(const [id,name]of [['barrel','樽'],['rice_bale','米俵'],['firewood','薪'
 for(const [id,name,file]of [['stairs_stone','石の階段','stairs'],['stepping_stone','踏み石','stepping_stone'],['decor_leaves','落ち葉','leaves'],['decor_pebbles','小石','pebbles']])packAsset(id,name,[1,1],false,true,{src:packDir+file+'.png'});
 for(const [key,name]of [['cobble','石畳'],['gravel','砂利'],['soil','裸土']])packAsset('ground_'+key,name+'（自動接続）',[1,1],false,true,{src:packDir+key+'-47.png',preview:packDir+key+'-preview.png',autotile:true,paintable:true,paintGroup:'surface'});
 for(const [key,name]of [['fence','木柵'],['hedge','生垣']])packAsset('auto_'+key,name+'（自動接続）',[1,1],true,true,{src:packDir+key+'-16.png',preview:packDir+key+'-preview.png',autotile:true,cardinalAuto:true,paintable:true,paintGroup:'boundary'});
+
+for(const [id,name]of [['building_belltower','鐘撞堂'],['building_jinja','神社']])packAsset(id,name,[3,2],false,false,{src:'assets/settlement-editor/religious-v1/'+id+'.png',pack:'religious-v1',entranceLocal:[1,0],approachLocal:[1,1],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]]});
 return {templates,byId};
 });

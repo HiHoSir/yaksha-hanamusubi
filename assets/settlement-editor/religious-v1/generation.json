@@ -1,0 +1,14 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "approved village background, style only",
+  "assets": {
+    "building_belltower": {
+      "source": "/workspace/scratch/f2411d836926/generated_images/exec-729123ce-53f8-4ecd-905e-544b5d25dc13.png",
+      "prompt": "One isolated game building sprite source: Japanese Buddhist shoro bell pavilion, broad low hipped brown-tile roof on four natural timber posts, OPEN SIDES, large clearly visible green-bronze bonsho bell hanging in the central opening, small horizontal wooden striking beam next to bell, low timber platform. No white walls, no shrine rope, no torii. Style reference: supplied village screenshot for palette, camera and pixel-art style ONLY. Original late-SFC Japanese RPG pixel art. Orthographic top-down village view, mostly broad roof with a shallow front facade, no isometric or oblique sides. Symmetrical width, centered lower-front opening. Intended logical sprite is exactly 3 tiles wide x 2 tiles high, 96x64 final pixels; compact readable details, chunky pixel clusters, sharp dark pixel contours, restrained shading and colors. Entire building must fit the 3:2 rectangle, no tall tower. True transparent RGBA background, no ground patch, no characters, no cast shadow outside, no labels, letters, measurements, frame or layout sheet. Single building only; minimal transparent margin. This is source artwork for deterministic 96x64 normalization."
+    },
+    "building_jinja": {
+      "source": "/workspace/scratch/f2411d836926/generated_images/exec-4590dfb0-108d-4ce4-947c-f4b71e45c2ba.png",
+      "prompt": "One isolated game building sprite source: small Japanese Shinto shrine main hall, broad low dark brown roof, vermilion red timber pillars and white side panels, thick sacred straw shimenawa rope with white zigzag shide across the front beam, dark central doorway centered at the bottom, tiny entrance step contained inside the building silhouette. No bell, no separate torii, no garden. Style reference: supplied village screenshot for palette, camera and pixel-art style ONLY. Original late-SFC Japanese RPG pixel art. Orthographic top-down village view, mostly broad roof with a shallow front facade, no isometric or oblique sides. Symmetrical width, centered lower-front opening. Intended logical sprite is exactly 3 tiles wide x 2 tiles high, 96x64 final pixels; compact readable details, chunky pixel clusters, sharp dark pixel contours, restrained shading and colors. Entire building must fit the 3:2 rectangle, no tall tower. True transparent RGBA background, no ground patch, no characters, no cast shadow outside, no labels, letters, measurements, frame or layout sheet. Single building only; minimal transparent margin. This is source artwork for deterministic 96x64 normalization."
+    }
+  }
+}
