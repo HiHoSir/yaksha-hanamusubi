@@ -168,7 +168,7 @@ const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
 });
 const HIZUKI_BATTLE_EXPRESSIONS={};
 for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
- const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.45":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.46":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
 // Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
@@ -205,7 +205,7 @@ function sdFieldBounds(row,col){
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.45";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.46";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -282,12 +282,19 @@ for(const [id,stem] of Object.entries(HD_RARE_STEMS)){
 const RARE_ART={};
 for(const r of Object.values(YK_DATA.rareKinds)){if(!r.art)continue;RARE_ART[r.id]={};for(const state of ["intact"]){const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/enemies/variants/${r.art}${state==="worn"?"-worn":""}.png`;RARE_ART[r.id][state]=im;}}
 function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;return im}
-function ensureBattleAssets(){
+function ensureBattleAssets(enemyName=null){
  // Preload every approved heroine animation before the encounter transition.
  for(const im of HIZUKI_BATTLE_FRAMES)ensureImage(im);
  for(const im of HIZUKI_SKILL_FRAMES)ensureImage(im);
  for(const im of HIZUKI_ATTACK_FRAMES)ensureImage(im);
  for(const im of Object.values(HIZUKI_BATTLE_EXPRESSIONS))ensureImage(im);
+ if(enemyName){
+  ensureImage(REDESIGNED_ENEMY_ART[enemyName]);ensureImage(ENEMY_ATLAS);
+  if(enemyName==='影九尾')ensureImage(KAGEKYUBI_ART);
+  // Rare selection can require the shared atlas; do not load every legacy/HD enemy.
+  ensureImage(VARIANT_ATLAS);
+  return;
+ }
  // Legacy Yashahime sprites are not part of the active battle preload.
  for(const im of Object.values(B9EN))ensureImage(im);
  for(const im of Object.values(ENEMY_ART))ensureImage(im);
@@ -752,7 +759,7 @@ function drawDoorHint(){
 function villageDoorAction(){
  if(S.area!=='village'||!YK_HOZUKI.ready())return false;
  const door=YK_HOZUKI.doorAt(S);if(!door)return false;
- transitionArea(door.target,()=>{S.lastInterior=door.id;enterInterior(door.target);message(door.name);});return true;
+ transitionArea(door.target,()=>{S.lastInterior=door.id;enterInterior(door.target);message(door.name);},{...S,area:door.target,lastInterior:door.id});return true;
 
 }
 
@@ -903,7 +910,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.45";
+const GAME_JS_BUILD="16.1.46";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1274,15 +1281,16 @@ function setEncounterDebugOff(value){
 function beginEncounter(force=false,boss=false){
  battleTrace("beginEncounter",String(force));
  if(!force&&encounterDebugOff)return false;
- ensureBattleAssets();
  const area=D.areas[S.area],pool=D.enemies[S.area];
  if(!area||!pool?.length||(!force&&area.encounter<=0))return false;
  if(!force&&S.area==="field"&&YK_WORLD.near(S.x,S.y))return false;
  if(!force&&(S.encounterGrace>0||S.encounterSteps<(area.min||12)))return false;
  if(!force&&Math.random()>=area.encounter)return false;
  const e=boss?["影九尾",320,24,180,120]:pool[Math.floor(Math.random()*pool.length)];
+ ensureBattleAssets(e[0]);
  const variant=boss?null:D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
  const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
+ if(rare)ensureImage(HD_RARE_ART[rare.id]?.intact);
  fieldMotion=null;resetBattleAnimation();battle={boss:!!boss,name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,def:boss?10:(D.enemyDefense?.[e[0]]||0),xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
  YK_INPUT.stopAll();S.frame=1;
@@ -1831,9 +1839,10 @@ function worldHint(text){
 }
 
 let areaTransitionPending=false;
-function waitAreaAssets(destination){
+function waitAreaAssets(destination,assetState){
  if(destination==='village')return YK_HOZUKI.whenReady();
  if(destination==='shrine')return Promise.all([YK_TENYO.whenReady(),YK_TENYO_NPC.whenReady(assetLoaded)]);
+ if(['teahouse','osumiHome','villageRoom'].includes(destination))return YK_INTERIOR_BASE.whenReady(assetState||{...S,area:destination});
  const images=[IMG[destination],destination==='field'?HIZUKI_FIELD_SD:null].filter(Boolean);
  return Promise.all(images.map(im=>new Promise((resolve,reject)=>{
   if(im.complete){im.naturalWidth?resolve():reject(new Error('画像を読み込めません'));return;}
@@ -1841,7 +1850,7 @@ function waitAreaAssets(destination){
   im.addEventListener('error',()=>reject(new Error('画像を読み込めません')),{once:true});
  })));
 }
-async function transitionArea(destination,commit){
+async function transitionArea(destination,commit,assetState){
  if(areaTransitionPending||busy||!destination)return false;
  areaTransitionPending=true;busy=true;YK_INPUT.stopAll();fieldMotion=null;fieldLadderMotion=null;
  const veil=document.createElement('div');
@@ -1879,7 +1888,7 @@ async function transitionArea(destination,commit){
  requestAnimationFrame(()=>{veil.style.opacity='1';});
  try{
   await new Promise(resolve=>setTimeout(resolve,420));
-  await waitAreaAssets(destination);
+  await waitAreaAssets(destination,assetState);
   commit();
   map();hud();
   veil.style.opacity='0';

@@ -14,6 +14,9 @@ window.YK_TENYO=(()=>{
  const forestGroups=[{"name":"forest-north-cap","sourceFootY":144},{"name":"forest-north-east","sourceFootY":176},{"name":"forest-north-west","sourceFootY":192},{"name":"forest-east-upper","sourceFootY":224},{"name":"forest-east-side","sourceFootY":288},{"name":"forest-west-upper","sourceFootY":304},{"name":"forest-west-side","sourceFootY":512},{"name":"forest-east-middle","sourceFootY":512}];
  const imgs={},pending=[];
  let redraw=()=>{},failed=false;
+ let readyPromise=null;
+ function startLoading(){
+ if(readyPromise)return readyPromise;
  for(const name of ['background','shrine','torii-base','torii-upper','trees-back','trees-front',...forestGroups.map(g=>g.name)]){
   const im=new Image();
   pending.push(new Promise((resolve,reject)=>{
@@ -24,15 +27,17 @@ window.YK_TENYO=(()=>{
   imgs[name]=im;
   if(im.complete&&im.naturalWidth)im.onload();
  }
- const readyPromise=Promise.all(pending);
+ readyPromise=Promise.all(pending);
  // Images start eagerly; keep errors handled until the transition awaits them.
  readyPromise.catch(()=>{});
+ return readyPromise;
+ }
  function load(change){if(typeof change==='function')redraw=change;}
- function whenReady(){return readyPromise;}
+ function whenReady(){return startLoading();}
  // All cutouts retain the original 1536x1024 canvas and origin.
  // The contact depth is authored separately from the image silhouettes.
  const TORII_CONTACT_FRONT=21*WALK_CELL;
- function drawLayer(c,name){const im=imgs[name];if(im.complete&&im.naturalWidth)c.drawImage(im,0,0,WIDTH,HEIGHT);}
+ function drawLayer(c,name){const im=imgs[name];if(im?.complete&&im.naturalWidth)c.drawImage(im,0,0,WIDTH,HEIGHT);}
  function tile(x,y){const col=Math.floor(x/WALK_CELL),row=Math.floor(y/WALK_CELL);return rows[row]?.[col]||'#';}
  function blocked(x,y){return tile(x,y)!=='.';}
  function center(x,y){return [Math.floor(x/WALK_CELL)*WALK_CELL+WALK_CELL/2,Math.floor(y/WALK_CELL)*WALK_CELL+WALK_CELL/2];}

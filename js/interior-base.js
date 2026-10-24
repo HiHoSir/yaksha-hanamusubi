@@ -37,12 +37,25 @@ window.YK_INTERIOR_BASE=(()=>{
   armory:{top:286,spawn:[384,560],npc:[384,312],solids:[counter.footprint,[25,315,155,451],[642,322,744,451],[25,447,140,520],[650,460,744,520]]},
   home:{top:300,spawn:[432,560],npc:[400,400],solids:[[81,369,264,436],[193,278,257,310],[584,292,735,331]]}
  };
- function load(change){for(const name of Object.keys(layouts)){const im=images[name]=new Image();im.onload=change;im.src='assets/interiors/base-v1/'+name+'.webp?v=15.57.116';}const clean=images.armoryClean=new Image();clean.onload=change;clean.src='assets/interiors/layers-v1/armory-clean.webp?v=15.57.116';}
+ let redraw=()=>{};const pending={};
+ function load(change){if(typeof change==='function')redraw=change;}
+ function ensure(name){
+  if(pending[name])return pending[name];
+  const im=images[name]=new Image();
+  pending[name]=new Promise((resolve,reject)=>{
+   im.onload=()=>{resolve();redraw();};
+   im.onerror=()=>reject(Error('内観を読み込めません: '+name));
+  });
+  im.src=name==='armoryClean'?'assets/interiors/layers-v1/armory-clean.webp?v=15.57.116':'assets/interiors/base-v1/'+name+'.webp?v=15.57.116';
+  pending[name].catch(()=>{delete pending[name];});return pending[name];
+ }
+ function whenReady(s){const k=kind(s);return Promise.all((k==='armory'?[k,'armoryClean']:[k]).map(ensure));}
+
  function blocked(s,x,y){const k=kind(s),l=layouts[k];if(x<48||x>720||y<l.top||y>612)return true;if(y>548&&(x<310||x>490))return true;return l.solids.some(([a,b,c,d])=>x>=a&&x<=c&&y>=b&&y<=d);}
- function draw(c,s){c.fillStyle='#171416';c.fillRect(0,0,768,768);const im=images[kind(s)];if(loaded(im)){c.drawImage(im,0,128,768,512);if(kind(s)==='armory'&&layeredReady()){c.save();clipObject(c,counter);c.drawImage(images.armoryClean,0,128,768,512);c.restore();}drawCalibration(c,s);}else{c.fillStyle='#fff2cb';c.font='20px sans-serif';c.fillText('内観を読込中…',300,380);}}
+ function draw(c,s){void whenReady(s).catch(()=>{});c.fillStyle='#171416';c.fillRect(0,0,768,768);const im=images[kind(s)];if(loaded(im)){c.drawImage(im,0,128,768,512);if(kind(s)==='armory'&&layeredReady()){c.save();clipObject(c,counter);c.drawImage(images.armoryClean,0,128,768,512);c.restore();}drawCalibration(c,s);}else{c.fillStyle='#fff2cb';c.font='20px sans-serif';c.fillText('内観を読込中…',300,380);}}
  const spawn=s=>layouts[kind(s)].spawn.slice();
  const exit=(s)=>s.y>=580&&s.x>=310&&s.x<=490;
  // Static base-image trial: keep NPC feet on the same walkable floor as the player.
  function residents(s,list){const p=layouts[kind(s)].npc;for(const n of list){if(n.baseInteriorKey!==kind(s)){[n.x,n.y]=p;n.baseInteriorKey=kind(s);}}return list;}
- return {area,kind,layouts,load,blocked,draw,spawn,exit,residents,objects,drawObject,layeredReady,heroReference};
+ return {area,kind,layouts,load,whenReady,blocked,draw,spawn,exit,residents,objects,drawObject,layeredReady,heroReference};
 })();

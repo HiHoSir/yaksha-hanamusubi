@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - improve/crash-memory-loading
   workflow_dispatch:
     inputs:
       source_branch:
@@ -28,7 +29,7 @@ jobs:
       - name: Assemble production and approved preview branches
         shell: bash
         env:
-          REQUESTED_PREVIEW: ${{ inputs.source_branch || '' }}
+          REQUESTED_PREVIEW: ${{ inputs.source_branch || (github.ref_name == 'improve/crash-memory-loading' && github.ref_name) || '' }}
         run: |
           set -euo pipefail
           mkdir -p site
