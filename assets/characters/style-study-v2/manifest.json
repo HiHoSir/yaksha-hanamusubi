@@ -1,0 +1,40 @@
+[
+  {
+    "id": "chief",
+    "frame": [
+      32,
+      32
+    ],
+    "bounds": [
+      2,
+      1,
+      30,
+      31
+    ],
+    "visibleSize": [
+      28,
+      30
+    ],
+    "status": "visual candidate",
+    "placement": "visible-center"
+  },
+  {
+    "id": "jizo",
+    "frame": [
+      32,
+      32
+    ],
+    "bounds": [
+      3,
+      1,
+      29,
+      31
+    ],
+    "visibleSize": [
+      26,
+      30
+    ],
+    "status": "visual candidate",
+    "placement": "visible-center"
+  }
+]
