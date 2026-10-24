@@ -34,6 +34,7 @@ const server=http.createServer((req,res)=>{
  assert(!(await page.locator('#enemyTargetInfo').isVisible()),'enemy name hidden outside targeting');
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
  await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});
+ await require('./battle-victory-layout.cjs')(page,assert);
  await page.evaluate(()=>window.__qaEval('endBattle()'));
  assert(!(await page.locator('#virtualStick').isVisible()),'legacy stick must stay hidden after battle '+height);
   assert(await page.locator('#up').isVisible(),'four-way D-pad must be visible after battle '+height);

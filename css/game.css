@@ -407,7 +407,7 @@ body:has(#title.show) #stage{min-height:0}
  box-sizing:border-box;
  position:fixed;inset:0;z-index:70;isolation:isolate;
  display:flex;flex-direction:column;gap:4px;
- padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(7px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+ padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 10px);
  overflow:hidden;
  background:#263d50 url("../assets/scenes/battle-grass-v1.png") center center / cover no-repeat;
 }
@@ -591,3 +591,22 @@ body:has(#title.show) #stage{min-height:0}
 #titleLoadSlots button:disabled{opacity:.55;filter:none}
 #titleLoadNotice{min-height:1.2em;font-size:12px;color:#ffddad}
 #title .titlebox #titleLoadBack{min-height:44px}
+
+
+/* Victory must show every part present in the original artwork. Reserve a real
+   stage between the heading and HUD; never inherit the attack pose's overflow.
+   Explicit rows keep this correct when commands wrap or the phone rotates. */
+#battle.show:has(.battleHeroVictory){
+ display:grid;grid-template-columns:minmax(0,1fr);
+ grid-template-rows:auto minmax(0,1fr) auto auto auto;
+}
+#battle:has(.battleHeroVictory) .battleTop{grid-column:1;grid-row:1}
+#battle:has(.battleHeroVictory) .battlePartyCards{grid-column:1;grid-row:3;margin:0}
+#battle:has(.battleHeroVictory) .battleInfo{grid-column:1;grid-row:4}
+#battle:has(.battleHeroVictory) .battleCommands{grid-column:1;grid-row:5}
+#battle #battleHeroOverlay.battleHeroVictory{
+ position:relative;grid-column:1;grid-row:2;
+ inset:auto;width:100%;height:100%;min-width:0;min-height:0;max-width:none;
+ align-self:stretch;object-fit:contain;object-position:left bottom;
+ transform:none!important;
+}
