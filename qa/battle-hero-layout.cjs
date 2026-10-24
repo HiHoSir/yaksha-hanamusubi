@@ -2,14 +2,14 @@
 // rectangle, including object-fit padding, instead of merely checking CSS classes.
 module.exports=async function checkHero(page,assert){
  const originalViewport=page.viewportSize();
- const poses=[['idle',0,'hizuki_battle_idle_approved.png'],['attack',0,'attack-01.png'],['attack',550,'attack-02.png'],['attack',650,'attack-03.png'],['skill',0,'skill-01.PNG'],['skill',550,'skill-02.PNG'],['skill',650,'skill-03.png'],['victory',0,'battle-end.png'],['levelup',0,'level-up.png']];
+ const poses=[['idle',0,'hizuki_battle_idle_approved.png'],['attack',0,'attack-01.png'],['attack',550,'attack-02.png'],['attack',650,'attack-03.png'],['skill',0,'skill-01.PNG'],['skill',550,'skill-02.PNG'],['skill',650,'skill-03.png'],['guard',0,'hizuki_battle_idle_approved.png'],['hit',10,'hizuki_battle_idle_approved.png'],['victory',0,'battle-end.png'],['levelup',0,'level-up.png']];
  await page.evaluate(()=>{window.__heroQaNow=performance.now.bind(performance);const now=performance.now();Object.defineProperty(performance,'now',{configurable:true,value:()=>now});window.__qaEval('resetBattleAnimation()');});
  try{for(const size of [{width:393,height:852},{width:375,height:667},{width:320,height:568},{width:852,height:393},{width:667,height:375}]){
   await page.setViewportSize(size);
   for(const safe of [null,size.width>size.height?[8,69,29,69]:[67,10,42,10]]){
    await page.locator('#battle').evaluate((e,p)=>{e.style.padding=p?p.map(n=>n+'px').join(' '):'';},safe);
    for(const [pose,elapsed,file] of poses){
-    await page.evaluate(({pose,elapsed})=>window.__qaEval(`battle.phase=${JSON.stringify(['victory','levelup'].includes(pose)?'result':'command')};battle.menu='root';battle.levelUpResult=${pose==='levelup'};battleLocked=${['attack','skill'].includes(pose)};battlePose=${JSON.stringify(pose==='levelup'?'victory':pose)};battleFx=${['attack','skill'].includes(pose)?`{kind:'${pose==='attack'?'slash':'petals'}',target:'enemy',start:performance.now()-${elapsed},duration:1100,impactDelay:600}`:'null'};renderBattle();`),{pose,elapsed});
+    await page.evaluate(({pose,elapsed})=>window.__qaEval(`battle.phase=${JSON.stringify(['victory','levelup'].includes(pose)?'result':'command')};battle.menu='root';battle.levelUpResult=${pose==='levelup'};battleLocked=${['attack','skill','guard','hit'].includes(pose)};battlePose=${JSON.stringify(pose==='levelup'?'victory':pose)};battleFx=${['attack','skill','hit'].includes(pose)?`{kind:'${pose==='attack'?'slash':pose==='hit'?'impact':'petals'}',target:'${pose==='hit'?'hero':'enemy'}',start:performance.now()-${elapsed},duration:1100,impactDelay:600}`:'null'};renderBattle();`),{pose,elapsed});
     await page.waitForFunction(file=>{const a=document.getElementById('battleHeroOverlay');return a.complete&&a.naturalWidth>0&&a.src.includes('/'+file);},file);
     const g=await page.evaluate(()=>{
      const e=document.getElementById('battle'),a=document.getElementById('battleHeroOverlay'),r=a.getBoundingClientRect(),p=getComputedStyle(e),s=getComputedStyle(a),m=new DOMMatrix(s.transform),scale=Math.abs(m.a),box=e.getBoundingClientRect();
@@ -28,7 +28,12 @@ module.exports=async function checkHero(page,assert){
    }
   }
  }
- console.log('PASS all 3 attack frames, all 3 skill frames, idle, victory and level-up: 5 viewports x safe areas on/off');
+ console.log('PASS all 3 attack frames, all 3 skill frames, idle, guard, hit, victory and level-up: 5 viewports x safe areas on/off');
+ // Also run the real command/timer sequence after the deterministic frame probes.
+ await page.evaluate(()=>{Object.defineProperty(performance,'now',{configurable:true,value:window.__heroQaNow});window.__qaEval('resetBattleAnimation();battle.phase="command";battle.menu="root";battleLocked=false;battle.levelUpResult=false;battle.hp=battle.max=99999;battle.rareTrait=null;battlePose="idle";renderBattle();');window.__heroObserved=[];window.__heroObserver=new MutationObserver(()=>{window.__heroObserved.push(document.getElementById('battleHeroOverlay').src.split('/').pop().split('?')[0]);});window.__heroObserver.observe(document.getElementById('battleHeroOverlay'),{attributes:true,attributeFilter:['src']});window.__qaEval('cmd("attack");cmd("target-0");');});
+ await page.waitForFunction(()=>['attack-01.png','attack-02.png','attack-03.png'].every(f=>window.__heroObserved.includes(f))&&window.__qaEval('battlePose==="idle"'));
+ await page.evaluate(()=>{window.__heroObserver.disconnect();delete window.__heroObserver;delete window.__heroObserved;});
+ console.log('PASS live attack command: wind-up -> strike -> idle');
  }finally{
   await page.evaluate(()=>{Object.defineProperty(performance,'now',{configurable:true,value:window.__heroQaNow});delete window.__heroQaNow;window.__qaEval('resetBattleAnimation();battleLocked=false;');});
   await page.locator('#battle').evaluate(e=>e.style.padding='');await page.setViewportSize(originalViewport);

@@ -903,7 +903,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.36";
+const GAME_JS_BUILD="16.1.37";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1562,7 +1562,7 @@ function renderBattle(){
   actor.classList.toggle("battleHeroVictory",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
   actor.classList.toggle("battleHeroResult",!!resultArt);
   actor.classList.toggle("battleHeroLevelUp",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.levelup);
-  actor.style.transform=(actor.classList.contains("battleHeroLevelUp")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
+  actor.style.transform=resultArt?"none":"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round(hit?impact*7:0)+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}

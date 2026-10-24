@@ -467,17 +467,14 @@ body:has(#title.show) #stage{min-height:0}
 /* Battle environment: reuse the existing approved grassland scene, no generated art. */
 #battle #battleCanvas{background-image:linear-gradient(180deg,rgba(8,22,35,.06),rgba(8,22,35,.22)),url('../assets/scenes/battle-field-v2.png');background-position:center center;background-size:cover;background-repeat:no-repeat}
 
-/* BETA 15.57.230: large left-side actor independently fills the portrait viewport. */
-#battle #battleHeroOverlay{position:absolute;z-index:1;left:-12vw;bottom:-27vh;width:min(88vw,610px);height:105vh;object-fit:contain;object-position:left bottom;pointer-events:none;filter:drop-shadow(1px 2px 3px rgba(18,22,36,.6));transform-origin:30% 75%;}
-@media(orientation:landscape){#battle #battleHeroOverlay{left:-4vw;bottom:-26vh;width:50vw;height:125vh}}
-
-/* Victory/level-up illustrations remain behind the result HUD and slightly lower. */
-#battle.show:has(.battleHeroResult) .battleTop,
-#battle.show:has(.battleHeroResult) .battlePartyCards,
-#battle.show:has(.battleHeroResult) .battleInfo,
-#battle.show:has(.battleHeroResult) .battleCommands,
-#battle.show:has(.battleHeroResult) .battleHelp{position:relative;z-index:4;}
-@media(orientation:landscape){
+/* All heroine frames use the same safe stage; padding absorbs breathing and
+   hit recoil without exposing a source edge outside the stage. */
+#battle #battleHeroOverlay{
+ position:relative;z-index:1;grid-column:1;grid-row:2;
+ width:100%;height:100%;min-width:0;min-height:0;max-width:none;
+ padding:24px;align-self:stretch;object-fit:contain;object-position:left bottom;
+ pointer-events:none;filter:drop-shadow(1px 2px 3px rgba(18,22,36,.6));
+ transform-origin:30% 75%;
 }
 
 /* BETA 15.57.261: edge-to-edge field with touch controls over the scene.
@@ -555,19 +552,6 @@ body:has(#title.show) #stage{min-height:0}
 #app>header .topBtns .navIconButton:active{background:rgba(128,97,63,.75)}
 @media(max-width:440px){#app>header{justify-content:flex-end}#app>header .topBtns{width:auto;justify-content:flex-end}#app>header .topBtns .navIconButton{width:42px;height:42px;min-width:42px;min-height:42px}}
 
-/* Level-up is a distinct centered celebration; victory inherits the exact
-   same base #battleHeroOverlay layout as idle and attack frames. */
-#battle #battleHeroOverlay.battleHeroLevelUp{
- left:50%;right:auto;top:4%;bottom:auto;
- width:min(125vw,1150px);height:125%;
- object-fit:contain;object-position:center top;
- transform-origin:center top;
-}
-@media(orientation:portrait){
- #battle #battleHeroOverlay.battleHeroLevelUp{
-  left:50%;top:7%;width:150vw;height:112%;
- }
-}
 /* Four-way touch controller: one continuous cross, no diagonal or analog hit zone. */
 #pad .virtualStick{display:none!important}
 #pad .dpad{display:block;pointer-events:auto;left:max(16px,calc(env(safe-area-inset-left) + 12px));top:auto;bottom:calc(10px + env(safe-area-inset-bottom));width:156px;height:156px;transform:none;opacity:.88;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -593,20 +577,14 @@ body:has(#title.show) #stage{min-height:0}
 #title .titlebox #titleLoadBack{min-height:44px}
 
 
-/* Victory must show every part present in the original artwork. Reserve a real
-   stage between the heading and HUD; never inherit the attack pose's overflow.
-   Explicit rows keep this correct when commands wrap or the phone rotates. */
-#battle.show:has(.battleHeroVictory){
+/* One layout for idle, attack, skill and result art. Locking input must not
+   collapse the command row and change the actor's fit during an attack. */
+#battle.show{
  display:grid;grid-template-columns:minmax(0,1fr);
  grid-template-rows:auto minmax(0,1fr) auto auto auto;
 }
-#battle:has(.battleHeroVictory) .battleTop{grid-column:1;grid-row:1}
-#battle:has(.battleHeroVictory) .battlePartyCards{grid-column:1;grid-row:3;margin:0}
-#battle:has(.battleHeroVictory) .battleInfo{grid-column:1;grid-row:4}
-#battle:has(.battleHeroVictory) .battleCommands{grid-column:1;grid-row:5}
-#battle #battleHeroOverlay.battleHeroVictory{
- position:relative;grid-column:1;grid-row:2;
- inset:auto;width:100%;height:100%;min-width:0;min-height:0;max-width:none;
- align-self:stretch;object-fit:contain;object-position:left bottom;
- transform:none!important;
-}
+#battle .battleTop{grid-column:1;grid-row:1}
+#battle .battlePartyCards{grid-column:1;grid-row:3;margin:0}
+#battle .battleInfo{grid-column:1;grid-row:4}
+#battle .battleCommands{grid-column:1;grid-row:5}
+#battle .battleCommands.battleActing{max-height:none;overflow:visible}
