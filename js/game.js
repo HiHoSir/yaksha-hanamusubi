@@ -168,7 +168,7 @@ const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
 });
 const HIZUKI_BATTLE_EXPRESSIONS={};
 for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
- const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.42":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.43":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
 // Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
@@ -201,11 +201,11 @@ function sdFieldBounds(row,col){
  }catch(error){return fallback;}
 }
 
-// Optional one-cell SD art for the world field only. Original village/interior art stays intact.
+// Approved SD atlas shared by exploration maps and loading; legacy HD art remains available.
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.42";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.43";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -760,8 +760,8 @@ function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  z*=characterScale();
  if(hizukiArt==="pixel")ensureImage(HIZUKI_PIXEL);
- if(hizukiArt==="sd"&&S.area==="field")ensureImage(HIZUKI_FIELD_SD);
- if(outfit==="normal"&&hizukiArt==="sd"&&S.area==="field"&&layerReady(HIZUKI_FIELD_SD)){
+ if(hizukiArt==="sd")ensureImage(HIZUKI_FIELD_SD);
+ if(outfit==="normal"&&hizukiArt==="sd"&&layerReady(HIZUKI_FIELD_SD)){
   const row=HIZUKI_4DIR_ROW[dir]??0;
   const motion=Math.max(0,Math.min(2,Number(frame)||0));
   // Approved candidate 3: columns neutral/right step/left step. Side views must alternate both steps.
@@ -774,7 +774,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   const scale=(28/bounds.height)*(z/.56),foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,20*z,6*z,.28);
-  c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
+  YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
    x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
   c.restore();return;
  }
@@ -903,7 +903,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.42";
+const GAME_JS_BUILD="16.1.43";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1869,7 +1869,7 @@ async function transitionArea(destination,commit){
    const scale=28/bounds.height;
    const foot=y+9;
    c.save();c.imageSmoothingEnabled=false;
-   c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
+   YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
     x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
    c.restore();
   }
@@ -2592,6 +2592,7 @@ if(villageTestWarpBtn){
 }
 
 })();
+
 
 
 

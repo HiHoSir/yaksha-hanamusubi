@@ -1,6 +1,6 @@
 ---
 name: asset-design
-description: Use when creating or rebuilding exploration maps, generating 32px terrain or floor tiles, or designing furniture and architecture for yaksha-hanamusubi.
+description: Use when creating or rebuilding exploration maps, 32px character/NPC sprites, terrain tiles, objects, furniture and architecture for yaksha-hanamusubi.
 ---
 # Asset Design — generation-first quality and cost discipline
 
@@ -44,3 +44,6 @@ Never claim Safari QA without an actual device run.
 
 ## Field elevation compatibility
 For field mapchips, cliff surfaces or independent field objects, include `docs/field-elevation-assets.md` in preflight. Record ground material, separate cliff texture, height support, explicit contact/occupied cells and entrance approach. Reuse the shared approximately 45% corner geometry; never derive height/collision from image bounds.
+
+## Character / NPC / tile pixel-production workflow
+Before preparing low-resolution graphics, read [the shared production and QA workflow](references/low-resolution-graphics.md). Apply its proportion, palette, true-pixel, crop-isolation and runtime-reference checks; select the category-specific checks rather than treating sprites and repeating tiles alike.

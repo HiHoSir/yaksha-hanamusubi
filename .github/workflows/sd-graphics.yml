@@ -1,0 +1,22 @@
+name: SD graphics
+on:
+  push:
+    branches: [main]
+    paths: ['js/game.js', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
+  pull_request:
+    paths: ['js/game.js', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
+permissions:
+  contents: read
+jobs:
+  sd-graphics:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --prefix /tmp/sd-qa --no-save --package-lock=false @napi-rs/canvas@0.1.80
+      - run: node qa/sprite-outline-unit.cjs
+      - run: node qa/sd-outline-integration.cjs assets/characters/hizuki/field-sd-v2/walk-atlas-32.png
+        env:
+          NODE_PATH: /tmp/sd-qa/node_modules

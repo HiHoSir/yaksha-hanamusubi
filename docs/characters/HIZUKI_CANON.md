@@ -52,3 +52,6 @@ ChatGPT Library `/新生鬼哭の花契り/` の次の2枚を画像表示して�
 
 ### PNG登録状況
 上記Library画像の**GitHub原本PNG登録は未完了**。Library IDは原本の代替ではない。転送でき次第、`docs/characters/references/` に原本を保存し、SHA・サイズ・真正PNGを検証してこの項目を更新する。
+
+## 現行ゲームSD（2026-10-25更新）
+ユーザー承認済み候補3を使用: `assets/characters/hizuki/field-sd-v2/walk-atlas-32.png`。32px・3列×4行、静止/A/B、正面/背面/右/左。フィールド・鬼灯村・ロード表示で共有。旧field-sd-v1は履歴として保持。外見設定画の正本とは区別する。外側輪郭は `js/sprite-outline.js` で描画し、原PNGと足元・カメラ・衝突を変えない。

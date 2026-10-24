@@ -1,7 +1,7 @@
 ((root,f)=>{const api=f(typeof module==='object'&&module.exports?require('./catalog.js'):root.SMCatalog,typeof module==='object'&&module.exports?require('./model.js'):root.SMModel);if(typeof module==='object'&&module.exports)module.exports=api;else root.SMRender=api;})(globalThis,(C,M)=>{
 'use strict';const rows={d:0,u:1,r:2,l:3};
 function actorBounds(image,createCanvas){const cv=createCanvas(96,128),c=cv.getContext('2d');c.drawImage(image,0,0);const p=c.getImageData(0,0,96,128).data,out={};for(const [d,row]of Object.entries(rows)){let left=32,top=32,right=-1,bottom=-1;for(let f=0;f<3;f++)for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(p[((row*32+y)*96+f*32+x)*4+3]){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);}if(right<left)throw Error('緋月のフレームが空です');out[d]={left,top,width:right-left+1,height:bottom-top+1};}return out;}
-function actor(c,s,image,bounds,tile=32){const b=bounds[s.dir],scale=Math.min(28/b.width,28/b.height)*tile/32;c.drawImage(image,(s.frame||0)*32,rows[s.dir]*32,32,32,(s.x+.5)*tile-(b.left+b.width/2)*scale,(s.y+.5)*tile-(b.top+b.height/2)*scale,32*scale,32*scale);}
+function actor(c,s,image,bounds,tile=32,drawSprite=null){const b=bounds[s.dir],scale=Math.min(28/b.width,28/b.height)*tile/32;(drawSprite||((ctx,...args)=>ctx.drawImage(...args)))(c,image,(s.frame||0)*32,rows[s.dir]*32,32,32,(s.x+.5)*tile-(b.left+b.width/2)*scale,(s.y+.5)*tile-(b.top+b.height/2)*scale,32*scale,32*scale);}
 function actorDepth(s,bounds,tile){const b=bounds[s.dir],scale=Math.min(28/b.width,28/b.height)*tile/32;return (s.y+.5)*tile+b.height*scale/2;}
 function depthQueue(m,actorState,bounds){const q=m.objects.filter(v=>C.byId[v.templateId].layer==='object').map(v=>({object:v,depth:(v.y+(C.byId[v.templateId].wallSign?2:1))*m.tileSize}));if(actorState&&bounds)q.push({actor:actorState,depth:actorDepth(actorState,bounds,m.tileSize)});return q.sort((a,b)=>a.depth-b.depth||Number(!!C.byId[a.object?.templateId]?.wallSign)-Number(!!C.byId[b.object?.templateId]?.wallSign));}
 function draw(c,m,o={}){const images=o.images||{},tile=m.tileSize,objects=o.groundOnly?m.objects.filter(v=>C.byId[v.templateId].layer==='ground'):m.objects;if(o.forExport){if(m.background&&!o.backgroundImage)throw Error('背景画像が未読込です');for(const v of objects)if(!images[v.templateId])throw Error('素材画像が未読込です');}
@@ -19,3 +19,4 @@ if(o.selection){const v=m.objects.find(v=>v.id===o.selection);if(v){const r=M.vi
 }
 return {draw,actorBounds,actor,actorDepth,depthQueue};
 });
+

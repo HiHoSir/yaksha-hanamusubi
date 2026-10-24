@@ -40,3 +40,6 @@ description: Generate, repair, audit and integrate Hizuki character illustration
 - mainの最新HEADを確認し、更新リースを使う。PNGの実体・コード参照・Actions・Pagesを別々に確認する。
 - テストは12セル、方向、58px、足元、新旧切替を確認する。設定画面を開いてからselectを操作する。状態比較から自然増加するplaytimeだけを除く。
 - CI成功を手足の美術的正しさやiPhone Safari検証済みと混同しない。実機未確認事項を明示する。
+
+## 現行SDの優先契約（2026-10-25）
+現行SDは承認済み候補3 field-sd-v2/walk-atlas-32.png。上記の旧HD用2.5頭身・58px・A/静止/BをSDへ適用しない。SDは32px、列 静止/A/B、行 正面/背面/右/左。両側歩行を使う。制作前に [共通手順](../asset-design/references/low-resolution-graphics.md) を読み、断片混入・白目・方向別全体高・足元・村とロードを含む全参照を確認する。輪郭は js/sprite-outline.js の外側1pxキャッシュ処理を使い、カメラや本体サイズを変更しない。
