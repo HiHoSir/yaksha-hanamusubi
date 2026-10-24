@@ -37,7 +37,7 @@ window.YK_WORLD=(()=>{
  const restStops=geography.restStops.map(o=>({...o,point:center(o.cell)}));
  const guides=[[30,56,'南の地蔵','林の西を通り、天妖の社へ向かうのじゃ。'],[34,46,'川辺の地蔵','東へ川沿いに進むと海の入り江じゃ。'],[56,37,'森の地蔵','北の鳥居が忘れの森の入口じゃ。'],[40,22,'湖畔の地蔵','湖の南を西へ進むと月見の湯じゃ。']].map(([tx,ty,name,tip],id)=>({id,...{x:tx*32+16,y:ty*32+16},name,tip}));
  // Guides stand on the route's walkable cells and never create a new barrier.
- for(const g of guides){const tx=Math.floor(g.x/32),ty=Math.floor(g.y/32);mapData.decorations.push({kind:'jizo',x:tx*32+4,y:ty*32-8,width:24,height:40,foot:(ty+1)*32,contactTiles:[[tx,ty]],occupiedTiles:[],walkThrough:true});}
+ for(const g of guides){const tx=Math.floor(g.x/32),ty=Math.floor(g.y/32);mapData.decorations.push({kind:'jizo',x:tx*32,y:ty*32,width:32,height:32,foot:(ty+1)*32,contactTiles:[[tx,ty]],occupiedTiles:[],walkThrough:true});}
  window.YK_FIELD_ELEVATION.prepare(mapData,geography);
  // On high terraces, mountain sprites obscure the cliff silhouette.
  // Reuse the existing 32px forest object instead; preserve the original

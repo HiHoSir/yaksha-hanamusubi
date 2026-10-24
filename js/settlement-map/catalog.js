@@ -35,5 +35,7 @@ for(const [key,name]of [['fence','木柵'],['hedge','生垣']])packAsset('auto_'
 
 for(const [id,name]of [['building_belltower','鐘撞堂'],['building_jinja','神社']])packAsset(id,name,[3,2],false,false,{src:'assets/settlement-editor/religious-v1/'+id+'.png',pack:'religious-v1',entranceLocal:[1,0],approachLocal:[1,1],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]]});
 for(const [id,name]of [['komainu_left','狛犬（左）'],['komainu_right','狛犬（右）']])packAsset(id,name,[1,1],true,false,{src:'assets/settlement-editor/religious-v1/'+id+'.png',pack:'religious-v1'});
+// Same 28px-visible statue used by the field guide; previous Jizo art is not a source.
+packAsset('jizo_small','地蔵（NPCサイズ）',[1,1],true,false,{src:'assets/terrain/places-v1/jizo.png?v=jizo-npc-v2',pack:'jizo-v2'});
 return {templates,byId};
 });
