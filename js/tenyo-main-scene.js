@@ -33,7 +33,8 @@ window.YK_TENYO=(()=>{
  return readyPromise;
  }
  function load(change){if(typeof change==='function')redraw=change;}
- function whenReady(){return startLoading();}
+ let decodedReady=null;
+ function whenReady(){return decodedReady??=startLoading().then(()=>Promise.all(Object.values(imgs).map(im=>im.decode?.())));}
  // All cutouts retain the original 1536x1024 canvas and origin.
  // The contact depth is authored separately from the image silhouettes.
  const TORII_CONTACT_FRONT=21*WALK_CELL;

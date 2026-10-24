@@ -14,7 +14,8 @@ window.YK_TENYO_NPC=(()=>{
   })));
   pending.catch(()=>{});
  }
- function whenReady(change){load(change);return pending;}
+ let decodedReady=null;
+ function whenReady(change){load(change);return decodedReady??=pending.then(()=>Promise.all(Object.values(images).map(im=>im.decode?.())));}
  function draw(c,x,y,type,dir='d',size=1){
   const im=images[type];if(!im?.complete||!im.naturalWidth)return false;
   const row=({d:0,u:1,l:2,r:3})[dir]??0;

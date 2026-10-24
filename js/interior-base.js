@@ -43,7 +43,7 @@ window.YK_INTERIOR_BASE=(()=>{
   if(pending[name])return pending[name];
   const im=images[name]=new Image();
   pending[name]=new Promise((resolve,reject)=>{
-   im.onload=()=>{resolve();redraw();};
+   im.onload=()=>Promise.resolve().then(()=>im.decode?.()).then(()=>{resolve();redraw();},reject);
    im.onerror=()=>reject(Error('内観を読み込めません: '+name));
   });
   im.src=name==='armoryClean'?'assets/interiors/layers-v1/armory-clean.webp?v=15.57.116':'assets/interiors/base-v1/'+name+'.webp?v=15.57.116';

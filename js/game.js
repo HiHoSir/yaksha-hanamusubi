@@ -168,7 +168,7 @@ const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
 });
 const HIZUKI_BATTLE_EXPRESSIONS={};
 for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
- const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.46":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.47":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
 // Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
@@ -205,7 +205,7 @@ function sdFieldBounds(row,col){
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.46";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.47";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -305,6 +305,25 @@ function ensureBattleAssets(enemyName=null){
  // Worn imagery retired: never request the damaged atlas.
  for(const set of Object.values(RARE_ART))for(const im of Object.values(set))ensureImage(im);
  for(const set of Object.values(HD_RARE_ART))for(const im of Object.values(set))ensureImage(im);
+}
+const READY_IMAGES=new WeakSet(),IMAGE_READY_PROMISES=new WeakMap();
+function waitImageReady(im){
+ if(!im)return Promise.reject(Error('画像がありません'));
+ ensureImage(im);
+ if(READY_IMAGES.has(im))return Promise.resolve();
+ if(IMAGE_READY_PROMISES.has(im))return IMAGE_READY_PROMISES.get(im);
+ const loaded=new Promise((resolve,reject)=>{
+  if(im.complete){im.naturalWidth?resolve():reject(Error('画像を読み込めません'));return;}
+  const clean=()=>{im.removeEventListener('load',onload);im.removeEventListener('error',onerror);};
+  const onload=()=>{clean();resolve();},onerror=()=>{clean();reject(Error('画像を読み込めません'));};
+  im.addEventListener('load',onload,{once:true});im.addEventListener('error',onerror,{once:true});
+ });
+ const pending=loaded.then(()=>im.decode?.()).then(()=>{READY_IMAGES.add(im);}).catch(error=>{IMAGE_READY_PROMISES.delete(im);throw error;});
+ IMAGE_READY_PROMISES.set(im,pending);return pending;
+}
+function battleRequiredImages(name,rare){
+ const enemy=name==='影九尾'?KAGEKYUBI_ART:rare?HD_RARE_ART[rare.id]?.intact:REDESIGNED_ENEMY_ART[name];
+ return [B9IMG.battle,HIZUKI_BATTLE_IDLE,...HIZUKI_SKILL_FRAMES,...HIZUKI_ATTACK_FRAMES,...Object.values(HIZUKI_BATTLE_EXPRESSIONS),enemy||ENEMY_ATLAS];
 }
 function rareReady(r){
  if(!r)return false;
@@ -910,7 +929,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.46";
+const GAME_JS_BUILD="16.1.47";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1291,6 +1310,9 @@ function beginEncounter(force=false,boss=false){
  const variant=boss?null:D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
  const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
  if(rare)ensureImage(HD_RARE_ART[rare.id]?.intact);
+ const owner=S,required=battleRequiredImages(e[0],rare);
+ const startBattle=()=>{
+  if(S!==owner)return;
  fieldMotion=null;resetBattleAnimation();battle={boss:!!boss,name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,def:boss?10:(D.enemyDefense?.[e[0]]||0),xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
  S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
  YK_INPUT.stopAll();S.frame=1;
@@ -1299,6 +1321,13 @@ function beginEncounter(force=false,boss=false){
  // Register the unlock before drawing the transition: a rendering exception must never strand the field in busy mode.
  battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;battleTrace("unlock");YK_AUDIO.startBattleMusic?.();try{selectCmd(0);renderBattle();battleTrace("unlock.render.ok")}catch(error){battleTrace("unlock.render.error",String(error));console.error("Battle entry final render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。コマンドを選んでください。"}},2390);
  encounterDissolve();
+ };
+ if(required.every(im=>READY_IMAGES.has(im)))startBattle();
+ else {
+  busy=true;YK_INPUT.stopAll();fieldMotion=null;fieldLadderMotion=null;S.frame=1;
+  void resourceLoading(()=>Promise.all(required.map(waitImageReady)),()=>{startBattle();}).then(ok=>{if(!ok&&S===owner&&!battle)busy=false;});
+ }
+
  return true;
 }
 function encounter(){return beginEncounter()}
@@ -1844,23 +1873,24 @@ function waitAreaAssets(destination,assetState){
  if(destination==='shrine')return Promise.all([YK_TENYO.whenReady(),YK_TENYO_NPC.whenReady(assetLoaded)]);
  if(['teahouse','osumiHome','villageRoom'].includes(destination))return YK_INTERIOR_BASE.whenReady(assetState||{...S,area:destination});
  const images=[IMG[destination],destination==='field'?HIZUKI_FIELD_SD:null].filter(Boolean);
- return Promise.all(images.map(im=>new Promise((resolve,reject)=>{
-  if(im.complete){im.naturalWidth?resolve():reject(new Error('画像を読み込めません'));return;}
-  im.addEventListener('load',resolve,{once:true});
-  im.addEventListener('error',()=>reject(new Error('画像を読み込めません')),{once:true});
- })));
+ return Promise.all(images.map(waitImageReady));
 }
 async function transitionArea(destination,commit,assetState){
  if(areaTransitionPending||busy||!destination)return false;
  areaTransitionPending=true;busy=true;YK_INPUT.stopAll();fieldMotion=null;fieldLadderMotion=null;
+ try{return await resourceLoading(()=>waitAreaAssets(destination,assetState),()=>{commit();map();hud();});}
+ finally{busy=false;areaTransitionPending=false;}
+}
+async function resourceLoading(prepare,commit){
  const veil=document.createElement('div');
- veil.setAttribute('role','status');veil.setAttribute('aria-label','地図を読み込んでいます');
+ veil.id='ykResourceLoading';veil.setAttribute('role','status');veil.setAttribute('aria-label','読み込み中');
  Object.assign(veil.style,{position:'fixed',inset:'0',zIndex:'110',background:'#090d14',opacity:'0',transition:'opacity 400ms ease',display:'grid',placeItems:'center',pointerEvents:'auto'});
  const canvas=document.createElement('canvas');canvas.width=144;canvas.height=144;
  canvas.style.cssText='width:144px;height:144px;image-rendering:pixelated';
  const label=document.createElement('div');label.textContent='旅の支度中…';label.style.cssText='color:#f2e7ce;text-align:center;font:14px sans-serif;letter-spacing:.15em';
  const stack=document.createElement('div');stack.append(canvas,label);veil.append(stack);document.body.append(veil);
  let running=true;
+ let timeout;
  const started=performance.now();
  function paint(t){
   if(!running)return;
@@ -1887,19 +1917,18 @@ async function transitionArea(destination,commit,assetState){
  requestAnimationFrame(paint);
  requestAnimationFrame(()=>{veil.style.opacity='1';});
  try{
-  await new Promise(resolve=>setTimeout(resolve,420));
-  await waitAreaAssets(destination,assetState);
+  // Begin I/O during the existing fade, and keep the veil until decode completes.
+  await Promise.race([Promise.all([prepare(),new Promise(resolve=>setTimeout(resolve,420))]),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('resource timeout')),20000);})]);
   commit();
-  map();hud();
   veil.style.opacity='0';
   await new Promise(resolve=>setTimeout(resolve,420));
   return true;
  }catch(error){
   veil.style.opacity='0';
-  message('地図の読み込みに失敗しました。もう一度お試しください。',2500);
+  message('読み込みに失敗しました。もう一度お試しください。',2500);
   return false;
  }finally{
-  running=false;veil.remove();busy=false;areaTransitionPending=false;
+  clearTimeout(timeout);running=false;veil.remove();
  }
 }
 function requestAreaExit(destination){
