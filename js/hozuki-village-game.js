@@ -1,5 +1,5 @@
 ((root,make)=>{if(typeof module==='object'&&module.exports)module.exports=options=>make({...options,M:require('./settlement-map/model.js'),C:require('./settlement-map/catalog.js'),R:require('./settlement-map/render.js'),P:require('./hozuki-village-core.js')});else root.YK_HOZUKI=make({M:root.SMModel,C:root.SMCatalog,R:root.SMRender,P:root.HozukiVillage,legacy:root.YK_SETTLEMENT,host:root});})(globalThis,({M,C,R,P,legacy,host=globalThis,createCanvas})=>{
-const REVISION=1,spawn=[336,560],cell=(x,y)=>[Math.floor(x/32),Math.floor(y/32)],center=p=>p.map(v=>v*32+16);
+const REVISION=1,spawn=[336,528],cell=(x,y)=>[Math.floor(x/32),Math.floor(y/32)],center=p=>p.map(v=>v*32+16);
 // The authored south markers flank this explicitly walkable center entrance cell.
 // Keep uploaded layout/collision originals intact and register the runtime exit explicitly.
 const extraFieldExitCells=[[10,17]];
