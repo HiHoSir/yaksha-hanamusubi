@@ -168,7 +168,7 @@ const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
 });
 const HIZUKI_BATTLE_EXPRESSIONS={};
 for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
- const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.40":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.41":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
 // Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
@@ -205,7 +205,7 @@ function sdFieldBounds(row,col){
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v1/walk-atlas-32.png?v=16.0.42";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.41";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -764,8 +764,8 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  if(outfit==="normal"&&hizukiArt==="sd"&&S.area==="field"&&layerReady(HIZUKI_FIELD_SD)){
   const row=HIZUKI_4DIR_ROW[dir]??0;
   const motion=Math.max(0,Math.min(2,Number(frame)||0));
-  // Atlas columns: neutral, raised foot, opposite foot (side uses neutral/raised).
-  const col=motion===1?0:motion===0?1:(row>=2?1:2);
+  // Approved candidate 3: columns neutral/right step/left step. Side views must alternate both steps.
+  const col=motion===1?0:motion===0?1:2;
   // Normalize the opaque silhouette, not the transparent 32px cell.
   // This keeps front/back/side at the same visible height and aligns the boots.
   // Keep one transform for all frames in a direction. Per-frame opaque
@@ -903,7 +903,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.40";
+const GAME_JS_BUILD="16.1.41";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1864,7 +1864,7 @@ async function transitionArea(destination,commit){
   if(layerReady(HIZUKI_FIELD_SD)){
    const row=HIZUKI_4DIR_ROW[direction]??0;
    const motion=Math.floor(t/130)%3;
-   const col=motion===1?0:motion===0?1:(row>=2?1:2);
+   const col=motion===1?0:motion===0?1:2;
    const bounds=sdFieldBounds(row,0);
    const scale=28/bounds.height;
    const foot=y+9;

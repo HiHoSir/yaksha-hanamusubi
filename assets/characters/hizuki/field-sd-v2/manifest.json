@@ -1,0 +1,26 @@
+{
+  "name": "Hizuki SD candidate 3 approved",
+  "tileSize": 32,
+  "width": 96,
+  "height": 128,
+  "rows": [
+    "front",
+    "back",
+    "right",
+    "left"
+  ],
+  "columns": [
+    "neutral",
+    "right-step",
+    "left-step"
+  ],
+  "cycle": [
+    1,
+    0,
+    2,
+    0
+  ],
+  "source": "User-approved candidate 3 revised walk atlas, 2026-10-25",
+  "previous": "../field-sd-v1/walk-atlas-32.png",
+  "renderContract": "Preserve shared foot anchor, 28px visible height, camera and collision."
+}
