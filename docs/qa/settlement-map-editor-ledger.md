@@ -28,3 +28,7 @@ Task 4: public Actions workflow page verified. Browser is signed out and has no 
 
 a1151c03から更新。宿を原型に看板だけ「店」へ変更し、160×96px・描画5×3・接地5×2・中央入口へ統一。旧sm-1/2の標準店舗入口・接近セルを移行。茶店ほか既存PNGは維持。36件PASS。詳細 docs/settlement-editor-building-signs.md。Pagesは新しい公開ワークフロー実行が必要（前回の同一run再実行ではartifact重複が生じたため繰り返さない）。
 
+# sm-4 スマホ操作更新（2026-10-24）
+
+c14b0cbbからUIのみ更新。操作・倍率・入口のプルダウンを直接ボタン化。狭い画面／タッチ入力では素材・選択中・保存設定・歩行を下部から開くパネルに変更。移動・複製の物体未選択時の誘導を追加。40検査PASS（新規DOM統合4件）。画像・判定・保存形式は維持。詳細 docs/settlement-editor-touch-ui.md。Pages・ブラウザ・実機検査は未実施。
+
