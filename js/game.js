@@ -168,7 +168,7 @@ const HIZUKI_ATTACK_FRAMES=[1,2,3].map(i=>{
 });
 const HIZUKI_BATTLE_EXPRESSIONS={};
 for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"})){
- const im=new Image();im.onload=assetLoaded;im.datasetSrc=`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
+ const im=new Image();im.onload=assetLoaded;im.datasetSrc=pose==="victory"?"assets/characters/hizuki/battle-expressions-v2/victory-full.png?v=16.1.38":`assets/characters/hizuki/battle-expressions-v1/${file}.png?v=15.57.207`;
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
 // Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
@@ -903,7 +903,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.37";
+const GAME_JS_BUILD="16.1.38";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1562,8 +1562,8 @@ function renderBattle(){
   actor.classList.toggle("battleHeroVictory",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
   actor.classList.toggle("battleHeroResult",!!resultArt);
   actor.classList.toggle("battleHeroLevelUp",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.levelup);
-  // 揺れは共通ステージの24px余白内で吸収。結果絵は動かさず、原画の下端まで見せる。
-  actor.style.transform=resultArt?"none":"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round(hit?impact*7:0)+"px,0) scale("+(1+breath*.32)+")";
+  // 勝利素材だけを差し替え、採用済みの攻撃位置・拡大率とレベルアップ演出を維持。
+  actor.style.transform=(actor.classList.contains("battleHeroLevelUp")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
