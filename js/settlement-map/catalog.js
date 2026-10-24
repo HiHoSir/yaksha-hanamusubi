@@ -22,5 +22,15 @@ byId.bridge.name='木の橋（横・旧2マス）';byId.bridge.bridgePassages=[[
 byId.bridge.hidden=true;byId.bridge_vertical.hidden=true;
 const bridgeTile={id:'auto_bridge',name:'橋（1マス・自動接続）',src:'assets/settlement-editor/terrain-v1/bridge-v2-17.png',preview:'assets/settlement-editor/terrain-v1/bridge-v2-preview.png',displayCells:[1,1],kind:'terrain',sourceRect:[0,0,32,32],layer:'ground',occupiedTiles:[],entranceLocal:null,approachLocal:null,autotile:true,bridgeAuto:true,paintable:true,paintGroup:'bridge',bridgePassages:[[0,0]]};templates.push(bridgeTile);byId.auto_bridge=bridgeTile;
 for(const id of ['terrain_grass','terrain_dirt','terrain_river'])byId[id].hidden=true;
+
+// Reusable village pack: static authored sizes, layers and occupancy.
+const packDir='assets/settlement-editor/pack-v1/';
+function packAsset(id,name,size=[1,1],blocked=true,ground=false,extra={}){const t={id,name,src:packDir+id+'.png',displayCells:size,kind:ground?'terrain':'object',sourceRect:[0,0,size[0]*32,size[1]*32],occupiedTiles:blocked?[[0,0]]:[],layer:ground?'ground':'object',entranceLocal:null,approachLocal:null,pack:'v1',...extra};templates.push(t);byId[id]=t;}
+for(const [key,name]of [['shop','小型店舗'],['inn','小型宿'],['medicine','薬屋'],['weapon','武器屋'],['armor','防具屋'],['tools','道具屋']]){packAsset('small_'+key,name,[3,2],false,false,{entranceLocal:[1,0],approachLocal:[1,1],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]]});packAsset('sign_'+key,name+'の看板',[1,1],false,false,{wallSign:true});}
+packAsset('building_barn','物置・納屋',[3,2],false,false,{src:packDir+'barn.png',entranceLocal:[1,0],approachLocal:[1,1],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]]});
+for(const [id,name]of [['barrel','樽'],['rice_bale','米俵'],['firewood','薪'],['basket','籠'],['signpost','立て札']])packAsset(id,name);
+for(const [id,name,file]of [['stairs_stone','石の階段','stairs'],['stepping_stone','踏み石','stepping_stone'],['decor_leaves','落ち葉','leaves'],['decor_pebbles','小石','pebbles']])packAsset(id,name,[1,1],false,true,{src:packDir+file+'.png'});
+for(const [key,name]of [['cobble','石畳'],['gravel','砂利'],['soil','裸土']])packAsset('ground_'+key,name+'（自動接続）',[1,1],false,true,{src:packDir+key+'-47.png',preview:packDir+key+'-preview.png',autotile:true,paintable:true,paintGroup:'surface'});
+for(const [key,name]of [['fence','木柵'],['hedge','生垣']])packAsset('auto_'+key,name+'（自動接続）',[1,1],true,true,{src:packDir+key+'-16.png',preview:packDir+key+'-preview.png',autotile:true,cardinalAuto:true,paintable:true,paintGroup:'boundary'});
 return {templates,byId};
 });

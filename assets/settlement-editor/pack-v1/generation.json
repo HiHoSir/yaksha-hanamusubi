@@ -1,0 +1,55 @@
+{
+  "sources": {
+    "barrel": "/workspace/scratch/f2411d836926/generated_images/exec-bd52a1a3-aa82-43da-b6df-117ae34471ea.png",
+    "rice_bale": "/workspace/scratch/f2411d836926/generated_images/exec-d74312f0-6dc8-4dda-81a4-cf123e2d3e7c.png",
+    "firewood": "/workspace/scratch/f2411d836926/generated_images/exec-6a1dbbee-01d2-40cc-9482-d33c2f2a8a10.png",
+    "basket": "/workspace/scratch/f2411d836926/generated_images/exec-d38fee58-9cfd-4ccb-87d8-88c5c3002aa4.png",
+    "signpost": "/workspace/scratch/f2411d836926/generated_images/exec-2e2e2117-669e-4d69-a597-6823ea83f696.png",
+    "leaves": "/workspace/scratch/f2411d836926/generated_images/exec-e5d79af5-86b5-42a8-910e-7ecd96391511.png",
+    "stairs": "/workspace/scratch/f2411d836926/generated_images/exec-a922804f-441b-417e-b45e-9d45f7640ef4.png",
+    "barn": "/workspace/scratch/f2411d836926/generated_images/exec-aa3f16b5-3509-4f74-9741-abce34037e42.png",
+    "cobble": "/workspace/scratch/f2411d836926/generated_images/exec-522b91e8-470c-4c07-b64c-7a916250e705.png",
+    "gravel": "/workspace/scratch/f2411d836926/generated_images/exec-2ea52087-7d63-4681-b5d2-bb9553b58423.png"
+  },
+  "prompts": [
+    {
+      "id": "barrel",
+      "prompt": "Create ONLY one isolated game sprite source illustration of one squat brown wooden storage barrel, closed circular wooden lid, two dark iron bands. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 1x1 32px cell, clearly readable silhouette at 32px, entire item contained within one square. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    },
+    {
+      "id": "rice_bale",
+      "prompt": "Create ONLY one isolated game sprite source illustration of one horizontal Japanese tawara rice-straw bale with rope bindings, short oval cylinder. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 1x1 32px cell, clearly readable silhouette at 32px, entire item contained within one square. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    },
+    {
+      "id": "firewood",
+      "prompt": "Create ONLY one isolated game sprite source illustration of one compact low pile of cut firewood, 5 logs, visible circular cut ends. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 1x1 32px cell, clearly readable silhouette at 32px, entire item contained within one square. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    },
+    {
+      "id": "basket",
+      "prompt": "Create ONLY one isolated game sprite source illustration of one low round woven bamboo basket with a few pale vegetables inside, no handle. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 1x1 32px cell, clearly readable silhouette at 32px, entire item contained within one square. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    },
+    {
+      "id": "signpost",
+      "prompt": "Create ONLY one isolated game sprite source illustration of one wooden village signboard on a short central post, wide blank pale wood board, NO text. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 1x1 32px cell, clearly readable silhouette at 32px, entire item contained within one square. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    },
+    {
+      "id": "leaves",
+      "prompt": "Create ONLY one isolated game sprite source illustration of a sparse scatter of 6 ochre and brown fallen leaves, low flat ground decoration. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 1x1 32px cell, clearly readable silhouette at 32px, entire item contained within one square. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    },
+    {
+      "id": "stairs",
+      "prompt": "Create ONLY one isolated game sprite source illustration of one low rectangular gray stone stair unit with 3 shallow horizontal treads, top-down, square plan. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 1x1 32px cell, clearly readable silhouette at 32px, entire item contained within one square. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    },
+    {
+      "id": "barn",
+      "prompt": "Create ONLY one isolated game sprite source illustration of one small Japanese wooden storage shed, modest straw roof, symmetrical facade, wide central dark doorway, no sign, no objects outside; intended final 96x64 pixels, three tiles wide two tiles tall. Style reference is the supplied Japanese village image ONLY for palette and pixel-art style, do not copy its scene layout. Original late-SFC Japanese RPG, orthographic top-down map view showing mostly top with a little front, crisp intentional chunky pixel clusters, restrained brown/ochre/gray palette, upper-left light, no antialiasing or painterly smoothing. Footprint 3x2 32px cells, compact building, doorway centered in the middle bottom cell. Truly transparent RGBA outside the object, no scenery, grass patch, ground plane, grid, labels, frame, long shadow, or extra objects. Object nearly fills its canvas with small transparent margin. This is source art for later exact pixel normalization."
+    }
+  ],
+  "reference": "approved village background; style only",
+  "tool": "built-in image_gen",
+  "footprints": "props 1x1; barn 3x2; ground 1x1",
+  "materials": {
+    "cobble": "flat small warm-gray stone paving, seamless",
+    "gravel": "fine pale beige gravel, seamless"
+  }
+}
