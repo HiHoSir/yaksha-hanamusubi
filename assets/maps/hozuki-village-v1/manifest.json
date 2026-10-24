@@ -1,0 +1,47 @@
+{
+  "name": "鬼灯村",
+  "id": "hozuki-village",
+  "width": 21,
+  "height": 18,
+  "tileSize": 32,
+  "placement": "ground-bottom-left",
+  "sources": [
+    {
+      "file": "layout.json",
+      "sha256": "a365ee6e3b4b33b3274700deec76fdb8f2aaa4283d94163d8a7a9236e43d2263",
+      "size": 119547
+    },
+    {
+      "file": "collision.json",
+      "sha256": "9e717d76db5b3968425164983b98268bab9109636c9ceab6b00b5c13ace58189",
+      "size": 8747
+    },
+    {
+      "file": "ground.png",
+      "sha256": "22fe7b3f35ae966f1408d94b5ab244d60173d73c746dec861fe39d4f0a41d5ec",
+      "size": 139193
+    },
+    {
+      "file": "reference.png",
+      "sha256": "94c562900f992e897da7489c497fb84e0743c7391d138a9b7a094111d6f4aa41",
+      "size": 344535
+    }
+  ],
+  "referenceRole": "original user-exported composite, not a depth layer",
+  "rendering": "ground plus independent object sprites",
+  "baseMain": "74234d9d038a9c0b65fdda39fd4fe2a69e5abdc8",
+  "fieldHeroZoom": {
+    "canvasSize": 768,
+    "height": 28,
+    "outerScale": 1.2,
+    "projectionZoom": 1.4,
+    "anchor": 354,
+    "projectionDenominator": 543,
+    "preset": {
+      "far": 0.34,
+      "near": 1.3,
+      "gamma": 1.85
+    }
+  },
+  "save": "none"
+}
