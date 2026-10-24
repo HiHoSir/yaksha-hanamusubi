@@ -39,3 +39,23 @@
 3. 必要な新規素材のみ asset-design のカテゴリ別テンプレートに基づき制作する。
 4. 1室の表示、衝突、NPC、会話、出入口、セーブ復帰を検証する。
 5. Pages公開を確認した後に実機確認・承認を受ける。承認前はmainにマージしない。
+
+
+## PNGヘッダ実測（2026-10-25）
+GitHubのバイナリ本体を読み、PNG IHDRを確認。**画像の見た目・シーム・透明画素は未検査**。
+| 画像 | IHDRサイズ | 色形式 | 用途判定 |
+| --- | --- | --- | --- |
+| teahouse-wood-floor-4x4-preview.png | 128×128 | indexed / 2bit | 4×4タイルの寸法に適合、配色と繰返し要確認 |
+| plaster-wall-32-candidate.png | 32×32 | RGB / 8bit | 壁候補。透明素材ではない |
+| wood-wainscot-32-candidate.png | 32×32 | RGB / 8bit | 腰板候補。透明素材ではない |
+| teahouse-table-dango-64x40.png | 64×40 | RGBA / 8bit | 透過形式。占有2×2との整合を要確認 |
+| pillar-32x160.png | 32×160 | indexed / 8bit | 旧縦長柱。新トップビューには直接採用しない |
+| pillar-repeat-v2-top-32.png | 32×32 | indexed / 8bit | 分割柱候補 |
+| teahouse-back-wall-clean-256x96-v2.png | 256×96 | indexed / 8bit | 8×3タイル相当だが一枚壁。切断・接続検査が必要 |
+
+## 旧試作コードの具体的な問題
+`js/interior-native-debug.js` の `W=10,H=8,S=32` はセル構成として利用可能。
+ただし `YK_LANDSCAPE.drawQuarter` と `YK_LANDSCAPE.project`、`elevation`、1.5倍の画面変換を使うため、新しい正投影トップビューをそのまま満たさない。
+`blocked` は四卓の左上セルを起点に横2セルのみ占有しており、採用トップビューの卓2×2と食い違う可能性がある。
+床の画像ロード失敗時は単色矩形へフォールバックするが、制作規約では単色ブロックを完成画として採用しない。
+新規共通描画は `YK_LANDSCAPE.drawQuarter` を転用せず、独立した32pxセル座標のレンダラとする。
