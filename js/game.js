@@ -406,6 +406,8 @@ function stabilizeLoadedState(){
     [S.x,S.y]=YK_WORLD.safePosition([S.x,S.y]);
    }
  }else if(area==="village"){
+   YK_HOZUKI.stabilize(S);
+ }else if(area==="legacyVillage"){
    S.x=clamp(Number(S.x)||768,32,1504);S.y=clamp(Number(S.y)||1190,40,1248);
    if(YK_SETTLEMENT.blocked(S.x,S.y)||npcBlocked(S.x,S.y))[S.x,S.y]=YK_SETTLEMENT.spawn;
    [S.x,S.y]=alignVillageEntryFoot(S.x,S.y);
@@ -539,7 +541,7 @@ const VILLAGE_RENDER_POLICY={
 function villageLayersReady(){
  return VILLAGE_RENDER_POLICY.requiredLayers.every(k=>layerReady(VILLAGE_LAYERS[k]));
 }
-window.YKVillageRenderInfo=()=>({mode:"settlement",ready:YK_SETTLEMENT.ready(),size:YK_SETTLEMENT.size,residents:YK_SETTLEMENT.residents.length+YK_SETTLEMENT.doors.flatMap(d=>YK_SETTLEMENT.insideResidents(d.id)).length,doors:YK_SETTLEMENT.doors.length,errors:YK_SETTLEMENT.errors});
+window.YKVillageRenderInfo=()=>({mode:"hozuki-village",ready:YK_HOZUKI.ready(),size:[672,576],residents:12,doors:YK_HOZUKI.doors.length,error:YK_HOZUKI.error?.message||null});
 function drawVillageMap(c){
  // Production-safe policy:
  // - composite: current approved opaque map.
@@ -672,7 +674,7 @@ function drawLayeredIndoorActors(c,frameTime,guide,art){
   const p=indoorPerspective(guide,n.x,n.y);
   return {depth:p.depth,draw:()=>{
    c.save();c.translate(p.x,p.y);c.scale(p.scale,p.scale);
-   npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();
+   npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1,n);c.restore();
   }};
  });
  const t=fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||144),0,1):1;
@@ -749,11 +751,8 @@ function enterInterior(area){fieldMotion=null;YK_INPUT.stopAll();S.area=area;[S.
 function leaveInterior(){
  if(villageDoorMotion)return;
  if(S.restStopId&&Array.isArray(S.restStopReturn)){const point=S.restStopReturn.slice();S.restStopId=null;S.restStopReturn=null;S.lastInterior=null;fieldMotion=null;YK_INPUT.stopAll();S.area='field';[S.x,S.y]=point;S.dir='d';S.frame=1;YK_SAVE.auto(S);message('フィールドへ戻った');hud();return;}
- fieldMotion=null;YK_INPUT.stopAll();S.area="village";
- const door=YK_SETTLEMENT.doors.find(d=>d.id===S.lastInterior)||YK_SETTLEMENT.doors[0];
- [S.x,S.y]=alignVillageEntryFoot(door.x,door.y+18);S.dir="d";S.frame=1;
- villageDoorMotion={id:door.id,at:performance.now(),open:1,mode:"close"};busy=true;
- YK_SAVE.auto(S);message("鬼灯の里");hud();
+ return transitionArea('village',()=>{fieldMotion=null;YK_HOZUKI.returnFromInterior(S);YK_SAVE.auto(S);message('鬼灯村');hud();});
+
 }
 function tickVillageDoor(t){
  if(!villageDoorMotion)return;
@@ -782,11 +781,10 @@ function drawDoorHint(){
  g.restore();
 }
 function villageDoorAction(){
- if(S.area!=="village"||villageDoorMotion)return false;
- const door=YK_SETTLEMENT.doors.find(d=>nearVillageDoor(d,8));
- if(!door)return false;
- fieldMotion=null;YK_INPUT.stopAll();S.lastInterior=door.id;S.dir="u";S.frame=1;
- villageDoorMotion={id:door.id,at:performance.now(),open:0,mode:"open"};busy=true;map();return true;
+ if(S.area!=='village'||!YK_HOZUKI.ready())return false;
+ const door=YK_HOZUKI.doorAt(S);if(!door)return false;
+ transitionArea(door.target,()=>{S.lastInterior=door.id;enterInterior(door.target);message(door.name);});return true;
+
 }
 
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
@@ -882,7 +880,8 @@ function villageNpcAtlasHeight(atlas,col,row,child){
  const target=heroHeight*(child?.76:.96);
  return Math.max(28,Math.min(120,target*224/npcPixels));
 }
-function npc(c,x,y,type,name,dir="d",frame=1){
+function npc(c,x,y,type,name,dir="d",frame=1,person=null){
+ if(person&&!S.restStopId){YK_HOZUKI.load(assetLoaded);if(YK_HOZUKI.drawNpc(c,x,y,{...person,dir,frame},58*characterScale(),true))return;}
  if(S.area==="shrine"&&YK_TENYO_NPC.draw(c,x,y,type,dir,characterScale()))return;
  const idx=Math.max(0,Math.min(2,Number(frame)||0));
  const set=NPC_ASSETS[type];
@@ -935,7 +934,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.31";
+const GAME_JS_BUILD="16.1.32";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1030,14 +1029,18 @@ function map(frameTime=performance.now()){
   worldHint("フィールド読込待機中");return;
  }
  g.clearRect(0,0,768,768);g.fillStyle="#102635";g.fillRect(0,0,768,768);g.imageSmoothingEnabled=false;
- if(S.area!=="field")ensureNpcAssets();
+ if(S.area!=="field"&&S.area!=="village"&&(!YK_INTERIOR_BASE.area(S)||S.restStopId))ensureNpcAssets();
+ if(S.area==='village'){
+  YK_HOZUKI.load(assetLoaded);if(YK_HOZUKI.ready())YK_HOZUKI.stabilize(S);
+  YK_HOZUKI.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible);return;
+ }
  if(S.area==="debugField"){drawDebugField(g);return;}
  if(S.area==="teahouse"){
   const t=fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||144),0,1):1;
   const px=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x;
   const py=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;
-  YK_INDOOR_NATIVE_DEBUG.render(g,p=>hero(g,p.x,p.y-9*.56*p.z,S.dir,S.frame,S.outfit,.56*p.z),{x:px,y:py},areaNPCs(),(c,n,p)=>{c.save();c.translate(p.x,p.y);c.scale(p.z/.56,p.z/.56);npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1);c.restore();});
-  worldHint(YK_INDOOR_NATIVE_DEBUG.exit(S.x,S.y)?"A：鬼灯の里へ戻る":"花見茶屋・茶屋娘に話しかけよう");return;
+  YK_INDOOR_NATIVE_DEBUG.render(g,p=>hero(g,p.x,p.y-9*.56*p.z,S.dir,S.frame,S.outfit,.56*p.z),{x:px,y:py},areaNPCs(),(c,n,p)=>{c.save();c.translate(p.x,p.y);c.scale(p.z/.56,p.z/.56);npc(c,0,0,n.type,n.name,n.dir||"d",n.frame??1,n);c.restore();});
+  worldHint(YK_INDOOR_NATIVE_DEBUG.exit(S.x,S.y)?"A：鬼灯村へ戻る":"花見茶屋・茶屋娘に話しかけよう");return;
  }
 
  if(S.area==="shrine"){
@@ -1071,7 +1074,7 @@ function map(frameTime=performance.now()){
   const view={...S,...YK_CAMERA.position(S,fieldMotion,frameTime)};
   const actors=areaNPCs().map(n=>({x:n.x,y:n.y,draw:(x,y,z)=>{g.save();g.translate(x,y);g.scale(z,z);npc(g,0,0,n.type,n.name,n.dir||"d",n.frame??1);g.restore();}}));
   actors.push({hero:true,x:view.x,y:view.y,draw:(x,y,z)=>hero(g,x,y-9*.56*z,S.dir,S.frame,S.outfit,.56*z)});
-  if(!YK_SETTLEMENT.draw(g,view,actors,villageDoorMotion))worldHint("鬼灯の里を読込中…");
+  if(!YK_SETTLEMENT.draw(g,view,actors,villageDoorMotion))worldHint("鬼灯村を読込中…");
   else worldHint(YK_FIELD_HINT.village(!!nearbyInspectable()));
   return;
  }
@@ -1129,7 +1132,7 @@ function map(frameTime=performance.now()){
  hotspring:[{x:620,y:650,type:"hotkeeper",name:"湯守・お糸",talk:["月見の湯へようこそ。","今夜は花びらの香りがよく立っていますよ。","温泉では、忘れたことまでふっと思い出す人がいるの。不思議でしょう？"]}]
 };
 const REST_STOP_PROFILES={
- 'roadside-tea':{host:{type:'weaver',name:'茶屋娘・小春',talk:['鬼灯の里からの旅かい？','この先の社へ向かうなら、花の咲く道を辿るといいよ。']},guest:{type:'traveler',name:'巡礼の旅人',talk:['天妖の社には、古い花結びの伝承があるそうだ。']}},
+ 'roadside-tea':{host:{type:'weaver',name:'茶屋娘・小春',talk:['鬼灯村からの旅かい？','この先の社へ向かうなら、花の咲く道を辿るといいよ。']},guest:{type:'traveler',name:'巡礼の旅人',talk:['天妖の社には、古い花結びの伝承があるそうだ。']}},
  'bridge-inn':{host:{type:'farmer',name:'旅籠主・源六',talk:['川を越える旅人は、ここで一晩休んでいきな。','水辺の道は足元に気をつけるんだぞ。']},guest:{type:'traveler',name:'行商人・弥七',talk:['入り江へ行くなら橋の位置を確かめておくといい。']}},
  'forest-tea':{host:{type:'weaver',name:'茶屋娘・すず',talk:['森の入口では道に迷いやすいの。','花の香りがする方を覚えておいてね。']},guest:{type:'shrine-keeper',name:'森番・朔',talk:['忘れの森では、同じ景色に惑わされぬようにな。']}},
  'highland-inn':{host:{type:'farmer',name:'旅籠主・弥兵衛',talk:['山道を越えてきたのか。よく来たな。','九尾の祠へ向かうなら、十分に休んでいけ。']},guest:{type:'traveler',name:'湯治客・お松',talk:['月見の湯の湯気は、疲れを忘れさせてくれるよ。']}}
@@ -1138,9 +1141,9 @@ function restStopResidents(){const p=REST_STOP_PROFILES[S.restStopId];if(!p)retu
 function enterFieldRestStop(stop){S.restStopId=stop.id;S.restStopReturn=[S.x,S.y];S.lastInterior=stop.type==='inn'?'inn':'teahouse';fieldMotion=null;YK_INPUT.stopAll();S.area=stop.type==='inn'?'villageRoom':'teahouse';[S.x,S.y]=YK_INTERIOR_BASE.spawn(S);S.dir='u';S.frame=1;YK_SAVE.auto(S);message(stop.name);hud();}
 function areaNPCs(){
  if(S.restStopId&&YK_INTERIOR_BASE.area(S))return restStopResidents();
- if(S.area==="village")return YK_SETTLEMENT.residents;
- if(S.area==="teahouse"){const people=YK_SETTLEMENT.insideResidents("teahouse");for(const person of people){person.x=368;person.y=336;person.stationary=true;}return people;}
-  if(["villageRoom","osumiHome"].includes(S.area))return YK_INTERIOR_BASE.residents(S,YK_SETTLEMENT.insideResidents(S.lastInterior||S.area));
+ if(S.area==="village")return YK_HOZUKI.residents;
+ if(S.area==="teahouse"){const people=YK_HOZUKI.indoor("teahouse");for(const person of people){person.x=368;person.y=336;person.stationary=true;}return people;}
+  if(["villageRoom","osumiHome"].includes(S.area))return YK_INTERIOR_BASE.residents(S,YK_HOZUKI.indoor(S.lastInterior||S.area));
  return NPCS[S.area]||[];
 }
 function drawNPCs(){areaNPCs().forEach(n=>npc(g,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1))}
@@ -1154,11 +1157,11 @@ function drawActorsOn(c,frameTime=performance.now()){
  for(const a of actors){
    if(a.kind==="hero"){const t=fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||144),0,1):1;const x=fieldMotion?fieldMotion.x+(S.x-fieldMotion.x)*t:S.x,y=fieldMotion?fieldMotion.y+(S.y-fieldMotion.y)*t:S.y;hero(c,x,y-(YK_INTERIOR_BASE.area(S)?9*.56:0),S.dir,S.frame,S.outfit,S.area==="field"?.16:YK_INTERIOR_BASE.area(S)?.56:S.area==="village"?.68:.92);}
    else if(a.kind==="object")YK_INTERIOR_BASE.drawObject(c,S,a.object);
-   else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1)}
+   else {const n=a.n;npc(c,n.x,n.y,n.type,n.name,n.dir||"d",n.frame??1,n)}
  }
 }
 function drawActors(frameTime){drawActorsOn(g,frameTime)}
-function nearestNPC(max=92){return YK_INTERACTION.nearestFacingNPC(S,areaNPCs(),S.area==="shrine"?Math.min(max,YK_TENYO.WALK_CELL+1):max,S.area==='village'?YK_SETTLEMENT.elevation:null)}
+function nearestNPC(max=92){if(S.area==='village')return YK_HOZUKI.nearest(S);return YK_INTERACTION.nearestFacingNPC(S,areaNPCs(),S.area==="shrine"?Math.min(max,YK_TENYO.WALK_CELL+1):max,S.area==='village'?YK_SETTLEMENT.elevation:null)}
 function npcBlocked(x,y){
  if(S.area==="shrine")return YK_TENYO.npcBlocked(x,y,areaNPCs());
  // The NPC's world-space foot is the authoritative center. The old floor(x/32)
@@ -1333,7 +1336,8 @@ if(new URLSearchParams(location.search).get("battleTest")==="1"){
 }
 function inspectTargets(){
  const texts={rocks:'苔むした岩だ。雨風に削られ、角が丸くなっている。',fence:'木を組んだ柵だ。丁寧に縄が巻かれている。',crates:'旅の荷箱だ。乾いた藁と木の香りがする。',basket:'編み目の細かい籠だ。里の人の手仕事が伝わってくる。',hozuki:'鬼灯の実が、風に揺れて小さな灯りのように見える。'};
- if(S.area==='village'){const v=YK_SETTLEMENT;return [
+ if(S.area==='village')return YK_HOZUKI.inspectTargets();
+ if(S.area==='legacyVillage'){const v=YK_SETTLEMENT;return [
  ...v.gardens.map((a,i)=>({id:'village-garden-'+i,name:'畑',x:a.x,y:a.y-30,w:a.w,h:76,garden:true,text:'葉の下で、野菜がゆっくり育っている。'})),
  {name:'井戸',x:v.well.x,y:v.well.y,w:54,h:36,text:'井戸の底から、ひんやりした風が吹いてくる。水面に小さな空が映った。'},
  ...v.props.map(a=>({name:'里の風景',x:a.x,y:a.y,w:a.w*.8,h:24,text:texts[a.kind]})),
@@ -1343,7 +1347,7 @@ function inspectTargets(){
  if(S.area==='field')return YK_WORLD.mapData.decorations.filter(a=>['flowers','cave','newCaveLarge','castle','lantern','bridge','bridgeNS'].includes(a.kind)).map(a=>({name:'道ばた',x:a.x+a.width/2,y:a.foot,w:a.width,h:24,text:({flowers:'草花が風に揺れている。道ばたにも、小さな命が息づいている。',cave:'洞穴の奥から冷たい風が吹いてくる。今は先へ進めそうにない。',newCaveLarge:'洞穴の奥から冷たい風が吹いてくる。今は先へ進めそうにない。',castle:'遠くに城が見える。あそこにも、誰かの暮らしがあるのだろう。',lantern:'石灯籠には、旅の無事を願う小さな札が結ばれている。',bridge:'橋の下を水が流れている。足元を確かめて渡ろう。',bridgeNS:'橋板が小さくきしんだ。しっかりした造りだ。'})[a.kind]}));
  return [];
 }
-function nearbyInspectable(){const f=({u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]})[S.dir]||[0,1];return inspectTargets().map(o=>{const x=clamp(S.x,o.x-o.w/2,o.x+o.w/2),y=clamp(S.y,o.y-o.h/2,o.y+o.h/2);return {...o,distance:Math.hypot(S.x-x,S.y-y),dot:(o.x-S.x)*f[0]+(o.y-S.y)*f[1]};}).filter(o=>o.distance<=48&&o.dot>=-12&&(S.area!=='village'||Math.abs(YK_SETTLEMENT.elevation(S.x,S.y)-YK_SETTLEMENT.elevation(o.x,o.y))<22)).sort((a,b)=>a.distance-b.distance)[0];}
+function nearbyInspectable(){const f=({u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]})[S.dir]||[0,1];return inspectTargets().map(o=>{const x=clamp(S.x,o.x-o.w/2,o.x+o.w/2),y=clamp(S.y,o.y-o.h/2,o.y+o.h/2);return {...o,distance:Math.hypot(S.x-x,S.y-y),dot:(o.x-S.x)*f[0]+(o.y-S.y)*f[1]};}).filter(o=>o.distance<=48&&o.dot>=-12&&(S.area!=='legacyVillage'||Math.abs(YK_SETTLEMENT.elevation(S.x,S.y)-YK_SETTLEMENT.elevation(o.x,o.y))<22)).sort((a,b)=>a.distance-b.distance)[0];}
 function inspectObject(){const o=nearbyInspectable();if(!o)return false;let text=o.text;
  if(o.garden){const last=S.harvests[o.id];if(last!=null&&S.walk-last<160)text='まだ育ちかけの野菜だ。しばらく旅をしてから、また見に来よう。';
  else{S.harvests[o.id]=S.walk;if(Math.random()<.6){const ids=Object.keys(D.vegetables),id=ids[Math.floor(Math.random()*ids.length)],v=D.vegetables[id];if((S.vegetables[id]||0)<99){S.vegetables[id]=(S.vegetables[id]||0)+1;text='畑の端に、食べごろの'+v.name+'を見つけた。'+v.name+'を1つ手に入れた！';}else text=v.name+'は、もう持ちきれない。';}else text='葉をそっと持ち上げてみた。今は食べごろの野菜がないようだ。';YK_SAVE.auto(S);}}
@@ -1427,9 +1431,9 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
  vegetation:[],walkZones:[[32,40,1504,1248]],npcAnchors:{},
  exit:{to:"field",rect:[720,1230,816,1280]},northExit:{to:"field",rect:[710,0,830,58]}};
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
-function villageBlocked(x,y){return YK_SETTLEMENT.blocked(x,y);}
+function villageBlocked(x,y){return YK_HOZUKI.blocked(x,y,false);}
 function collision(x,y,ignoreNPC=false){if(S.area==="shrine")return YK_TENYO.blocked(x,y)||(Math.abs(x-600)<19&&Math.abs(y-600)<16)||(!ignoreNPC&&npcBlocked(x,y));if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
-function exitArea(){if(S.area==="shrine"&&YK_TENYO.exit(S.x,S.y))return "field";if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
+function exitArea(){if(S.area==='village')return YK_HOZUKI.exit(S.x,S.y)?'field':null;if(S.area==="shrine"&&YK_TENYO.exit(S.x,S.y))return "field";if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 let fieldEntryWaiting=false;
 function move(dx,dy,dir){
  if(busy||fieldEntryWaiting)return;
@@ -1442,7 +1446,7 @@ function move(dx,dy,dir){
  // ramps, props and NPCs. Reject the whole stride if any 2px sample is blocked.
  // Previously only NPCs/props were preflighted, so water and cliffs could
  // leave the hero stranded at an arbitrary partial-cell coordinate.
- if(S.area==="village"||YK_INTERIOR_BASE.area(S)){
+ if(YK_INTERIOR_BASE.area(S)){
   const speed=Number($("speedSelect").value)||1,dist=(S.area==="shrine"?48:32)*speed;
   const norm=Math.hypot(dx,dy)||1,vx=dx/norm*dist,vy=dy/norm*dist;
   const steps=Math.max(1,Math.ceil(dist/2));
@@ -1465,7 +1469,7 @@ function move(dx,dy,dir){
  }
  // Equal diagonal speed; short collision steps follow edges without jumping corners.
  const startX=S.x,startY=S.y;
- const destination=S.area==="shrine"?YK_TENYO.step(S.x,S.y,dx,dy,collision):YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,ladder?1:(Number($("speedSelect").value)||1),YK_WORLD.size,collision);
+ const destination=S.area==="village"?YK_HOZUKI.step(S,dx,dy):S.area==="shrine"?YK_TENYO.step(S.x,S.y,dx,dy,collision):YK_MOVEMENT.step(S.area,S.x,S.y,dx,dy,ladder?1:(Number($("speedSelect").value)||1),YK_WORLD.size,collision);
  S.x=destination.x;S.y=destination.y;
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:ladder?400:YK_MOVEMENT.duration(S.area)};
@@ -1854,6 +1858,7 @@ function worldHint(text){
 
 let areaTransitionPending=false;
 function waitAreaAssets(destination){
+ if(destination==='village')return YK_HOZUKI.whenReady();
  if(destination==='shrine')return Promise.all([YK_TENYO.whenReady(),YK_TENYO_NPC.whenReady(assetLoaded)]);
  const images=[IMG[destination],destination==='field'?HIZUKI_FIELD_SD:null].filter(Boolean);
  return Promise.all(images.map(im=>new Promise((resolve,reject)=>{
@@ -1915,8 +1920,9 @@ async function transitionArea(destination,commit){
  }
 }
 function requestAreaExit(destination){
+ const fieldReturn=S.area==='village'&&destination==='field'?YK_HOZUKI.fieldExit(YK_WORLD,S.worldPosition):null;
  return transitionArea(destination,()=>{
-  YK_AREA_TRANSITIONS.apply(S,destination,YK_WORLD,D.areas);
+  YK_AREA_TRANSITIONS.apply(S,destination,YK_WORLD,D.areas);if(fieldReturn)[S.x,S.y]=fieldReturn;
   walkPhase=0;YK_SAVE.auto(S);
  });
 }
@@ -1925,7 +1931,8 @@ function enterWorldPlace(k){
  // Preserve the existing spawn/save semantics; only commit after destination assets load.
  return transitionArea(k,()=>{
   S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
-  [S.x,S.y]=k==="village"?YK_SETTLEMENT.spawn.slice():k==="shrine"?YK_TENYO.spawn.slice():(YK_DESTINATION_SCENES.layouts[k]?.spawn||[70,430]).slice();
+  [S.x,S.y]=k==="village"?YK_HOZUKI.spawn.slice():k==="shrine"?YK_TENYO.spawn.slice():(YK_DESTINATION_SCENES.layouts[k]?.spawn||[70,430]).slice();
+  if(k==='village')YK_HOZUKI.enter(S);
   S.dir=k==="village"?"u":"r";S.frame=1;walkPhase=0;
   S.encounterSteps=0;S.encounterGrace=D.areas[k].grace||9;
   YK_SAVE.auto(S);
@@ -2016,7 +2023,7 @@ function startNewGame(){
  const enterStory=()=>{
   if(completed)return;completed=true;
   state(YK_SAVE.fresh());S.sound=sound;
-  if(typeof YK_WORLD!=="undefined"&&YK_WORLD){S.area="village";S.x=768;S.y=760;S.dir="u";S.frame=1;S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;}
+  if(typeof YK_WORLD!=="undefined"&&YK_WORLD){YK_HOZUKI.enter(S);S.visitedAreas.village=true;S.destination="village";S.encounterGrace=99;}
   YK_SAVE.auto(S);$("title").classList.remove("show");busy=false;startingNewGame=false;
   hud();YK_AUDIO.endEncounterAudio();
   message("里の異変を確かめよう。里長を探そう。　十字キーで移動 ／ Aで話す",4200);
@@ -2115,6 +2122,7 @@ map=function(...args){
  try{return rawMap(...args);}finally{recordProbe('draw',performance.now()-begin);}
 };
 function timedNpcUpdate(t){
+ if(S.area==='village')return false;
  const start=performanceProbe?performance.now():0;
  const changed=YK_SETTLEMENT.updateResidents(t,S,areaNPCs(),(x,y)=>collision(x,y,true),!busy&&!$("title").classList.contains("show"));
  if(performanceProbe)recordProbe('npc',performance.now()-start);
@@ -2604,12 +2612,13 @@ if(villageTestWarpBtn){
     $("title")?.classList.remove("show");
     $("gameover")?.classList.remove("show");
     hud();
-    message("鬼灯の里：配置・当たり判定テスト",1800);
+    message("鬼灯村：配置・当たり判定テスト",1800);
     console.assert(S.area==="village","Village test warp failed");
   },{passive:false});
 }
 
 })();
+
 
 
 

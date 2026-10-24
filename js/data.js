@@ -5,7 +5,7 @@ const outfits={
 };
 const areas={
  field:{name:"花霞野",ground:"#88a857",path:"#d6bf8a",water:"#4f93a8",encounter:.045,min:14,grace:9},
- village:{name:"鬼灯の里",ground:"#8ca25d",path:"#c9ad78",water:"#5599aa",encounter:0,min:99,grace:0},
+ village:{name:"鬼灯村",ground:"#8ca25d",path:"#c9ad78",water:"#5599aa",encounter:0,min:99,grace:0},
  teahouse:{name:"花見茶屋",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
  osumiHome:{name:"お澄の家",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
  villageRoom:{name:"里の建物",ground:"#6b4932",encounter:0,min:9999,grace:0},
@@ -69,7 +69,7 @@ const relics={
 const rareRules={chance:.10,goldMultiplier:1.25,breakHpRatio:.5,repeatDropChance:.25};
 // Chapter 1: 花の声が消える里. Keep stage indices, speakers and targets stable for old saves.
 const story=[
- {area:"village",speaker:"里長",target:"shrine",objective:"鬼灯の里で鳴らなくなった鐘の謎を聞く",lines:["緋月、今朝から里の鐘が鳴らんのじゃ。昨日まであった道のことさえ、誰も覚えておらん。","お澄は『見知らぬ地蔵に挨拶した』と言うが、あの地蔵は昔からあったはず……。","古い約束を記した結び札を預ける。天妖の社の白妙なら、何か分かるかもしれん。","緋月『鐘が鳴らないだけなら直せばいいと思ったけど……みんなの記憶まで変なのね。分かった、行ってくる！』"],unlock:"結び札を託された。湖を左に見て北の草原へ。天妖の社で白妙を探そう。"},
+ {area:"village",speaker:"里長",target:"shrine",objective:"鬼灯村で鳴らなくなった鐘の謎を聞く",lines:["緋月、今朝から里の鐘が鳴らんのじゃ。昨日まであった道のことさえ、誰も覚えておらん。","お澄は『見知らぬ地蔵に挨拶した』と言うが、あの地蔵は昔からあったはず……。","古い約束を記した結び札を預ける。天妖の社の白妙なら、何か分かるかもしれん。","緋月『鐘が鳴らないだけなら直せばいいと思ったけど……みんなの記憶まで変なのね。分かった、行ってくる！』"],unlock:"結び札を託された。湖を左に見て北の草原へ。天妖の社で白妙を探そう。"},
  {area:"shrine",speaker:"白妙",target:"cove",objective:"天妖の社で結び札の秘密を尋ねる",lines:["白妙『この札の糸が、一本だけ途切れています。誰かとの縁を忘れたときに現れる印です。』","白妙『かつて争いを鎮めた花契りは、憎しみだけでなく、大切な約束まで忘れさせたと伝わります。』","緋月『大切なものを忘れて平和になるなんて、変な話ね。』","白妙『答えはまだ分かりません。海の入り江で、潮平という漁師が光る花びらを見つけたそうです。』"],unlock:"結び札が淡く光った。川沿いの道を進み、海の入り江へ向かおう。"},
  {area:"cove",speaker:"漁師・潮平",target:"forest",objective:"海の入り江で潮花の花びらを受け取る",lines:["潮平『昨夜の潮は妙だった。波が引いたあと、見たこともない花がひとひら残っていてな。』","潮平『これを見ると、昔ここで誰かを待っていた気がする。誰だったかは思い出せないが……。』","緋月『そんな寂しい顔しないでよ。きっと思い出せるって！』","潮平『持っていきな。忘れの森の方へ光が伸びている。俺はここで、帰る人を待つよ。』"],unlock:"潮花の花びらを受け取った。浜から北東の忘れの森へ向かおう。",petal:true},
  {area:"forest",speaker:"旅の薬師",target:"waterfall",objective:"忘れの森で記憶の花の手がかりを得る",lines:["旅の薬師『この森の木々は、人が忘れた言葉を代わりに覚えているんです。耳を澄ますと聞こえるでしょう。』","緋月『……『忘れても、迎えに行く』？ 誰の声だろう。』","旅の薬師『花びらに宿った記憶でしょう。龍神の滝の水鏡に映せば、その景色が見えるはずです。』","旅の薬師『ただし、思い出せば必ず幸せになるとは限りません。それでも進みますか？』","緋月『うん。知らないまま誰かを置いていくのは、もっと嫌だから。』"],unlock:"潮花の光が北へ向いた。龍神の滝の水鏡を訪ねよう。"},
@@ -80,3 +80,4 @@ const objectives=[...story.map(s=>s.objective),"手がかりを得た。各地�
 const vegetables={radish:{name:'だいこん',hp:18,mp:0},carrot:{name:'にんじん',hp:12,mp:0},cucumber:{name:'きゅうり',hp:8,mp:2}};
 return {vegetables,outfits,areas,enemies,enemyDefense,enemyProfiles,objectives,story,rareKinds,relics,rareRules};
 })();
+

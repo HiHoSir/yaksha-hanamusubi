@@ -5,7 +5,7 @@ window.YK_WORLD=(()=>{
  const geography=window.YK_FIELD_TERRAIN.referenceComposition;
  const center=([x,y])=>[x*32+16,y*32+16];
  const descriptions={
-  village:['鬼灯の里','南の半島から林と花の道を抜け、天妖の社へ。'],
+  village:['鬼灯村','南の半島から林と花の道を抜け、天妖の社へ。'],
   shrine:['天妖の社','西の山裾から川沿いを東へ進み、海の入り江へ。'],
   cove:['海の入り江','川を渡り、北東の忘れの森へ。'],
   forest:['忘れの森','森の北の山裾を辿り、龍神の滝へ。'],
@@ -97,6 +97,7 @@ window.YK_WORLD=(()=>{
  }
  return {start,hub,places,roads,restStops,guides,guideRoute,worldObjects,mapData,walkable,canMove,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition,safePosition};
 })();
+
 
 
 

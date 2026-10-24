@@ -4,7 +4,7 @@
   "formerSettlementName": "鬼灯の里",
   "approvedOn": "2026-10-24",
   "approval": "User approved eye-shapes-v2 corrected artwork as official Hozuki village NPCs.",
-  "runtimeIntegrated": false,
+  "runtimeIntegrated": true,
   "baselineCommit": "74234d9d038a9c0b65fdda39fd4fe2a69e5abdc8",
   "tileSize": 32,
   "atlasSize": [
@@ -201,7 +201,15 @@
     "rgbaHardAlpha": true,
     "all144FramesInsideCells": true,
     "correctedFrontEyeShapes": true,
-    "gameRuntime": false,
-    "iphoneSafari": false
+    "gameRuntime": true,
+    "iphoneSafari": false,
+    "gameRuntimeScope": "Node/JSDOM real game execution; Pages/device verified separately"
+  },
+  "integration": {
+    "area": "village",
+    "module": "js/hozuki-village-game.js",
+    "binding": "individual NPC id",
+    "outdoorResidents": 8,
+    "indoorResidents": 4
   }
 }
