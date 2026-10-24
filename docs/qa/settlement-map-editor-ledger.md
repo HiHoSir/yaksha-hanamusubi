@@ -24,3 +24,7 @@ Task 4: public Actions workflow page verified. Browser is signed out and has no 
 
 既存ブランチecdeaa05を更新。接地左下座標、木1セル・小住宅3セルなど明示接地占有、下辺描画、深度ソート、version1読込移行、縦横4〜96セルと1マス16〜64px、地面PNG出力を実装。31検査PASS。元PNG25点は変更なし。詳細は docs/settlement-editor-contact-placement.md。
 
+# sm-3 店の建物・入口更新（2026-10-24）
+
+a1151c03から更新。宿を原型に看板だけ「店」へ変更し、160×96px・描画5×3・接地5×2・中央入口へ統一。旧sm-1/2の標準店舗入口・接近セルを移行。茶店ほか既存PNGは維持。36件PASS。詳細 docs/settlement-editor-building-signs.md。Pagesは新しい公開ワークフロー実行が必要（前回の同一run再実行ではartifact重複が生じたため繰り返さない）。
+
