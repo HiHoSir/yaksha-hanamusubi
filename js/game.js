@@ -934,7 +934,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.33";
+const GAME_JS_BUILD="16.1.34";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1442,6 +1442,9 @@ function move(dx,dy,dir){
  if(fieldStyle&&(fieldMotion||dx&&dy))return;
  const ladder=S.area==='field'&&dy&&!dx?YK_ELEVATION.ladderBetween(YK_WORLD.mapData,Math.floor(S.x/32),Math.floor(S.y/32),Math.floor(S.x/32),Math.floor(S.y/32)+Math.sign(dy)):null;
  S.dir=ladder?'u':dir;
+ // South exit cells are on the final map row: handle the outward input before
+ // collision refuses the off-map destination. Entering the village itself does not exit.
+ if(S.area==='village'&&dy>0&&YK_HOZUKI.exit(S.x,S.y)){requestAreaExit('field');return;}
  // Village movement is atomic across *all* blockers, including river banks,
  // ramps, props and NPCs. Reject the whole stride if any 2px sample is blocked.
  // Previously only NPCs/props were preflighted, so water and cliffs could
@@ -2618,6 +2621,7 @@ if(villageTestWarpBtn){
 }
 
 })();
+
 
 
 

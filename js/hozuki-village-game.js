@@ -1,5 +1,8 @@
 ((root,make)=>{if(typeof module==='object'&&module.exports)module.exports=options=>make({...options,M:require('./settlement-map/model.js'),C:require('./settlement-map/catalog.js'),R:require('./settlement-map/render.js'),P:require('./hozuki-village-core.js')});else root.YK_HOZUKI=make({M:root.SMModel,C:root.SMCatalog,R:root.SMRender,P:root.HozukiVillage,legacy:root.YK_SETTLEMENT,host:root});})(globalThis,({M,C,R,P,legacy,host=globalThis,createCanvas})=>{
 const REVISION=1,spawn=[336,560],cell=(x,y)=>[Math.floor(x/32),Math.floor(y/32)],center=p=>p.map(v=>v*32+16);
+// The authored south markers flank this explicitly walkable center entrance cell.
+// Keep uploaded layout/collision originals intact and register the runtime exit explicitly.
+const extraFieldExitCells=[[10,17]];
 const slots={'chief':[11,10],'child-square':[9,10],farmer:[15,3],weaver:[18,10],'child-garden':[5,13],fisher:[14,2],traveler:[12,15],'shrine-keeper':[7,3]};
 const npcAssets={'chief':'chief','child-square':'child-square',farmer:'farmer',weaver:'weaver','child-garden':'child-garden',fisher:'fisher',traveler:'traveler','shrine-keeper':'shrine-keeper',osumi:'osumi','tea-host':'teagirl',shopkeeper:'merchant','inn-host':'innkeeper'};
 const residents=legacy.residents.map(n=>({...n,talk:[...n.talk],x:center(slots[n.id])[0],y:center(slots[n.id])[1],newNpcId:npcAssets[n.id],stationary:true}));
@@ -15,7 +18,7 @@ function enter(s){s.area='village';s.hozukiVillageRevision=REVISION;[s.x,s.y]=sp
 function returnFromInterior(s){enter(s);const d=doors.find(d=>d.id===s.lastInterior);if(d)[s.x,s.y]=d.approach;s.dir='d';return s;}
 function step(s,dx,dy){if(!data||!dx&&!dy||dx&&dy)return {x:s.x,y:s.y};const nx=s.x+Math.sign(dx)*32,ny=s.y+Math.sign(dy)*32;return blocked(nx,ny)?{x:s.x,y:s.y}:{x:nx,y:ny};}
 function doorAt(s){return doors.find(d=>d.x===s.x&&d.y===s.y||s.dir==='u'&&d.approach[0]===s.x&&d.approach[1]===s.y)||null;}
-function exit(x,y){return !!data&&data.entrances.some(e=>!e.objectId&&M.key(e.marker)===M.key(cell(x,y)));}
+function exit(x,y){return !!data&&(extraFieldExitCells.some(p=>M.key(p)===M.key(cell(x,y)))||data.entrances.some(e=>!e.objectId&&M.key(e.marker)===M.key(cell(x,y))));}
 function nearest(s){const d={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[s.dir];return residents.find(n=>n.x===s.x+d[0]*32&&n.y===s.y+d[1]*32)||null;}
 function fieldExit(world,point){const from=Array.isArray(point)?point:world.places.village.point,q=[from],seen=new Set([M.key(cell(...from))]);const contacts=new Set((world.mapData.decorations||[]).filter(o=>o.destination==='village'||o.placeId==='village'||o.id==='village').flatMap(o=>o.contactTiles||[]).map(M.key));contacts.add(M.key(cell(...world.places.village.point)));for(let i=0;i<q.length&&i<160;i++){const p=q[i];if(i&&!contacts.has(M.key(cell(...p)))&&world.walkable(...p))return p;for(const [dx,dy]of [[0,1],[1,0],[-1,0],[0,-1]]){const next=[p[0]+dx*32,p[1]+dy*32],k=M.key(cell(...next));if(!seen.has(k)&&world.canMove(...p,...next)){seen.add(k);q.push(next);}}}throw Error('鬼灯村から戻る安全なフィールド位置がありません');}
 function inspectTargets(){if(!data)return [];const texts={well:['井戸','井戸の底から、ひんやりした風が吹いてくる。水面に小さな空が映った。'],building_belltower:['鐘撞堂','村の朝を知らせる鐘だ。今は、静かに揺れている。'],garden_crop:['畑','葉の下で、野菜がゆっくり育っている。'],auto_bridge:['橋','橋板の下を澄んだ水が流れている。小魚がさっと影へ隠れた。']};return data.objects.filter(o=>texts[o.templateId]).map(o=>({id:'hozuki-'+o.id,name:texts[o.templateId][0],x:o.x*32+16,y:o.y*32+16,w:20,h:20,text:texts[o.templateId][1],...(o.templateId==='garden_crop'?{garden:true,id:'village-garden-'+(o.x<10?1:0)}:{})}));}
