@@ -577,8 +577,11 @@ body:has(#title.show) #stage{min-height:0}
 #title .titlebox #titleLoadBack{min-height:44px}
 
 
-/* One layout for idle, attack, skill and result art. Locking input must not
-   collapse the command row and change the actor's fit during an attack. */
+/* 戦闘ヒヅキの配置契約:
+   待機・攻撃・術・勝利・レベルアップは、見出しとHUDの間の同じ行に収める。
+   以前の負のbottom指定では縦画面で体が画面外/HUD下に隠れたため戻さない。
+   行動中もコマンド行の高さを保ち、攻撃途中で画像の縮尺・足元を変えない。
+   検査: node qa/battle-layout.cjs --hero-only（全ポーズ×縦横×安全領域）。 */
 #battle.show{
  display:grid;grid-template-columns:minmax(0,1fr);
  grid-template-rows:auto minmax(0,1fr) auto auto auto;

@@ -18,6 +18,8 @@ jobs:
           node-version: 22
       - run: npm install --no-save --package-lock=false playwright@1.51.1
       - run: npx playwright install chromium
+      - name: Japanese screenshot fonts
+        run: sudo apt-get install -y fonts-noto-cjk
       - run: node qa/battle-layout.cjs --hero-only
       - uses: actions/upload-artifact@v4
         if: always()

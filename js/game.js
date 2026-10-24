@@ -1562,6 +1562,7 @@ function renderBattle(){
   actor.classList.toggle("battleHeroVictory",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
   actor.classList.toggle("battleHeroResult",!!resultArt);
   actor.classList.toggle("battleHeroLevelUp",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.levelup);
+  // 揺れは共通ステージの24px余白内で吸収。結果絵は動かさず、原画の下端まで見せる。
   actor.style.transform=resultArt?"none":"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round(hit?impact*7:0)+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
