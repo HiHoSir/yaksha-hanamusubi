@@ -1,0 +1,33 @@
+{
+  "id": "jizo_prayer",
+  "approval": "User selected B: overall contrast adjustment",
+  "approvedOn": "2026-10-25",
+  "variant": "B",
+  "src": "assets/settlement-editor/jizo-prayer-v1/jizo-32-approved.png",
+  "size": [
+    32,
+    32
+  ],
+  "visibleBounds": [
+    6,
+    2,
+    26,
+    32
+  ],
+  "anchor": "ground-bottom-center",
+  "contactTiles": [
+    [
+      0,
+      0
+    ]
+  ],
+  "occupiedTiles": [
+    [
+      0,
+      0
+    ]
+  ],
+  "sha256": "5014bcaeb80d3cc01ce940552a50a9cfd19f7a37fb2d492d450b8a5532b74b95",
+  "runtimeIntegrated": false,
+  "pagesDeployed": false
+}
