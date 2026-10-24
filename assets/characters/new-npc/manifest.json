@@ -1,0 +1,207 @@
+{
+  "assetSet": "new-npc",
+  "settlementName": "鬼灯村",
+  "formerSettlementName": "鬼灯の里",
+  "approvedOn": "2026-10-24",
+  "approval": "User approved eye-shapes-v2 corrected artwork as official Hozuki village NPCs.",
+  "runtimeIntegrated": false,
+  "baselineCommit": "74234d9d038a9c0b65fdda39fd4fe2a69e5abdc8",
+  "tileSize": 32,
+  "atlasSize": [
+    96,
+    128
+  ],
+  "frameSize": [
+    32,
+    32
+  ],
+  "rows": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "columns": [
+    "strideA",
+    "neutral",
+    "strideB"
+  ],
+  "directionToRow": {
+    "d": 0,
+    "u": 1,
+    "l": 2,
+    "r": 3
+  },
+  "idleColumn": 1,
+  "animationSequence": [
+    0,
+    1,
+    2,
+    1
+  ],
+  "suggestedFrameDurationMs": 160,
+  "anchor": "visible-center",
+  "visibleMaxSize": [
+    28,
+    28
+  ],
+  "childrenVisibleMaxSize": [
+    24,
+    24
+  ],
+  "leftRight": "Left is mirrored right, including asymmetric hair accessories and strap.",
+  "characters": [
+    {
+      "id": "chief",
+      "name": "里長",
+      "file": "chief.png",
+      "existingNpcId": "chief",
+      "existingRole": "elder",
+      "existingType": "elder",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "3d7348acdc4df1e99063b420038d61881afbcb3a36361cc09e076a7fd527bcfe",
+      "gitBlobSha": "7d89be4c346d44344817ed25978b4783c99a4737",
+      "bytes": 7332
+    },
+    {
+      "id": "child-square",
+      "name": "広場の子",
+      "file": "child-square.png",
+      "existingNpcId": "child-square",
+      "existingRole": "child",
+      "existingType": "child",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "cd73313d74fcafb2448858a09d4693334789836de16e0b007f29bc954a58041a",
+      "gitBlobSha": "20a5d85a0ab225abb05eecd7400f2e2d8826e933",
+      "bytes": 5454
+    },
+    {
+      "id": "farmer",
+      "name": "畑守り",
+      "file": "farmer.png",
+      "existingNpcId": "farmer",
+      "existingRole": "farmer",
+      "existingType": "merchant",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "bbda86dc9dfdae531c7701aa3e7cc935df59b75e203a093f04c344e5bc2cac34",
+      "gitBlobSha": "f246f9cd064222cc12c36397ce28ad42e5d1762c",
+      "bytes": 6383
+    },
+    {
+      "id": "weaver",
+      "name": "織り手",
+      "file": "weaver.png",
+      "existingNpcId": "weaver",
+      "existingRole": "weaver",
+      "existingType": "woman",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "a370659c176abcde3455986a564a53fb7c7e34af8e15af6c462dba3a87cd9a79",
+      "gitBlobSha": "11d818591fb809c729860f6ae6218112620344e8",
+      "bytes": 6724
+    },
+    {
+      "id": "child-garden",
+      "name": "畑の子",
+      "file": "child-garden.png",
+      "existingNpcId": "child-garden",
+      "existingRole": "child",
+      "existingType": "child",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "e0dcda471d0fc676c220bd3f5df5389846ac54cae8321334423a936b10d7be8b",
+      "gitBlobSha": "14935a1d162522618f06421df9fdaf3affeac202",
+      "bytes": 5544
+    },
+    {
+      "id": "fisher",
+      "name": "川仕事の老人",
+      "file": "fisher.png",
+      "existingNpcId": "fisher",
+      "existingRole": "fisher",
+      "existingType": "elder",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "55015c12df6c08be6171139732bedafb1b50d045d5f59b0f43c1f2268cc939b4",
+      "gitBlobSha": "14a3b113aa094a57ce22cd0b4e34f1d8c2442a1b",
+      "bytes": 6772
+    },
+    {
+      "id": "traveler",
+      "name": "旅人",
+      "file": "traveler.png",
+      "existingNpcId": "traveler",
+      "existingRole": "traveler",
+      "existingType": "merchant",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "2770d160f380e9475be592c33827048c5a72a2229132de5b6fb15230a2394f4b",
+      "gitBlobSha": "f30ed3356f58aa752c2aac63026735e7000a0f1a",
+      "bytes": 5944
+    },
+    {
+      "id": "shrine-keeper",
+      "name": "社の世話役",
+      "file": "shrine-keeper.png",
+      "existingNpcId": "shrine-keeper",
+      "existingRole": "elder",
+      "existingType": "elder",
+      "existingAreaOrRoom": "屋外",
+      "sha256": "05f631c553e78108207a73b167b94afdb8959455985211a757d9666b4dfc1c85",
+      "gitBlobSha": "e04d8401f3da8830528afdb8a0ed09aa4c3a777c",
+      "bytes": 7490
+    },
+    {
+      "id": "osumi",
+      "name": "お澄",
+      "file": "osumi.png",
+      "existingNpcId": "osumi",
+      "existingRole": "woman",
+      "existingType": "woman",
+      "existingAreaOrRoom": "osumiHome",
+      "sha256": "3fcb8b1ef8439cfe145e109c76943c4b577f9eef8f1ea3a356502dafabfa540a",
+      "gitBlobSha": "54ed6e9453b91223bf1e24fc1fbfcc0ccd212580",
+      "bytes": 6893
+    },
+    {
+      "id": "teagirl",
+      "name": "茶屋娘",
+      "file": "teagirl.png",
+      "existingNpcId": "tea-host",
+      "existingRole": "teagirl",
+      "existingType": "teagirl",
+      "existingAreaOrRoom": "teahouse",
+      "sha256": "b156352084aa282502dcdfffafaa9e758550a1d2763c876d783c08a06cca4cbc",
+      "gitBlobSha": "6618fd87532a3d5ef05ce7a07b1a696c7418470b",
+      "bytes": 6321
+    },
+    {
+      "id": "merchant",
+      "name": "よろず屋",
+      "file": "merchant.png",
+      "existingNpcId": "shopkeeper",
+      "existingRole": "merchant",
+      "existingType": "merchant",
+      "existingAreaOrRoom": "shop",
+      "sha256": "435ef105589275fb460633751120d103a5788b4cea068119a1130c0599e61b2c",
+      "gitBlobSha": "5ade0cc8f721d1d4c7fd2f725f7b5ab3a2cd1609",
+      "bytes": 6526
+    },
+    {
+      "id": "innkeeper",
+      "name": "宿の女将",
+      "file": "innkeeper.png",
+      "existingNpcId": "inn-host",
+      "existingRole": "innkeeper",
+      "existingType": "teagirl",
+      "existingAreaOrRoom": "inn",
+      "sha256": "53df1a03cff6563256f90d33328bcb5e108c78835aea4a2cd37442c767aa5a4b",
+      "gitBlobSha": "203e693be680d06807cc0e4062f8462ccf1e18ba",
+      "bytes": 6462
+    }
+  ],
+  "verification": {
+    "pngDimensions": true,
+    "rgbaHardAlpha": true,
+    "all144FramesInsideCells": true,
+    "correctedFrontEyeShapes": true,
+    "gameRuntime": false,
+    "iphoneSafari": false
+  }
+}
