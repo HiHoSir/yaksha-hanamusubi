@@ -1,0 +1,285 @@
+{
+  "method": "deterministic foliage palette mapping",
+  "variants": [
+    {
+      "id": "tree_sakura_pale",
+      "source": "assets/settlement-editor/chips/tree_broadleaf.png",
+      "sourceSha256": "8e5b6f08e3ecf59da61266df5955ee19431559e08d2813ae71339174830ef420",
+      "src": "assets/settlement-editor/seasonal-trees-v1/tree_sakura_pale.png",
+      "size": [
+        32,
+        64
+      ],
+      "bounds": [
+        2,
+        17,
+        30,
+        47
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        2
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "tree_sakura_pink",
+      "source": "assets/settlement-editor/chips/tree_broadleaf.png",
+      "sourceSha256": "8e5b6f08e3ecf59da61266df5955ee19431559e08d2813ae71339174830ef420",
+      "src": "assets/settlement-editor/seasonal-trees-v1/tree_sakura_pink.png",
+      "size": [
+        32,
+        64
+      ],
+      "bounds": [
+        2,
+        17,
+        30,
+        47
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        2
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "tree_autumn_red",
+      "source": "assets/settlement-editor/chips/tree_broadleaf.png",
+      "sourceSha256": "8e5b6f08e3ecf59da61266df5955ee19431559e08d2813ae71339174830ef420",
+      "src": "assets/settlement-editor/seasonal-trees-v1/tree_autumn_red.png",
+      "size": [
+        32,
+        64
+      ],
+      "bounds": [
+        2,
+        17,
+        30,
+        47
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        2
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "tree_autumn_orange",
+      "source": "assets/settlement-editor/chips/tree_broadleaf.png",
+      "sourceSha256": "8e5b6f08e3ecf59da61266df5955ee19431559e08d2813ae71339174830ef420",
+      "src": "assets/settlement-editor/seasonal-trees-v1/tree_autumn_orange.png",
+      "size": [
+        32,
+        64
+      ],
+      "bounds": [
+        2,
+        17,
+        30,
+        47
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        2
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "tree_autumn_yellow",
+      "source": "assets/settlement-editor/chips/tree_broadleaf.png",
+      "sourceSha256": "8e5b6f08e3ecf59da61266df5955ee19431559e08d2813ae71339174830ef420",
+      "src": "assets/settlement-editor/seasonal-trees-v1/tree_autumn_yellow.png",
+      "size": [
+        32,
+        64
+      ],
+      "bounds": [
+        2,
+        17,
+        30,
+        47
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        2
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "trees_1cell_sakura_pale",
+      "source": "assets/field-map-objects-v3/trees.png",
+      "sourceSha256": "1085aac7f525e7154ca1cb368aa69dcb939678a4edf7d3ffca9dd48bc6f16ab8",
+      "src": "assets/settlement-editor/seasonal-trees-v1/trees_1cell_sakura_pale.png",
+      "size": [
+        32,
+        32
+      ],
+      "bounds": [
+        0,
+        7,
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        1
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "trees_1cell_sakura_pink",
+      "source": "assets/field-map-objects-v3/trees.png",
+      "sourceSha256": "1085aac7f525e7154ca1cb368aa69dcb939678a4edf7d3ffca9dd48bc6f16ab8",
+      "src": "assets/settlement-editor/seasonal-trees-v1/trees_1cell_sakura_pink.png",
+      "size": [
+        32,
+        32
+      ],
+      "bounds": [
+        0,
+        7,
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        1
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "trees_1cell_autumn_red",
+      "source": "assets/field-map-objects-v3/trees.png",
+      "sourceSha256": "1085aac7f525e7154ca1cb368aa69dcb939678a4edf7d3ffca9dd48bc6f16ab8",
+      "src": "assets/settlement-editor/seasonal-trees-v1/trees_1cell_autumn_red.png",
+      "size": [
+        32,
+        32
+      ],
+      "bounds": [
+        0,
+        7,
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        1
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "trees_1cell_autumn_orange",
+      "source": "assets/field-map-objects-v3/trees.png",
+      "sourceSha256": "1085aac7f525e7154ca1cb368aa69dcb939678a4edf7d3ffca9dd48bc6f16ab8",
+      "src": "assets/settlement-editor/seasonal-trees-v1/trees_1cell_autumn_orange.png",
+      "size": [
+        32,
+        32
+      ],
+      "bounds": [
+        0,
+        7,
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        1
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    },
+    {
+      "id": "trees_1cell_autumn_yellow",
+      "source": "assets/field-map-objects-v3/trees.png",
+      "sourceSha256": "1085aac7f525e7154ca1cb368aa69dcb939678a4edf7d3ffca9dd48bc6f16ab8",
+      "src": "assets/settlement-editor/seasonal-trees-v1/trees_1cell_autumn_yellow.png",
+      "size": [
+        32,
+        32
+      ],
+      "bounds": [
+        0,
+        7,
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "displayCells": [
+        1,
+        1
+      ],
+      "alphaPreserved": true,
+      "nonFoliagePreserved": true
+    }
+  ]
+}

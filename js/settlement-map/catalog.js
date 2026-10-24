@@ -35,5 +35,13 @@ for(const [key,name]of [['fence','木柵'],['hedge','生垣']])packAsset('auto_'
 
 for(const [id,name]of [['building_belltower','鐘撞堂'],['building_jinja','神社']])packAsset(id,name,[3,2],false,false,{src:'assets/settlement-editor/religious-v1/'+id+'.png',pack:'religious-v1',entranceLocal:[1,0],approachLocal:[1,1],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]]});
 for(const [id,name]of [['komainu_left','狛犬（左）'],['komainu_right','狛犬（右）']])packAsset(id,name,[1,1],true,false,{src:'assets/settlement-editor/religious-v1/'+id+'.png',pack:'religious-v1'});
+// Seasonal variants reuse approved silhouettes. Keep contact independent of PNG size:
+// both tall broadleaf and the 1-cell paired trees block only their authored base cell.
+for(const [key,name]of [['sakura_pale','桜（淡桃）'],['sakura_pink','桜（濃桃）'],['autumn_red','紅葉（赤）'],['autumn_orange','紅葉（橙）'],['autumn_yellow','紅葉（黄）']]){
+ for(const [prefix,size,rect,label]of [['tree',[1,2],[2,17,28,30],'広葉樹'],['trees_1cell',[1,1],[0,7,32,25],'1マスの木']]){
+  const id=prefix+'_'+key;
+  packAsset(id,label+'・'+name,size,true,false,{src:'assets/settlement-editor/seasonal-trees-v1/'+id+'.png',sourceRect:rect,pack:'seasonal-trees-v1'});
+ }
+}
 return {templates,byId};
 });
