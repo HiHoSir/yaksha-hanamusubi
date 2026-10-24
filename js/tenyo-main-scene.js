@@ -53,6 +53,8 @@ window.YK_TENYO=(()=>{
  }
  function exit(x,y){return y>=15.5*CELL&&x>=11*CELL&&x<=13*CELL;}
  function draw(c,state,drawHero,drawNpc,drawChest,debugGrid=false){
+  // Save restoration can draw directly without going through an area transition.
+  void whenReady().catch(()=>{});
   const cameraX=Math.max(0,Math.min(WIDTH-768/ZOOM,state.x-768/ZOOM/2));
   const cameraY=Math.max(0,Math.min(HEIGHT-768/ZOOM,state.y-768/ZOOM/2));
   c.save();c.setTransform(ZOOM,0,0,ZOOM,-cameraX*ZOOM,-cameraY*ZOOM);
