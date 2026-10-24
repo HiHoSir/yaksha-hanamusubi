@@ -1,0 +1,20 @@
+{
+  "tileSize": 32,
+  "columns": 8,
+  "rows": 3,
+  "frames": 17,
+  "cardinalBits": {
+    "N": 1,
+    "E": 2,
+    "S": 4,
+    "W": 8
+  },
+  "isolatedHorizontal": 0,
+  "isolatedVertical": 16,
+  "singleEnd": "open both ends along the bridge axis",
+  "source": "bridge-source.png",
+  "artRevision": 2,
+  "rails": "continuous source-art strips; whole-tile rotation",
+  "alpha": "transparent outside deck; hard alpha",
+  "collision": "bridgePassages [[0,0]]; water only"
+}

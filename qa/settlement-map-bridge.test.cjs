@@ -1,6 +1,7 @@
 const test=require('node:test'),a=require('node:assert/strict'),M=require('../js/settlement-map/model.js'),C=require('../js/settlement-map/catalog.js');
 const bridges=m=>m.objects.filter(o=>o.templateId==='auto_bridge');
 const {createCanvas,loadImage}=require('@napi-rs/canvas');
+test('vertical straight bridge rotates the complete horizontal tile, including cell boundaries',async()=>{const im=await loadImage(__dirname+'/../'+C.byId.auto_bridge.src),c=createCanvas(256,96).getContext('2d');c.drawImage(im,0,0);const h=c.getImageData(0,0,32,32).data,v=c.getImageData(0,64,32,32).data;for(let y=0;y<32;y++)for(let x=0;x<32;x++)for(let k=0;k<4;k++)a.equal(v[(y*32+x)*4+k],h[((31-x)*32+y)*4+k],'whole-tile rotation at '+x+','+y);});
 test('bridge atlas has 17 exact RGBA cells and every joined edge matches',async()=>{
  const im=await loadImage(__dirname+'/../'+C.byId.auto_bridge.src);a.equal(im.width,256);a.equal(im.height,96);
  const c=createCanvas(256,96).getContext('2d');c.drawImage(im,0,0);const p=c.getImageData(0,0,256,96).data;
