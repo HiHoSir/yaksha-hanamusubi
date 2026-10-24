@@ -7,8 +7,9 @@ function depthQueue(m,actorState,bounds){const q=m.objects.filter(v=>C.byId[v.te
 function draw(c,m,o={}){const images=o.images||{},tile=m.tileSize,objects=o.groundOnly?m.objects.filter(v=>C.byId[v.templateId].layer==='ground'):m.objects;if(o.forExport){if(m.background&&!o.backgroundImage)throw Error('背景画像が未読込です');for(const v of objects)if(!images[v.templateId])throw Error('素材画像が未読込です');}
 c.imageSmoothingEnabled=false;c.clearRect(0,0,m.width*tile,m.height*tile);
 if(o.backgroundImage)c.drawImage(o.backgroundImage,0,0);
-const object=v=>{const im=images[v.templateId],t=C.byId[v.templateId],r=M.visualRect(m,v);if(im)c.drawImage(im,...t.sourceRect,r.x,r.y,r.width,r.height);};
-for(const v of objects.filter(v=>C.byId[v.templateId].layer==='ground'))object(v);
+const frames=M.autotileLayout(m),object=v=>{const im=images[v.templateId],t=C.byId[v.templateId],r=M.visualRect(m,v),index=frames.get(v.id),source=t.autotile?[index%8*32,Math.floor(index/8)*32,32,32]:t.sourceRect;if(im)c.drawImage(im,...source,r.x,r.y,r.width,r.height);};
+const groundOrder=v=>{const t=C.byId[v.templateId];return t.bridgePassages?3:t.paintGroup==='base'?0:t.autotile?1:2;};
+for(const v of objects.filter(v=>C.byId[v.templateId].layer==='ground').sort((a,b)=>groundOrder(a)-groundOrder(b)))object(v);
 if(!o.groundOnly)for(const item of depthQueue(m,!o.forExport&&o.hero?o.actor:null,o.bounds)){if(item.object)object(item.object);else actor(c,item.actor,o.hero,o.bounds,tile);}
 if(o.forExport)return;
 if(o.collision){const b=M.collision(m);for(let y=0;y<m.height;y++)for(let x=0;x<m.width;x++){const k=x+','+y;c.fillStyle=b.has(k)?'#ef4e5277':o.reachable?.has(k)?'#30e88444':'#f3b52c22';c.fillRect(x*tile,y*tile,tile,tile);}}
