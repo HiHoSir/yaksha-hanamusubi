@@ -9,6 +9,9 @@ Read [the common top-view map standard](../../../docs/topview-map-standard.md) b
 Keep the whole visible SD character centered inside a 32px cell (normally within 28px), use explicit integer occupied cells and cardinal cell movement, and split foreground only where actual overhang requires it. A walking-area-only request preserves furniture positions and room dimensions; repair unnecessary blocked approach cells instead.
 The standard defines shared behavior, not tea-shop-specific coordinates or universal furniture sizes.
 
+## Village concepts and reusable mapchips
+For village image concepts, single-image walkable maps, transparent buildings/props, or road/river/bridge autotiles, also read [create-grid-map-art](../create-grid-map-art/SKILL.md). Select the background or independent-chip rendering contract before generation; check current catalog defaults instead of copying historical dimensions. This adds production guidance without migrating other maps.
+
 ## Mandatory entry gate — before calling any image generator
 1. **Read** repository `AGENTS.md`, this SKILL.md, the category-specific skill and approved source assets. If inaccessible, say so; DO NOT pretend to have read them.
 2. Classify the request as **repeatable tile**, **walkable floor decoration**, **independent furniture**, or **3-part architecture**. Choose the matching template in `templates/` and rules in `references/`.
@@ -44,3 +47,4 @@ Never claim Safari QA without an actual device run.
 
 ## Field elevation compatibility
 For field mapchips, cliff surfaces or independent field objects, include `docs/field-elevation-assets.md` in preflight. Record ground material, separate cliff texture, height support, explicit contact/occupied cells and entrance approach. Reuse the shared approximately 45% corner geometry; never derive height/collision from image bounds.
+

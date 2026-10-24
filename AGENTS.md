@@ -9,6 +9,10 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 - 歩行範囲のみを修正する依頼では、家具・椅子の配置、部屋寸法、床の行数を維持する。奥の家具の手前の床など、空いている接近セルの不要な通行不可を直す。間取り変更へ読み替えない。
 - トップビューの基準画像は `design-reference/maps/topview-v1/cyamise-approved.png`。旧内装資料は配色・世界観の資料として使い、新しいカメラを旧パースへ戻さない。
 
+## 村イメージ図・マップチップ制作の入口
+
+村のイメージ図、一枚背景として歩けるマップ、透過建物・小物、道・川・橋オートタイルを制作／再制作する際は、[create-grid-map-art](.agents/skills/create-grid-map-art/SKILL.md) を読む。共通トップビュー規約を補完し、用途別の一枚背景／接地チップ方式と現行カタログを確認する。旧記録の建物幅・畑不可・2マス橋へ戻さない。
+
 ## Skill registry
 | Work | Skill |
 | --- | --- |
@@ -195,3 +199,4 @@ For terrain height, ramp, cliff smoothing or diagonal-corner work, read `.agents
 
 ## Future field assets and elevation handoff
 Before making or placing any field mapchip/object, read `docs/field-elevation-assets.md` and the terrain-elevation skill. The adopted default removes approximately 45% of a convex tile corner (30px legs in a 32px cell); removed regions are forbidden. Keep tile material, height/ramp topology, cliff texture, object contact cells, occupancy and visual size independent. Test production routes and saved-position recovery on every terrain revision.
+

@@ -2,7 +2,10 @@ from pathlib import Path
 from PIL import Image
 import json
 ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'assets/settlement-editor/religious-v1'
-for key,item in json.loads((OUT/'generation.json').read_text())['assets'].items():
+assets=json.loads((OUT/'generation.json').read_text())['assets']
+# The shared manifest also contains 32px komainu; only normalize buildings here.
+for key in ['building_belltower','building_jinja']:
+    item=assets[key]
     raw=Path(item['source'])
     if not raw.exists():
         assert (OUT/(key+'.png')).exists();continue
