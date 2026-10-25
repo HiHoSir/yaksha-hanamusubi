@@ -62,6 +62,13 @@ const interiorFurniture=[
 ['wall_scroll','掛け軸',true],['wall_lattice','壁飾り・格子',true],
 ['potted_plant','鉢植え',false],['tea_set','茶器',true],['display_goods','陳列品',true]
 ];for(const [id,name,decor] of interiorFurniture)assets.push({id,name,layer:'object',walk:decor,decor});
+// Illustrated shelf candidate. Keep stable IDs so existing maps migrate visually.
+for (const id of ['shelf_l','shelf_m','shelf_r']) {
+  const a=assets.find(a=>a.id===id);
+  a.src='assets/interior-editor/furniture-v1/'+id+'.png?v=shelf-v1';
+}
+// Remaining rectangle-rendered items are layout prototypes, not finished artwork.
+for(const a of assets)if(a.layer==='object'&&!a.src&&a.id!=='npc')a.name+='（仮素材）';
 // Floor decoration is a separate visual category, but remains on the object layer for JSON compatibility.
 const villageDecorIds=new Set(['village_pebbles','village_leaves','village_stepping_stone',...interiorFurniture.filter(a=>a[2]).map(a=>a[0])]);
 // Shared village decoration uses a separate logical palette category, while

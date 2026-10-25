@@ -1,0 +1,81 @@
+{
+  "status": "ASSET CANDIDATE: device visual acceptance pending",
+  "date": "2026-10-25",
+  "category": "independent furniture",
+  "reference": [
+    "assets/settlement-editor/chips/crate.png",
+    "design-reference/maps/topview-v1/cyamise-approved.png"
+  ],
+  "generation": "Built-in image_gen, one source generation",
+  "render": {
+    "tileSize": 32,
+    "image": [
+      96,
+      32
+    ],
+    "contactAnchor": [
+      0,
+      31
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "parts": {
+      "shelf_l": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "shelf_m": [
+        32,
+        0,
+        32,
+        32
+      ],
+      "shelf_r": [
+        64,
+        0,
+        32,
+        32
+      ]
+    },
+    "occlusion": "Contained within placement cells. No foreground extension."
+  },
+  "processing": "Alpha threshold 128; crop alpha bounds; aspect-preserving nearest-neighbor to 96x20, bottom aligned inside 96x32; 24 RGB colors; remove goods crossing module cuts by copying clean wood from same source; identical boundary columns at x31/32 and63/64.",
+  "checks": [
+    "RGBA and exact dimensions",
+    "binary alpha",
+    "matching edge pixels",
+    "middle repeated three times visually inspected",
+    "editor JavaScript syntax"
+  ],
+  "unverified": [
+    "browser interaction",
+    "iPhone Safari",
+    "user visual approval"
+  ],
+  "remainingPrototypeIds": [
+    "drawer",
+    "counter_l",
+    "counter_r",
+    "longtable_l",
+    "longtable_r",
+    "wall_scroll",
+    "wall_lattice",
+    "potted_plant",
+    "tea_set",
+    "display_goods"
+  ]
+}
