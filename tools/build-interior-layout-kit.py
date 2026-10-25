@@ -48,7 +48,7 @@ for y in range(1,7):
 for x in range(w):put('structure',x,0,'wall');put('structure',x,h-1,'wall')
 for y in range(1,h-1):put('structure',0,y,'wall_side_l');put('structure',w-1,y,'wall_side_r')
 put('structure',7,h-1,'opening');put('floor',7,h-1,'earth')
-for x in [1,2,3]:put('object',x,1,'drawer_upper');put('object',x,2,'drawer_lower')
+for x in [1,2,3]:put('object',x,1,'wall_drawer')
 for x,id in [(3,'counter_l'),(4,'counter_r')]:put('object',x,4,id)
 for x,id in [(1,'rail_l'),(2,'rail_r'),(4,'rail_l'),(5,'rail_r')]:put('object',x,6,id)
 put('stairs',3,7,'stairs_m')
@@ -58,5 +58,5 @@ for x,y,id in [(1,8,'village_firewood'),(1,9,'village_rice_bale'),(1,10,'village
 layers['spawn']=[7,11];layers['exits']=[[7,12]]
 sample={'schema':'yaksha-interior-editor-v1','tileSize':32,'width':w,'height':h,'room':'custom','layers':layers,'assets':[],'note':'Original village artwork kit; raised corner layout reference, not a copy of reference game pixels.'}
 (P/'raised-shop-example.json').write_text(json.dumps(sample,ensure_ascii=False,indent=2)+'\n')
-(P/'manifest.json').write_text(json.dumps({'tileSize':32,'status':'candidate; visual approval pending','category':'independent furniture and railing','parts':{'red_bench':['red_bench_l','red_bench_r'],'counter':['counter_l','counter_r'],'drawer':['drawer_upper','drawer_lower'],'rail':['rail_l','rail_m','rail_r']},'assemblies':{'red_bench':{'size':[2,1],'occupiedTiles':[[0,0],[1,0]]},'counter':{'size':[2,1],'occupiedTiles':[[0,0],[1,0]]},'drawer':{'size':[1,2],'occupiedTiles':[[0,0],[0,1]]},'rail':{'size':[1,1],'occupiedTiles':[[0,0]]}},'source':'Adopted village fence and topview teahouse; original generated drawer only','rebuild':'python3 tools/build-interior-layout-kit.py'},ensure_ascii=False,indent=2)+'\n')
+(P/'manifest.json').write_text(json.dumps({'tileSize':32,'status':'candidate; visual approval pending','category':'independent furniture and railing','parts':{'red_bench':['red_bench_l','red_bench_r'],'counter':['counter_l','counter_r'],'drawer':['wall_drawer'],'rail':['rail_l','rail_m','rail_r']},'assemblies':{'red_bench':{'size':[2,1],'occupiedTiles':[[0,0],[1,0]]},'counter':{'size':[2,1],'occupiedTiles':[[0,0],[1,0]]},'drawer':{'size':[1,1],'occupiedTiles':[[0,0]],'renderRect':[0,-32,32,64],'requires':'solid structure directly north'},'rail':{'size':[1,1],'occupiedTiles':[[0,0]]}},'source':'Adopted village fence and topview teahouse; original generated drawer only','rebuild':'python3 tools/build-interior-layout-kit.py'},ensure_ascii=False,indent=2)+'\n')
 print('Built layout chips and example')

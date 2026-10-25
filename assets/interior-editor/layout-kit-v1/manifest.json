@@ -12,8 +12,7 @@
       "counter_r"
     ],
     "drawer": [
-      "drawer_upper",
-      "drawer_lower"
+      "wall_drawer"
     ],
     "rail": [
       "rail_l",
@@ -57,18 +56,21 @@
     "drawer": {
       "size": [
         1,
-        2
+        1
       ],
       "occupiedTiles": [
         [
           0,
           0
-        ],
-        [
-          0,
-          1
         ]
-      ]
+      ],
+      "renderRect": [
+        0,
+        -32,
+        32,
+        64
+      ],
+      "requires": "solid structure directly north"
     },
     "rail": {
       "size": [
