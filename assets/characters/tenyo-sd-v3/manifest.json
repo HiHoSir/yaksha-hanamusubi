@@ -1,0 +1,44 @@
+{
+  "status": "native-front-review",
+  "cell": [
+    32,
+    32
+  ],
+  "visibleLimit": 28,
+  "anchor": "visible-center",
+  "method": "source silhouette -> uniform nearest sampling with paired front-face samples -> fixed16/binary alpha; no synthetic eye patches or body warping",
+  "characters": [
+    {
+      "id": "shirotae",
+      "sourceSha256": "0b4b169c90234aa49a013582c50996628837bf3c9de56a270dedf9dff5f4ee7f",
+      "sourceBounds": [
+        98,
+        83,
+        1156,
+        1195
+      ],
+      "visibleBounds": [
+        2,
+        2,
+        29,
+        30
+      ]
+    },
+    {
+      "id": "guardian",
+      "sourceSha256": "836dd65465c45b13ac03447de08be7e21f92a3748dac345b6615211d11b2f5ce",
+      "sourceBounds": [
+        194,
+        79,
+        1059,
+        1214
+      ],
+      "visibleBounds": [
+        6,
+        2,
+        26,
+        30
+      ]
+    }
+  ]
+}
