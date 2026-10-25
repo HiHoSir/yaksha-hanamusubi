@@ -1,0 +1,106 @@
+{
+  "status": "candidate; user visual approval and Safari pending",
+  "method": "deterministic reuse of adopted village and topview art, no generation",
+  "tileSize": 32,
+  "architectureIds": [
+    "wood",
+    "earth",
+    "wall",
+    "pillar",
+    "end_l",
+    "end_r",
+    "stairs_l",
+    "stairs_m",
+    "stairs_r"
+  ],
+  "sourceAtlas": "assets/interior-editor/interior-atlas-9x1.png",
+  "sourceCanon": "design-reference/maps/topview-v1/cyamise-approved.png",
+  "script": "tools/polish-interior-assets.py",
+  "sideWalls": {
+    "strip": [
+      64,
+      0,
+      32,
+      8
+    ],
+    "leftX": 24,
+    "rightX": 0
+  },
+  "objects": {
+    "table": {
+      "image": [
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "contactY": 31,
+      "overhang": false
+    },
+    "cushion": {
+      "image": [
+        32,
+        32
+      ],
+      "occupiedTiles": [],
+      "contactY": 31,
+      "overhang": false
+    },
+    "tea_set": {
+      "image": [
+        32,
+        32
+      ],
+      "occupiedTiles": [],
+      "contactY": 31,
+      "overhang": false
+    },
+    "shelf_l": {
+      "image": [
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "contactY": 31,
+      "overhang": false
+    },
+    "shelf_m": {
+      "image": [
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "contactY": 31,
+      "overhang": false
+    },
+    "shelf_r": {
+      "image": [
+        32,
+        32
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ],
+      "contactY": 31,
+      "overhang": false
+    }
+  },
+  "note": "Furniture sizes, authored maps, collision logic, movement and save keys unchanged; tea set shares existing object layer."
+}
