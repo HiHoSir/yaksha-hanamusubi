@@ -1,0 +1,290 @@
+[
+  {
+    "id": "shoji_closed",
+    "name": "障子・閉（2×1）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/shoji_closed.png?v=completion-v1"
+  },
+  {
+    "id": "shoji_open",
+    "name": "障子・開（右1マス通行）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/shoji_open.png?v=completion-v1"
+  },
+  {
+    "id": "fusuma_closed",
+    "name": "襖・閉（2×1）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/fusuma_closed.png?v=completion-v1"
+  },
+  {
+    "id": "fusuma_open",
+    "name": "襖・開（右1マス通行）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/fusuma_open.png?v=completion-v1"
+  },
+  {
+    "id": "doorway",
+    "name": "出入口の木枠",
+    "layer": "structure",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/doorway.png?v=completion-v1"
+  },
+  {
+    "id": "partition_h",
+    "name": "間仕切り・横",
+    "layer": "structure",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/partition_h.png?v=completion-v1"
+  },
+  {
+    "id": "partition_v",
+    "name": "間仕切り・縦",
+    "layer": "structure",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/partition_v.png?v=completion-v1"
+  },
+  {
+    "id": "byobu_set",
+    "name": "屏風・一式（2×1）",
+    "layer": "object",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/byobu_set.png?v=completion-v1"
+  },
+  {
+    "id": "medicine_drawer",
+    "name": "壁付け薬箪笥（床1マス）",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/medicine_drawer.png?v=completion-v1",
+    "renderRect": [
+      0,
+      -32,
+      32,
+      64
+    ],
+    "requiresWall": true
+  },
+  {
+    "id": "wall_scroll",
+    "name": "掛け軸（壁に重ねる）",
+    "layer": "object",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/wall_scroll.png?v=completion-v1",
+    "requiresStructure": true
+  },
+  {
+    "id": "wall_labels",
+    "name": "壁の札（壁に重ねる）",
+    "layer": "object",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/wall_labels.png?v=completion-v1",
+    "requiresStructure": true
+  },
+  {
+    "id": "weapon_rack",
+    "name": "刀・槍の武器掛け（2×1）",
+    "layer": "object",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/weapon_rack.png?v=completion-v1"
+  },
+  {
+    "id": "wall_weapons",
+    "name": "壁掛け武具",
+    "layer": "object",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/wall_weapons.png?v=completion-v1",
+    "requiresStructure": true
+  },
+  {
+    "id": "armor_display",
+    "name": "鎧飾り",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/armor_display.png?v=completion-v1"
+  },
+  {
+    "id": "garden_pond",
+    "name": "庭池・一式（2×2）",
+    "layer": "object",
+    "span": [
+      2,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/garden_pond.png?v=completion-v1"
+  },
+  {
+    "id": "stone_lantern",
+    "name": "石灯籠",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/stone_lantern.png?v=completion-v1"
+  },
+  {
+    "id": "garden_shrub",
+    "name": "庭の低木",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/garden_shrub.png?v=completion-v1"
+  },
+  {
+    "id": "garden_tree",
+    "name": "庭の常緑樹",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/garden_tree.png?v=completion-v1"
+  },
+  {
+    "id": "stepping_stone",
+    "name": "庭の踏み石（通行可）",
+    "layer": "object",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/stepping_stone.png?v=completion-v1"
+  }
+]
