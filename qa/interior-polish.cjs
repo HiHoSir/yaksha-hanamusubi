@@ -17,6 +17,8 @@ const {createCanvas,loadImage}=require('@napi-rs/canvas');
  for(const [id,start,end] of [['wall_side_l',24,32],['wall_side_r',0,8]]){const p=createCanvas(32,32),q=p.getContext('2d');c.drawSideWall(q,images.get(by[id].src),by[id],0,0);const d=q.getImageData(0,0,32,32).data;for(let y=0;y<32;y++)for(let x=0;x<32;x++)a.equal(d[(y*32+x)*4+3]>0,x>=start&&x<end,id+' inner strip');}
  data.stairs.fill(null);data.floor.fill('wood');data.object[4]='table';a.equal(c.canStep(1,2,1,1),false);data.object[4]='cushion';a.equal(c.canStep(1,2,1,1),true);
  data.object.fill(null);data.floor[1]='raised_wood';a.equal(c.canStep(1,1,1,0),false);data.stairs[4]='stairs_m';a.equal(c.canStep(1,1,1,0),true);a.equal(c.canStep(1,0,1,1),true);
+ for(const id of ['raised_mat_goza_c','raised_mat_tatami_l','raised_mat_tatami_r']){data.floor.fill('wood');data.object.fill(null);data.stairs.fill(null);data.floor[1]=id;a.equal(c.canStep(1,1,1,0),false);data.stairs[4]='stairs_m';a.equal(c.canStep(1,1,1,0),true);a.equal(c.canStep(1,0,1,1),true);}
+ data.floor.fill('goza_c');data.stairs.fill(null);data.object[4]='futon_u';a.equal(c.canStep(1,2,1,1),true);data.object[4]='folded_futon';a.equal(c.canStep(1,2,1,1),false);
  // Capture a real draw() room with new materials and the adopted SD heroine.
  c.w=10;c.h=8;for(const l of ['floor','structure','object','stairs','collision','elevation'])data[l]=Array(80).fill(l==='floor'?'wood':l==='elevation'?0:null);
  for(let x=0;x<10;x++){data.structure[x]='wall';data.structure[70+x]='wall';}for(let y=1;y<7;y++){data.structure[y*10]='wall_side_l';data.structure[y*10+9]='wall_side_r';}
