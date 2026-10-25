@@ -45,8 +45,8 @@ for y in range(1,h-1):
  for x in range(1,w-1):put('floor',x,y,'earth')
 for y in range(1,7):
  for x in range(1,6):put('floor',x,y,'raised_wood');put('elevation',x,y,1)
-for x in range(w):put('structure',x,0,'wall');put('structure',x,h-1,'wall')
-for y in range(1,h-1):put('structure',0,y,'wall_side_l');put('structure',w-1,y,'wall_side_r')
+for x in range(1,w-1):put('structure',x,0,'wall');put('structure',x,h-1,'wall')
+for y in range(h):put('structure',0,y,'wall_side_l');put('structure',w-1,y,'wall_side_r')
 put('structure',7,h-1,'opening');put('floor',7,h-1,'earth')
 for x in [1,2,3]:put('object',x,1,'wall_drawer')
 for x,id in [(3,'counter_l'),(4,'counter_r')]:put('object',x,4,id)

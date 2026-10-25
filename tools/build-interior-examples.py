@@ -8,8 +8,8 @@ def room(kind,w,h):
     def put(layer,x,y,id):l[layer][y*w+x]=id
     for y in range(1,h-1):
         for x in range(1,w-1):put('floor',x,y,'earth')
-    for x in range(w):put('structure',x,0,'wall');put('structure',x,h-1,'wall')
-    for y in range(1,h-1):put('structure',0,y,'wall_side_l');put('structure',w-1,y,'wall_side_r')
+    for x in range(1,w-1):put('structure',x,0,'wall');put('structure',x,h-1,'wall')
+    for y in range(h):put('structure',0,y,'wall_side_l');put('structure',w-1,y,'wall_side_r')
     entry=w//2;put('structure',entry,h-1,'opening');put('floor',entry,h-1,'earth');l['spawn']=[entry,h-2];l['exits']=[[entry,h-1]]
     def floorbox(x0,y0,x1,y1,id):
         for y in range(y0,y1+1):
@@ -29,6 +29,7 @@ for x0,x1 in [(8,11),(13,16)]:
 for x in [8,11,13,16]:p('structure',x,8,'partition_h')
 p('structure',9,8,'shoji_open');p('structure',14,8,'fusuma_open')
 p('stairs',14,12,'stairs_m');p('object',2,1,'wall_drawer');p('object',4,0,'wall_scroll');p('object',2,4,'counter_set');p('object',4,2,'byobu_set')
+p('object',2,7,'red_bench_set');p('object',1,10,'village_barrel');
 p('object',3,13,'garden_pond');p('object',6,14,'stone_lantern')
 for x,y in [(15,14),(15,15),(16,15)]:p('object',x,y,'garden_shrub')
 for y in [13,14,15,16]:p('object',14,y,'stepping_stone')
@@ -36,7 +37,7 @@ output(m,[[9,17],[14,12],[14,11],[10,8],[15,8],[10,4],[14,4],[3,5],[5,14]])
 
 m,p,f=room('doctor',12,12);f(1,1,10,7,'raised_wood');p('stairs',6,8,'stairs_m')
 for x in [7,8,9]:p('object',x,1,'medicine_drawer')
-p('object',3,0,'wall_scroll');p('object',5,0,'wall_labels');p('object',2,2,'folded_futon');p('object',3,4,'counter_set');p('object',5,3,'hibachi_lit');p('object',8,4,'futon_set');p('object',1,9,'village_firewood');p('object',10,9,'village_pot')
+p('object',7,3,'byobu_set');p('object',3,0,'wall_scroll');p('object',5,0,'wall_labels');p('object',2,2,'folded_futon');p('object',3,4,'counter_set');p('object',5,3,'hibachi_lit');p('object',8,4,'futon_set');p('object',1,9,'village_firewood');p('object',10,9,'village_pot')
 output(m,[[6,11],[6,8],[6,7],[7,2],[9,2],[4,5],[8,6]])
 
 m,p,f=room('armory',14,12);f(4,1,12,7,'raised_wood');p('stairs',10,8,'stairs_m')
@@ -46,6 +47,8 @@ output(m,[[7,11],[10,8],[10,7],[9,3],[11,3],[8,5],[5,2],[7,2]])
 
 m,p,f=room('home',12,11);f(1,1,10,6,'raised_mat_goza_c');p('stairs',6,7,'stairs_m')
 for x in range(1,11):p('floor',x,1,'raised_mat_goza_n');p('floor',x,6,'raised_mat_goza_s')
+for y in range(2,6):p('floor',1,y,'raised_mat_goza_w');p('floor',10,y,'raised_mat_goza_e')
+for x,y,edge in [(1,1,'nw'),(10,1,'ne'),(1,6,'sw'),(10,6,'se')]:p('floor',x,y,'raised_mat_goza_'+edge)
 p('object',8,1,'wall_drawer');p('object',3,0,'wall_scroll');p('object',4,3,'hearth');p('object',6,3,'table');p('object',6,4,'cushion');p('object',9,2,'folded_futon');p('object',1,8,'kamado_lit');p('object',2,8,'village_firewood');p('object',10,8,'village_pot')
 output(m,[[6,10],[6,7],[6,6],[4,4],[6,5],[8,2]])
 
