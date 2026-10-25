@@ -45,5 +45,9 @@ for(const [key,name]of [['sakura_pale','桜（淡桃）'],['sakura_pink','桜（
 }
 // Approved B Jizo is shared with the field; contact is authored independently.
 packAsset('jizo','地蔵',[1,1],true,false,{src:'assets/settlement-editor/chips/jizo.png',pack:'jizo-approved-v1'});
+// Exterior shrine props: the gate's opening is walkable; only the two feet block.
+packAsset('torii','鳥居（中央通行可）',[3,3],true,false,{src:'assets/settlement-editor/shrine-v1/torii.png',pack:'shrine-v1',occupiedTiles:[[0,0],[2,0]]});
+packAsset('temizu','手水鉢',[1,1],true,false,{src:'assets/settlement-editor/shrine-v1/temizu.png',preview:'assets/settlement-editor/shrine-v1/temizu-preview.png',pack:'shrine-v1',animation:{frames:2,frameHeight:32,frameMs:360}});
+packAsset('stone_lantern','石灯籠',[1,1],true,false,{src:'assets/interior-editor/completion-v1/stone_lantern.png',sourceRect:[8,1,17,30],pack:'shrine-v1'});
 return {templates,byId};
 });

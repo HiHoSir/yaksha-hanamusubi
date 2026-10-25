@@ -1,0 +1,24 @@
+name: Exterior shrine props
+on:
+  push:
+    branches: [main, improve/exterior-shrine-tiles]
+    paths: ['js/settlement-map/**', 'settlement-map-editor.html', 'assets/settlement-editor/shrine-v1/**', 'qa/exterior-shrine-browser.cjs', 'qa/settlement-map-shrine-props.test.cjs', '.github/workflows/exterior-shrine.yml']
+permissions:
+  contents: read
+jobs:
+  exterior:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100 playwright@1.51.1
+      - run: node --test --test-concurrency=1 qa/settlement-map-shrine-props.test.cjs qa/settlement-map-contact.test.cjs qa/settlement-map-editor.test.cjs qa/settlement-map-editor-wiring.test.cjs qa/settlement-map-religious.test.cjs qa/settlement-map-komainu.test.cjs qa/settlement-map-pack.test.cjs
+      - run: npx playwright install --with-deps chromium
+      - run: node qa/exterior-shrine-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exterior-shrine-editor
+          path: qa/results/exterior-shrine/
