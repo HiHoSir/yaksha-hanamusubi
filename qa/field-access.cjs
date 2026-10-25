@@ -24,7 +24,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
   await run(`S.x=${cx+(ns?0:-64)};S.y=${cy+(ns?64:0)};S.dir="u";map();`);await page.screenshot({path:path.join(out,'field-bridge-'+index+'.png')});
  }
  const guides=await page.evaluate(()=>YK_WORLD.guides);
- for(const g of guides){await run(`S.x=${g.x+32};S.y=${g.y+64};S.dir="u";fieldMotion=null;map();`);assert.equal(await run('nearbyGuide()?.id'),g.id);await page.screenshot({path:path.join(out,'field-guide-'+g.id+'.png')});}
+ for(const g of guides){await run(`S.x=${g.x};S.y=${g.y+32};S.dir="u";fieldMotion=null;map();`);assert.equal(await run('nearbyGuide()?.id'),g.id);await page.screenshot({path:path.join(out,'field-guide-'+g.id+'.png')});}
  for(const kind of ['newCaveLarge','castle']){const o=await page.evaluate(kind=>YK_WORLD.mapData.decorations.find(o=>o.kind===kind),kind);await run(`S.x=${o.x+o.width/2};S.y=${o.foot+32};S.dir="u";map();`);assert(await run('!!nearbyInspectable()'));await page.screenshot({path:path.join(out,'field-'+kind+'.png')});}
  assert.deepEqual(errors,[]);console.log('All authored field bridges cross both ways within their explicit deck cells; guides and scenery approaches accessible');
  }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

@@ -3,8 +3,8 @@ const VERSION='16.1.48',REVISION=1,CELL=32,cache=new Map(),pending=new Map(),ima
 const canvas=(w,h)=>{if(createCanvas)return createCanvas(w,h);const c=host.document.createElement('canvas');c.width=w;c.height=h;return c;};
 const tiles=(x,y)=>[Math.floor(x/32),Math.floor(y/32)],point=p=>p.map(v=>v*32+16),key=p=>p.join(',');
 const mapping={inn:'inn',shop:'armory',teahouse:'teahouse',osumiHome:'home',farmHome:'doctor',doctor:'doctor',weaverHome:'home'};
-function kind(s){if(s.restStopId||!['teahouse','osumiHome','villageRoom'].includes(s.area))return null;return mapping[s.lastInterior]||(s.area==='teahouse'?'teahouse':'home');}
-const roomKey=s=>s.lastInterior||(s.area==='teahouse'?'teahouse':'osumiHome');
+function kind(s){if(!['teahouse','osumiHome','villageRoom'].includes(s.area))return null;return mapping[s.lastInterior]||(s.area==='teahouse'?'teahouse':'home');}
+const roomKey=s=>s.restStopId?'rest:'+s.restStopId:s.lastInterior||(s.area==='teahouse'?'teahouse':'osumiHome');
 const map=s=>cache.get(kind(s))?.map||null,ready=s=>!!cache.get(kind(s));
 async function json(file){const r=await host.fetch(file+'?v='+VERSION);if(!r.ok)throw Error('室内データを読み込めません: '+file);return r.json();}
 async function image(src){if(images.has(src))return images.get(src);const im=new host.Image();im.src=src;try{await im.decode();if(!im.naturalWidth&&!im.width)throw Error('empty');images.set(src,im);return im;}catch(e){images.delete(src);throw Error('室内画像を読み込めません: '+src);}}
@@ -16,7 +16,8 @@ function blocked(s,x,y,npcs=true){const m=map(s);return !m||terrain(m,x,y)||npcs
 function height(m,k){return Number(catalog[m.layers.floor[k]]?.elevation||0);}
 function canStep(s,x,y,xx,yy){const m=map(s);if(!m||Math.abs(xx-x)+Math.abs(yy-y)!==32||blocked(s,xx,yy))return false;const [tx,ty]=tiles(x,y),[nx,ny]=tiles(xx,yy),from=ty*m.width+tx,to=ny*m.width+nx,a=height(m,from),b=height(m,to);if(a===b)return true;if(Math.abs(a-b)!==1||tx!==nx)return false;const up=a>b?from:to,down=a>b?to:from;return Math.floor(up/m.width)+1===Math.floor(down/m.width)&&up%m.width===down%m.width&&['stairs_l','stairs_m','stairs_r'].includes(m.layers.stairs[down]);}
 function step(s,dx,dy){const p={x:s.x,y:s.y};if(!dx&&!dy||dx&&dy)return p;const x=s.x+Math.sign(dx)*32,y=s.y+Math.sign(dy)*32;return canStep(s,s.x,s.y,x,y)?{x,y}:p;}
-function profiles(s){const id=roomKey(s),old=legacy?.indoor(id)||[],first=old[0];const make=(n,p)=>({...n,x:p[0]*32+16,y:p[1]*32+16,dir:'d',frame:1,stationary:true,service:n.service??null});
+function profiles(s){const id=s.restStopId?kind(s):roomKey(s),rest=host.YK_REST_STOP_PROFILES?.[s.restStopId],old=legacy?.indoor(id)||[],first=old[0];const make=(n,p)=>({...n,x:p[0]*32+16,y:p[1]*32+16,dir:'d',frame:1,stationary:true,service:n.service??null});
+ if(rest)return [make({...rest.host,id:'rest-host',newNpcId:rest.host.type,service:id==='inn'?'rest':'tea'},[3,3]),make({...rest.guest,id:'rest-guest',newNpcId:rest.guest.type},id==='inn'?[5,7]:[8,5])];
  if(id==='inn')return [make({...first,id:'inn-host',name:first?.name||'宿の女将',type:'teagirl',newNpcId:'innkeeper',service:'rest',talk:[...(first?.talk||['旅の疲れはためないこと。ゆっくり休んでおいで。']),'奥の畳の間を空けてあるよ。支度ができたら声をかけておくれ。']},[3,3]),make({id:'inn-guest',name:'宿泊中の旅人',type:'traveler',newNpcId:'traveler',talk:['この宿の庭を見ていると、旅の疲れも忘れるよ。','昨日どこで泊まったのか、思い出せなくてね。台帳に名が残っていて安心したよ。']},[5,7])];
  if(id==='shop')return [make({...first,id:'shopkeeper',type:'merchant',newNpcId:'merchant',name:'武具屋の主人',service:'shop',talk:[...(first?.talk||['旅支度なら任せておくれ。']),'刀も防具も、手になじむものを選びな。道具の手入れも忘れずに。']},[7,5])];
  if(id==='teahouse')return [make({...first,id:'tea-host',type:'teagirl',newNpcId:'teagirl',name:first?.name||'茶屋娘',service:'tea',talk:first?.talk||['いらっしゃいませ。お茶とお団子で一服どうぞ。','同じお団子を二度注文するお客さまが増えて、ちょっと困っています。']},[3,3]),make({id:'tea-guest',name:'一服中の村人',type:'farmer',newNpcId:'farmer',talk:['木蓋を開けると、いい湯気が上がるんじゃ。','畑へ戻る前の一服は、何よりの楽しみでのう。']},[8,5])];

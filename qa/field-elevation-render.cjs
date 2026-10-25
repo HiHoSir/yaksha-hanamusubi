@@ -13,6 +13,6 @@ setTimeout(()=>{
   const start=performance.now();env.YK_LANDSCAPE.drawQuarter(ctx,env.YK_WORLD.mapData,actor,1.4,{oceanOutside:true,elevationTerrain:true});
   fs.writeFileSync('qa/results/field-elevation/'+id+'.png',c.toBuffer('image/png'));
   const times=[];for(let n=0;n<5;n++){const t=performance.now();env.YK_LANDSCAPE.drawQuarter(ctx,env.YK_WORLD.mapData,actor,1.4,{elevationTerrain:true});times.push(performance.now()-t);}
-  console.log(id,'warm median ms',times.sort((a,b)=>a-b)[2].toFixed(1));if(global.gc)global.gc();
+  console.log(id,'warm median ms',times.sort((a,b)=>a-b)[2].toFixed(1));c.width=1;c.height=1;if(global.gc)global.gc();
  }
 },100);

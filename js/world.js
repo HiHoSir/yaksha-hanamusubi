@@ -1,7 +1,7 @@
 // The authored 80x80 reference composition is baked into field-terrain.js.
 // All object contact/collision coordinates are explicit integer movement cells.
 window.YK_WORLD=(()=>{
- const tileSize=32,size=2560,viewSize=640,revision=119;
+ const tileSize=32,size=2560,viewSize=640,revision=120;
  const geography=window.YK_FIELD_TERRAIN.referenceComposition;
  const center=([x,y])=>[x*32+16,y*32+16];
  const descriptions={
@@ -36,8 +36,8 @@ window.YK_WORLD=(()=>{
  mapData.paths=[];
  const restStops=geography.restStops.map(o=>({...o,point:center(o.cell)}));
  const guides=[[30,56,'南の地蔵','林の西を通り、天妖の社へ向かうのじゃ。'],[34,46,'川辺の地蔵','東へ川沿いに進むと海の入り江じゃ。'],[56,37,'森の地蔵','北の鳥居が忘れの森の入口じゃ。'],[40,22,'湖畔の地蔵','湖の南を西へ進むと月見の湯じゃ。']].map(([tx,ty,name,tip],id)=>({id,...{x:tx*32+16,y:ty*32+16},name,tip}));
- // Guides stand on the route's walkable cells and never create a new barrier.
- for(const g of guides){const tx=Math.floor(g.x/32),ty=Math.floor(g.y/32);mapData.decorations.push({kind:'jizo',x:tx*32,y:ty*32,width:32,height:32,foot:(ty+1)*32,contactTiles:[[tx,ty]],occupiedTiles:[],walkThrough:true});}
+ // Each guide occupies one authored movement cell; its approaches remain open.
+ for(const g of guides){const tx=Math.floor(g.x/32),ty=Math.floor(g.y/32);mapData.decorations.push({kind:'jizo',x:tx*32,y:ty*32,width:32,height:32,foot:(ty+1)*32,contactTiles:[[tx,ty]],occupiedTiles:[[tx,ty]],walkThrough:false});}
  window.YK_FIELD_ELEVATION.prepare(mapData,geography);
  // On high terraces, mountain sprites obscure the cliff silhouette.
  // Reuse the existing 32px forest object instead; preserve the original
@@ -57,7 +57,8 @@ window.YK_WORLD=(()=>{
    walkThrough:o.walkThrough,biome:'forest',supportHeight:mapData.heights[y][x]
   }));
  });
- const solid=new Set(mapData.decorations.flatMap(o=>o.occupiedTiles.map(c=>c.join(','))));
+ YK_FIELD_ELEVATION.refreshCollision(mapData);
+ const solid=mapData.occupiedTiles;
  const passable=new Set(['grass','forest','sand','snow','barren','road','bridge']);
  const cellOpen=(x,y)=>x>0&&y>0&&x<79&&y<79&&passable.has(mapData[y]?.[x])&&!solid.has(x+','+y)&&mapData.travelReachable.has(x+','+y)&&YK_ELEVATION.pointWalkable(mapData,x*32+16,y*32+16);
  // Data-only save repair: keep valid positions, otherwise find the nearest
@@ -65,10 +66,15 @@ window.YK_WORLD=(()=>{
  function safePosition(point){
   if(!Array.isArray(point)||!point.every(Number.isFinite))return start.slice();
   const tx=Math.floor(point[0]/32),ty=Math.floor(point[1]/32);
-  if(YK_ELEVATION.pointWalkable(mapData,...point)&&[[0,0],[-8,0],[8,0],[0,-8],[0,8]].every(([dx,dy])=>cellOpen(Math.floor((point[0]+dx)/32),Math.floor((point[1]+dy)/32))))return point.slice();
+  if(cellOpen(tx,ty))return center([tx,ty]);
   for(let r=1;r<80;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)
    if(Math.max(Math.abs(dx),Math.abs(dy))===r&&cellOpen(tx+dx,ty+dy))return center([tx+dx,ty+dy]);
   return start.slice();
+ }
+ function restStopAt(x,y){
+  const tx=Math.floor(x/32),ty=Math.floor(y/32);
+  const object=mapData.decorations.find(o=>o.restStop&&o.contactTiles.some(([cx,cy])=>cx===tx&&cy===ty));
+  return restStops.find(s=>s.id===object?.restStop)||null;
  }
  function guideRoute(from,target){
   const nodes=new Map(),key=(x,y)=>x+','+y;
@@ -95,7 +101,7 @@ window.YK_WORLD=(()=>{
   const id=Object.keys(legacy).sort((a,b)=>Math.hypot(point[0]-legacy[a][0],point[1]-legacy[a][1])-Math.hypot(point[0]-legacy[b][0],point[1]-legacy[b][1]))[0];
   return places[id].point.slice();
  }
- return {start,hub,places,roads,restStops,guides,guideRoute,worldObjects,mapData,walkable,canMove,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition,safePosition};
+ return {start,hub,places,roads,restStops,restStopAt,guides,guideRoute,worldObjects,mapData,walkable,canMove,near,revision,tileAt,tileSize,size,viewSize,camera,draw,migratePosition,safePosition};
 })();
 
 

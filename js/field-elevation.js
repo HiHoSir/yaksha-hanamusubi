@@ -67,13 +67,7 @@ window.YK_FIELD_ELEVATION=(()=>{
   const dirs=[[0,-1,'n'],[0,1,'s'],[-1,0,'w'],[1,0,'e']];
   const key=(x,y)=>x+','+y,center=(x,y)=>[x*32+16,y*32+16];
   const pass=(x,y)=>E.walkable(m,x,y)&&E.pointWalkable(m,...center(x,y));
-  function flood(){
-   const queue=[[37,71]],seen=new Set([key(37,71)]);
-   for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of dirs){
-    const nx=x+dx,ny=y+dy,k=key(nx,ny);
-    if(!seen.has(k)&&E.canMove(m,...center(x,y),...center(nx,ny))){seen.add(k);queue.push([nx,ny]);}
-   }}return seen;
-  }
+  const flood=()=>reachable(m);
   // Classify the whole upper landmass by height and land geometry only.
   // Forest and other props may block walking but must NEVER split a plateau.
   // This is independent of the strict collision checks used for entrances.
@@ -149,5 +143,18 @@ window.YK_FIELD_ELEVATION=(()=>{
   m.travelReachable=flood();
   return m;
  }
- return {prepare};
+ // Rebuild derived data after the final object replacement/removal pass.
+ // Never keep contact cells from sprites that no longer exist.
+ function reachable(m){
+  const queue=[[37,71]],seen=new Set(['37,71']);
+  for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(const [dx,dy] of Object.values(E.dirs)){
+   const nx=x+dx,ny=y+dy,k=nx+','+ny;
+   if(!seen.has(k)&&E.canMove(m,x*32+16,y*32+16,nx*32+16,ny*32+16)){seen.add(k);queue.push([nx,ny]);}
+  }}return seen;
+ }
+ function refreshCollision(m){
+  m.occupiedTiles=new Set(m.decorations.flatMap(o=>o.occupiedTiles.map(c=>c.join(','))));
+  m.travelReachable=reachable(m);return m;
+ }
+ return {prepare,refreshCollision};
 })();
