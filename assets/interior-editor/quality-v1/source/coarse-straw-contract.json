@@ -1,0 +1,8 @@
+{
+  "reference": "IMG_6724(2).png upper raised floor, material only; no screenshot pixels copied",
+  "generator": "built-in imagegen",
+  "original": "exec-fa91c025-bdbe-4d2f-8363-169faa122dff.png",
+  "contract": "Original replacement mushiro, reference IMG_6724(2).png upper raised floor only (not dirt). 32x32 center and cardinal/corner repeatable floor modules, orthographic overhead, opaque center/raw-cut edge alpha over existing wood. Existing room bounds, elevations, occupancy, hearth, furniture, all navigation unchanged. Coarse short horizontal straw clusters, subtle cross ties and dark ragged overlapping seams like reference, not fine woven placemat, no binding/frame. New original source needed because current framed high-resolution mat fibers cannot recreate reference's coarse straw.\n",
+  "recipe": "96px native original texture -> seven-tone village palette ->32px center/cardinal/corner tiles, internal staggered raw joints",
+  "prompt": "Original coarse short horizontal straw floor; overhead, hard pixels, no frame, no refined placemat weave, no furniture. Screenshot upper floor is material reference only."
+}

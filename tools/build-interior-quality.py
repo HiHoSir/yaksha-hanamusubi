@@ -13,34 +13,51 @@ def native(im,size,margin=1,colors=48):
 def save(name,im):im.save(P/(name+'.png'));return im
 mat=save('mushiro-320x192',native(read('assets/interior-editor/quality-v1/source/mushiro.png'),(320,192),2))
 wood=read('assets/interior-editor/polish-v2/wood.png')
-# Only interior straw is sampled. The previous bound perimeter is never reused.
-base=mat.crop((64,64,96,96));variants={}
+# Original coarse horizontal straw source; the old fine-woven rug is not sampled.
+# Quantize to an authored seven-tone village palette, then work at native pixels.
+coarse=read('assets/interior-editor/quality-v1/source/mushiro-coarse.png').resize((96,96),Image.Resampling.NEAREST)
+palette=[(76,65,26),(103,88,31),(127,109,36),(149,130,43),(165,145,52),(178,158,62),(189,171,76)]
+gray=ImageOps.grayscale(coarse);lo,hi=gray.getextrema()
+for y in range(96):
+    for x in range(96):
+        level=min(6,max(0,int((gray.getpixel((x,y))-lo)*7/(hi-lo+1))))
+        coarse.putpixel((x,y),(*palette[level],255))
+base=coarse.crop((0,0,32,32));variants={}
+# Shared 2px material bands preserve continuity while interiors vary.
 for j in range(32):
-    for a,b in [((0,j),(31,j)),((j,0),(j,31))]:
-        ca,cb=base.getpixel(a),base.getpixel(b);color=tuple((ca[k]+cb[k])//2 for k in range(4));base.putpixel(a,color);base.putpixel(b,color)
-corners=[(0,0),(31,0),(0,31),(31,31)];color=tuple(sum(base.getpixel(v)[k] for v in corners)//4 for k in range(4))
-for corner in corners:base.putpixel(corner,color)
-for name,x in [('c',64),('c2',128),('c3',192)]:
-    tile=mat.crop((x,64,x+32,96))
-    for j in range(32):
-        for edge in [(0,j),(31,j),(j,0),(j,31)]:tile.putpixel(edge,base.getpixel(edge))
+    base.putpixel((31,j),base.getpixel((0,j)))
+    base.putpixel((j,31),base.getpixel((j,0)))
+for corner in [(0,0),(31,0),(0,31),(31,31)]:base.putpixel(corner,base.getpixel((0,0)))
+for name,xx,yy in [('c',0,0),('c2',32,32),('c3',64,64)]:
+    tile=coarse.crop((xx,yy,xx+32,yy+32))
+    for y in range(32):
+        for x in range(32):
+            if x<2 or x>=30 or y<2 or y>=30:tile.putpixel((x,y),base.getpixel((x,y)))
     variants[name]=tile
 roles={'c':'','c2':'','c3':'','n':'n','s':'s','w':'w','e':'e','nw':'nw','ne':'ne','sw':'sw','se':'se'}
-rag=[0,2,1,3,1,0,2,1,3,2,0,1,2,3,1,0,2,1,0,3,2,1,3,0,1,2,0,3,1,2,1,0]
+# Grouped loose straw ends, rather than a decorative binding or a sawtooth rim.
+rag=[1,1,3,3,2,2,0,0,2,2,4,4,1,1,0,0,3,3,1,1,2,2,0,0,4,4,2,2,1,1,0,0]
 for name,edges in roles.items():
     tile=variants.get(name,base).copy()
     for y in range(32):
         for x in range(32):
-            if ('n' in edges and y<rag[x]) or ('s' in edges and 31-y<rag[(x+9)%32]) or ('w' in edges and x<rag[(y+5)%32]) or ('e' in edges and 31-x<rag[(y+17)%32]):
-                r,g,b,_=tile.getpixel((x,y));tile.putpixel((x,y),(r,g,b,0))
+            cut=(('n' in edges and y<rag[x]//2) or ('s' in edges and 31-y<rag[x]) or ('w' in edges and x<rag[(y+6)%32]//2) or ('e' in edges and 31-x<rag[(y+18)%32]//2))
+            r,g,b,a=tile.getpixel((x,y))
+            if cut:tile.putpixel((x,y),(r,g,b,0))
+            elif 's' in edges and (y>=29 or (x%7<3 and y>=25+rag[x]//2)):
+                # Uneven hanging tips have a short dark underside, not a frame.
+                tile.putpixel((x,y),(int(r*.60),int(g*.60),int(b*.60),a))
     save('mushiro_'+name,tile)
     background=wood.copy();background.alpha_composite(tile);save('mushiro_floor_'+name,background)
+def patch_role(x,y):
+    # Three raw-cut panels across, two rows; irregular internal vertical joins.
+    row=y//3;cuts=[0,4,7,10] if row==0 else [0,3,6,10]
+    left=max(v for v in cuts if v<=x);right=min(v for v in cuts if v>x)
+    edge=('n' if y%3==0 else 's' if y%3==2 else '')+('w' if x==left else 'e' if x==right-1 else '')
+    return edge or ['c','c2','c3'][(left+row)%3]
 floor=Image.new('RGBA',(320,192))
 for y in range(6):
-    for x in range(10):
-        edge=('n' if y==0 else 's' if y==5 else '')+('w' if x==0 else 'e' if x==9 else '')
-        role=edge or ['c','c2','c3'][(x//2+2*(y//2))%3]
-        floor.alpha_composite(read('assets/interior-editor/quality-v1/mushiro_floor_'+role+'.png'),(x*32,y*32))
+    for x in range(10):floor.alpha_composite(read('assets/interior-editor/quality-v1/mushiro_floor_'+patch_role(x,y)+'.png'),(x*32,y*32))
 save('mushiro-floor-320x192',floor)
 
 hearth=native(read('assets/interior-editor/quality-v1/source/irori-topdown.png'),(32,32),1)
@@ -77,17 +94,17 @@ for i,n in enumerate(['l','r']):save('tatami_'+n,t.crop((i*32,0,i*32+32,32)))
 for i,n in enumerate(['u','d']):save('tatami_'+n,v.crop((0,i*32,32,i*32+32)))
 entries=[]
 for y in range(6):
-    for x in range(10):entries.append(dict(id=f'mushiro_{x}_{y}',name='ムシロ内部',layer='floor',walk=True,elevation=1,legacy=True,src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1',crop=[x*32,y*32,32,32]))
-entries.append(dict(id='mushiro_whole',name='ムシロ・旧一式（互換）',legacy=True,layer='floor',walk=True,elevation=1,span=[10,6],parts=[[x,y,f'mushiro_{x}_{y}'] for y in range(6) for x in range(10)],src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1'))
+    for x in range(10):entries.append(dict(id=f'mushiro_{x}_{y}',name='ムシロ内部',layer='floor',walk=True,elevation=1,legacy=True,src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2',crop=[x*32,y*32,32,32]))
+entries.append(dict(id='mushiro_whole',name='ムシロ・旧一式（互換）',legacy=True,layer='floor',walk=True,elevation=1,span=[10,6],parts=[[x,y,f'mushiro_{x}_{y}'] for y in range(6) for x in range(10)],src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2'))
 labels={'c':'中央','c2':'中央・つぎはぎ2','c3':'中央・つぎはぎ3','n':'上端','s':'下端','w':'左端','e':'右端','nw':'左上','ne':'右上','sw':'左下','se':'右下'}
 for raised in [False,True]:
     for role,label in labels.items():
-        entries.append(dict(id=('raised_mushiro_' if raised else 'mushiro_')+role,name=('高床・' if raised else '')+'ムシロ・'+label,layer='floor',walk=True,elevation=1 if raised else 0,src='assets/interior-editor/quality-v1/mushiro_floor_'+role+'.png?v=patchwork-v1'))
+        entries.append(dict(id=('raised_mushiro_' if raised else 'mushiro_')+role,name=('高床・' if raised else '')+'ムシロ・'+label,layer='floor',walk=True,elevation=1 if raised else 0,src='assets/interior-editor/quality-v1/mushiro_floor_'+role+'.png?v=coarse-straw-v2'))
 for id,name,src,span in [('irori_lit','囲炉裏・点火（真上・1マス）','irori-lit-64x32',[1,1]),('irori_unlit','囲炉裏・消火（真上・1マス）','irori-unlit-32x32',[1,1]),('low_table','座卓（原画の細部を維持）','low-table-64x64',[2,2]),('weapon_rack_large','刀・槍の武器掛け','weapon-rack-96x32',[3,1])]:
     e=dict(id=id,name=name,layer='object',walk=False,span=span,occupiedTiles=[[x,y] for y in range(span[1]) for x in range(span[0])],src='assets/interior-editor/quality-v1/'+src+'.png?v=quality-v1')
     if id=='irori_lit':e.update(frames=[[0,0,32,32],[32,0,32,32]],crop=[0,0,32,32])
     entries.append(e)
 entries.append(dict(id='armor_wall_display',name='鎧飾り（壁際）',layer='object',walk=False,occupiedTiles=[[0,0]],requiresWall=True,renderRect=[0,-32,32,64],src='assets/interior-editor/quality-v1/armor-32x64.png?v=quality-v1'))
 (P/'catalog.json').write_text(json.dumps(entries,ensure_ascii=False,indent=2)+'\n')
-(P/'manifest.json').write_text(json.dumps(dict(status='revised candidate, visual approval pending',tileSize=32,noFixedObjectCellCap=True,matSize=[320,192],mushiroModuleSize=[32,32],mushiroBorder="raw-cut, no bound rim",iroriSize=[32,32],iroriView="topdown",iroriOccupiedTiles=[[0,0]],tableSize=[64,64],weaponRackSize=[96,32],source='three original illustrations; adopted project table, rack and armor; original sources retained',rebuild='python3 tools/build-interior-quality.py'),indent=2)+'\n')
+(P/'manifest.json').write_text(json.dumps(dict(status='revised candidate, visual approval pending',tileSize=32,noFixedObjectCellCap=True,matSize=[320,192],mushiroModuleSize=[32,32],mushiroBorder="coarse horizontal straw; raw overlapping cut ends; no bound rim",iroriSize=[32,32],iroriView="topdown",iroriOccupiedTiles=[[0,0]],tableSize=[64,64],weaponRackSize=[96,32],source='three original illustrations; adopted project table, rack and armor; original sources retained',rebuild='python3 tools/build-interior-quality.py'),indent=2)+'\n')
 print('Built illustrated mat, hearth, cushion, table, tatami and larger weapon display')
