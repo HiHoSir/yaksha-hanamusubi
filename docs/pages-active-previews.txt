@@ -3,3 +3,4 @@
 improve/ui-dpad-touch
 improve/sd-all-maps
 improve/hozuki-topview
+improve/interior-map-editor-32px
