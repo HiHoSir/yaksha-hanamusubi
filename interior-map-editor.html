@@ -54,7 +54,6 @@ const villageDecorIds=new Set(['village_pebbles','village_leaves','village_stepp
 // Shared village decoration uses a separate logical palette category, while
 // keeping existing object-layer save data compatible.
 const atlasUrl='assets/interior-editor/interior-atlas-9x1.png';for(const [i,id] of ['wood','earth','wall','pillar','end_l','end_r','stairs_l','stairs_m','stairs_r'].entries()){const a=assets.find(a=>a.id===id);a.src=atlasUrl;a.crop=[i*32,0,32,32]}const raised=assets.find(a=>a.id==='raised_wood');raised.src=atlasUrl;raised.crop=[0,0,32,32];raised.name='高床・板張り';
-startHearthAnimation();
 const old={road:'earth',raised:'threshold',entrance:'opening',stone:'threshold',tatami:'wood',counter:'table',weapon:'table'};
 const byId=()=>Object.fromEntries(assets.map(a=>[a.id,a]));let w=10,h=8,room='teahouse',data={},selected='earth',history=[],future=[],pending='',drawing=false,last=-1,panStart=null;
 const blank=()=>({floor:Array(w*h).fill('earth'),elevation:Array(w*h).fill(0),stairs:Array(w*h).fill(null),structure:Array(w*h).fill(null),object:Array(w*h).fill(null),collision:Array(w*h).fill(null),spawn:[Math.floor(w/2),h-2],exits:[[Math.floor(w/2),h-1]]});
@@ -140,6 +139,7 @@ $('layer').addEventListener('change',syncDecorFilter);syncDecorFilter();
 const paletteHint=document.createElement('p');paletteHint.textContent='編集する層を選び、下の素材をタップしてからマップへ配置します。';paletteSide.insertBefore(paletteHint,layerTabs);
 const sheets={palette:paletteSide,settings:settingsSide,walk};for(const [name,node]of Object.entries(sheets)){node.classList.add('touch-sheet');node.dataset.sheet=name;if(name==='walk')document.body.append(node);const closeButton=document.createElement('button');closeButton.className='sheet-close';closeButton.textContent='× 閉じる';closeButton.onclick=close;node.prepend(closeButton)}const shade=document.createElement('button');shade.className='sheet-shade';shade.textContent='閉じる';shade.onclick=close;body.append(shade);const dock=document.createElement('nav');dock.className='mobile-dock';dock.setAttribute('aria-label','編集パネル');for(const [name,label]of [['palette','素材'],['settings','保存・設定'],['walk','試し歩き']]){const b=document.createElement('button');b.textContent=label;b.onclick=()=>{body.dataset.panel=body.dataset.panel===name?'':name;if(name==='walk'){close();walkDock.scrollIntoView({block:'nearest',behavior:'smooth'});centerHero()}};dock.append(b)}body.append(dock);function close(){body.dataset.panel=''}document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});$('palette').addEventListener('click',e=>{if(e.target.closest('button'))close()});}
 setupMobileEditor();
+startHearthAnimation();
 
 })();
 </script></body></html>
