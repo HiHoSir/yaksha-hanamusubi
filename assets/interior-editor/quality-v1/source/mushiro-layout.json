@@ -1,0 +1,43 @@
+{
+  "width": 10,
+  "height": 6,
+  "panels": [
+    [
+      0,
+      0,
+      4,
+      2
+    ],
+    [
+      0,
+      2,
+      2,
+      4
+    ],
+    [
+      2,
+      2,
+      2,
+      4
+    ],
+    [
+      4,
+      0,
+      3,
+      4
+    ],
+    [
+      7,
+      0,
+      3,
+      4
+    ],
+    [
+      4,
+      4,
+      6,
+      2
+    ]
+  ],
+  "intent": "Unequal independent raw-cut mushiro sheets fitted together. Each rectangle has its own ends. T-junctions; seams never form a regular room-wide grid."
+}

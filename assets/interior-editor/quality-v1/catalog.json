@@ -6,7 +6,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       0,
       0,
@@ -21,7 +21,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       32,
       0,
@@ -36,7 +36,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       64,
       0,
@@ -51,7 +51,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       96,
       0,
@@ -66,7 +66,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       128,
       0,
@@ -81,7 +81,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       160,
       0,
@@ -96,7 +96,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       192,
       0,
@@ -111,7 +111,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       224,
       0,
@@ -126,7 +126,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       256,
       0,
@@ -141,7 +141,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       288,
       0,
@@ -156,7 +156,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       0,
       32,
@@ -171,7 +171,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       32,
       32,
@@ -186,7 +186,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       64,
       32,
@@ -201,7 +201,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       96,
       32,
@@ -216,7 +216,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       128,
       32,
@@ -231,7 +231,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       160,
       32,
@@ -246,7 +246,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       192,
       32,
@@ -261,7 +261,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       224,
       32,
@@ -276,7 +276,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       256,
       32,
@@ -291,7 +291,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       288,
       32,
@@ -306,7 +306,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       0,
       64,
@@ -321,7 +321,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       32,
       64,
@@ -336,7 +336,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       64,
       64,
@@ -351,7 +351,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       96,
       64,
@@ -366,7 +366,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       128,
       64,
@@ -381,7 +381,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       160,
       64,
@@ -396,7 +396,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       192,
       64,
@@ -411,7 +411,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       224,
       64,
@@ -426,7 +426,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       256,
       64,
@@ -441,7 +441,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       288,
       64,
@@ -456,7 +456,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       0,
       96,
@@ -471,7 +471,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       32,
       96,
@@ -486,7 +486,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       64,
       96,
@@ -501,7 +501,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       96,
       96,
@@ -516,7 +516,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       128,
       96,
@@ -531,7 +531,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       160,
       96,
@@ -546,7 +546,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       192,
       96,
@@ -561,7 +561,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       224,
       96,
@@ -576,7 +576,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       256,
       96,
@@ -591,7 +591,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       288,
       96,
@@ -606,7 +606,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       0,
       128,
@@ -621,7 +621,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       32,
       128,
@@ -636,7 +636,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       64,
       128,
@@ -651,7 +651,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       96,
       128,
@@ -666,7 +666,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       128,
       128,
@@ -681,7 +681,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       160,
       128,
@@ -696,7 +696,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       192,
       128,
@@ -711,7 +711,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       224,
       128,
@@ -726,7 +726,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       256,
       128,
@@ -741,7 +741,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       288,
       128,
@@ -756,7 +756,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       0,
       160,
@@ -771,7 +771,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       32,
       160,
@@ -786,7 +786,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       64,
       160,
@@ -801,7 +801,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       96,
       160,
@@ -816,7 +816,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       128,
       160,
@@ -831,7 +831,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       160,
       160,
@@ -846,7 +846,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       192,
       160,
@@ -861,7 +861,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       224,
       160,
@@ -876,7 +876,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       256,
       160,
@@ -891,7 +891,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3",
     "crop": [
       288,
       160,
@@ -1212,7 +1212,7 @@
         "mushiro_9_5"
       ]
     ],
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_c",
@@ -1220,7 +1220,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_c2",
@@ -1228,7 +1228,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_c3",
@@ -1236,7 +1236,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_n",
@@ -1244,7 +1244,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_s",
@@ -1252,7 +1252,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_w",
@@ -1260,7 +1260,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_e",
@@ -1268,7 +1268,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_nw",
@@ -1276,7 +1276,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_ne",
@@ -1284,7 +1284,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_sw",
@@ -1292,7 +1292,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=unequal-mushiro-v3"
   },
   {
     "id": "mushiro_se",
@@ -1300,7 +1300,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 0,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_c",
@@ -1308,7 +1308,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_c2",
@@ -1316,7 +1316,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_c3",
@@ -1324,7 +1324,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_n",
@@ -1332,7 +1332,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_s",
@@ -1340,7 +1340,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_w",
@@ -1348,7 +1348,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_e",
@@ -1356,7 +1356,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_nw",
@@ -1364,7 +1364,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_ne",
@@ -1372,7 +1372,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_sw",
@@ -1380,7 +1380,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=unequal-mushiro-v3"
   },
   {
     "id": "raised_mushiro_se",
@@ -1388,7 +1388,7 @@
     "layer": "floor",
     "walk": true,
     "elevation": 1,
-    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=coarse-straw-v2"
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=unequal-mushiro-v3"
   },
   {
     "id": "irori_lit",

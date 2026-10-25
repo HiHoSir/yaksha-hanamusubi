@@ -49,12 +49,13 @@ for name,edges in roles.items():
                 tile.putpixel((x,y),(int(r*.60),int(g*.60),int(b*.60),a))
     save('mushiro_'+name,tile)
     background=wood.copy();background.alpha_composite(tile);save('mushiro_floor_'+name,background)
+panels=json.loads((P/'source/mushiro-layout.json').read_text())['panels']
 def patch_role(x,y):
-    # Three raw-cut panels across, two rows; irregular internal vertical joins.
-    row=y//3;cuts=[0,4,7,10] if row==0 else [0,3,6,10]
-    left=max(v for v in cuts if v<=x);right=min(v for v in cuts if v>x)
-    edge=('n' if y%3==0 else 's' if y%3==2 else '')+('w' if x==left else 'e' if x==right-1 else '')
-    return edge or ['c','c2','c3'][(left+row)%3]
+    hits=[r for r in panels if r[0]<=x<r[0]+r[2] and r[1]<=y<r[1]+r[3]]
+    assert len(hits)==1,(x,y,hits)
+    left,top,width,height=hits[0]
+    edge=('n' if y==top else 's' if y==top+height-1 else '')+('w' if x==left else 'e' if x==left+width-1 else '')
+    return edge or ['c','c2','c3'][panels.index(hits[0])%3]
 floor=Image.new('RGBA',(320,192))
 for y in range(6):
     for x in range(10):floor.alpha_composite(read('assets/interior-editor/quality-v1/mushiro_floor_'+patch_role(x,y)+'.png'),(x*32,y*32))
@@ -94,12 +95,12 @@ for i,n in enumerate(['l','r']):save('tatami_'+n,t.crop((i*32,0,i*32+32,32)))
 for i,n in enumerate(['u','d']):save('tatami_'+n,v.crop((0,i*32,32,i*32+32)))
 entries=[]
 for y in range(6):
-    for x in range(10):entries.append(dict(id=f'mushiro_{x}_{y}',name='ムシロ内部',layer='floor',walk=True,elevation=1,legacy=True,src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2',crop=[x*32,y*32,32,32]))
-entries.append(dict(id='mushiro_whole',name='ムシロ・旧一式（互換）',legacy=True,layer='floor',walk=True,elevation=1,span=[10,6],parts=[[x,y,f'mushiro_{x}_{y}'] for y in range(6) for x in range(10)],src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=coarse-straw-v2'))
+    for x in range(10):entries.append(dict(id=f'mushiro_{x}_{y}',name='ムシロ内部',layer='floor',walk=True,elevation=1,legacy=True,src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3',crop=[x*32,y*32,32,32]))
+entries.append(dict(id='mushiro_whole',name='ムシロ・旧一式（互換）',legacy=True,layer='floor',walk=True,elevation=1,span=[10,6],parts=[[x,y,f'mushiro_{x}_{y}'] for y in range(6) for x in range(10)],src='assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=unequal-mushiro-v3'))
 labels={'c':'中央','c2':'中央・つぎはぎ2','c3':'中央・つぎはぎ3','n':'上端','s':'下端','w':'左端','e':'右端','nw':'左上','ne':'右上','sw':'左下','se':'右下'}
 for raised in [False,True]:
     for role,label in labels.items():
-        entries.append(dict(id=('raised_mushiro_' if raised else 'mushiro_')+role,name=('高床・' if raised else '')+'ムシロ・'+label,layer='floor',walk=True,elevation=1 if raised else 0,src='assets/interior-editor/quality-v1/mushiro_floor_'+role+'.png?v=coarse-straw-v2'))
+        entries.append(dict(id=('raised_mushiro_' if raised else 'mushiro_')+role,name=('高床・' if raised else '')+'ムシロ・'+label,layer='floor',walk=True,elevation=1 if raised else 0,src='assets/interior-editor/quality-v1/mushiro_floor_'+role+'.png?v=unequal-mushiro-v3'))
 for id,name,src,span in [('irori_lit','囲炉裏・点火（真上・1マス）','irori-lit-64x32',[1,1]),('irori_unlit','囲炉裏・消火（真上・1マス）','irori-unlit-32x32',[1,1]),('low_table','座卓（原画の細部を維持）','low-table-64x64',[2,2]),('weapon_rack_large','刀・槍の武器掛け','weapon-rack-96x32',[3,1])]:
     e=dict(id=id,name=name,layer='object',walk=False,span=span,occupiedTiles=[[x,y] for y in range(span[1]) for x in range(span[0])],src='assets/interior-editor/quality-v1/'+src+'.png?v=quality-v1')
     if id=='irori_lit':e.update(frames=[[0,0,32,32],[32,0,32,32]],crop=[0,0,32,32])

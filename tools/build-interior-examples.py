@@ -46,13 +46,17 @@ for x,y,id in [(1,2,'village_basket'),(2,2,'village_firewood'),(1,4,'village_ric
 output(m,[[7,11],[10,8],[10,7],[9,3],[11,3],[8,5],[5,2],[7,2]])
 
 m,p,f=room('home',12,11);f(1,1,10,6,'raised_wood');p('stairs',6,7,'stairs_m')
-for y in range(6):
-    for x in range(10):
-        row=y//3;cuts=[0,4,7,10] if row==0 else [0,3,6,10]
-        left=max(v for v in cuts if v<=x);right=min(v for v in cuts if v>x)
-        edge=('n' if y%3==0 else 's' if y%3==2 else '')+('w' if x==left else 'e' if x==right-1 else '')
-        role=edge or ['c','c2','c3'][(left+row)%3]
-        p('floor',x+1,y+1,'raised_mushiro_'+role)
+panels=json.loads((P.parent/'quality-v1/source/mushiro-layout.json').read_text())['panels']
+covered=set()
+for i,(left,top,width,height) in enumerate(panels):
+    for y in range(top,top+height):
+        for x in range(left,left+width):
+            assert (x,y) not in covered
+            covered.add((x,y))
+            edge=('n' if y==top else 's' if y==top+height-1 else '')+('w' if x==left else 'e' if x==left+width-1 else '')
+            role=edge or ['c','c2','c3'][i%3]
+            p('floor',x+1,y+1,'raised_mushiro_'+role)
+assert len(covered)==60
 p('object',8,1,'wall_drawer');p('object',3,0,'wall_scroll');p('object',3,3,'irori_lit');p('object',7,3,'low_table');p('object',4,5,'cushion');p('object',2,3,'cushion');p('object',8,5,'cushion');p('object',1,8,'kamado_lit');p('object',2,8,'village_firewood');p('object',10,8,'village_pot')
 output(m,[[6,10],[6,7],[6,6],[4,5],[2,3],[8,5],[8,2]])
 
