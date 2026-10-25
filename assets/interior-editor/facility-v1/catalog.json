@@ -1,0 +1,119 @@
+[
+  {
+    "id": "doctor_counter",
+    "name": "薬の調合台（すり鉢・薬瓶・薬草）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/doctor_counter.png?v=facility-v1"
+  },
+  {
+    "id": "inn_counter",
+    "name": "宿の受付（台帳・硯・鍵盆）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/inn_counter.png?v=facility-v1"
+  },
+  {
+    "id": "armory_counter",
+    "name": "武具の展示台（刀・槍先）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/armory_counter.png?v=facility-v1"
+  },
+  {
+    "id": "tea_bench",
+    "name": "赤い長椅子（座面・木脚）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/tea_bench.png?v=facility-v1"
+  },
+  {
+    "id": "platform_face_art",
+    "name": "高床の木目（描画専用）",
+    "layer": "object",
+    "walk": true,
+    "legacy": true,
+    "occupiedTiles": [],
+    "src": "assets/interior-editor/facility-v1/platform_face.png?v=facility-v1"
+  }
+]

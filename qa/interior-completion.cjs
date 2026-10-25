@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),a=require('node:assert/strict'),{createC
  const src=fs.readFileSync('interior-map-editor.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1];new vm.Script(src);
  const catalog={};vm.createContext(catalog);vm.runInContext(src.slice(src.indexOf('const assets='),src.indexOf('const old='))+';globalThis.catalog=assets;',catalog);const by=Object.fromEntries(catalog.catalog.map(x=>[x.id,x]));
  a.equal(new Set(catalog.catalog.map(x=>x.id)).size,catalog.catalog.length,'catalog IDs must be unique');
- const kit=JSON.parse(fs.readFileSync('assets/interior-editor/completion-v1/catalog.json')),images=new Map();
+ const kit=[...JSON.parse(fs.readFileSync('assets/interior-editor/completion-v1/catalog.json')),...JSON.parse(fs.readFileSync('assets/interior-editor/facility-v1/catalog.json'))],images=new Map();
  for(const e of catalog.catalog.filter(x=>x.src&&!x.src.startsWith('data:')))if(!images.has(e.src))images.set(e.src,await loadImage(e.src.split('?')[0]));
  for(const contract of kit){const e=by[contract.id];a(e,contract.id+' registered');const im=images.get(e.src),size=e.frames?[128,64]:e.renderRect?e.renderRect.slice(2):(e.span||[1,1]).map(x=>x*32);a.deepEqual([im.width,im.height],Array.from(size));const q=createCanvas(im.width,im.height).getContext('2d');q.drawImage(im,0,0);const d=q.getImageData(0,0,im.width,im.height).data;let visible=0,clear=0;for(let i=3;i<d.length;i+=4){a(d[i]===0||d[i]===255,e.id+' hard alpha');if(d[i])visible++;else clear++}a(visible,e.id+' empty');if(!e.id.startsWith('partition'))a(clear,e.id+' no true alpha');for(const p of e.occupiedTiles){a(p.every(Number.isInteger));a(p[0]>=0&&p[1]>=0&&p[0]<(e.span?.[0]||1)&&p[1]<(e.span?.[1]||1));}}
  const hero=await loadImage('assets/characters/hizuki/field-sd-v2/walk-atlas-32.png');const previews=[];
@@ -27,5 +27,5 @@ const fs=require('fs'),vm=require('vm'),a=require('node:assert/strict'),{createC
   const file='assets/interior-editor/completion-v1/'+kind+'-preview.png';fs.writeFileSync(file,canvas.toBuffer('image/png'));previews.push({kind,canvas});console.log('PASS '+kind+': explicit occupancy, approach routes, bounds, JSON roundtrip, actual editor native rendering');
  }
  const sheet=createCanvas(1080,1264),q=sheet.getContext('2d');q.fillStyle='#171c19';q.fillRect(0,0,1080,1264);for(const [i,v]of previews.entries()){const pos=[[0,0],[592,0],[0,608],[592,416],[592,800]][i];q.fillStyle='#eee6cf';q.font='14px sans-serif';q.fillText(v.kind,pos[0]+8,pos[1]+17);q.drawImage(v.canvas,pos[0]+8,pos[1]+25)}fs.writeFileSync('assets/interior-editor/completion-v1/five-rooms-preview.png',sheet.toBuffer('image/png'));
- console.log('PASS additional assets:19 PNGs, hard alpha, catalog,2cell architecture ownership/erase/copy, opened/closed leaf collision and actor closure protection');
+ console.log('PASS additional assets:24 PNGs, hard alpha, catalog,2cell architecture ownership/erase/copy, opened/closed leaf collision and actor closure protection');
 })().catch(e=>{console.error(e);process.exitCode=1});

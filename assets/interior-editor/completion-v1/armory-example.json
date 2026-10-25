@@ -436,7 +436,7 @@
       null,
       null,
       null,
-      "counter_set",
+      "armory_counter",
       null,
       null,
       null,
@@ -1062,6 +1062,14 @@
     [
       8,
       5
+    ],
+    [
+      9,
+      7
+    ],
+    [
+      8,
+      8
     ],
     [
       5,

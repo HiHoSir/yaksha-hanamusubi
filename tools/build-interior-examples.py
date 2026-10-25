@@ -28,8 +28,8 @@ for x0,x1 in [(8,11),(13,16)]:
         for y in [2,5]:p('object',x,y,'futon_set')
 for x in [8,11,13,16]:p('structure',x,8,'partition_h')
 p('structure',9,8,'shoji_open');p('structure',14,8,'fusuma_open')
-p('stairs',14,12,'stairs_m');p('object',2,1,'wall_drawer');p('object',4,0,'wall_scroll');p('object',2,4,'counter_set');p('object',4,2,'byobu_set')
-p('object',2,7,'red_bench_set');p('object',1,10,'village_barrel');
+p('stairs',14,12,'stairs_m');p('object',2,1,'wall_drawer');p('object',4,0,'wall_scroll');p('object',2,4,'inn_counter');p('object',4,2,'byobu_set')
+p('object',2,7,'tea_bench');p('object',1,10,'village_barrel');
 p('object',3,13,'garden_pond');p('object',6,14,'stone_lantern')
 for x,y in [(15,14),(15,15),(16,15)]:p('object',x,y,'garden_shrub')
 for y in [13,14,15,16]:p('object',14,y,'stepping_stone')
@@ -37,13 +37,13 @@ output(m,[[9,17],[14,12],[14,11],[10,8],[15,8],[10,4],[14,4],[3,5],[5,14]])
 
 m,p,f=room('doctor',12,12);f(1,1,10,7,'raised_wood');p('stairs',6,8,'stairs_m')
 for x in [7,8,9]:p('object',x,1,'medicine_drawer')
-p('object',7,3,'byobu_set');p('object',3,0,'wall_scroll');p('object',5,0,'wall_labels');p('object',3,4,'counter_set');p('object',5,3,'hibachi_lit');p('object',8,4,'futon_set');p('object',1,9,'village_firewood');p('object',10,9,'village_pot')
+p('object',7,3,'byobu_set');p('object',3,0,'wall_scroll');p('object',5,0,'wall_labels');p('object',3,4,'doctor_counter');p('object',5,3,'hibachi_lit');p('object',8,4,'futon_set');p('object',1,9,'village_firewood');p('object',10,9,'village_pot')
 output(m,[[6,11],[6,8],[6,7],[7,2],[9,2],[4,5],[8,6]])
 
 m,p,f=room('armory',14,12);f(4,1,12,7,'raised_wood');p('stairs',10,8,'stairs_m')
-p('object',5,1,'wall_drawer');p('object',7,1,'wall_drawer');p('object',9,1,'armor_wall_display');p('object',11,1,'armor_wall_display');p('object',7,4,'weapon_rack_large');p('object',6,6,'counter_set')
+p('object',5,1,'wall_drawer');p('object',7,1,'wall_drawer');p('object',9,1,'armor_wall_display');p('object',11,1,'armor_wall_display');p('object',7,4,'weapon_rack_large');p('object',6,6,'armory_counter')
 for x,y,id in [(1,2,'village_basket'),(2,2,'village_firewood'),(1,4,'village_rice_bale'),(1,9,'village_pot'),(12,9,'village_pot')]:p('object',x,y,id)
-output(m,[[7,11],[10,8],[10,7],[9,3],[11,3],[8,5],[5,2],[7,2]])
+output(m,[[7,11],[10,8],[10,7],[9,3],[11,3],[8,5],[9,7],[8,8],[5,2],[7,2]])
 
 m,p,f=room('home',12,11);f(1,1,10,6,'raised_wood');p('stairs',6,7,'stairs_m')
 panels=json.loads((P.parent/'quality-v1/source/mushiro-layout.json').read_text())['panels']
@@ -64,7 +64,7 @@ m,p,f=room('teahouse',14,13);f(1,1,5,6,'raised_wood');p('stairs',3,7,'stairs_m')
 for x in [1,2,3]:p('object',x,1,'wall_drawer')
 p('object',7,0,'wall_labels');p('object',3,4,'counter_set')
 for x in [7,10]:
-    for y in [4,7]:p('object',x,y,'red_bench_set')
+    for y in [4,7]:p('object',x,y,'tea_bench')
 p('object',1,8,'kamado');p('object',1,9,'kamado_lit');p('object',1,10,'village_basket');p('object',11,10,'village_pot');p('object',12,10,'village_pot')
 output(m,[[7,12],[3,7],[3,6],[3,3],[7,5],[10,5],[7,8],[10,8],[2,9]])
 print('Built five room examples')

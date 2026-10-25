@@ -1,0 +1,20 @@
+{
+  "generator": "built-in imagegen",
+  "prompts": [
+    {
+      "id": "doctor_counter",
+      "original": "exec-f04e4ccc-5110-4048-be6d-e0e64bb21a74.png",
+      "prompt": "Original transparent overhead Japanese apothecary work counter; warm late-SFC pixel wood, small mortar and pestle, two brown medicine jars, tied green herbs, no fire/tea/scenery. Original request64x32; final96x32 preserves readable3:1 proportions."
+    },
+    {
+      "id": "inn_counter",
+      "original": "exec-8e50239e-c4c7-4255-b99e-7631864fab4e.png",
+      "prompt": "Original transparent overhead96x32 inn reception counter matching adopted teahouse, guest ledger, inkstone/brush and key tray, narrow near face and short feet, no tea/scenery."
+    },
+    {
+      "id": "armory_counter",
+      "original": "exec-2dcd4078-f879-4297-8002-e3170223d784.png",
+      "prompt": "Original transparent overhead96x64 low weapon display table, ochre cloth with raw edges, two distinct katana and small spearhead flat on cloth, silver/dark/red hilt accents, narrow near face, no upright rack/scenery."
+    }
+  ]
+}

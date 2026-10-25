@@ -1,0 +1,128 @@
+{
+  "scope": "Four facility visual polish; accepted home/mushiro floor, layout and objects preserved; source-derived shared platform face; main untouched",
+  "reference": "design-reference/maps/topview-v1/cyamise-approved.png; same hard-pixel wood palette and overhead furniture angle",
+  "assets": [
+    {
+      "id": "doctor_counter",
+      "size": [
+        96,
+        32
+      ],
+      "span": [
+        3,
+        1
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "contents": "ceramic mortar, pestle, herb bundles and two medicine jars; no fire"
+    },
+    {
+      "id": "inn_counter",
+      "size": [
+        96,
+        32
+      ],
+      "span": [
+        3,
+        1
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "contents": "open guest ledger, inkstone and key tray"
+    },
+    {
+      "id": "armory_counter",
+      "size": [
+        96,
+        64
+      ],
+      "span": [
+        3,
+        2
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "contents": "two distinct blades and spearhead on muted cloth"
+    },
+    {
+      "id": "tea_bench",
+      "size": [
+        64,
+        32
+      ],
+      "span": [
+        2,
+        1
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "source": "existing original red bench crop, preserve wooden legs"
+    }
+  ],
+  "camera": "orthographic overhead, broad top and narrow near face; no vanishing point",
+  "alpha": "true RGBA, hard-alpha normalized at native size",
+  "placement": "ground object, explicit spans, no upper overhang, no moving fixtures",
+  "verification": "native hero composites, cardinal routes, side walls including corners, existing two-frame animation, deployment bytes",
+  "sourceCheckpoints": "Reduced lossless hard-alpha original artwork checkpoints; full imagegen outputs retained separately",
+  "generationReferences": {
+    "doctor_counter": "Original project weapon rack, warm wood style; isolated mortar/jars/herbs drawn anew",
+    "inn_counter": "Approved topview teahouse",
+    "armory_counter": "Approved topview teahouse"
+  }
+}
