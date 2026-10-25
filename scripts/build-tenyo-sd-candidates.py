@@ -22,10 +22,26 @@ def make(path,compact_top=False):
     alpha=im.getchannel('A');pal=Image.new('P',(1,1));pal.putpalette(sum((list(c) for c in PALETTE),[])+list(PALETTE[-1])*(256-len(PALETTE)))
     im=im.convert('RGB').quantize(palette=pal,dither=Image.Dither.NONE).convert('RGBA');im.putalpha(alpha)
     cell=Image.new('RGBA',(32,32));cell.alpha_composite(im,((32-im.width)//2,(32-im.height)//2));return cell,bounds
+def fix_eyes(sprite,name):
+    # Authored native-pixel eyes: two identical mirrored 3x3 patches.
+    # Do not infer landmarks from the PNG bounding box or repaint the body.
+    dark=(*PALETTE[0],255);white=(*PALETTE[6],255);iris=(*PALETTE[13],255)
+    top=13 if name=='shirotae' else 11
+    patch=[[dark,dark,dark],[white,iris,white],[white,iris,white]]
+    for dy,row in enumerate(patch):
+        for dx,color in enumerate(row):
+            x=11+dx;sprite.putpixel((x,top+dy),color);sprite.putpixel((31-x,top+dy),color)
+    # Clear old lower-eye remnants; keep the hair, mouth, clothes and outline.
+    skin=(*PALETTE[5 if name=='shirotae' else 4],255)
+    for x in [11,12,13,18,19,20]:sprite.putpixel((x,top+3),skin)
+    for y in range(top,top+3):
+        for x in range(11,14):assert sprite.getpixel((x,y))==sprite.getpixel((31-x,y))
+    return sprite
+
 def main(paths):
     OUT.mkdir(parents=True,exist_ok=True);entries=[];sprites=[]
     for name,path in zip(['shirotae','guardian'],paths):
-        sprite,source=make(path,compact_top=name=='guardian');sprite.save(OUT/(name+'-front.png'));sprites.append(sprite)
+        sprite,source=make(path,compact_top=name=='guardian');sprite=fix_eyes(sprite,name);sprite.save(OUT/(name+'-front.png'));sprites.append(sprite)
         entries.append(dict(id=name,sourceSha256=hashlib.sha256(Path(path).read_bytes()).hexdigest(),sourceBounds=source,visibleBounds=sprite.getbbox()))
     hero=Image.open(ROOT/'assets/characters/hizuki/field-sd-v2/walk-atlas-32.png').crop((0,0,32,32))
     b=hero.getbbox();hero=hero.crop(b);hero.thumbnail((28,28),Image.Resampling.NEAREST);h=Image.new('RGBA',(32,32));h.alpha_composite(hero,((32-hero.width)//2,(32-hero.height)//2))
@@ -36,7 +52,7 @@ def main(paths):
     for x,name in [(144,'SHIROTAE'),(384,'HIZUKI'),(624,'GUARDIAN')]:
         box=draw.textbbox((0,0),name);draw.text((x-(box[2]-box[0])//2,64),name,fill='white')
     preview.save(OUT/'front-comparison.png')
-    manifest=dict(status='front-candidates-awaiting-review',cellSize=[32,32],visibleLimit=[28,28],anchor='visible-center',directions=['d'],stationary=True,palette=PALETTE,characters=entries)
+    manifest=dict(status='front-candidates-awaiting-review',cellSize=[32,32],visibleLimit=[28,28],anchor='visible-center',directions=['d'],stationary=True,eyeRevision=2,eyeSymmetryAxis=15.5,palette=PALETTE,characters=entries)
     (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     for s in sprites:
         a=s.getchannel('A');assert set(a.getdata())=={0,255};b=s.getbbox();assert b[2]-b[0]<=28 and b[3]-b[1]<=28

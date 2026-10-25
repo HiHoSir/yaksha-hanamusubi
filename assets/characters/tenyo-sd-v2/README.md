@@ -22,3 +22,7 @@ The approved `tenyo-npc-v1` four-direction images remain unchanged and active.
 
 References: actual `tenyo-npc-v1` appearances and
 `hizuki/field-sd-v2/walk-atlas-32.png` for the SD proportions/style.
+
+Eye revision 2: each eye uses an authored mirrored 3×3 native patch with four
+white pixels and two iris pixels. Removed old lower-eye remnants. Non-eye
+pixels are byte-identical to the previous candidate; face/body scale is unchanged.
