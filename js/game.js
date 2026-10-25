@@ -745,16 +745,16 @@ function drawDoorHint(){
  const x=door.x,y=door.y-42;
  g.save();
  g.font="700 15px sans-serif";g.textAlign="center";g.textBaseline="middle";
- const label="決定：入る",w=g.measureText(label).width+24;
+ const label="入口",w=g.measureText(label).width+24;
  g.fillStyle="rgba(25,18,35,.82)";
  g.beginPath();g.roundRect(x-w/2,y-15,w,30,10);g.fill();
  g.strokeStyle="rgba(255,255,255,.65)";g.lineWidth=1.5;g.stroke();
  g.fillStyle="#fff";g.fillText(label,x,y);
  g.restore();
 }
-function villageDoorAction(){
- if(S.area!=='village'||!YK_HOZUKI.ready())return false;
- const door=YK_HOZUKI.doorAt(S);if(!door)return false;
+function enterVillageDoor(door){
+ if(S.area!=='village'||!YK_HOZUKI.ready()||!door||YK_HOZUKI.doorAt(S)?.id!==door.id)return false;
+ fieldMotion=null;S.frame=1;map();
  transitionArea(door.target,()=>{S.lastInterior=door.id;enterInterior(door.target);message(door.name);},door.id);return true;
 
 }
@@ -906,7 +906,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.47";
+const GAME_JS_BUILD="16.1.48";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1345,7 +1345,7 @@ function action(){
   message("DEBUG："+pages[window.__YK_DEBUG_PAGE],700);map();return true;
  }
  if($("dialog").classList.contains("show")){nextDialog();return true;}
- if(busy)return false;
+ if(busy||fieldEntryWaiting)return false;
  if(guideTalk())return true;
  if(S.area==="field"&&YK_WORLD.restStops){
   const stop=YK_WORLD.restStops.find(o=>Math.hypot(S.x-o.point[0],S.y-o.point[1])<=48);
@@ -1353,7 +1353,7 @@ function action(){
  }
  if(S.area==="field"){const k=YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y);if(k){enterWorldPlace(k);return true;}if(inspectObject())return true;openCommands();return true;}
  if(openNearbyChest())return true;
- if(villageDoorAction())return true;
+
  if(S.area==="teahouse"||S.area==="osumiHome"||S.area==="villageRoom"){
   if((YK_INTERIOR_MAPS.kind(S)?YK_INTERIOR_MAPS.exit(S):S.area==="teahouse"?YK_INDOOR_NATIVE_DEBUG.exit(S.x,S.y):YK_INTERIOR_BASE.exit(S))){leaveInterior();return true}
  }
@@ -1460,8 +1460,12 @@ function move(dx,dy,dir){
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  const contact=from==="field"?YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y):null;
- if(YK_INTERIOR_MAPS.kind(S)&&YK_INTERIOR_MAPS.exit(S)){
-  fieldEntryWaiting=true;setTimeout(()=>{fieldEntryWaiting=false;if(YK_INTERIOR_MAPS.kind(S)&&!busy)leaveInterior();},fieldMotion?.duration||144);
+ const villageEntrance=from==='village'?YK_HOZUKI.doorAt(S):null;
+ if(villageEntrance){
+  fieldEntryWaiting=true;setTimeout(()=>{fieldEntryWaiting=false;if(S.area==='village'&&!busy&&YK_HOZUKI.doorAt(S)?.id===villageEntrance.id)enterVillageDoor(villageEntrance);},fieldMotion?.duration||YK_MOVEMENT.duration('village'));
+ }
+ else if(YK_INTERIOR_MAPS.kind(S)&&YK_INTERIOR_MAPS.exit(S)){
+  fieldEntryWaiting=true;setTimeout(()=>{fieldEntryWaiting=false;if(YK_INTERIOR_MAPS.kind(S)&&!busy){fieldMotion=null;S.frame=1;map();leaveInterior();}},fieldMotion?.duration||144);
  }
  else if(contact){
   // Complete the already-started field walking step before the fade begins.
@@ -1780,7 +1784,7 @@ function renderRelics(){
 }
 const FIELD_COMMANDS=[['skill','じゅつ','花癒し：技3で体を32回復'],['items','どうぐ','薬草やお守りを確かめる'],['equipment','そうび','武器や防具を身につける'],['status','つよさ','段・体・技と旅の目的を確かめる'],['map','ちず','目的地と街道を確かめる'],['save','きろく','旅の記録を残す'],['outfits','おまけ','衣装を選ぶ'],['exit','もどる','旅へ戻る']];
 let fieldCursor=0;
-function openCommands(){if(busy)return false;YK_INPUT.stopAll();fieldMotion=null;S.frame=1;busy=true;fieldCursor=0;$('commandMenu').classList.add('show');renderCommands();return true;}
+function openCommands(){if(busy||fieldEntryWaiting)return false;YK_INPUT.stopAll();fieldMotion=null;S.frame=1;busy=true;fieldCursor=0;$('commandMenu').classList.add('show');renderCommands();return true;}
 function renderCommands(){$('commandStatus').textContent=`緋月　${S.lv}段　${S.gold}両`;$('fieldCommands').innerHTML=FIELD_COMMANDS.map(([id,label],i)=>`<button data-field-command="${id}" class="${i===fieldCursor?'selected':''}">${i===fieldCursor?'▶ ':''}${label}</button>`).join('');document.querySelectorAll('[data-field-command]').forEach((b,i)=>YK_INPUT.tap(b,()=>{fieldCursor=i;fieldConfirm();}));$('commandHelp').textContent=FIELD_COMMANDS[fieldCursor][2]+' ／ A 決定・B 戻る';}
 function fieldPad(dir){if(!$('commandMenu').classList.contains('show'))return false;const row=Math.floor(fieldCursor/2),next=dir==='u'?fieldCursor-2:dir==='d'?fieldCursor+2:row*2+(dir==='l'?0:1);if(next>=0&&next<FIELD_COMMANDS.length)fieldCursor=next;renderCommands();return true;}
 function fieldConfirm(){const id=FIELD_COMMANDS[fieldCursor][0];close('commandMenu');
@@ -1788,7 +1792,7 @@ function fieldConfirm(){const id=FIELD_COMMANDS[fieldCursor][0];close('commandMe
  if(id==='skill'){if(S.hp>=S.maxhp)return message('体は満ちている。',1400);if(S.mp<3)return message('技が足りない。',1400);S.mp-=3;S.hp=Math.min(S.maxhp,S.hp+32+relicBonus('heal'));YK_SAVE.auto(S);hud();message('花癒しの術で体が回復した。',1800);return;}
  if(id==='map')return worldMap();if(id==='save'){busy=true;slots();$('saveMenu').classList.add('show');return;}menu(id);
 }
-function menu(section=null){if(busy)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=D.outfits[b.dataset.outfit]?b.dataset.outfit:"normal";YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu("outfits")}));$("menu").classList.add("show");$('detailTitle').textContent=FIELD_COMMANDS.find(c=>c[0]===section)?.[1]||'つよさ';document.querySelectorAll('[data-menu-section]').forEach(el=>el.style.display=!section||el.dataset.menuSection===section?'':'none');}
+function menu(section=null){if(busy||fieldEntryWaiting)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=D.outfits[b.dataset.outfit]?b.dataset.outfit:"normal";YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu("outfits")}));$("menu").classList.add("show");$('detailTitle').textContent=FIELD_COMMANDS.find(c=>c[0]===section)?.[1]||'つよさ';document.querySelectorAll('[data-menu-section]').forEach(el=>el.style.display=!section||el.dataset.menuSection===section?'':'none');}
 
 const CHEST_ART={};
 for(const state of ['closed','open']){const im=new Image();im.onload=assetLoaded;im.src=`assets/objects/tsuzura-${state}.png?v=15.56.1`;CHEST_ART[state]=im;}
@@ -1819,7 +1823,7 @@ function renderEquipment(){
  document.querySelectorAll('[data-equip-slot]').forEach(el=>el.addEventListener('change',()=>{if(E.equip(S,el.dataset.equipSlot,el.value||null)){YK_SAVE.auto(S);renderStatus();renderEquipment();}}));
 }
 let shopMode='buy';
-function openShop(){if(busy)return;YK_INPUT.stopAll();busy=true;shopMode='buy';$('shopNotice').textContent='この店の品ぞろえは固定です。旅先の店では別の品を扱います。買った品は「行動 → そうび」で身につけられます。';renderShop();$('shop').classList.add('show');}
+function openShop(){if(busy||fieldEntryWaiting)return;YK_INPUT.stopAll();busy=true;shopMode='buy';$('shopNotice').textContent='この店の品ぞろえは固定です。旅先の店では別の品を扱います。買った品は「行動 → そうび」で身につけられます。';renderShop();$('shop').classList.add('show');}
 function renderShop(){
  $('shopGold').textContent=`所持金：${S.gold}両`;
  const list=shopMode==='buy'?E.stock(S):Object.values(E.items).filter(i=>S.equipmentInventory[i.id]>0);
@@ -1834,7 +1838,7 @@ function renderShop(){
 
 function slots(){$("slots").innerHTML=[1,2,3].map(n=>{const i=YK_SAVE.slotInfo(n);return `<div class="slot"><b>${n}番</b>　${i?`${i.lv}段 / ${i.area}`:"記録なし"}<div class="slotBtns"><button data-save="${n}">記録する</button><button data-load="${n}">記録から再開</button></div></div>`}).join("");document.querySelectorAll("[data-save]").forEach(b=>YK_INPUT.tap(b,()=>{YK_SAVE.saveSlot(+b.dataset.save,S);slots()}));document.querySelectorAll("[data-load]").forEach(b=>YK_INPUT.tap(b,()=>{const v=YK_SAVE.loadSlot(+b.dataset.load);if(v){restoreState(v);close("saveMenu")}}))}
 function close(id){YK_INPUT.stopAll();$(id).classList.remove("show");busy=false;hud()}
-function worldMap(){if(busy)return;YK_INPUT.stopAll();busy=true;$("worldMap").classList.add("show");drawWorld()}
+function worldMap(){if(busy||fieldEntryWaiting)return;YK_INPUT.stopAll();busy=true;$("worldMap").classList.add("show");drawWorld()}
 function worldHint(text){
  // The A button already prioritizes nearby interactions; no persistent action guide.
  const old=$("fieldGuide");if(old)old.remove();
@@ -1987,7 +1991,7 @@ function padActivate(){
 }
 const movementInput=YK_INPUT.directions([[ $("up"),[0,-1] ],[ $("down"),[0,1] ],[ $("left"),[-1,0] ],[ $("right"),[1,0] ],[ $("upLeft"),[-1,-1] ],[ $("upRight"),[1,-1] ],[ $("downLeft"),[-1,1] ],[ $("downRight"),[1,1] ]],(x,y)=>{const dir=x<0?"l":x>0?"r":y<0?"u":"d";if(!padNavigate(dir)&&!fieldPad(dir)&&!battlePad(dir))move(x*22,y*22,dir);},()=>S.area==="debugField"?{delay:160,repeat:160}:["field","village","teahouse","osumiHome","villageRoom","shrine"].includes(S.area)?{delay:144,repeat:144}:{delay:260,repeat:105});
 YK_INPUT.tap($("ok"),()=>padActivate()?undefined:battle?battleConfirm():$('commandMenu').classList.contains('show')?fieldConfirm():action());YK_INPUT.tap($("cancel"),()=>{if($("dialog").classList.contains("show")){nextDialog();return;}if($("title").classList.contains("show"))return;if(battle){battleBack();return;}if(S.area==="debugField"){window.YKDebugField(false);return;}for(const id of ["commandMenu","shop","worldMap","menu","saveMenu","settings"]){if($(id).classList.contains("show")){close(id);return;}}});
-YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):openCommands());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
+YK_INPUT.tap($("dialogNext"),nextDialog);YK_INPUT.tap($("bookBtn"),()=>S.area==="debugField"?message("DEBUG MAPではつよさを開きません",1200):openCommands());YK_INPUT.tap($("worldBtn"),()=>S.area==="debugField"?debugRotateView():worldMap());YK_INPUT.tap($("saveBtn"),()=>{if(S.area==="debugField")return message("DEBUG MAPは本編セーブに影響しません",1400);if(busy||fieldEntryWaiting)return;YK_INPUT.stopAll();busy=true;slots();$("saveMenu").classList.add("show")});YK_INPUT.tap($("settingsBtn"),()=>{if(S.area==="debugField")return debugChangePerspective();if(busy||fieldEntryWaiting)return;YK_INPUT.stopAll();busy=true;$("soundToggle").checked=S.sound;$("settings").classList.add("show")});
 document.querySelectorAll('[data-shop-tab]').forEach(b=>YK_INPUT.tap(b,()=>{shopMode=b.dataset.shopTab;renderShop();}));
 document.querySelectorAll("[data-close]").forEach(b=>YK_INPUT.tap(b,()=>close(b.dataset.close)));document.querySelectorAll("[data-cmd]").forEach((b,i)=>YK_INPUT.tap(b,()=>{if(!battle||battleLocked)return;selectCmd(i);battleConfirm()}));
 document.querySelectorAll("[data-hot]").forEach(b=>YK_INPUT.tap(b,()=>hotChoice(b.dataset.hot)));

@@ -16,7 +16,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  const paused=await page.evaluate(()=>YK_HOZUKI.residents.map(n=>YK_HOZUKI.residentPosition(n)));
  await page.waitForTimeout(1000);a.deepEqual(await page.evaluate(()=>YK_HOZUKI.residents.map(n=>YK_HOZUKI.residentPosition(n))),paused,'dialog pauses rendered NPC motion');
  await page.screenshot({path:path.join(out,'village-dialog-mobile.png')});
- await page.evaluate(()=>__qaEval('for(let i=0;i<12;i++)nextDialog();busy=false;S.x=112;S.y=144;S.dir="u";villageDoorAction();'));
+ await page.evaluate(()=>__qaEval('for(let i=0;i<12;i++)nextDialog();busy=false;S.x=112;S.y=144;S.dir="u";move(0,-22,"u");'));
  await page.waitForFunction(()=>window.gameState.area==='villageRoom');a.equal(await page.evaluate(()=>gameState.lastInterior),'inn');
  await page.waitForTimeout(600);await page.evaluate(()=>__qaEval('busy=false;leaveInterior();'));await page.waitForFunction(()=>gameState.area==='village');
  a.deepEqual(await page.evaluate(()=>[gameState.x,gameState.y]),[112,144]);

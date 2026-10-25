@@ -41,7 +41,7 @@ function stabilize(s){if(s.hozukiVillageRevision!==REVISION||!Number.isFinite(s.
 function enter(s){s.area='village';s.hozukiVillageRevision=REVISION;[s.x,s.y]=spawn;s.dir='u';s.frame=1;return s;}
 function returnFromInterior(s){enter(s);const d=doors.find(d=>d.id===s.lastInterior);if(d)[s.x,s.y]=d.approach;s.dir='d';return s;}
 function step(s,dx,dy){if(!data||!dx&&!dy||dx&&dy)return {x:s.x,y:s.y};const nx=s.x+Math.sign(dx)*32,ny=s.y+Math.sign(dy)*32;return blocked(nx,ny)?{x:s.x,y:s.y}:{x:nx,y:ny};}
-function doorAt(s){return doors.find(d=>d.x===s.x&&d.y===s.y||s.dir==='u'&&d.approach[0]===s.x&&d.approach[1]===s.y)||null;}
+function doorAt(s){return doors.find(d=>d.x===s.x&&d.y===s.y)||null;}
 function exit(x,y){return !!data&&(extraFieldExitCells.some(p=>M.key(p)===M.key(cell(x,y)))||data.entrances.some(e=>!e.objectId&&M.key(e.marker)===M.key(cell(x,y))));}
 function nearest(s){const d={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]}[s.dir];return residents.find(n=>!wander.get(n)?.motion&&n.x===s.x+d[0]*32&&n.y===s.y+d[1]*32)||null;}
 function fieldExit(world,point){const from=Array.isArray(point)?point:world.places.village.point,q=[from],seen=new Set([M.key(cell(...from))]);const contacts=new Set((world.mapData.decorations||[]).filter(o=>o.destination==='village'||o.placeId==='village'||o.id==='village').flatMap(o=>o.contactTiles||[]).map(M.key));contacts.add(M.key(cell(...world.places.village.point)));for(let i=0;i<q.length&&i<160;i++){const p=q[i];if(i&&!contacts.has(M.key(cell(...p)))&&world.walkable(...p))return p;for(const [dx,dy]of [[0,1],[1,0],[-1,0],[0,-1]]){const next=[p[0]+dx*32,p[1]+dy*32],k=M.key(cell(...next));if(!seen.has(k)&&world.canMove(...p,...next)){seen.add(k);q.push(next);}}}throw Error('鬼灯村から戻る安全なフィールド位置がありません');}
