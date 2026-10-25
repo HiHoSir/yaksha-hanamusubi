@@ -51,7 +51,7 @@ output(m,[[6,10],[6,7],[6,6],[4,4],[6,5],[8,2]])
 
 m,p,f=room('teahouse',14,13);f(1,1,5,6,'raised_wood');p('stairs',3,7,'stairs_m')
 for x in [1,2,3]:p('object',x,1,'wall_drawer')
-p('object',3,0,'wall_labels');p('object',3,4,'counter_set')
+p('object',7,0,'wall_labels');p('object',3,4,'counter_set')
 for x in [7,10]:
     for y in [4,7]:p('object',x,y,'red_bench_set')
 p('object',1,8,'kamado');p('object',1,9,'kamado_lit');p('object',1,10,'village_basket');p('object',11,10,'village_pot');p('object',12,10,'village_pot')
