@@ -1,0 +1,88 @@
+{
+  "tileSize": 32,
+  "status": "candidate; visual approval pending",
+  "category": "independent furniture and railing",
+  "parts": {
+    "red_bench": [
+      "red_bench_l",
+      "red_bench_r"
+    ],
+    "counter": [
+      "counter_l",
+      "counter_r"
+    ],
+    "drawer": [
+      "drawer_upper",
+      "drawer_lower"
+    ],
+    "rail": [
+      "rail_l",
+      "rail_m",
+      "rail_r"
+    ]
+  },
+  "assemblies": {
+    "red_bench": {
+      "size": [
+        2,
+        1
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    "counter": {
+      "size": [
+        2,
+        1
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    "drawer": {
+      "size": [
+        1,
+        2
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    "rail": {
+      "size": [
+        1,
+        1
+      ],
+      "occupiedTiles": [
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "source": "Adopted village fence and topview teahouse; original generated drawer only",
+  "rebuild": "python3 tools/build-interior-layout-kit.py"
+}
