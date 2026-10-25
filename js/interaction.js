@@ -13,10 +13,25 @@ window.YK_INTERACTION=(()=>{
    // Require a forward-facing cone; lateral NPCs must not steal object inspection.
    const fdx=tile(n.x)-tile(player.x),fdy=tile(n.y)-tile(player.y);
    const forwardCell=fdx===f[0]&&fdy===f[1];
+   if(Math.abs(dx*f[1]-dy*f[0])>=16)continue;
    if(dot<.75&&!(elevation&&forwardCell))continue;
    best=n;bd=d;
   }
   return best;
  }
- return {nearestFacingNPC,sameTile};
+ // Intersect the forward line with the authored inspection rectangle.
+ // A nearby corner to the side must never count as an object in front.
+ function nearestFacingObject(player,objects,max=48){
+  const f=facing[player.dir]||facing.d;let best=null,bd=Infinity;
+  for(const o of objects){
+   const dx=o.x-player.x,dy=o.y-player.y;
+   const along=dx*f[0]+dy*f[1],across=Math.abs(dx*f[1]-dy*f[0]);
+   const halfAlong=(f[0]?o.w:o.h)/2,halfAcross=(f[0]?o.h:o.w)/2;
+   const distance=along-halfAlong;
+   if(across>=halfAcross||distance<0||distance>max||distance>=bd)continue;
+   best=o;bd=distance;
+  }
+  return best;
+ }
+ return {nearestFacingNPC,nearestFacingObject,sameTile};
 })();

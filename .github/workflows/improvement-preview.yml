@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - improve/interior-map-editor-32px
+      - improve/front-interaction
   workflow_dispatch:
     inputs:
       source_branch:
@@ -44,6 +45,9 @@ jobs:
           done < production/docs/pages-active-previews.txt
           if [[ "$GITHUB_REF_NAME" == "improve/interior-map-editor-32px" ]]; then
             branches+=("improve/interior-map-editor-32px")
+          fi
+          if [[ "$GITHUB_REF_NAME" == "improve/front-interaction" ]]; then
+            branches+=("improve/front-interaction")
           fi
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             branches+=("$REQUESTED_PREVIEW")

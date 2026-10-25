@@ -1,8 +1,8 @@
 name: Hozuki interior integration
 on:
   push:
-    branches: [main, improve/interior-map-editor-32px]
-    paths: ['js/interior-maps.js', 'js/game.js', 'js/hozuki-village-game.js', 'index.html', 'assets/interior-editor/**', 'qa/hozuki-interiors*', 'qa/interior-base.cjs', '.github/workflows/interior-integration.yml']
+    branches: [main, improve/interior-map-editor-32px, improve/front-interaction]
+    paths: ['js/interaction.js', 'qa/front-interaction.test.cjs', 'js/interior-maps.js', 'js/game.js', 'js/hozuki-village-game.js', 'index.html', 'assets/interior-editor/**', 'qa/hozuki-interiors*', 'qa/interior-base.cjs', '.github/workflows/interior-integration.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,7 +15,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100 jsdom@26.1.0 playwright@1.51.1
-      - run: node --test qa/hozuki-interiors.test.cjs qa/hozuki-game.test.cjs
+      - run: node qa/interaction-unit.cjs
+      - run: node --test qa/front-interaction.test.cjs qa/hozuki-interiors.test.cjs qa/hozuki-game.test.cjs
       - run: node --test qa/hozuki-interiors-runtime.test.cjs
       - run: node qa/runtime-build-contract.cjs
       - run: npx playwright install --with-deps chromium

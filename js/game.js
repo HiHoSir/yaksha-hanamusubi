@@ -906,7 +906,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.48";
+const GAME_JS_BUILD="16.1.49";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1325,14 +1325,14 @@ function inspectTargets(){
  if(S.area==='field')return YK_WORLD.mapData.decorations.filter(a=>['flowers','cave','newCaveLarge','castle','lantern','bridge','bridgeNS'].includes(a.kind)).map(a=>({name:'道ばた',x:a.x+a.width/2,y:a.foot,w:a.width,h:24,text:({flowers:'草花が風に揺れている。道ばたにも、小さな命が息づいている。',cave:'洞穴の奥から冷たい風が吹いてくる。今は先へ進めそうにない。',newCaveLarge:'洞穴の奥から冷たい風が吹いてくる。今は先へ進めそうにない。',castle:'遠くに城が見える。あそこにも、誰かの暮らしがあるのだろう。',lantern:'石灯籠には、旅の無事を願う小さな札が結ばれている。',bridge:'橋の下を水が流れている。足元を確かめて渡ろう。',bridgeNS:'橋板が小さくきしんだ。しっかりした造りだ。'})[a.kind]}));
  return [];
 }
-function nearbyInspectable(){const f=({u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]})[S.dir]||[0,1];return inspectTargets().map(o=>{const x=clamp(S.x,o.x-o.w/2,o.x+o.w/2),y=clamp(S.y,o.y-o.h/2,o.y+o.h/2);return {...o,distance:Math.hypot(S.x-x,S.y-y),dot:(o.x-S.x)*f[0]+(o.y-S.y)*f[1]};}).filter(o=>o.distance<=48&&o.dot>=-12&&(S.area!=='legacyVillage'||Math.abs(YK_SETTLEMENT.elevation(S.x,S.y)-YK_SETTLEMENT.elevation(o.x,o.y))<22)).sort((a,b)=>a.distance-b.distance)[0];}
+function nearbyInspectable(){const targets=inspectTargets().filter(o=>S.area!=='legacyVillage'||Math.abs(YK_SETTLEMENT.elevation(S.x,S.y)-YK_SETTLEMENT.elevation(o.x,o.y))<22);return YK_INTERACTION.nearestFacingObject(S,targets,48);}
 function inspectObject(){const o=nearbyInspectable();if(!o)return false;let text=o.text;
  if(o.garden){const last=S.harvests[o.id];if(last!=null&&S.walk-last<160)text='まだ育ちかけの野菜だ。しばらく旅をしてから、また見に来よう。';
  else{S.harvests[o.id]=S.walk;if(Math.random()<.6){const ids=Object.keys(D.vegetables),id=ids[Math.floor(Math.random()*ids.length)],v=D.vegetables[id];if((S.vegetables[id]||0)<99){S.vegetables[id]=(S.vegetables[id]||0)+1;text='畑の端に、食べごろの'+v.name+'を見つけた。'+v.name+'を1つ手に入れた！';}else text=v.name+'は、もう持ちきれない。';}else text='葉をそっと持ち上げてみた。今は食べごろの野菜がないようだ。';YK_SAVE.auto(S);}}
  return talk({n:o.name,t:[text]});
 }
 function useVegetable(id){const v=D.vegetables[id];if(!v||!S.vegetables[id])return;if(S.hp>=S.maxhp&&(!v.mp||S.mp>=S.maxmp))return message('今は食べなくても大丈夫そうだ。',1400);S.vegetables[id]--;S.hp=Math.min(S.maxhp,S.hp+v.hp);S.mp=Math.min(S.maxmp,S.mp+v.mp);YK_SAVE.auto(S);renderRelics();renderStatus();hud(false);message(v.name+'を食べて、元気が戻った。',1800);}
-function nearbyGuide(){return S.area==='field'?YK_WORLD.guides.filter(g=>Math.hypot(S.x-g.x,S.y-g.y)<76).sort((a,b)=>Math.hypot(S.x-a.x,S.y-a.y)-Math.hypot(S.x-b.x,S.y-b.y))[0]:null;}
+function nearbyGuide(){return S.area==='field'?YK_INTERACTION.nearestFacingNPC(S,YK_WORLD.guides,76):null;}
 function guideTalk(){const g=nearbyGuide();if(!g)return false;const event=D.story[S.quest],target=event?.area,place=YK_WORLD.places[target];
  const lines=event?['今は「'+event.objective+'」のじゃ。',YK_WORLD.guideRoute([g.x,g.y],place.point),g.tip]:['よくぞここまで旅を続けたのう。今の物語は一区切りじゃ。',g.tip];
  lines.push(S.hp<S.maxhp*.4?'体が少なくなっておる。薬草や回復の術を使い、宿や湯で休むのじゃ。':!S.equipment.weapon?'武器は買うだけでは力にならぬ。「そうび」で身につけるのじゃ。':'迷ったときは「ちず」と「つよさ」で旅支度を確かめるのじゃ。');return talk({n:g.name,t:lines});}
@@ -1800,11 +1800,11 @@ function drawChests(){
  for(const c of E.chests.filter(c=>c.area===S.area)){
   const im=CHEST_ART[S.chests[c.id]?'open':'closed'];
   if(layerReady(im))g.drawImage(im,c.x-28,c.y-47,56,56);
-  if(Math.hypot(S.x-c.x,S.y-c.y)<=65){g.save();g.font='13px sans-serif';g.textAlign='center';g.fillStyle='#fff4cd';g.strokeStyle='#18212b';g.lineWidth=3;g.strokeText('A：つづら',c.x,c.y-46);g.fillText('A：つづら',c.x,c.y-46);g.restore();}
+  if(YK_INTERACTION.nearestFacingNPC(S,[c],65.000001)){g.save();g.font='13px sans-serif';g.textAlign='center';g.fillStyle='#fff4cd';g.strokeStyle='#18212b';g.lineWidth=3;g.strokeText('A：つづら',c.x,c.y-46);g.fillText('A：つづら',c.x,c.y-46);g.restore();}
  }
 }
 function openNearbyChest(){
- const c=E.chests.filter(c=>c.area===S.area&&Math.hypot(S.x-c.x,S.y-c.y)<=65).sort((a,b)=>Math.hypot(S.x-a.x,S.y-a.y)-Math.hypot(S.x-b.x,S.y-b.y))[0];
+ const c=YK_INTERACTION.nearestFacingNPC(S,E.chests.filter(c=>c.area===S.area),65.000001);
  if(!c)return false;const result=E.open(S,c.id);if(result.ok)YK_SAVE.auto(S);message(result.text,3500);map();return true;
 }
 function renderStatus(){
@@ -2611,10 +2611,3 @@ if(villageTestWarpBtn){
 }
 
 })();
-
-
-
-
-
-
-
