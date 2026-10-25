@@ -36,6 +36,19 @@ const assets=[
 {id:'blocked',name:'通行不可',layer:'collision',walk:false},
 {id:'passable',name:'通行可能',layer:'collision',walk:true}
 ];
+
+// Reuse existing approved village PNGs without copying or regenerating their binary files.
+assets.push({id:"village_bench",name:"腰掛け（村素材）",layer:'object',src:"assets/settlement-editor/chips/bench.png",walk:false});
+assets.push({id:"village_pot",name:"壺（村素材）",layer:'object',src:"assets/settlement-editor/chips/pot.png",walk:false});
+assets.push({id:"village_crate",name:"木箱（村素材）",layer:'object',src:"assets/settlement-editor/chips/crate.png",walk:false});
+assets.push({id:"village_barrel",name:"樽（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/barrel.png",walk:false});
+assets.push({id:"village_rice_bale",name:"米俵（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/rice_bale.png",walk:false});
+assets.push({id:"village_firewood",name:"薪（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/firewood.png",walk:false});
+assets.push({id:"village_basket",name:"籠（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/basket.png",walk:false});
+assets.push({id:"village_signpost",name:"立て札（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/signpost.png",walk:false});
+assets.push({id:"village_pebbles",name:"小石（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/pebbles.png",walk:true});
+assets.push({id:"village_leaves",name:"落ち葉（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/leaves.png",walk:true});
+assets.push({id:"village_stepping_stone",name:"踏み石（村素材）",layer:'object',src:"assets/settlement-editor/pack-v1/stepping_stone.png",walk:true});
 const atlasUrl='assets/interior-editor/interior-atlas-9x1.png';for(const [i,id] of ['wood','earth','wall','pillar','end_l','end_r','stairs_l','stairs_m','stairs_r'].entries()){const a=assets.find(a=>a.id===id);a.src=atlasUrl;a.crop=[i*32,0,32,32]}const raised=assets.find(a=>a.id==='raised_wood');raised.src=atlasUrl;raised.crop=[0,0,32,32];raised.name='高床・板張り';
 const old={road:'earth',raised:'threshold',entrance:'opening',stone:'threshold',tatami:'wood',counter:'table',weapon:'table'};
 const byId=()=>Object.fromEntries(assets.map(a=>[a.id,a]));let w=10,h=8,room='teahouse',data={},selected='earth',history=[],future=[],pending='',drawing=false,last=-1,panStart=null;
