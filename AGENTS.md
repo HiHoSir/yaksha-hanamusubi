@@ -198,3 +198,8 @@ Before making or placing any field mapchip/object, read `docs/field-elevation-as
 
 ## 低解像度グラフィックの共通制作・検査
 キャラ・NPC・タイル・オブジェクトを制作または再加工する際は [.agents/skills/asset-design/references/low-resolution-graphics.md](.agents/skills/asset-design/references/low-resolution-graphics.md) を読む。生成画像を正確な32px資産と見なさず、頭身・色面・実寸、切り抜き混入、方向共通アンカー、カテゴリ別検査、全実描画参照とPagesを確認する。
+
+## 流動素材のアニメーション（2026-10-25）
+- 水面・海・川・池・滝・炎など、流動を表す素材は原則最小限の2コマでアニメーションする。必要性が確認できた場合のみコマ数を増やす。
+- 岸・石囲い・器具・接地・occupiedTiles・衝突・入口は固定し、水や火の見える領域だけを変える。複数マス素材は全体を同位相で切り替え、1素材として配置する。
+- 原画の再生成より既存素材の加工を優先する。コマ切替で重い地面キャッシュや判定を再構築しない。海・川のタイル接続、静止時と移動時、非表示時、保存往復、Pages実体を検査する。静止PNG出力は1コマ目に固定する。

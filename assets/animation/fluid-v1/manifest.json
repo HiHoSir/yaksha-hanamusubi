@@ -1,0 +1,56 @@
+{
+  "tileSize": 32,
+  "policy": "two frames by default; no geometry/collision changes",
+  "assets": [
+    {
+      "file": "field-water.png",
+      "frames": 2,
+      "frameSize": [
+        64,
+        64
+      ],
+      "layout": "horizontal",
+      "frameMs": 360
+    },
+    {
+      "file": "water-surface.png",
+      "frames": 2,
+      "frameSize": [
+        32,
+        32
+      ],
+      "layout": "horizontal",
+      "frameMs": 360
+    },
+    {
+      "file": "river-47.png",
+      "frames": 2,
+      "frameSize": [
+        256,
+        192
+      ],
+      "layout": "vertical",
+      "frameMs": 360
+    },
+    {
+      "file": "garden-pond.png",
+      "frames": 2,
+      "frameSize": [
+        64,
+        64
+      ],
+      "layout": "horizontal",
+      "frameMs": 360
+    },
+    {
+      "file": "waterfall.png",
+      "frames": 2,
+      "frameSize": [
+        80,
+        96
+      ],
+      "layout": "horizontal",
+      "frameMs": 360
+    }
+  ]
+}

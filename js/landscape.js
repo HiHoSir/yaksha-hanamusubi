@@ -1,13 +1,13 @@
 // Original terrain art. Display sizes are independent of the 32px movement grid.
 window.YK_LANDSCAPE=(()=>{
- const specs={newVillage:[64,32],newHouse:[32,32],newTorii:[32,32],newCaveLarge:[64,32],newFort:[64,32],newPagoda:[32,64],newTrees:[32,32],newMountainSmall:[32,32],newMountainLarge:[128,64],bridgeNS:[48,96],castle:[64,64],sacredTree:[64,64],stoneMonument:[32,32],waterfall:[80,96],horizon:[640,240],grass:[256,256],grassCliff:[32,32],ladder:[32,96],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[32,32],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
+ const specs={waterMotion:[128,64],waterfallMotion:[160,96],newVillage:[64,32],newHouse:[32,32],newTorii:[32,32],newCaveLarge:[64,32],newFort:[64,32],newPagoda:[32,64],newTrees:[32,32],newMountainSmall:[32,32],newMountainLarge:[128,64],bridgeNS:[48,96],castle:[64,64],sacredTree:[64,64],stoneMonument:[32,32],waterfall:[80,96],horizon:[640,240],grass:[256,256],grassCliff:[32,32],ladder:[32,96],water:[64,64],snow:[64,64],barren:[64,64],sand:[64,64],shrine:[64,64],lantern:[24,40],bridge:[96,40],flowers:[40,24],wildflowers:[128,128],road:[64,64],village:[112,80],town:[144,104],hermit:[72,72],jizo:[32,32],cave:[80,64],torii:[64,64]},art={},errors={},decoded={};
  const placeKeys=['village','town','hermit','jizo','cave','torii'];
  const oldKeys=['water','snow','barren','sand'];
  const keys=Object.keys(specs),water=t=>t==='sea'||t==='river';let started=false;
  function ready(){return keys.every(k=>decoded[k]&&art[k]?.complete&&art[k].naturalWidth===specs[k][0]&&art[k].naturalHeight===specs[k][1]&&!errors[k]);}
  function load(change=()=>{}){
   if(started)return;started=true;
-  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};const src=k==='newVillage'?'assets/field-map-objects-v3/village.png':k==='newHouse'?'assets/field-map-objects-v3/house.png':k==='newTorii'?'assets/field-map-objects-v3/torii.png':k==='newCaveLarge'?'assets/field-map-objects-v3/cave-large.png':k==='newFort'?'assets/field-map-objects-v3/fort.png':k==='newPagoda'?'assets/field-map-objects-v3/pagoda.png':k==='newTrees'?'assets/field-map-objects-v3/trees.png':k==='newMountainSmall'?'assets/field-map-objects-v3/mountain-small.png':k==='newMountainLarge'?'assets/field-map-objects-v3/mountain-large.png':k==='stoneMonument'?'assets/field-map-objects-v3/stone-monument.png':k==='sacredTree'?'assets/field-map-objects-v3/sacred-tree.png':k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':k==='grassCliff'?'assets/terrain/cliffs-v1/grass-cliff-32.png?v=16.0.121':k==='ladder'?'assets/terrain/ladder-v1/wood-ladder-32x96.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';im.src=src+(k==='jizo'?'?v=16.1.40':'')+((k==='castle'||k==='shrine')?'?v=16.0.107':'');}
+  for(const k of keys){const im=art[k]=new Image();im.onload=()=>{decoded[k]=true;if(im.naturalWidth!==specs[k][0]||im.naturalHeight!==specs[k][1])errors[k]='size';change();};im.onerror=()=>{errors[k]='load';change();};const src=k==='waterMotion'?'assets/animation/fluid-v1/field-water.png':k==='waterfallMotion'?'assets/animation/fluid-v1/waterfall.png':k==='newVillage'?'assets/field-map-objects-v3/village.png':k==='newHouse'?'assets/field-map-objects-v3/house.png':k==='newTorii'?'assets/field-map-objects-v3/torii.png':k==='newCaveLarge'?'assets/field-map-objects-v3/cave-large.png':k==='newFort'?'assets/field-map-objects-v3/fort.png':k==='newPagoda'?'assets/field-map-objects-v3/pagoda.png':k==='newTrees'?'assets/field-map-objects-v3/trees.png':k==='newMountainSmall'?'assets/field-map-objects-v3/mountain-small.png':k==='newMountainLarge'?'assets/field-map-objects-v3/mountain-large.png':k==='stoneMonument'?'assets/field-map-objects-v3/stone-monument.png':k==='sacredTree'?'assets/field-map-objects-v3/sacred-tree.png':k==='castle'?'assets/field-map-objects-v3/castle.png':['bridgeNS','waterfall','horizon'].includes(k)?'assets/terrain/quarter-v1/'+k+'.png':k==='grass'?'assets/terrain/grass-v1/grass.png':k==='grassCliff'?'assets/terrain/cliffs-v1/grass-cliff-32.png?v=16.0.121':k==='ladder'?'assets/terrain/ladder-v1/wood-ladder-32x96.png':placeKeys.includes(k)?'assets/terrain/places-v1/'+k+'.png':k==='road'?'assets/terrain/landscape-v3/road.png':k==='wildflowers'?'assets/settlements/common-v1/wildflowers-4x4.png':k==='rockMountain'?'assets/terrain/landscape-v1/mountain.png' :k==='shrine'?'assets/field-map-objects-v3/shrine.png':'assets/terrain/'+(oldKeys.includes(k)?'landscape-v1/':'landscape-v2/')+k+'.png';im.src=src+(k==='jizo'?'?v=16.1.40':'')+((k==='castle'||k==='shrine')?'?v=16.0.107':'');}
  }
  function fixture(){
   const m=Array.from({length:17},()=>Array(20).fill('grass'));
@@ -430,10 +430,13 @@ window.YK_LANDSCAPE=(()=>{
   entry.lastUsed=++chunkTouch;
   const {surface,ox,oy}=entry;return {surface,x:(tx-ox)*32,y:(ty-oy)*32};
  }
+ const motionFrames={};
+ function motionArt(kind,time=typeof performance==='object'?performance.now():0){const atlas=art[kind+'Motion'];if(!atlas?.complete||!atlas.naturalWidth)return art[kind];if(!motionFrames[kind]){const [w,h]=specs[kind];motionFrames[kind]=[0,1].map(i=>{const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(atlas,i*w,0,w,h,0,0,w,h);return cv})}return motionFrames[kind][Math.floor(time/360)%2]}
  function drawQuarter(c,map,actor,zoom=1.4,settings={}){
   if(!ready())return false;
+  const motionTime=typeof performance==='object'?performance.now():0,movingWater=motionArt('water',motionTime),movingFall=motionArt('waterfall',motionTime);
   if(settings.elevationTerrain&&map.elevationEnabled){
-   const fieldArt={...art,sea:art.water,river:art.water,rock:art.barren,grassCliff:art.grassCliff,ladder:art.ladder,forest:art.grass,mountain:art.grass,snowMountain:art.snow,rockMountain:art.barren};
+   const fieldArt={...art,waterAnimated:true,sea:movingWater,river:movingWater,waterfall:movingFall,rock:art.barren,grassCliff:art.grassCliff,ladder:art.ladder,forest:art.grass,mountain:art.grass,snowMountain:art.snow,rockMountain:art.barren};
    return !!window.YK_ELEVATION_VIEW.render(c,map,fieldArt,{x:actor.x,y:actor.foot,height:actor.height,draw:actor.draw},{
     camera:{x:settings.cameraX??actor.x,y:actor.foot,preset:settings.preset||0},rise:map.elevationRise||20,
     groundTile:(tx,ty)=>elevationTexture(map,tx,ty),objects:objects(map)
@@ -441,7 +444,7 @@ window.YK_LANDSCAPE=(()=>{
   }
   const camera={x:settings.cameraX??actor.x,y:actor.foot,angle:settings.angle||0,preset:settings.preset||0,horizontalScale:settings.horizontalScale||0},ground=settings.ground||groundLayer(map),strip=4,top=136,gx=settings.groundOrigin?.x||0,gy=settings.groundOrigin?.y||0;
   c.save();c.beginPath();c.rect(0,0,640,544);c.clip();c.imageSmoothingEnabled=false;if(settings.interiorBackdrop){c.fillStyle=settings.interiorBackdrop;c.fillRect(0,0,640,544);}else c.drawImage(art.horizon,0,0,640,top+80);
-  const ocean=settings.oceanOutside?c.createPattern(art.water,'repeat'):null;
+  const ocean=settings.oceanOutside?c.createPattern(movingWater,'repeat'):null;
   const corners=[];for(let y=top;y<=544;y+=strip)for(const x of [0,640])corners.push(unproject(x,y,camera,zoom));
   const left=Math.max(gx,Math.floor(Math.min(...corners.map(p=>p.x)))-4),right=Math.min(gx+ground.width,Math.ceil(Math.max(...corners.map(p=>p.x)))+4);
   const upper=Math.max(gy,Math.floor(Math.min(...corners.map(p=>p.y)))-4),lower=Math.min(gy+ground.height,Math.ceil(Math.max(...corners.map(p=>p.y)))+4);
@@ -486,7 +489,7 @@ window.YK_LANDSCAPE=(()=>{
      const srcY=o.tileSourceY||0,srcH=o.tileSourceH||im.naturalHeight;
      c.drawImage(im,0,srcY+srcH*yy/o.height,im.naturalWidth,srcH*dy/o.height,p1.x,p1.y,p2.x-p1.x,p2.y-p1.y+.5);
     }
-   }else if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(art[o.kind],x,y,w,h);c.globalAlpha=1;
+   }else if(o.draw)o.draw(c,x,y,w,h,p);else if(o.kind==='forest')window.YK_AUTOTILE.drawCrown(c,x,y,w,h);else c.drawImage(o.kind==='waterfall'?movingFall:art[o.kind],x,y,w,h);c.globalAlpha=1;
   }
   if(!drawn)actor.draw(player.x,player.y,player.scale);
   if(!settings.interiorBackdrop){const haze=c.createLinearGradient(0,top-56,0,top+144);haze.addColorStop(0,'rgba(202,225,214,0)');haze.addColorStop(.38,'rgba(202,225,214,.34)');haze.addColorStop(1,'rgba(202,225,214,0)');c.fillStyle=haze;c.fillRect(0,top-56,640,200);}

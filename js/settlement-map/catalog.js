@@ -16,7 +16,7 @@ const byId=Object.fromEntries(templates.map(t=>[t.id,t]));
 for(const t of templates.filter(t=>t.id.startsWith('building_'))){t.legacyOccupiedTiles=t.occupiedTiles;t.occupiedTiles=[];for(const dy of [-1,0])for(let dx=0;dx<t.displayCells[0];dx++)if(dy!==0||dx!==t.entranceLocal[0])t.occupiedTiles.push([dx,dy]);}
 byId.garden_crop.legacyOccupiedTiles=single;byId.garden_crop.occupiedTiles=[];
 for(const id of ['auto_road','auto_river']){byId[id].autotile=true;byId[id].paintable=true;byId[id].paintGroup='surface';byId[id].preview='assets/settlement-editor/terrain-v1/'+(id==='auto_road'?'road':'river')+'-preview.png';}
-byId.auto_river.water=true;byId.ground_grass.paintable=true;byId.ground_grass.paintGroup='base';
+byId.auto_river.animation={frames:2,frameHeight:192,frameMs:360};byId.auto_river.src='assets/animation/fluid-v1/river-47.png';byId.auto_river.water=true;byId.ground_grass.paintable=true;byId.ground_grass.paintGroup='base';
 byId.garden_crop.paintable=true;byId.garden_crop.paintGroup='farm';
 byId.bridge.name='木の橋（横・旧2マス）';byId.bridge.bridgePassages=[[0,0],[1,0]];byId.bridge_vertical.bridgePassages=[[0,-1],[0,0]];
 byId.bridge.hidden=true;byId.bridge_vertical.hidden=true;
