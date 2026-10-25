@@ -40,7 +40,7 @@ function fallback(a,x,y){ctx.fillStyle=({floor:'#80683e',structure:'#63482c',obj
 function draw(){canvas.width=w*S;canvas.height=h*S;const z=Number($('zoom').value);canvas.style.width=w*S*z+'px';canvas.style.height=h*S*z+'px';ctx.imageSmoothingEnabled=false;
 for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=y*w+x,px=x*S,py=y*S;for(const layer of ['floor','structure','object','stairs']){const a=byId()[data[layer][k]];if(!a||a.transparent)continue;const im=getImage(a);if(im){if(a.crop)ctx.drawImage(im,...a.crop,px,py,32,32);else ctx.drawImage(im,px,py,32,32)}else fallback(a,px,py)}
 if(data.elevation?.[k]>0&&y+1<h&&Number(data.elevation[(y+1)*w+x]||0)<Number(data.elevation[k]||0)){const hasStair=['stairs_l','stairs_m','stairs_r'].includes(data.stairs?.[k]);if(!hasStair){ctx.fillStyle='#352718';ctx.fillRect(px,py+25,32,7);ctx.fillStyle='#7c542c';ctx.fillRect(px,py+25,32,3);ctx.fillStyle='#bb8a49';ctx.fillRect(px,py+25,32,1)}}
-if($('coll').checked){const blocked=isBlocked(k);ctx.fillStyle=blocked?'#ef3d3d77':'#41bd7a33';ctx.fillRect(px,py,32,32)}
+if($('coll').checked){const blocked=isBlocked(k);ctx.fillStyle=blocked?'#ef3d3d77':'#41bd7a22';ctx.fillRect(px,py,32,32);if(y+1<h&&Number(data.elevation?.[k]||0)>Number(data.elevation?.[(y+1)*w+x]||0)){ctx.fillStyle=['stairs_l','stairs_m','stairs_r'].includes(data.stairs?.[k])?'#40d79c':'#ed6154';ctx.fillRect(px+2,py+29,28,3)}}
 if($('grid').checked){ctx.strokeStyle='#f3ead755';ctx.lineWidth=.6;ctx.strokeRect(px+.3,py+.3,31.4,31.4)}}
 ctx.fillStyle='#5af0ff';if(data.spawn){ctx.fillRect(data.spawn[0]*32+11,data.spawn[1]*32+11,10,10)}ctx.fillStyle='#ffde5a';for(const [x,y]of data.exits||[])ctx.fillRect(x*32+11,y*32+11,10,10);
 $('summary').textContent=w+'×'+h+'マス / '+w*32+'×'+h*32+'px / 配置 '+['floor','structure','object','stairs'].map(l=>l+':'+data[l].filter(Boolean).length).join('  ')}
@@ -55,7 +55,7 @@ function cell(e){const r=canvas.getBoundingClientRect();return [Math.floor((e.cl
 function paint(e){const [x,y]=cell(e);if(x<0||y<0||x>=w||y>=h)return;const k=y*w+x;if(k===last)return;last=k;
 if(pending){if(pending==='spawn')data.spawn=[x,y];else data.exits.push([x,y]);pending='';$('status').textContent='地点を設定しました';draw();save();return}
 const l=$('layer').value,mode=$('mode').value;if(mode==='pick'){const id=data[l][k];if(id){selected=id;palette()}return}
-const v=mode==='erase'?l==='floor'?'earth':null:selected;if(data[l][k]===v)return;data[l][k]=v;if(l==='floor')data.elevation[k]=v==='raised_wood'?1:0;draw();save()}
+const v=mode==='erase'?l==='floor'?'earth':null:selected;if(data[l][k]===v)return;data[l][k]=v;if(l==='floor'){data.elevation[k]=v==='raised_wood'?1:0;if(v!=='raised_wood')data.stairs[k]=null}if(l==='stairs'&&v&&!data.elevation[k]){data.stairs[k]=null;$('status').textContent='階段は高床マスの手前側に配置してください';draw();save();return}draw();save()}
 canvas.addEventListener('pointerdown',e=>{if($('mode').value==='pan'){panStart=[e.clientX,e.clientY,$('viewport').scrollLeft,$('viewport').scrollTop];canvas.setPointerCapture(e.pointerId);return}e.preventDefault();push();drawing=true;last=-1;canvas.setPointerCapture(e.pointerId);paint(e)});
 canvas.addEventListener('pointermove',e=>{if(panStart){$('viewport').scrollLeft=panStart[2]-(e.clientX-panStart[0]);$('viewport').scrollTop=panStart[3]-(e.clientY-panStart[1]);return}if(drawing){e.preventDefault();paint(e)}});
 for(const n of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(n,()=>{drawing=false;panStart=null;last=-1});
