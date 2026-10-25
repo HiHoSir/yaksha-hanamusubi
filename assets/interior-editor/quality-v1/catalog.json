@@ -1,0 +1,1384 @@
+[
+  {
+    "id": "mushiro_0_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      32,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      64,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      96,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      128,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      160,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      192,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      224,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      256,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      288,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      0,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      32,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      64,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      96,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      128,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      160,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      192,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      224,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      256,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      288,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      0,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      32,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      64,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      96,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      128,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      160,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      192,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      224,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      256,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      288,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      0,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      32,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      64,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      96,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      128,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      160,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      192,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      224,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      256,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      288,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      0,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      32,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      64,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      96,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      128,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      160,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      192,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      224,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      256,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      288,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      0,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      32,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      64,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      96,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      128,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      160,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      192,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      224,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      256,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "crop": [
+      288,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_whole",
+    "name": "ムシロ・一枚（大）",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "span": [
+      10,
+      6
+    ],
+    "parts": [
+      [
+        0,
+        0,
+        "mushiro_0_0"
+      ],
+      [
+        1,
+        0,
+        "mushiro_1_0"
+      ],
+      [
+        2,
+        0,
+        "mushiro_2_0"
+      ],
+      [
+        3,
+        0,
+        "mushiro_3_0"
+      ],
+      [
+        4,
+        0,
+        "mushiro_4_0"
+      ],
+      [
+        5,
+        0,
+        "mushiro_5_0"
+      ],
+      [
+        6,
+        0,
+        "mushiro_6_0"
+      ],
+      [
+        7,
+        0,
+        "mushiro_7_0"
+      ],
+      [
+        8,
+        0,
+        "mushiro_8_0"
+      ],
+      [
+        9,
+        0,
+        "mushiro_9_0"
+      ],
+      [
+        0,
+        1,
+        "mushiro_0_1"
+      ],
+      [
+        1,
+        1,
+        "mushiro_1_1"
+      ],
+      [
+        2,
+        1,
+        "mushiro_2_1"
+      ],
+      [
+        3,
+        1,
+        "mushiro_3_1"
+      ],
+      [
+        4,
+        1,
+        "mushiro_4_1"
+      ],
+      [
+        5,
+        1,
+        "mushiro_5_1"
+      ],
+      [
+        6,
+        1,
+        "mushiro_6_1"
+      ],
+      [
+        7,
+        1,
+        "mushiro_7_1"
+      ],
+      [
+        8,
+        1,
+        "mushiro_8_1"
+      ],
+      [
+        9,
+        1,
+        "mushiro_9_1"
+      ],
+      [
+        0,
+        2,
+        "mushiro_0_2"
+      ],
+      [
+        1,
+        2,
+        "mushiro_1_2"
+      ],
+      [
+        2,
+        2,
+        "mushiro_2_2"
+      ],
+      [
+        3,
+        2,
+        "mushiro_3_2"
+      ],
+      [
+        4,
+        2,
+        "mushiro_4_2"
+      ],
+      [
+        5,
+        2,
+        "mushiro_5_2"
+      ],
+      [
+        6,
+        2,
+        "mushiro_6_2"
+      ],
+      [
+        7,
+        2,
+        "mushiro_7_2"
+      ],
+      [
+        8,
+        2,
+        "mushiro_8_2"
+      ],
+      [
+        9,
+        2,
+        "mushiro_9_2"
+      ],
+      [
+        0,
+        3,
+        "mushiro_0_3"
+      ],
+      [
+        1,
+        3,
+        "mushiro_1_3"
+      ],
+      [
+        2,
+        3,
+        "mushiro_2_3"
+      ],
+      [
+        3,
+        3,
+        "mushiro_3_3"
+      ],
+      [
+        4,
+        3,
+        "mushiro_4_3"
+      ],
+      [
+        5,
+        3,
+        "mushiro_5_3"
+      ],
+      [
+        6,
+        3,
+        "mushiro_6_3"
+      ],
+      [
+        7,
+        3,
+        "mushiro_7_3"
+      ],
+      [
+        8,
+        3,
+        "mushiro_8_3"
+      ],
+      [
+        9,
+        3,
+        "mushiro_9_3"
+      ],
+      [
+        0,
+        4,
+        "mushiro_0_4"
+      ],
+      [
+        1,
+        4,
+        "mushiro_1_4"
+      ],
+      [
+        2,
+        4,
+        "mushiro_2_4"
+      ],
+      [
+        3,
+        4,
+        "mushiro_3_4"
+      ],
+      [
+        4,
+        4,
+        "mushiro_4_4"
+      ],
+      [
+        5,
+        4,
+        "mushiro_5_4"
+      ],
+      [
+        6,
+        4,
+        "mushiro_6_4"
+      ],
+      [
+        7,
+        4,
+        "mushiro_7_4"
+      ],
+      [
+        8,
+        4,
+        "mushiro_8_4"
+      ],
+      [
+        9,
+        4,
+        "mushiro_9_4"
+      ],
+      [
+        0,
+        5,
+        "mushiro_0_5"
+      ],
+      [
+        1,
+        5,
+        "mushiro_1_5"
+      ],
+      [
+        2,
+        5,
+        "mushiro_2_5"
+      ],
+      [
+        3,
+        5,
+        "mushiro_3_5"
+      ],
+      [
+        4,
+        5,
+        "mushiro_4_5"
+      ],
+      [
+        5,
+        5,
+        "mushiro_5_5"
+      ],
+      [
+        6,
+        5,
+        "mushiro_6_5"
+      ],
+      [
+        7,
+        5,
+        "mushiro_7_5"
+      ],
+      [
+        8,
+        5,
+        "mushiro_8_5"
+      ],
+      [
+        9,
+        5,
+        "mushiro_9_5"
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1"
+  },
+  {
+    "id": "irori_lit",
+    "name": "囲炉裏・点火（四方枠）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/irori-lit-192x64.png?v=quality-v1",
+    "frames": [
+      [
+        0,
+        0,
+        96,
+        64
+      ],
+      [
+        96,
+        0,
+        96,
+        64
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      96,
+      64
+    ]
+  },
+  {
+    "id": "irori_unlit",
+    "name": "囲炉裏・消火（四方枠）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/irori-unlit-96x64.png?v=quality-v1"
+  },
+  {
+    "id": "low_table",
+    "name": "座卓（原画の細部を維持）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      2,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/low-table-64x64.png?v=quality-v1"
+  },
+  {
+    "id": "weapon_rack_large",
+    "name": "刀・槍の武器掛け",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/weapon-rack-96x32.png?v=quality-v1"
+  },
+  {
+    "id": "armor_wall_display",
+    "name": "鎧飾り（壁際）",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "requiresWall": true,
+    "renderRect": [
+      0,
+      -32,
+      32,
+      64
+    ],
+    "src": "assets/interior-editor/quality-v1/armor-32x64.png?v=quality-v1"
+  }
+]

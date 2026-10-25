@@ -1,0 +1,23 @@
+{
+  "status": "revised candidate, visual approval pending",
+  "tileSize": 32,
+  "noFixedObjectCellCap": true,
+  "matSize": [
+    320,
+    192
+  ],
+  "iroriSize": [
+    96,
+    64
+  ],
+  "tableSize": [
+    64,
+    64
+  ],
+  "weaponRackSize": [
+    96,
+    32
+  ],
+  "source": "three original illustrations; adopted project table, rack and armor; original sources retained",
+  "rebuild": "python3 tools/build-interior-quality.py"
+}
