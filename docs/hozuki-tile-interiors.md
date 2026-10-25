@@ -1,0 +1,18 @@
+# 鬼灯村の室内マップ統合（BETA16.1.47）
+
+承認済みの5施設の配置JSONと画像を、本編の6入口から使う。
+
+| 村の入口ID | 室内 | NPC・機能 |
+| --- | --- | --- |
+| inn | 宿・庭 | 女将の会話と全回復、旅人の会話 |
+| shop | 武具屋 | 主人の会話後、既存の売買画面 |
+| teahouse | 茶店 | 茶屋娘の会話・回復、一服中の村人 |
+| osumiHome | 民家 | 既存のお澄の名前・会話を継承 |
+| farmHome | 医者 | 医者の会話・全回復、診察を待つ村人 |
+| weaverHome | 民家 | 織り手の家人の会話 |
+
+`js/interior-maps.js` は固定32pxマス、明示占有、階段による高床移動、正面のカウンター越し会話、建具の開閉、火／水面の2コマ描画を扱う。`tools/export-interior-runtime.cjs` は現在のエディタの実カタログをruntime-v1/catalog.jsonに書き出す。静的な床と家具は部屋ごとに一度だけ合成し、流動素材だけ切り替える。
+
+本編の遷移は部屋JSON・必要PNG・SDとNPC画像の読み込み成功後に状態を確定する。入口と帰り先は従来のlastInterior IDを使い、帰りは同じ建物のapproach。旧室内セーブは進行を維持して新しい出現セルへ移す。新しい保存位置は32pxセル中央に維持する。既存のフィールド休憩所はrestStopIdで区別し、今回の村室内への置換対象から外す。
+
+検査：hozuki-interiors.test.cjs（6プロフィール、会話・出口経路、占有、扉、移行、読込失敗と再試行）、hozuki-interiors-runtime.test.cjs（実ゲームスクリプトを使った入退室、会話・サービス、冷間セーブ移行・保存復帰）、interior-base.cjs（Chromium、縦横のモバイル画面）。ネイティブCanvasとChromium、Pages実体、iPhone Safariの実機検査は別の確認段階とする。

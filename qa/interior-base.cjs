@@ -4,61 +4,19 @@ const {chromium}=require(require.resolve('playwright',{paths:[process.env.CODEX_
 const root=path.resolve(__dirname,'..'),out=path.join(__dirname,'results/autotile');fs.mkdirSync(out,{recursive:true});
 const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url.split('?')[0]),file=path.join(root,name==='/'?'index.html':name);if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp'})[path.extname(file)]||'application/octet-stream');let data=fs.readFileSync(file);if(name==='/js/game.js')data=Buffer.from(data.toString().replace(/\}\)\(\);\s*$/, 'window.__qaEval=code=>eval(code);})();'));res.end(data);});
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({headless:true});try{
-const page=await browser.newPage({viewport:{width:852,height:393},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());const run=code=>page.evaluate(code=>window.__qaEval(code),code);
-await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;enterWorldPlace("village");');await page.waitForFunction(()=>window.YK_SETTLEMENT.ready()&&window.YK_AUTOTILE.ready());
-for(const id of ['inn','shop','teahouse','osumiHome','farmHome','weaverHome','riverHome']){
-await run(`busy=false;S.area='village';const d=YK_SETTLEMENT.doors.find(d=>d.id==='${id}');S.x=d.x;S.y=d.y+4;action();`);await page.waitForFunction(()=>window.gameState.area!=='village');
-assert.equal(await run('S.lastInterior'),id);assert(await run('!collision(S.x,S.y)'),'spawn '+id);
-const check=await run(`(()=>{const q=[[S.x,S.y]],seen=new Set();for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of [[32,0],[-32,0],[0,32],[0,-32]]){const a=x+dx,b=y+dy,k=a+','+b;if(!seen.has(k)&&!collision(a,b)){seen.add(k);q.push([a,b]);}}}return {exit:q.some(([x,y])=>'${id}'==='teahouse'?YK_INDOOR_NATIVE_DEBUG.exit(x,y):YK_INTERIOR_BASE.exit({...S,x,y})),npc:areaNPCs().every(n=>q.some(([x,y])=>Math.hypot(x-n.x,y-n.y)<140))};})()`);assert(check.exit&&check.npc,JSON.stringify({id,check}));
-await run('map()');await page.waitForTimeout(300);if(['inn','shop','teahouse','osumiHome'].includes(id))await page.screenshot({path:path.join(out,'interior-'+id+'.png')});
-if(id==='teahouse'){
- const composite=await run(`(()=>{
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=768;
-  const c=canvas.getContext('2d');
-  YK_INTERIOR_BASE.draw(c,S);
-  const samples=[[384,336,'rear'],[384,432,'middle'],[288,528,'threshold'],[384,560,'entry']];
-  c.save();c.globalAlpha=.83;
-  for(const [x,y,label] of samples){
-    hero(c,x,y-9*.56,'d',0,S.outfit,.56);
-    c.save();c.globalAlpha=1;c.lineWidth=2;c.strokeStyle='#00ffdc';
-    c.beginPath();c.arc(x,y,5,0,Math.PI*2);c.stroke();
-    c.font='bold 14px sans-serif';c.fillStyle='#ffffff';
-    c.shadowColor='#000000';c.shadowBlur=5;c.fillText(label,x+12,y);c.restore();
-  }
-  c.restore();
-  return canvas.toDataURL('image/png').split(',')[1];
- })()`);
- fs.writeFileSync(path.join(out,'interior-teahouse-fixed-camera-scale.png'),Buffer.from(composite,'base64'));
- console.log('teahouse: fixed-camera scale composite captured using real actor art');
+const page=await browser.newPage({viewport:{width:393,height:852},isMobile:true,hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:'+server.address().port);const run=code=>page.evaluate(code=>window.__qaEval(code),code);
+await page.waitForFunction(()=>window.YK_HOZUKI&&window.YK_INTERIOR_MAPS);await run('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;S.sound=false;enterWorldPlace("village");');await page.waitForFunction(()=>gameState.area==='village'&&window.__qaEval('!busy'));
+const checks={inn:['inn',[3,5],'rest'],shop:['armory',[7,8],'shop'],teahouse:['teahouse',[3,5],'tea'],osumiHome:['home',[4,3],null],farmHome:['doctor',[4,5],'heal'],weaverHome:['home',[4,3],null]};
+const doors=await page.evaluate(()=>YK_HOZUKI.doors);assert.equal(doors.length,6);
+for(const door of doors){
+ await run(`busy=false;fieldMotion=null;S.area='village';S.x=${door.approach[0]};S.y=${door.approach[1]};S.dir='u';action();`);await page.waitForFunction(id=>gameState.lastInterior===id&&gameState.area!=='village'&&window.__qaEval('!busy'),door.id);
+ assert.equal(await run('YK_INTERIOR_MAPS.kind(S)'),checks[door.id][0]);assert(await run('!collision(S.x,S.y)'));
+ const routes=await run(`(()=>{const q=[[S.x,S.y]],seen=new Set([q[0].join(',')]);for(let i=0;i<q.length;i++)for(const [dx,dy]of [[32,0],[-32,0],[0,32],[0,-32]]){const [x,y]=q[i],xx=x+dx,yy=y+dy,k=xx+','+yy;if(!seen.has(k)&&YK_INTERIOR_MAPS.canStep(S,x,y,xx,yy)){seen.add(k);q.push([xx,yy]);}}return {exit:q.some(([x,y])=>YK_INTERIOR_MAPS.exit({...S,x,y})),people:areaNPCs().every(n=>q.some(([x,y])=>YK_INTERIOR_MAPS.nearest({...S,x,y,dir:n.x>x?'r':n.x<x?'l':n.y>y?'d':'u'})===n))};})()`);assert(routes.exit&&routes.people,JSON.stringify({id:door.id,routes}));
+ const [x,y]=checks[door.id][1];await run(`S.x=${x*32+16};S.y=${y*32+16};S.dir='${door.id.endsWith('Home')&&door.id!=='farmHome'?'r':'u'}';S.hp=1;S.mp=1;map();action();`);await page.waitForFunction(()=>document.getElementById('dialog').classList.contains('show'));await run('while($("dialog").classList.contains("show"))nextDialog()');
+ if(checks[door.id][2]==='shop'){assert(await page.locator('#shop').evaluate(e=>e.classList.contains('show')));await run("close('shop')");}else if(checks[door.id][2])assert(await run('S.hp===S.maxhp&&S.mp===S.maxmp'));
+ await run('YK_SAVE.auto(S);restoreState(YK_SAVE.loadAuto(),false);map()');await page.screenshot({path:path.join(out,'interior-'+door.id+'.png')});
+ await page.setViewportSize({width:852,height:393});await run('map()');await page.screenshot({path:path.join(out,'interior-'+door.id+'-landscape.png')});await page.setViewportSize({width:393,height:852});
+ await run('leaveInterior()');await page.waitForFunction(()=>gameState.area==='village'&&window.__qaEval('!busy'));assert.deepEqual(await run('[S.x,S.y]'),door.approach);console.log(door.id+': entry, cardinal routes, NPC conversation/service, save, return and two mobile orientations PASS');
 }
-if(id==='teahouse'){
- // Source-art scale audit: identical production hero drawn at four floor points.
- // These are comparison samples, not claims of measured furniture footprints.
- for(const [label,x,y] of [['rear',384,336],['middle',384,432],['threshold',288,528],['entrance',384,560]]){
-  await run(`S.x=${x};S.y=${y};fieldMotion=null;map();`);
-  await page.screenshot({path:path.join(out,'interior-teahouse-scale-'+label+'.png')});
- }
- await run('S.x=384;S.y=560;fieldMotion=null;map();');
-}
-if(id==='inn'){await run('S.x=128;S.y=496;S.dir="u";S.hp=10;action();while($("dialog").classList.contains("show"))nextDialog();');assert.equal(await run('S.hp'),await run('S.maxhp'),'inn restores current maximum HP');}
-if(id==='shop'){
-await page.waitForFunction(()=>window.YK_INTERIOR_BASE.layeredReady());
-const layers=await run(`(()=>{
-const room=YK_INTERIOR_BASE;
-const blockedTop=room.blocked(S,384,320),blockedFoot=room.blocked(S,384,352);
-const oldHero=hero,oldNpc=npc;const canvas=document.createElement('canvas');canvas.width=canvas.height=768;const ctx=canvas.getContext('2d');
-hero=(c,x,y)=>{c.fillStyle='#ff00ff';c.fillRect(x-14,y-48,28,48)};npc=()=>{};
-function sample(x,y,px,py){S.x=x;S.y=y;fieldMotion=null;room.draw(ctx,S);drawActorsOn(ctx);return Array.from(ctx.getImageData(px,py,1,1).data).slice(0,3).join(',');}
-let behind,front,side;try{behind=sample(384,328,384,310);front=sample(384,400,384,360);side=sample(224,352,224,320);}finally{hero=oldHero;npc=oldNpc;}
-S.x=256;S.y=336;fieldMotion=null;move(0,1,'d');const stopped=S.y===336;
-S.x=224;S.y=336;fieldMotion=null;move(0,1,'d');const passes=S.y===368;fieldMotion=null;
-return {blockedTop,blockedFoot,behind,front,side,stopped,passes};})()`);
-assert(!layers.blockedTop&&layers.blockedFoot,JSON.stringify(layers));assert.notEqual(layers.behind,'255,0,255');assert.equal(layers.front,'255,0,255');assert.equal(layers.side,'255,0,255');assert(layers.stopped&&layers.passes,JSON.stringify(layers));
-for(const [pose,x,y] of [['behind',320,304],['front',384,400],['side',224,352]]){await run(`S.x=${x};S.y=${y};fieldMotion=null;map()`);await page.screenshot({path:path.join(out,'armory-layer-'+pose+'.png')});}
-console.log('counter: interpolated actor depth, rear occlusion, front/side visibility and footprint movement OK');
-}
-if(id==='shop'){await run('S.x=384;S.y=400;S.dir="u";action();');assert(await page.locator('#shop').evaluate(e=>e.classList.contains('show')));await run('$("shop").classList.remove("show");busy=false;');}
-await run('S.x=400;S.y=592;action();');assert.equal(await run('S.area'),'village');await page.waitForFunction(()=>window.__qaEval('!villageDoorMotion&&!busy'));
-console.log(id+': entry, spawn, reachable exit/NPC, return OK');}
 assert.deepEqual(errors,[]);
 }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

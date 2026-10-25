@@ -1,0 +1,27 @@
+name: Hozuki interior integration
+on:
+  push:
+    branches: [main, improve/interior-map-editor-32px]
+    paths: ['js/interior-maps.js', 'js/game.js', 'js/hozuki-village-game.js', 'index.html', 'assets/interior-editor/**', 'qa/hozuki-interiors*', 'qa/interior-base.cjs', '.github/workflows/interior-integration.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  interiors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100 jsdom@26.1.0 playwright@1.51.1
+      - run: node --test qa/hozuki-interiors.test.cjs qa/hozuki-game.test.cjs
+      - run: node --test qa/hozuki-interiors-runtime.test.cjs
+      - run: node qa/runtime-build-contract.cjs
+      - run: npx playwright install --with-deps chromium
+      - run: node qa/interior-base.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hozuki-interiors
+          path: qa/results/autotile/interior-*.png

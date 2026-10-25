@@ -10,7 +10,7 @@ residents.find(n=>n.id==='traveler').talk=['この先にも集落があると聞
 residents.find(n=>n.id==='shrine-keeper').talk=['ここは鬼灯村の鐘撞堂じゃ。天妖の社は、村を出た北の方にある。','鐘を毎朝鳴らしてきたのじゃが、今朝は何をしても音がせぬ。','昨日の音を思い出そうとすると、胸の奥に霧がかかるのじゃ。'];
 const indoorCache=new Map();function indoor(id){if(!indoorCache.has(id))indoorCache.set(id,legacy.insideResidents(id).map(n=>({...n,talk:[...n.talk],newNpcId:npcAssets[n.id],stationary:true})));return indoorCache.get(id);}
 let data=null,nav=null,solid=new Set(),doors=[],pending=null,loaded=false,loadError=null,art={},ground=null,world=null,wc=null,heroBounds=null,change=()=>{};
-const doorIds={building_inn:['inn','villageRoom','旅人の宿'],building_shop:['shop','villageRoom','よろず屋'],building_tea:['teahouse','teahouse','花見茶屋'],building_west_home:['osumiHome','osumiHome','お澄の家'],building_southwest_home:['farmHome','villageRoom','畑守りの家'],building_south_home:['weaverHome','villageRoom','織り手の家']};
+const doorIds={building_inn:['inn','villageRoom','旅人の宿'],building_shop:['shop','villageRoom','武具屋'],building_tea:['teahouse','teahouse','花見茶屋'],building_west_home:['osumiHome','osumiHome','お澄の家'],building_southwest_home:['farmHome','villageRoom','医者'],building_south_home:['weaverHome','villageRoom','織り手の家']};
 const wander=new WeakMap();let previousTick=null,npcAvoid=new Set();
 const directions=[[0,-1,'u'],[1,0,'r'],[0,1,'d'],[-1,0,'l']];
 // Reservations are authored cells; only the sprite interpolates between them.

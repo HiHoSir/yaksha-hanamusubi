@@ -1,0 +1,3227 @@
+[
+  {
+    "id": "outside_black",
+    "name": "外部・黒床",
+    "layer": "floor",
+    "walk": false
+  },
+  {
+    "id": "earth",
+    "name": "土間",
+    "layer": "floor",
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      32,
+      0,
+      32,
+      32
+    ],
+    "walk": true
+  },
+  {
+    "id": "wood",
+    "name": "板床",
+    "layer": "floor",
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "walk": true,
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "raised_wood",
+    "name": "高床・板張り",
+    "layer": "floor",
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "walk": true,
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "elevation": 1
+  },
+  {
+    "id": "wall",
+    "name": "奥壁",
+    "layer": "structure",
+    "walk": false,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      64,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "wall_side_l",
+    "name": "左側壁（奥壁上辺を回転）",
+    "layer": "structure",
+    "walk": false,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      64,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "wall_side_r",
+    "name": "右側壁（奥壁上辺を回転）",
+    "layer": "structure",
+    "walk": false,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      64,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "pillar",
+    "name": "柱",
+    "layer": "structure",
+    "walk": false,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      96,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "end_l",
+    "name": "壁端・左",
+    "layer": "structure",
+    "walk": false,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      128,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "end_r",
+    "name": "壁端・右",
+    "layer": "structure",
+    "walk": false,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      160,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "opening",
+    "name": "開口（床表示）",
+    "layer": "structure",
+    "walk": true,
+    "transparent": true
+  },
+  {
+    "id": "threshold",
+    "name": "敷居",
+    "layer": "structure",
+    "walk": true
+  },
+  {
+    "id": "stairs_m",
+    "name": "木階段（1マス）",
+    "layer": "stairs",
+    "walk": true,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      224,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "stairs_l",
+    "name": "旧階段・左（互換用）",
+    "layer": "stairs",
+    "walk": true,
+    "legacy": true,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      192,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "stairs_r",
+    "name": "旧階段・右（互換用）",
+    "layer": "stairs",
+    "walk": true,
+    "legacy": true,
+    "src": "assets/interior-editor/polish-v2/interior-atlas-9x1.png?v=polish-v2",
+    "crop": [
+      256,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "table",
+    "name": "卓",
+    "layer": "object",
+    "walk": false,
+    "src": "assets/interior-editor/polish-v2/table.png?v=polish-v2",
+    "legacy": true
+  },
+  {
+    "id": "cushion",
+    "name": "座布団・藍染め",
+    "layer": "object",
+    "walk": true,
+    "src": "assets/interior-editor/quality-v1/zabuton-32x32.png?v=quality-v1"
+  },
+  {
+    "id": "futon",
+    "name": "布団（仮素材）",
+    "layer": "object",
+    "walk": true
+  },
+  {
+    "id": "hearth",
+    "name": "囲炉裏・点火",
+    "layer": "object",
+    "walk": false,
+    "src": "assets/interior-editor/fire-v1/hearth.png?v=fire-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        32,
+        0,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "legacy": true
+  },
+  {
+    "id": "npc",
+    "name": "NPC",
+    "layer": "object",
+    "walk": true
+  },
+  {
+    "id": "blocked",
+    "name": "通行不可",
+    "layer": "collision",
+    "walk": false
+  },
+  {
+    "id": "passable",
+    "name": "通行可能",
+    "layer": "collision",
+    "walk": true
+  },
+  {
+    "id": "village_bench",
+    "name": "腰掛け（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/chips/bench.png",
+    "walk": false
+  },
+  {
+    "id": "village_pot",
+    "name": "壺（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/chips/pot.png",
+    "walk": false
+  },
+  {
+    "id": "village_crate",
+    "name": "木箱（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/chips/crate.png",
+    "walk": false
+  },
+  {
+    "id": "village_barrel",
+    "name": "樽（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/barrel.png",
+    "walk": false
+  },
+  {
+    "id": "village_rice_bale",
+    "name": "米俵（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/rice_bale.png",
+    "walk": false
+  },
+  {
+    "id": "village_firewood",
+    "name": "薪（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/firewood.png",
+    "walk": false
+  },
+  {
+    "id": "village_basket",
+    "name": "籠（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/basket.png",
+    "walk": false
+  },
+  {
+    "id": "village_signpost",
+    "name": "立て札（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/signpost.png",
+    "walk": false
+  },
+  {
+    "id": "village_pebbles",
+    "name": "小石（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/pebbles.png",
+    "walk": true,
+    "decor": true
+  },
+  {
+    "id": "village_leaves",
+    "name": "落ち葉（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/leaves.png",
+    "walk": true,
+    "decor": true
+  },
+  {
+    "id": "village_stepping_stone",
+    "name": "踏み石（村素材）",
+    "layer": "object",
+    "src": "assets/settlement-editor/pack-v1/stepping_stone.png",
+    "walk": true,
+    "decor": true
+  },
+  {
+    "id": "shelf_l",
+    "name": "商品棚・左",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "src": "assets/interior-editor/polish-v2/shelf_l.png?v=polish-v2",
+    "legacy": true
+  },
+  {
+    "id": "shelf_m",
+    "name": "商品棚・中",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "src": "assets/interior-editor/polish-v2/shelf_m.png?v=polish-v2",
+    "legacy": true
+  },
+  {
+    "id": "shelf_r",
+    "name": "商品棚・右",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "src": "assets/interior-editor/polish-v2/shelf_r.png?v=polish-v2",
+    "legacy": true
+  },
+  {
+    "id": "drawer",
+    "name": "引き出し箪笥",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "src": "assets/interior-editor/layout-kit-v1/drawer.png?v=kit-v1",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "id": "counter_l",
+    "name": "帳場・左",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "src": "assets/interior-editor/layout-kit-v1/counter_l.png?v=kit-v1",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "legacy": true
+  },
+  {
+    "id": "counter_r",
+    "name": "帳場・右",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "src": "assets/interior-editor/layout-kit-v1/counter_r.png?v=kit-v1",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "legacy": true
+  },
+  {
+    "id": "longtable_l",
+    "name": "長机・左（仮素材）",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "legacy": true
+  },
+  {
+    "id": "longtable_r",
+    "name": "長机・右（仮素材）",
+    "layer": "object",
+    "walk": false,
+    "decor": false,
+    "legacy": true
+  },
+  {
+    "id": "wall_scroll",
+    "name": "掛け軸（壁に重ねる）",
+    "layer": "object",
+    "walk": true,
+    "decor": true,
+    "occupiedTiles": [],
+    "src": "assets/interior-editor/completion-v1/wall_scroll.png?v=completion-v1",
+    "requiresStructure": true
+  },
+  {
+    "id": "wall_lattice",
+    "name": "壁飾り・格子（仮素材）",
+    "layer": "object",
+    "walk": true,
+    "decor": true
+  },
+  {
+    "id": "potted_plant",
+    "name": "鉢植え（仮素材）",
+    "layer": "object",
+    "walk": false,
+    "decor": false
+  },
+  {
+    "id": "tea_set",
+    "name": "茶器",
+    "layer": "object",
+    "walk": true,
+    "decor": true,
+    "src": "assets/interior-editor/polish-v2/tea_set.png?v=polish-v2"
+  },
+  {
+    "id": "display_goods",
+    "name": "陳列品（仮素材）",
+    "layer": "object",
+    "walk": true,
+    "decor": true
+  },
+  {
+    "id": "red_bench_l",
+    "name": "赤い長椅子・左",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/red_bench_l.png?v=kit-v1",
+    "legacy": true
+  },
+  {
+    "id": "red_bench_r",
+    "name": "赤い長椅子・右",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/red_bench_r.png?v=kit-v1",
+    "legacy": true
+  },
+  {
+    "id": "rail_l",
+    "name": "高床の柵・左端",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/rail_l.png?v=kit-v1"
+  },
+  {
+    "id": "rail_m",
+    "name": "高床の柵・連結",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/rail_m.png?v=kit-v1"
+  },
+  {
+    "id": "rail_r",
+    "name": "高床の柵・右端",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/rail_r.png?v=kit-v1"
+  },
+  {
+    "id": "drawer_upper",
+    "name": "箪笥・上段",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/drawer_upper.png?v=kit-v1",
+    "legacy": true
+  },
+  {
+    "id": "drawer_lower",
+    "name": "箪笥・下段",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/drawer_lower.png?v=kit-v1",
+    "legacy": true
+  },
+  {
+    "id": "wall_drawer",
+    "name": "壁付け箪笥（床1マス）",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "renderRect": [
+      0,
+      -32,
+      32,
+      64
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/drawer-32x64.png?v=wall-drawer-v1"
+  },
+  {
+    "id": "goza_c",
+    "name": "ゴザ・中央",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_c.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_c",
+    "name": "高床・ゴザ・中央",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_c.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_n",
+    "name": "ゴザ・上辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_n.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_n",
+    "name": "高床・ゴザ・上辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_n.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_s",
+    "name": "ゴザ・下辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_s.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_s",
+    "name": "高床・ゴザ・下辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_s.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_w",
+    "name": "ゴザ・左辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_w.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_w",
+    "name": "高床・ゴザ・左辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_w.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_e",
+    "name": "ゴザ・右辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_e.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_e",
+    "name": "高床・ゴザ・右辺",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_e.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_nw",
+    "name": "ゴザ・左上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_nw.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_nw",
+    "name": "高床・ゴザ・左上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_nw.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_ne",
+    "name": "ゴザ・右上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_ne.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_ne",
+    "name": "高床・ゴザ・右上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_ne.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_sw",
+    "name": "ゴザ・左下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_sw.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_sw",
+    "name": "高床・ゴザ・左下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_sw.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "goza_se",
+    "name": "ゴザ・右下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/soft-v1/goza_se.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_goza_se",
+    "name": "高床・ゴザ・右下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/soft-v1/goza_se.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "tatami_l",
+    "name": "畳・横左",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/tatami_l.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_tatami_l",
+    "name": "高床・畳・横左",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/tatami_l.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "tatami_r",
+    "name": "畳・横右",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/tatami_r.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_tatami_r",
+    "name": "高床・畳・横右",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/tatami_r.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "tatami_u",
+    "name": "畳・縦上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/tatami_u.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_tatami_u",
+    "name": "高床・畳・縦上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/tatami_u.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "tatami_d",
+    "name": "畳・縦下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/tatami_d.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "raised_mat_tatami_d",
+    "name": "高床・畳・縦下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/tatami_d.png?v=quality-v1",
+    "legacy": true
+  },
+  {
+    "id": "futon_u",
+    "name": "敷き布団・上",
+    "walk": true,
+    "layer": "object",
+    "occupiedTiles": [],
+    "src": "assets/interior-editor/soft-v1/futon_u.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "futon_d",
+    "name": "敷き布団・下",
+    "walk": true,
+    "layer": "object",
+    "occupiedTiles": [],
+    "src": "assets/interior-editor/soft-v1/futon_d.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "folded_futon",
+    "name": "畳んだ布団",
+    "walk": false,
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/soft-v1/folded_futon.png?v=soft-v1",
+    "legacy": true
+  },
+  {
+    "id": "hibachi",
+    "name": "火鉢・消火",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/hibachi.png?v=fire-v1"
+  },
+  {
+    "id": "hibachi_lit",
+    "name": "火鉢・点火",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/hibachi_lit.png?v=fire-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        32,
+        0,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "kamado",
+    "name": "かまど・木蓋の羽釜・消火",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/kamado.png?v=hagama-v1"
+  },
+  {
+    "id": "kamado_lit",
+    "name": "かまど・木蓋の羽釜・点火",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/kamado_lit.png?v=hagama-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        32,
+        0,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "campfire_unlit",
+    "name": "たき火・消火（薪と灰）",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/campfire_unlit.png?v=fire-v1"
+  },
+  {
+    "id": "campfire_lit",
+    "name": "たき火・点火",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/campfire_lit.png?v=fire-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        32,
+        0,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "flame",
+    "name": "炎だけ・2コマ",
+    "layer": "object",
+    "walk": true,
+    "occupiedTiles": [],
+    "src": "assets/interior-editor/fire-v1/flame.png?v=fire-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        32,
+        0,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "hearth_frame",
+    "name": "囲炉裏・枠だけ",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/hearth_frame.png?v=fire-v1",
+    "legacy": true
+  },
+  {
+    "id": "hearth_unlit",
+    "name": "囲炉裏・消火",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/fire-v1/hearth_unlit.png?v=fire-v1",
+    "legacy": true
+  },
+  {
+    "id": "futon_set",
+    "name": "敷き布団・一式（1×2）",
+    "layer": "object",
+    "walk": true,
+    "span": [
+      1,
+      2
+    ],
+    "occupiedTiles": [],
+    "renderRect": [
+      0,
+      0,
+      32,
+      64
+    ],
+    "src": "assets/interior-editor/soft-v1/futon-32x64.png?v=group-v1"
+  },
+  {
+    "id": "counter_set",
+    "name": "帳場・一式（2×1）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "renderRect": [
+      0,
+      0,
+      64,
+      32
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/counter-64x32.png?v=group-v1"
+  },
+  {
+    "id": "red_bench_set",
+    "name": "赤い長椅子・一式（2×1）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "renderRect": [
+      0,
+      0,
+      64,
+      32
+    ],
+    "src": "assets/interior-editor/layout-kit-v1/red_bench-64x32.png?v=group-v1"
+  },
+  {
+    "id": "tatami_horizontal",
+    "name": "畳一畳・横（2×1）",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "span": [
+      2,
+      1
+    ],
+    "parts": [
+      [
+        0,
+        0,
+        "tatami_l"
+      ],
+      [
+        1,
+        0,
+        "tatami_r"
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/tatami-64x32.png?v=quality-v1"
+  },
+  {
+    "id": "tatami_vertical",
+    "name": "畳一畳・縦（1×2）",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "span": [
+      1,
+      2
+    ],
+    "parts": [
+      [
+        0,
+        0,
+        "tatami_u"
+      ],
+      [
+        0,
+        1,
+        "tatami_d"
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/tatami-32x64.png?v=quality-v1"
+  },
+  {
+    "id": "raised_mat_tatami_horizontal",
+    "name": "高床・畳一畳・横（2×1）",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "span": [
+      2,
+      1
+    ],
+    "parts": [
+      [
+        0,
+        0,
+        "raised_mat_tatami_l"
+      ],
+      [
+        1,
+        0,
+        "raised_mat_tatami_r"
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/tatami-64x32.png?v=quality-v1"
+  },
+  {
+    "id": "raised_mat_tatami_vertical",
+    "name": "高床・畳一畳・縦（1×2）",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "span": [
+      1,
+      2
+    ],
+    "parts": [
+      [
+        0,
+        0,
+        "raised_mat_tatami_u"
+      ],
+      [
+        0,
+        1,
+        "raised_mat_tatami_d"
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/tatami-32x64.png?v=quality-v1"
+  },
+  {
+    "id": "shelf_set",
+    "name": "商品棚・一式（3×1）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "renderRect": [
+      0,
+      0,
+      96,
+      32
+    ],
+    "src": "assets/interior-editor/polish-v2/shop-shelf-96x32.png?v=group-v1"
+  },
+  {
+    "id": "shoji_closed",
+    "name": "障子・閉（2×1）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/shoji_closed.png?v=completion-v1"
+  },
+  {
+    "id": "shoji_open",
+    "name": "障子・開（右1マス通行）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/shoji_open.png?v=completion-v1"
+  },
+  {
+    "id": "fusuma_closed",
+    "name": "襖・閉（2×1）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/fusuma_closed.png?v=completion-v1"
+  },
+  {
+    "id": "fusuma_open",
+    "name": "襖・開（右1マス通行）",
+    "layer": "structure",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/fusuma_open.png?v=completion-v1"
+  },
+  {
+    "id": "doorway",
+    "name": "出入口の木枠",
+    "layer": "structure",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/doorway.png?v=completion-v1"
+  },
+  {
+    "id": "partition_h",
+    "name": "間仕切り・横",
+    "layer": "structure",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/partition_h.png?v=completion-v1"
+  },
+  {
+    "id": "partition_v",
+    "name": "間仕切り・縦",
+    "layer": "structure",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/partition_v.png?v=completion-v1"
+  },
+  {
+    "id": "byobu_set",
+    "name": "屏風・一式（2×1）",
+    "layer": "object",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/byobu_set.png?v=completion-v1"
+  },
+  {
+    "id": "medicine_drawer",
+    "name": "壁付け薬箪笥（床1マス）",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/medicine_drawer.png?v=completion-v1",
+    "renderRect": [
+      0,
+      -32,
+      32,
+      64
+    ],
+    "requiresWall": true
+  },
+  {
+    "id": "wall_labels",
+    "name": "壁の札（壁に重ねる）",
+    "layer": "object",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/wall_labels.png?v=completion-v1",
+    "requiresStructure": true
+  },
+  {
+    "id": "weapon_rack",
+    "name": "刀・槍の武器掛け（2×1）",
+    "layer": "object",
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/weapon_rack.png?v=completion-v1",
+    "legacy": true
+  },
+  {
+    "id": "wall_weapons",
+    "name": "壁掛け武具",
+    "layer": "object",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/wall_weapons.png?v=completion-v1",
+    "requiresStructure": true
+  },
+  {
+    "id": "armor_display",
+    "name": "鎧飾り",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/armor_display.png?v=completion-v1",
+    "legacy": true
+  },
+  {
+    "id": "garden_pond",
+    "name": "庭池・一式（2×2）",
+    "layer": "object",
+    "span": [
+      2,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "walk": false,
+    "src": "assets/animation/fluid-v1/garden-pond.png?v=fluid-v1",
+    "frames": [
+      [
+        0,
+        0,
+        64,
+        64
+      ],
+      [
+        64,
+        0,
+        64,
+        64
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      64,
+      64
+    ],
+    "waterAnim": true
+  },
+  {
+    "id": "stone_lantern",
+    "name": "石灯籠",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/stone_lantern.png?v=completion-v1"
+  },
+  {
+    "id": "garden_shrub",
+    "name": "庭の低木",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/garden_shrub.png?v=completion-v1"
+  },
+  {
+    "id": "garden_tree",
+    "name": "庭の常緑樹",
+    "layer": "object",
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "walk": false,
+    "src": "assets/interior-editor/completion-v1/garden_tree.png?v=completion-v1"
+  },
+  {
+    "id": "stepping_stone",
+    "name": "庭の踏み石（通行可）",
+    "layer": "object",
+    "occupiedTiles": [],
+    "walk": true,
+    "src": "assets/interior-editor/completion-v1/stepping_stone.png?v=completion-v1"
+  },
+  {
+    "id": "water_surface",
+    "name": "水面・2コマ",
+    "layer": "floor",
+    "walk": false,
+    "waterAnim": true,
+    "src": "assets/animation/fluid-v1/water-surface.png?v=fluid-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        32,
+        0,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "river_surface",
+    "name": "川・自動接続・2コマ",
+    "layer": "floor",
+    "walk": false,
+    "waterAnim": true,
+    "waterAutotile": true,
+    "src": "assets/animation/fluid-v1/river-47.png?v=fluid-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        0,
+        192,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      32,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      64,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      96,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      128,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      160,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      192,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      224,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      256,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_0",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      288,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      0,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      32,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      64,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      96,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      128,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      160,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      192,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      224,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      256,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_1",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      288,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      0,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      32,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      64,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      96,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      128,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      160,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      192,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      224,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      256,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_2",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      288,
+      64,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      0,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      32,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      64,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      96,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      128,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      160,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      192,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      224,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      256,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_3",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      288,
+      96,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      0,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      32,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      64,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      96,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      128,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      160,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      192,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      224,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      256,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_4",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      288,
+      128,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_0_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      0,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_1_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      32,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_2_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      64,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_3_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      96,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_4_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      128,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_5_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      160,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_6_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      192,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_7_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      224,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_8_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      256,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_9_5",
+    "name": "ムシロ内部",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "legacy": true,
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1",
+    "crop": [
+      288,
+      160,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "mushiro_whole",
+    "name": "ムシロ・旧一式（互換）",
+    "legacy": true,
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "span": [
+      10,
+      6
+    ],
+    "parts": [
+      [
+        0,
+        0,
+        "mushiro_0_0"
+      ],
+      [
+        1,
+        0,
+        "mushiro_1_0"
+      ],
+      [
+        2,
+        0,
+        "mushiro_2_0"
+      ],
+      [
+        3,
+        0,
+        "mushiro_3_0"
+      ],
+      [
+        4,
+        0,
+        "mushiro_4_0"
+      ],
+      [
+        5,
+        0,
+        "mushiro_5_0"
+      ],
+      [
+        6,
+        0,
+        "mushiro_6_0"
+      ],
+      [
+        7,
+        0,
+        "mushiro_7_0"
+      ],
+      [
+        8,
+        0,
+        "mushiro_8_0"
+      ],
+      [
+        9,
+        0,
+        "mushiro_9_0"
+      ],
+      [
+        0,
+        1,
+        "mushiro_0_1"
+      ],
+      [
+        1,
+        1,
+        "mushiro_1_1"
+      ],
+      [
+        2,
+        1,
+        "mushiro_2_1"
+      ],
+      [
+        3,
+        1,
+        "mushiro_3_1"
+      ],
+      [
+        4,
+        1,
+        "mushiro_4_1"
+      ],
+      [
+        5,
+        1,
+        "mushiro_5_1"
+      ],
+      [
+        6,
+        1,
+        "mushiro_6_1"
+      ],
+      [
+        7,
+        1,
+        "mushiro_7_1"
+      ],
+      [
+        8,
+        1,
+        "mushiro_8_1"
+      ],
+      [
+        9,
+        1,
+        "mushiro_9_1"
+      ],
+      [
+        0,
+        2,
+        "mushiro_0_2"
+      ],
+      [
+        1,
+        2,
+        "mushiro_1_2"
+      ],
+      [
+        2,
+        2,
+        "mushiro_2_2"
+      ],
+      [
+        3,
+        2,
+        "mushiro_3_2"
+      ],
+      [
+        4,
+        2,
+        "mushiro_4_2"
+      ],
+      [
+        5,
+        2,
+        "mushiro_5_2"
+      ],
+      [
+        6,
+        2,
+        "mushiro_6_2"
+      ],
+      [
+        7,
+        2,
+        "mushiro_7_2"
+      ],
+      [
+        8,
+        2,
+        "mushiro_8_2"
+      ],
+      [
+        9,
+        2,
+        "mushiro_9_2"
+      ],
+      [
+        0,
+        3,
+        "mushiro_0_3"
+      ],
+      [
+        1,
+        3,
+        "mushiro_1_3"
+      ],
+      [
+        2,
+        3,
+        "mushiro_2_3"
+      ],
+      [
+        3,
+        3,
+        "mushiro_3_3"
+      ],
+      [
+        4,
+        3,
+        "mushiro_4_3"
+      ],
+      [
+        5,
+        3,
+        "mushiro_5_3"
+      ],
+      [
+        6,
+        3,
+        "mushiro_6_3"
+      ],
+      [
+        7,
+        3,
+        "mushiro_7_3"
+      ],
+      [
+        8,
+        3,
+        "mushiro_8_3"
+      ],
+      [
+        9,
+        3,
+        "mushiro_9_3"
+      ],
+      [
+        0,
+        4,
+        "mushiro_0_4"
+      ],
+      [
+        1,
+        4,
+        "mushiro_1_4"
+      ],
+      [
+        2,
+        4,
+        "mushiro_2_4"
+      ],
+      [
+        3,
+        4,
+        "mushiro_3_4"
+      ],
+      [
+        4,
+        4,
+        "mushiro_4_4"
+      ],
+      [
+        5,
+        4,
+        "mushiro_5_4"
+      ],
+      [
+        6,
+        4,
+        "mushiro_6_4"
+      ],
+      [
+        7,
+        4,
+        "mushiro_7_4"
+      ],
+      [
+        8,
+        4,
+        "mushiro_8_4"
+      ],
+      [
+        9,
+        4,
+        "mushiro_9_4"
+      ],
+      [
+        0,
+        5,
+        "mushiro_0_5"
+      ],
+      [
+        1,
+        5,
+        "mushiro_1_5"
+      ],
+      [
+        2,
+        5,
+        "mushiro_2_5"
+      ],
+      [
+        3,
+        5,
+        "mushiro_3_5"
+      ],
+      [
+        4,
+        5,
+        "mushiro_4_5"
+      ],
+      [
+        5,
+        5,
+        "mushiro_5_5"
+      ],
+      [
+        6,
+        5,
+        "mushiro_6_5"
+      ],
+      [
+        7,
+        5,
+        "mushiro_7_5"
+      ],
+      [
+        8,
+        5,
+        "mushiro_8_5"
+      ],
+      [
+        9,
+        5,
+        "mushiro_9_5"
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_c",
+    "name": "ムシロ・中央",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_c2",
+    "name": "ムシロ・中央・つぎはぎ2",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_c3",
+    "name": "ムシロ・中央・つぎはぎ3",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_n",
+    "name": "ムシロ・上端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_s",
+    "name": "ムシロ・下端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_w",
+    "name": "ムシロ・左端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_e",
+    "name": "ムシロ・右端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_nw",
+    "name": "ムシロ・左上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_ne",
+    "name": "ムシロ・右上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_sw",
+    "name": "ムシロ・左下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=facility-v1"
+  },
+  {
+    "id": "mushiro_se",
+    "name": "ムシロ・右下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_c",
+    "name": "高床・ムシロ・中央",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_c2",
+    "name": "高床・ムシロ・中央・つぎはぎ2",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_c3",
+    "name": "高床・ムシロ・中央・つぎはぎ3",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_n",
+    "name": "高床・ムシロ・上端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_s",
+    "name": "高床・ムシロ・下端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_w",
+    "name": "高床・ムシロ・左端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_e",
+    "name": "高床・ムシロ・右端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_nw",
+    "name": "高床・ムシロ・左上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_ne",
+    "name": "高床・ムシロ・右上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_sw",
+    "name": "高床・ムシロ・左下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=facility-v1"
+  },
+  {
+    "id": "raised_mushiro_se",
+    "name": "高床・ムシロ・右下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=facility-v1"
+  },
+  {
+    "id": "irori_lit",
+    "name": "囲炉裏・点火（真上・1マス）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      1,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/irori-lit-64x32.png?v=quality-v1",
+    "frames": [
+      [
+        0,
+        0,
+        32,
+        32
+      ],
+      [
+        32,
+        0,
+        32,
+        32
+      ]
+    ],
+    "crop": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  {
+    "id": "irori_unlit",
+    "name": "囲炉裏・消火（真上・1マス）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      1,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/irori-unlit-32x32.png?v=quality-v1"
+  },
+  {
+    "id": "low_table",
+    "name": "座卓（原画の細部を維持）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      2,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/low-table-64x64.png?v=quality-v1"
+  },
+  {
+    "id": "weapon_rack_large",
+    "name": "刀・槍の武器掛け",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/quality-v1/weapon-rack-96x32.png?v=quality-v1"
+  },
+  {
+    "id": "armor_wall_display",
+    "name": "鎧飾り（壁際）",
+    "layer": "object",
+    "walk": false,
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ]
+    ],
+    "requiresWall": true,
+    "renderRect": [
+      0,
+      -32,
+      32,
+      64
+    ],
+    "src": "assets/interior-editor/quality-v1/armor-32x64.png?v=quality-v1"
+  },
+  {
+    "id": "doctor_counter",
+    "name": "薬の調合台（すり鉢・薬瓶・薬草）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/doctor_counter.png?v=facility-v1"
+  },
+  {
+    "id": "inn_counter",
+    "name": "宿の受付（台帳・硯・鍵盆）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/inn_counter.png?v=facility-v1"
+  },
+  {
+    "id": "armory_counter",
+    "name": "武具の展示台（刀・槍先）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      3,
+      2
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/armory_counter.png?v=facility-v1"
+  },
+  {
+    "id": "tea_bench",
+    "name": "赤い長椅子（座面・木脚）",
+    "layer": "object",
+    "walk": false,
+    "span": [
+      2,
+      1
+    ],
+    "occupiedTiles": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "src": "assets/interior-editor/facility-v1/tea_bench.png?v=facility-v1"
+  },
+  {
+    "id": "platform_face_art",
+    "name": "高床の木目（描画専用）",
+    "layer": "object",
+    "walk": true,
+    "legacy": true,
+    "occupiedTiles": [],
+    "src": "assets/interior-editor/facility-v1/platform_face.png?v=facility-v1"
+  }
+]
