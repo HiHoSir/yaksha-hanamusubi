@@ -30,6 +30,7 @@ const assets=[
 {id:'blocked',name:'通行不可',layer:'collision',walk:false},
 {id:'passable',name:'通行可能',layer:'collision',walk:true}
 ];
+const atlasUrl='assets/interior-editor/interior-atlas-9x1.png';for(const [i,id] of ['wood','earth','wall','pillar','end_l','end_r','stairs_l','stairs_m','stairs_r'].entries()){const a=assets.find(a=>a.id===id);a.src=atlasUrl;a.crop=[i*32,0,32,32]}
 const old={road:'earth',raised:'threshold',entrance:'opening',stone:'threshold',tatami:'wood',counter:'table',weapon:'table'};
 const byId=()=>Object.fromEntries(assets.map(a=>[a.id,a]));let w=10,h=8,room='teahouse',data={},selected='earth',history=[],future=[],pending='',drawing=false,last=-1,panStart=null;
 const blank=()=>({floor:Array(w*h).fill('earth'),structure:Array(w*h).fill(null),object:Array(w*h).fill(null),collision:Array(w*h).fill(null),spawn:[Math.floor(w/2),h-2],exits:[[Math.floor(w/2),h-1]]});
