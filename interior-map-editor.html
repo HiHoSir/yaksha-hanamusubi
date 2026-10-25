@@ -90,9 +90,19 @@ canvas.addEventListener('pointermove',e=>{if(panStart){$('viewport').scrollLeft=
 for(const n of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(n,()=>{drawing=false;panStart=null;last=-1});
 $('layer').onchange=palette;$('zoom').onchange=draw;for(const id of ['grid','coll'])$(id).onchange=draw;
 $('undo').onclick=()=>{if(!history.length)return;future.push(snapshot());restore(history.pop())};$('redo').onclick=()=>{if(!future.length)return;history.push(snapshot());restore(future.pop())};
-$('room').onchange=()=>{const id=$('room').value;room=id;if(dims[id]){[$('w').value,$('h').value]=dims[id]}};
+$('room').onchange=()=>{const id=$('room').value;room=id;if(dims[id]){[$('w').value,$('h').value]=dims[id]}$('status').textContent='部屋種別を選択しました。「初期配置に戻す」でこの部屋のひな形を作成できます。'};
 $('resize').onclick=()=>{const nw=Number($('w').value),nh=Number($('h').value);if(!Number.isInteger(nw)||!Number.isInteger(nh)||nw<3||nh<3||nw>80||nh>80)return alert('3〜80マスで指定');push();const oldData=data,ow=w,oh=h;w=nw;h=nh;data=blank();for(const l of ['floor','structure','object','stairs','collision','elevation'])for(let y=0;y<Math.min(h,oh);y++)for(let x=0;x<Math.min(w,ow);x++)data[l][y*w+x]=oldData[l][y*ow+x];room=$('room').value;draw();save()};
-function initial(){data=blank();for(let x=0;x<w;x++)data.structure[x]='wall';for(let x=0;x<w;x++)if(x<Math.floor(w/2)-1||x>Math.floor(w/2))data.structure[(h-1)*w+x]='wall';data.structure[(h-1)*w+Math.floor(w/2)-1]='opening';data.structure[(h-1)*w+Math.floor(w/2)]='opening';draw();save()}
+function initial(){data=blank();const at=(x,y)=>y*w+x,put=(layer,x,y,id)=>{if(x>=0&&x<w&&y>=0&&y<h)data[layer][at(x,y)]=id};const center=Math.floor(w/2);
+for(let y=0;y<h;y++)for(let x=0;x<w;x++)put('floor',x,y,'wood');
+for(let x=0;x<w;x++){put('structure',x,0,'wall');put('structure',x,h-1,'wall')}
+for(let y=0;y<h;y++){put('structure',0,y,'wall');put('structure',w-1,y,'wall')}
+for(let x=center-1;x<=center;x++){put('structure',x,h-1,'opening');put('floor',x,h-1,'earth')}
+data.exits=[[center,h-1]];data.spawn=[center,h-2];
+if(room==='teahouse'){for(let y=h-3;y<h-1;y++)for(let x=1;x<w-1;x++)put('floor',x,y,'earth');put('object',center-2,2,'table');put('object',center-2,3,'cushion');put('object',center+1,2,'village_pot');put('object',w-2,2,'village_barrel');put('object',2,h-3,'village_bench')}
+else if(room==='inn'){for(let x=2;x<w-2;x+=4){put('object',x,2,'futon');put('object',x+1,2,'village_basket');put('object',x,5,'futon')}put('object',w-3,h-3,'village_barrel');put('object',2,h-3,'table')}
+else if(room==='armory'){for(let x=2;x<w-2;x+=2)put('object',x,2,'village_crate');put('object',center,h-3,'table');put('object',w-2,3,'village_barrel')}
+else if(room==='home'){put('object',2,2,'hearth');put('object',w-3,2,'futon');put('object',center,3,'table');put('object',center,4,'cushion');put('object',2,h-3,'village_basket')}
+heroPos=null;draw();save()}
 $('reset').onclick=()=>{if(!confirm('初期配置に戻しますか？'))return;push();initial()};$('clear').onclick=()=>{if(!confirm('全消去しますか？'))return;push();data=blank();draw();save()};
 function moveHero(dx,dy){const p=heroPos||data.spawn;if(!p)return;const xx=p[0]+dx,yy=p[1]+dy;if(!canStep(p[0],p[1],xx,yy)){$('status').textContent='移動不可：段差の上辺は階段がないと越えられません';return}heroPos=[xx,yy];$('heroPreview').checked=true;$('status').textContent='緋月 ('+xx+','+yy+')：移動可能';draw()}for(const [id,dx,dy]of [['heroUp',0,-1],['heroDown',0,1],['heroLeft',-1,0],['heroRight',1,0]])$(id).onclick=()=>moveHero(dx,dy);$('heroPlace').onclick=()=>{pending='hero';$('status').textContent='緋月を立たせるマスをタップしてください'};$('heroPreview').onchange=draw;$('spawn').onclick=()=>{pending='spawn';$('status').textContent='出現点をタップ'};$('exit').onclick=()=>{pending='exit';$('status').textContent='出口をタップ'};
 function encode(){return JSON.stringify({schema:'yaksha-interior-editor-v1',tileSize:32,width:w,height:h,room,layers:data,assets:assets.filter(a=>a.src&&a.src.startsWith('data:')).map(a=>({id:a.id,name:a.name,layer:a.layer,src:a.src,walk:a.walk})),collisionRule:'cell occupancy plus edge elevation: adjacent height difference 1 needs lower-cell stairs and vertical crossing',coordinateSystem:'integer cells from top left'},null,2)}
