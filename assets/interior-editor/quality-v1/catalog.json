@@ -6,7 +6,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       0,
       0,
@@ -21,7 +21,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       32,
       0,
@@ -36,7 +36,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       64,
       0,
@@ -51,7 +51,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       96,
       0,
@@ -66,7 +66,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       128,
       0,
@@ -81,7 +81,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       160,
       0,
@@ -96,7 +96,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       192,
       0,
@@ -111,7 +111,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       224,
       0,
@@ -126,7 +126,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       256,
       0,
@@ -141,7 +141,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       288,
       0,
@@ -156,7 +156,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       0,
       32,
@@ -171,7 +171,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       32,
       32,
@@ -186,7 +186,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       64,
       32,
@@ -201,7 +201,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       96,
       32,
@@ -216,7 +216,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       128,
       32,
@@ -231,7 +231,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       160,
       32,
@@ -246,7 +246,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       192,
       32,
@@ -261,7 +261,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       224,
       32,
@@ -276,7 +276,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       256,
       32,
@@ -291,7 +291,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       288,
       32,
@@ -306,7 +306,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       0,
       64,
@@ -321,7 +321,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       32,
       64,
@@ -336,7 +336,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       64,
       64,
@@ -351,7 +351,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       96,
       64,
@@ -366,7 +366,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       128,
       64,
@@ -381,7 +381,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       160,
       64,
@@ -396,7 +396,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       192,
       64,
@@ -411,7 +411,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       224,
       64,
@@ -426,7 +426,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       256,
       64,
@@ -441,7 +441,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       288,
       64,
@@ -456,7 +456,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       0,
       96,
@@ -471,7 +471,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       32,
       96,
@@ -486,7 +486,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       64,
       96,
@@ -501,7 +501,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       96,
       96,
@@ -516,7 +516,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       128,
       96,
@@ -531,7 +531,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       160,
       96,
@@ -546,7 +546,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       192,
       96,
@@ -561,7 +561,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       224,
       96,
@@ -576,7 +576,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       256,
       96,
@@ -591,7 +591,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       288,
       96,
@@ -606,7 +606,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       0,
       128,
@@ -621,7 +621,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       32,
       128,
@@ -636,7 +636,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       64,
       128,
@@ -651,7 +651,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       96,
       128,
@@ -666,7 +666,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       128,
       128,
@@ -681,7 +681,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       160,
       128,
@@ -696,7 +696,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       192,
       128,
@@ -711,7 +711,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       224,
       128,
@@ -726,7 +726,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       256,
       128,
@@ -741,7 +741,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       288,
       128,
@@ -756,7 +756,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       0,
       160,
@@ -771,7 +771,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       32,
       160,
@@ -786,7 +786,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       64,
       160,
@@ -801,7 +801,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       96,
       160,
@@ -816,7 +816,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       128,
       160,
@@ -831,7 +831,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       160,
       160,
@@ -846,7 +846,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       192,
       160,
@@ -861,7 +861,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       224,
       160,
@@ -876,7 +876,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       256,
       160,
@@ -891,7 +891,7 @@
     "walk": true,
     "elevation": 1,
     "legacy": true,
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1",
     "crop": [
       288,
       160,
@@ -901,7 +901,8 @@
   },
   {
     "id": "mushiro_whole",
-    "name": "ムシロ・一枚（大）",
+    "name": "ムシロ・旧一式（互換）",
+    "legacy": true,
     "layer": "floor",
     "walk": true,
     "elevation": 1,
@@ -1211,101 +1212,237 @@
         "mushiro_9_5"
       ]
     ],
-    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=quality-v1"
+    "src": "assets/interior-editor/quality-v1/mushiro-floor-320x192.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_c",
+    "name": "ムシロ・中央",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_c2",
+    "name": "ムシロ・中央・つぎはぎ2",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_c3",
+    "name": "ムシロ・中央・つぎはぎ3",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_n",
+    "name": "ムシロ・上端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_s",
+    "name": "ムシロ・下端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_w",
+    "name": "ムシロ・左端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_e",
+    "name": "ムシロ・右端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_nw",
+    "name": "ムシロ・左上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_ne",
+    "name": "ムシロ・右上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_sw",
+    "name": "ムシロ・左下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=patchwork-v1"
+  },
+  {
+    "id": "mushiro_se",
+    "name": "ムシロ・右下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 0,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_c",
+    "name": "高床・ムシロ・中央",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_c2",
+    "name": "高床・ムシロ・中央・つぎはぎ2",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c2.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_c3",
+    "name": "高床・ムシロ・中央・つぎはぎ3",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_c3.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_n",
+    "name": "高床・ムシロ・上端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_n.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_s",
+    "name": "高床・ムシロ・下端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_s.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_w",
+    "name": "高床・ムシロ・左端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_w.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_e",
+    "name": "高床・ムシロ・右端",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_e.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_nw",
+    "name": "高床・ムシロ・左上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_nw.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_ne",
+    "name": "高床・ムシロ・右上",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_ne.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_sw",
+    "name": "高床・ムシロ・左下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_sw.png?v=patchwork-v1"
+  },
+  {
+    "id": "raised_mushiro_se",
+    "name": "高床・ムシロ・右下",
+    "layer": "floor",
+    "walk": true,
+    "elevation": 1,
+    "src": "assets/interior-editor/quality-v1/mushiro_floor_se.png?v=patchwork-v1"
   },
   {
     "id": "irori_lit",
-    "name": "囲炉裏・点火（四方枠）",
+    "name": "囲炉裏・点火（真上・1マス）",
     "layer": "object",
     "walk": false,
     "span": [
-      3,
-      2
+      1,
+      1
     ],
     "occupiedTiles": [
       [
         0,
         0
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        2,
-        0
-      ],
-      [
-        0,
-        1
-      ],
-      [
-        1,
-        1
-      ],
-      [
-        2,
-        1
       ]
     ],
-    "src": "assets/interior-editor/quality-v1/irori-lit-192x64.png?v=quality-v1",
+    "src": "assets/interior-editor/quality-v1/irori-lit-64x32.png?v=quality-v1",
     "frames": [
       [
         0,
         0,
-        96,
-        64
+        32,
+        32
       ],
       [
-        96,
+        32,
         0,
-        96,
-        64
+        32,
+        32
       ]
     ],
     "crop": [
       0,
       0,
-      96,
-      64
+      32,
+      32
     ]
   },
   {
     "id": "irori_unlit",
-    "name": "囲炉裏・消火（四方枠）",
+    "name": "囲炉裏・消火（真上・1マス）",
     "layer": "object",
     "walk": false,
     "span": [
-      3,
-      2
+      1,
+      1
     ],
     "occupiedTiles": [
       [
         0,
         0
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        2,
-        0
-      ],
-      [
-        0,
-        1
-      ],
-      [
-        1,
-        1
-      ],
-      [
-        2,
-        1
       ]
     ],
-    "src": "assets/interior-editor/quality-v1/irori-unlit-96x64.png?v=quality-v1"
+    "src": "assets/interior-editor/quality-v1/irori-unlit-32x32.png?v=quality-v1"
   },
   {
     "id": "low_table",

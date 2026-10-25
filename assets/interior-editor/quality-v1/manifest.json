@@ -6,9 +6,21 @@
     320,
     192
   ],
+  "mushiroModuleSize": [
+    32,
+    32
+  ],
+  "mushiroBorder": "raw-cut, no bound rim",
   "iroriSize": [
-    96,
-    64
+    32,
+    32
+  ],
+  "iroriView": "topdown",
+  "iroriOccupiedTiles": [
+    [
+      0,
+      0
+    ]
   ],
   "tableSize": [
     64,
