@@ -1,0 +1,4 @@
+interface:
+  display_name: "トップビューマップ・マップチップ制作"
+  short_description: "一枚絵の設計から透過マップチップ化、接地配置と歩行検査まで"
+  default_prompt: "$create-grid-map-art を使い、既存の画風とSDキャラに合うトップビューマップまたはマップチップを制作してください。"
