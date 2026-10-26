@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - improve/pixel-editor-mobile-cursor
       - improve/interior-map-editor-32px
       - improve/front-interaction
       - improve/field-grid-alignment
@@ -52,6 +53,9 @@ jobs:
           fi
           if [[ "$GITHUB_REF_NAME" == "improve/field-grid-alignment" ]]; then
             branches+=("improve/field-grid-alignment")
+          fi
+          if [[ "$GITHUB_REF_NAME" == "improve/pixel-editor-mobile-cursor" ]]; then
+            branches+=("improve/pixel-editor-mobile-cursor")
           fi
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             branches+=("$REQUESTED_PREVIEW")
@@ -114,3 +118,4 @@ jobs:
       - name: Deploy production and previews together
         id: deployment
         uses: actions/deploy-pages@v4
+
