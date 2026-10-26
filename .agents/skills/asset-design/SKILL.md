@@ -45,5 +45,8 @@ Never claim Safari QA without an actual device run.
 ## Field elevation compatibility
 For field mapchips, cliff surfaces or independent field objects, include `docs/field-elevation-assets.md` in preflight. Record ground material, separate cliff texture, height support, explicit contact/occupied cells and entrance approach. Reuse the shared approximately 45% corner geometry; never derive height/collision from image bounds.
 
+## Reusable true-32px conversion and QA
+For NPCs, characters, floor/terrain tiles, and objects undergoing genuine 32px raster conversion or pixel cleanup, also read [true-pixel-32](../true-pixel-32/SKILL.md). It specifies low-contrast source art, protection of approved pixels/colors, per-category checks, and matching *rendered* apparent size. Category-specific asset-design requirements remain authoritative.
+
 ## Character / NPC / tile pixel-production workflow
 Before preparing low-resolution graphics, read [the shared production and QA workflow](references/low-resolution-graphics.md). Apply its proportion, palette, true-pixel, crop-isolation and runtime-reference checks; select the category-specific checks rather than treating sprites and repeating tiles alike.
