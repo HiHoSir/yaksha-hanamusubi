@@ -199,13 +199,13 @@ function setupTouchWorkspace(){
  for(const id of ['undo','redo'])actions.appendChild($(id));
  const showCursor=document.createElement('button');showCursor.type='button';showCursor.textContent='照準で修正';showCursor.onclick=()=>{$('cursorMode').checked=!$('cursorMode').checked;$('cursorMode').dispatchEvent(new Event('change'));cursor.classList.toggle('cursor-active',$('cursorMode').checked);showCursor.textContent=$('cursorMode').checked?'指で描く':'照準で修正';};
  actions.appendChild(showCursor);workspace.appendChild(actions);
- const options=editor.querySelector('.canvasbox + .flex');if(options){options.classList.add('canvas-options');workspace.appendChild(options);}
+ const options=Array.from(editor.children).find(el=>el.classList.contains('flex')&&el.querySelector('#mirror'));if(options){options.classList.add('canvas-options');workspace.appendChild(options);}
  const compact=document.createElement('details');compact.className='mobile-secondary';
  const summary=document.createElement('summary');summary.textContent='詳細設定・その他の操作';compact.appendChild(summary);
  // Nonessential options remain accessible, close to the canvas when requested.
  const tail=Array.from(editor.children).filter(el=>el!==workspace&&el.id!=='tools'&&!el.classList.contains('directions')&&!el.classList.contains('walkstrip')&&!el.classList.contains('rowtitle'));
  for(const el of tail){if(el.parentElement===editor && el.tagName!=='P')compact.appendChild(el);}
- editor.appendChild(compact);compact.classList.add('open');
+ editor.appendChild(compact);
  // Preserve the top tool/pose/direction controls, fold accessory settings.
  cursor.classList.toggle('cursor-active',$('cursorMode').checked);
 }
