@@ -781,7 +781,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   const scale=(28/bounds.height)*(z/.56),foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,20*z,6*z,.28);
-  YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
+  c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
    x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
   c.restore();return;
  }
@@ -1897,7 +1897,7 @@ async function transitionArea(destination,commit,interiorId=null){
    const scale=28/bounds.height;
    const foot=y+9;
    c.save();c.imageSmoothingEnabled=false;
-   YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
+   c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
     x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
    c.restore();
   }
@@ -2621,4 +2621,5 @@ if(villageTestWarpBtn){
 }
 
 })();
+
 

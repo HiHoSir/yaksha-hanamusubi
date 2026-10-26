@@ -1,5 +1,5 @@
 {
-  "id": "hizuki-user-stepfix2-2026-10-27",
+  "id": "hizuki-user-edge3-2026-10-27",
   "cell": [
     32,
     32
@@ -17,11 +17,17 @@
     "walkB"
   ],
   "editor": "editor.json",
-  "source_filename": "sprite-walk-4dir-stepfix2.json",
-  "source_sha256": "2be294a61ac15b70bbafafb2dc0812249b7f77c8285d6490db52d800d1e69c38",
+  "source_filename": "sprite-walk-4dir-edge3.json",
+  "source_sha256": "9fa36b5ca2506a060dc747c86791c844ef6cd1af7006b995e6ffd9c9e94bfa61",
   "pixel_policy": "Exact user RGBA; intentional walking bounce preserved; no per-frame normalization",
   "bounds": {
     "front": [
+      [
+        6,
+        2,
+        26,
+        30
+      ],
       [
         6,
         3,
@@ -30,34 +36,28 @@
       ],
       [
         6,
-        4,
-        26,
-        30
-      ],
-      [
-        6,
-        4,
+        3,
         26,
         30
       ]
     ],
     "back": [
       [
-        7,
+        6,
+        2,
+        26,
+        30
+      ],
+      [
+        6,
         3,
-        25,
+        26,
         30
       ],
       [
-        7,
-        4,
-        25,
-        30
-      ],
-      [
-        7,
-        4,
-        25,
+        6,
+        3,
+        26,
         30
       ]
     ],
@@ -65,37 +65,37 @@
       [
         8,
         3,
-        24,
+        25,
         30
       ],
       [
         8,
         4,
-        24,
+        25,
         30
       ],
       [
         8,
         4,
-        24,
+        25,
         30
       ]
     ],
     "left": [
       [
-        8,
+        7,
         3,
         24,
         30
       ],
       [
-        8,
+        7,
         4,
         24,
         30
       ],
       [
-        8,
+        7,
         4,
         24,
         30

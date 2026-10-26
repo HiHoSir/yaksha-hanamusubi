@@ -5,7 +5,8 @@ const O=require('../js/sprite-outline.js'),P=require('../js/hozuki-village-core.
  const atlas=await loadImage('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png');
  const game=fs.readFileSync('js/game.js','utf8'),calls=[];
  const ctx=createCanvas(160,160).getContext('2d');
- const env={HIZUKI_FIELD_SD:atlas,HIZUKI_4DIR_ROW:{d:0,u:1,r:2,l:3},SD_FIELD_BOUNDS_CACHE:new Map(),hizukiArt:'sd',characterScale:()=>1,ensureImage(){},layerReady:()=>true,document:{createElement:()=>createCanvas(32,32)},YKSpriteOutline:{draw(...args){calls.push(args);O.draw(...args,createCanvas)}}};
+ const nativeDraw=ctx.drawImage.bind(ctx);ctx.drawImage=(...args)=>{calls.push([ctx,...args]);nativeDraw(...args)};
+ const env={HIZUKI_FIELD_SD:atlas,HIZUKI_4DIR_ROW:{d:0,u:1,r:2,l:3},SD_FIELD_BOUNDS_CACHE:new Map(),hizukiArt:'sd',characterScale:()=>1,ensureImage(){},layerReady:()=>true,document:{createElement:()=>createCanvas(32,32)},YKSpriteOutline:{draw(){throw Error('Hizuki must not receive a second outline')}}};
  vm.createContext(env);
  vm.runInContext(game.slice(game.indexOf('function sdFieldBounds('),game.indexOf('// Approved SD atlas shared')),env);
  vm.runInContext(game.slice(game.indexOf('function shadow('),game.indexOf('// Measure opaque character bounds')),env);
