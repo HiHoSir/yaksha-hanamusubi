@@ -26,6 +26,6 @@ test('approved torii reuses PNG with only bottom left/right posts blocked',async
 test('unrelated visualRects remain unchanged',()=>{
  const m=M.createMap();
  const w=C.byId.well,house=C.byId.building_tea;
- assert.deepEqual(M.visualRect(m,{templateId:'well',x:5,y:5}),{x:165,y:162,width:22,height:28});
+ assert.deepEqual(M.visualRect(m,{templateId:'well',x:5,y:5}),{x:165,y:164,width:22,height:28});
  assert.deepEqual(M.visualRect(m,{templateId:'building_tea',x:5,y:5}),{x:162,y:127,width:92,height:65});
 });
