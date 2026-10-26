@@ -23,6 +23,7 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Terrain heights, ramps, diagonal cliff corners and collision | [terrain-elevation](.agents/skills/terrain-elevation/SKILL.md) |
 | Field/mapchip artwork and terrain | [field-mapchip-art](.agents/skills/field-mapchip-art/SKILL.md) |
 | New tile, floor decoration, furniture or architecture generation preflight | [asset-design](.agents/skills/asset-design/SKILL.md) |
+| True 32px conversion / pixel cleanup / palette locks / atlas and tiles QA | [true-pixel-32](.agents/skills/true-pixel-32/SKILL.md) |
 | Isolated private internal validation site | [sites-private-debug](.agents/skills/sites-private-debug/SKILL.md) |
 | Proven image-to-GitHub binary transfer, atlas and main commit | [github-image-atlas](skills/github-image-atlas/SKILL.md) |
 | Paired intact/worn enemy preprocessing and atlas build | [enemy-atlas-pipeline](skills/enemy-atlas-pipeline/SKILL.md) |
