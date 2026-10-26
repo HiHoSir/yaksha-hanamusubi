@@ -9,9 +9,13 @@ function drawWater(c,m,o={}){const frames=M.autotileLayout(m);for(const v of m.o
 function draw(c,m,o={}){const images=o.images||{},tile=m.tileSize,objects=o.groundOnly?m.objects.filter(v=>C.byId[v.templateId].layer==='ground'):m.objects;if(o.forExport){if(m.background&&!o.backgroundImage)throw Error('背景画像が未読込です');for(const v of objects)if(!images[v.templateId])throw Error('素材画像が未読込です');}
 c.imageSmoothingEnabled=false;c.clearRect(0,0,m.width*tile,m.height*tile);
 if(o.backgroundImage)c.drawImage(o.backgroundImage,0,0);
+// Additional water-specific layers preserve the pre-existing object catalog.
+const waterFrame=Math.floor((o.animationTime||0)/450)%4;
+function layerTiles(entries,mode){for(const v of entries||[]){const id=mode==='bottom'?v.tileId:v.depth==='shallow'?'tenyo_shallows':v.depth==='mid'?'auto_river':'auto_river';const t=C.byId[id],im=images[id];if(!t||!im)continue;const x=v.x*tile,y=v.y*tile;let sr=t.sourceRect;if(t.autotile){sr=[0,mode==='surface'&&id==='auto_river'?(waterFrame%2)*192:0,32,32];}else if(t.animation){sr=[0,waterFrame*t.animation.frameHeight,32,32];}c.save();if(mode==='surface')c.globalAlpha=v.opacity??.65;c.drawImage(im,...sr,x,y,tile,tile);c.restore();}}
 const frames=M.autotileLayout(m),object=v=>{const im=images[v.templateId],t=C.byId[v.templateId],r=M.visualRect(m,v),index=frames.get(v.id),source=t.autotile?[index%8*32,Math.floor(index/8)*32+(t.animation?phase(o,t)*t.animation.frameHeight:0),32,32]:t.sourceRect;if(im)c.drawImage(im,...source,r.x,r.y,r.width,r.height);};
 const groundOrder=v=>{const t=C.byId[v.templateId];return t.bridgePassages?3:t.paintGroup==='base'?0:t.shallow?1:t.autotile?1:2;};
 for(const v of objects.filter(v=>C.byId[v.templateId].layer==='ground').sort((a,b)=>groundOrder(a)-groundOrder(b)))object(v);
+layerTiles(m.waterBottom,'bottom');layerTiles(m.waterSurface,'surface');
 if(!o.groundOnly)for(const item of depthQueue(m,!o.forExport&&o.hero?o.actor:null,o.bounds)){if(item.object)object(item.object);else actor(c,item.actor,o.hero,o.bounds,tile);}
 if(!o.forExport&&o.actor&&images.tenyo_ripple_fx){const s=o.actor;if(m.objects.some(v=>v.templateId==='tenyo_shallows'&&v.x===Math.round(s.x)&&v.y===Math.round(s.y))){const f=Math.floor((o.animationTime||0)/170)%4;c.drawImage(images.tenyo_ripple_fx,0,f*32,32,32,Math.round(s.x*tile),Math.round(s.y*tile),tile,tile);}}
 if(o.forExport)return;
