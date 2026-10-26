@@ -67,5 +67,10 @@ packAsset('torii_gate_v2','鳥居・村用32px版',[4,3],false,false,{
  sourceRect:[0,0,128,96],pack:'tenyo-gate-v1',
  occupiedTiles:[[0,0],[3,0]]
 });
+// Low-res freestanding stone lantern for Tenyou sanctuary. One blocked base cell.
+packAsset('tenyo_stone_lantern','天妖の石灯篭',[1,2],true,false,{
+ src:'assets/settlement-editor/tenyo-gate-v1/stone_lantern_1x2.png',
+ sourceRect:[0,0,32,64],pack:'tenyo-gate-v1',occupiedTiles:[[0,0]]
+});
 return {templates,byId};
 });
