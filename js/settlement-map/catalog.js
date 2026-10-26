@@ -61,5 +61,11 @@ packAsset('tenyo_water_gate','天妖の社・水上門',[6,4],false,false,{
  occupiedTiles:[[0,0],[1,0],[4,0],[5,0]],
  entranceLocal:[2,0],approachLocal:[2,1]
 });
+// Dedicated orthographic village torii, 4x3 display. Only outer posts collide.
+packAsset('torii_gate_v2','鳥居・村用32px版',[4,3],false,false,{
+ src:'assets/settlement-editor/tenyo-gate-v1/torii_gate_v2_4x3.png',
+ sourceRect:[0,0,128,96],pack:'tenyo-gate-v1',
+ occupiedTiles:[[0,0],[3,0]]
+});
 return {templates,byId};
 });
