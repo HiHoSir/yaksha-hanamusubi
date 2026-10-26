@@ -1,0 +1,30 @@
+{
+  "id": "hizuki-field-sd-v3",
+  "cell": [
+    32,
+    32
+  ],
+  "atlas": "walk-atlas-32.png",
+  "rows": [
+    "front",
+    "back",
+    "right",
+    "left"
+  ],
+  "columns": [
+    "idle",
+    "walkA",
+    "walkB"
+  ],
+  "editor": "editor.json",
+  "opaque_height": 27,
+  "opaque_top": 3,
+  "opaque_bottom": 29,
+  "approved_front_source": "design-reference/characters/hizuki32-user-edit/hair-highlight/hizuki-front-hair-highlight-32.png",
+  "shader": "RGBA pixel edits only; binary alpha; no imagegen",
+  "head_locked_rows": [
+    0,
+    17
+  ],
+  "previous_asset": "../field-sd-v2/walk-atlas-32.png"
+}

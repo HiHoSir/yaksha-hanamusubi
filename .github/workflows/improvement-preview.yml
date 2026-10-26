@@ -6,6 +6,7 @@ on:
       - improve/interior-map-editor-32px
       - improve/front-interaction
       - improve/field-grid-alignment
+      - improve/hizuki32-user-pixel-walk
   workflow_dispatch:
     inputs:
       source_branch:
@@ -52,6 +53,9 @@ jobs:
           fi
           if [[ "$GITHUB_REF_NAME" == "improve/field-grid-alignment" ]]; then
             branches+=("improve/field-grid-alignment")
+          fi
+          if [[ "$GITHUB_REF_NAME" == "improve/hizuki32-user-pixel-walk" ]]; then
+            branches+=("improve/hizuki32-user-pixel-walk")
           fi
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             branches+=("$REQUESTED_PREVIEW")
@@ -114,3 +118,4 @@ jobs:
       - name: Deploy production and previews together
         id: deployment
         uses: actions/deploy-pages@v4
+

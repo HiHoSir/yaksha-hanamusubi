@@ -24,7 +24,8 @@ const {createCanvas,loadImage}=require('@napi-rs/canvas');
  c.w=10;c.h=8;for(const l of ['floor','structure','object','stairs','collision','elevation'])data[l]=Array(80).fill(l==='floor'?'wood':l==='elevation'?0:null);
  for(let x=0;x<10;x++){data.structure[x]='wall';data.structure[70+x]='wall';}for(let y=1;y<7;y++){data.structure[y*10]='wall_side_l';data.structure[y*10+9]='wall_side_r';}
  for(const [x,y,id] of [[2,1,'shelf_l'],[3,1,'shelf_m'],[4,1,'shelf_r'],[2,3,'table'],[2,4,'cushion'],[6,3,'table'],[6,4,'cushion']])data.object[y*10+x]=id;
- c.draw();const hero=await loadImage('assets/characters/hizuki/field-sd-v2/walk-atlas-32.png');ctx.drawImage(hero,0,0,32,32,128,128,32,32);
+ c.draw();const hero=await loadImage('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png');ctx.drawImage(hero,0,0,32,32,128,128,32,32);
  fs.writeFileSync('/tmp/interior-polish-room.png',canvas.toBuffer('image/png'));
  console.log('PASS: registered assets/crops, JavaScript startup syntax, actual stair pixels, inward side walls, whole-cell furniture collision, stair transitions, native Canvas room rendering');
 })().catch(e=>{console.error(e);process.exitCode=1});
+

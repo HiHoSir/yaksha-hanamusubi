@@ -17,7 +17,8 @@ const fs=require('fs'),vm=require('vm'),a=require('node:assert/strict'),{createC
  const roundtrip=JSON.parse(JSON.stringify(map));a.deepEqual(roundtrip,map);
  const markers={spawn:c.data.spawn,exits:c.data.exits};c.data.spawn=null;c.data.exits=[];c.draw();Object.assign(c.data,markers);
  const wall=createCanvas(32,32).getContext('2d');wall.drawImage(images.get(assets.wall.src),...assets.wall.crop,0,0,32,32);a(!Buffer.from(ctx.getImageData(32,0,32,32).data).equals(Buffer.from(wall.getImageData(0,0,32,32).data)),'cabinet artwork must overlap the wall');
- const hero=await loadImage('assets/characters/hizuki/field-sd-v2/walk-atlas-32.png');ctx.drawImage(hero,0,0,32,32,7*32,9*32,32,32);
+ const hero=await loadImage('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png');ctx.drawImage(hero,0,0,32,32,7*32,9*32,32,32);
  fs.writeFileSync('/tmp/interior-raised-shop-native.png',canvas.toBuffer('image/png'));
  console.log('PASS: kit PNGs and binary alpha, registered IDs, JSON roundtrip, raised-corner route from entry through stairs to both sides of counter and all bench approaches, wall overlap, one-cell contact and pair migration, native editor draw without placeholder furniture');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
