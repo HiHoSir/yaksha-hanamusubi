@@ -1,0 +1,106 @@
+{
+  "id": "hizuki-user-approved-2026-10-26",
+  "cell": [
+    32,
+    32
+  ],
+  "atlas": "walk-atlas-32.png",
+  "rows": [
+    "front",
+    "back",
+    "right",
+    "left"
+  ],
+  "columns": [
+    "idle",
+    "walkA",
+    "walkB"
+  ],
+  "editor": "editor.json",
+  "source_filename": "hizuki-sd-v3-limbs2.json",
+  "source_sha256": "2dd91196029106fdce98e9c6fd3d512b5700f4225d073e8899dc6000b7f41a3d",
+  "pixel_policy": "Exact user RGBA; intentional walking bounce preserved; no per-frame normalization",
+  "bounds": {
+    "front": [
+      [
+        6,
+        3,
+        25,
+        30
+      ],
+      [
+        6,
+        4,
+        25,
+        30
+      ],
+      [
+        6,
+        4,
+        25,
+        30
+      ]
+    ],
+    "back": [
+      [
+        7,
+        3,
+        25,
+        30
+      ],
+      [
+        7,
+        4,
+        25,
+        30
+      ],
+      [
+        7,
+        4,
+        25,
+        30
+      ]
+    ],
+    "right": [
+      [
+        8,
+        3,
+        24,
+        30
+      ],
+      [
+        8,
+        4,
+        24,
+        30
+      ],
+      [
+        8,
+        4,
+        24,
+        30
+      ]
+    ],
+    "left": [
+      [
+        8,
+        3,
+        24,
+        30
+      ],
+      [
+        8,
+        4,
+        24,
+        30
+      ],
+      [
+        8,
+        4,
+        24,
+        30
+      ]
+    ]
+  },
+  "revision": "16.1.62"
+}

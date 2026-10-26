@@ -28,3 +28,4 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  a.equal(report.html,report.game);a(report.hero.includes('field-sd-v2'));a(report.outline);a(report.ready);a.deepEqual(errors,[]);
  console.log('PASS Chromium: actual ticker random walking, cell reservations/routes, chief dialogue/pause/story, inn entry/return, save reload, latest Hizuki/outline',report);
  }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

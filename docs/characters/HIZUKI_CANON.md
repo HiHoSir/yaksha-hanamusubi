@@ -55,3 +55,9 @@ ChatGPT Library `/新生鬼哭の花契り/` の次の2枚を画像表示して�
 
 ## 現行ゲームSD（2026-10-25更新）
 ユーザー承認済み候補3を使用: `assets/characters/hizuki/field-sd-v2/walk-atlas-32.png`。32px・3列×4行、静止/A/B、正面/背面/右/左。フィールド・鬼灯村・ロード表示で共有。旧field-sd-v1は履歴として保持。外見設定画の正本とは区別する。外側輪郭は `js/sprite-outline.js` で描画し、原PNGと足元・カメラ・衝突を変えない。
+
+
+## ユーザー編集済みSD採用（2026-10-26）
+緋月は `hizuki-sd-v3-limbs2.json` を正本とし、`assets/characters/hizuki/field-sd-v3/` に画素を変更せず登録。歩行の上下動はユーザー指定のバウンスであり、頭部の高さ固定や各コマの再整列で取り除かない。フィールド・村・屋内・ロード・編集プレビューで共有。旧v2は保持する。
+
+白妙は `shirotae-walk-fixed(1).json` を採用し、`assets/characters/tenyo-npc-v3/` に全12コマと編集JSONを保存。現在の社のNPC位置・会話・静止動作を保つ。将来の仲間候補だが、加入イベントや能力は未確定・未実装。

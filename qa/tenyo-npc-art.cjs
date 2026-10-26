@@ -14,7 +14,7 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
   if(type==='miko'){
    assert.equal(args[2],({d:0,u:1,l:3,r:2})[dir]*32,'SD direction row');assert.equal(args[3],32);assert.equal(args[4],32);
    assert.equal(args[6]+30*args[8]/32,264+9*.56,'SD sole matches heroine');
-   assert(Math.abs(args[8]*27/32-58*.96)<.01,'SD visible height consistent');
+   assert(Math.abs(args[8]*27/32-28)<.01,'SD visible height consistent');
   }else{
    assert.equal(args[2],row*256);assert.equal(args[3],256);assert.equal(args[4],256);
    assert.equal(args[6]+248*args[8]/256,264+9*.56,'guard sole matches heroine');
@@ -23,7 +23,7 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  }
  assert.equal(art.draw(ctx,0,0,'traveler','d',1),false,'unrelated NPCs stay on their existing path');
  for(const entry of manifest.characters){
-  const im=await loadImage(entry.id==='shirotae'?'assets/characters/tenyo-npc-v2/shirotae-walk-96x128.png':'assets/characters/tenyo-npc-v1/'+entry.id+'.png');if(entry.id==='shirotae'){assert.equal(im.width,96);assert.equal(im.height,128);for(let row=0;row<4;row++)for(let col=0;col<3;col++){const c=createCanvas(32,32),g=c.getContext('2d');g.drawImage(im,col*32,row*32,32,32,0,0,32,32);const d=g.getImageData(0,0,32,32).data;assert(d.some((v,i)=>i%4===3&&v===255),'nonempty SD pixel frame');}continue;}assert.equal(im.width,256);assert.equal(im.height,1024);
+  const im=await loadImage(entry.id==='shirotae'?'assets/characters/tenyo-npc-v3/shirotae-walk-96x128.png':'assets/characters/tenyo-npc-v1/'+entry.id+'.png');if(entry.id==='shirotae'){assert.equal(im.width,96);assert.equal(im.height,128);for(let row=0;row<4;row++)for(let col=0;col<3;col++){const c=createCanvas(32,32),g=c.getContext('2d');g.drawImage(im,col*32,row*32,32,32,0,0,32,32);const d=g.getImageData(0,0,32,32).data;assert(d.some((v,i)=>i%4===3&&v===255),'nonempty SD pixel frame');}continue;}assert.equal(im.width,256);assert.equal(im.height,1024);
   for(let row=0;row<4;row++){
    const c=createCanvas(256,256),g=c.getContext('2d');g.drawImage(im,0,row*256,256,256,0,0,256,256);const p=g.getImageData(0,0,256,256).data;
    let top=256,bottom=-1,solid=0,clear=0;
@@ -42,6 +42,8 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  env.fetch=async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('assets/maps/tenyo/walkability-48x32.json'))});
  vm.runInNewContext(fs.readFileSync('js/tenyo-main-scene.js','utf8'),env);await env.YK_TENYO.whenReady();
  Object.assign(env,{characterScale:()=>1,hizukiArt:'sd',S:{area:'shrine'},HIZUKI_4DIR:await loadImage('assets/characters/hizuki/bluebob-v1/walk-atlas-256.png'),HIZUKI_4DIR_ROW:{d:0,u:1,r:2,l:3},ensureImage(){},layerReady:im=>!!im});
+ Object.assign(env,{HIZUKI_FIELD_SD:await loadImage('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png'),SD_FIELD_BOUNDS_CACHE:new Map(),document:{createElement:()=>createCanvas(32,32)},YKSpriteOutline:{draw:(...args)=>require('../js/sprite-outline.js').draw(...args,createCanvas)}});
+ vm.runInNewContext(game.slice(game.indexOf('function sdFieldBounds('),game.indexOf('// Approved SD atlas shared')),env);
  vm.runInNewContext(game.slice(game.indexOf('function shadow('),game.indexOf('// Measure opaque character bounds')),env);
  const out='qa/results/tenyo-npc';fs.mkdirSync(out,{recursive:true});
  for(const direction of ['d','u','l','r']){
@@ -68,3 +70,4 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  vm.runInNewContext(wait+';this.wait=waitAreaAssets',context);await assert.rejects(context.wait('shrine'),/NPC load error/);
  console.log('PASS Tenyo NPC art: approved Shirotae SD + guard legacy, directions, alpha, size/sole, real main path, lazy loading and failure safety');
 })().catch(e=>{console.error(e);process.exit(1)});
+
