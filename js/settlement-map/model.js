@@ -5,8 +5,8 @@ function visualRect(m,o){const t=C.byId[o.templateId],s=m.tileSize/32,r=t.source
 // A reusable low-res source may be rendered into an explicit multi-cell
 // rectangle; sourceRect always remains the real source-image crop size.
 // Do not infer contact/occupancy from either rectangle.
-const width=t.renderCells?t.renderCells[0]*m.tileSize:r[2]*s;
-const height=t.renderCells?t.renderCells[1]*m.tileSize:r[3]*s;
+if(!t.renderCells)return {x:o.x*m.tileSize+Math.floor((t.displayCells[0]*32-r[2])/2)*s,y:(o.y+1)*m.tileSize-r[3]*s,width:r[2]*s,height:r[3]*s};
+const width=t.renderCells[0]*m.tileSize,height=t.renderCells[1]*m.tileSize;
 return {x:o.x*m.tileSize+(t.displayCells[0]*m.tileSize-width)/2,y:(o.y+1)*m.tileSize-height,width,height};}
 function validate(m){const errors=[];if(!m||typeof m!=='object'||Array.isArray(m))return ['地図の形式が違います'];
 if(m.version!==2||m.catalogRevision!==4||m.placement!=='ground-bottom-left')errors.push('version=2・catalogRevision=4・接地下辺形式が必要です');
