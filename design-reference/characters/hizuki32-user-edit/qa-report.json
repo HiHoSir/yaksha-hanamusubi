@@ -313,7 +313,13 @@
     ]
   },
   "changed_pixels": 1353,
-  "github": "pending",
+  "github": {
+    "asset_commit": "a6d98b331d49b59e59a4cbbe8e8ff85f990b34a1",
+    "branch": "improve/hizuki32-user-pixel-walk",
+    "pull_request": "https://github.com/HiHoSir/yaksha-hanamusubi/pull/31",
+    "verified_source_files": 25,
+    "verification": "All source blob SHAs match remote commit tree. PNG atlas re-fetched by commit with matching Git blob SHA. No runtime references changed."
+  },
   "editor_roundtrip": "PASS: unmodified main import/export handlers executed in Node VM with native Canvas and minimal DOM; all 12 RGBA previews, exported JSON and exported PNG match",
   "safari": "not tested",
   "pages": "not published",
