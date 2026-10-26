@@ -26,5 +26,12 @@
     0,
     17
   ],
-  "previous_asset": "../field-sd-v2/walk-atlas-32.png"
+  "previous_asset": "../field-sd-v2/walk-atlas-32.png",
+  "revision": "pixel-repair-16.1.60",
+  "repair_notes": [
+    "complete cuffs",
+    "closed rear hem",
+    "no side waist tabs",
+    "hands move inside intact sleeve silhouette"
+  ]
 }

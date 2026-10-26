@@ -1,0 +1,80 @@
+{
+  "status": "pixel defects repaired; visual candidate",
+  "changed_pixels_total": 279,
+  "changed_by_frame": [
+    {
+      "direction": "front",
+      "pose": "walkA",
+      "pixels": 45
+    },
+    {
+      "direction": "front",
+      "pose": "walkB",
+      "pixels": 46
+    },
+    {
+      "direction": "back",
+      "pose": "idle",
+      "pixels": 20
+    },
+    {
+      "direction": "back",
+      "pose": "walkA",
+      "pixels": 59
+    },
+    {
+      "direction": "back",
+      "pose": "walkB",
+      "pixels": 59
+    },
+    {
+      "direction": "left",
+      "pose": "idle",
+      "pixels": 14
+    },
+    {
+      "direction": "left",
+      "pose": "walkA",
+      "pixels": 2
+    },
+    {
+      "direction": "left",
+      "pose": "walkB",
+      "pixels": 9
+    },
+    {
+      "direction": "right",
+      "pose": "idle",
+      "pixels": 14
+    },
+    {
+      "direction": "right",
+      "pose": "walkA",
+      "pixels": 2
+    },
+    {
+      "direction": "right",
+      "pose": "walkB",
+      "pixels": 9
+    }
+  ],
+  "approved_front_idle_changes": 0,
+  "head_changes_all_12_frames": 0,
+  "size": [
+    32,
+    32
+  ],
+  "opaque_height": 27,
+  "baseline_y": 29,
+  "enclosed_transparent_holes_before": 5,
+  "enclosed_transparent_holes_after": 0,
+  "authored_defect_checks": "11/11 PASS; original input reproduced 11 failures",
+  "single_connected_component": "12/12 PASS",
+  "source_atlas_json": "PASS",
+  "native_outline_and_actor_render": "PASS",
+  "build_consistency": "PASS HTML/JS/43 resources16.1.60",
+  "main_merged": false,
+  "safari": "not tested",
+  "pages": "pending new deployment",
+  "whole_game_smoke": "Previous run40293543311 failed Prologue completion and save safety and general browser tests; not claimed fixed by this pixel edit."
+}

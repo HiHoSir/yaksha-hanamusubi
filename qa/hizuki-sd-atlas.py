@@ -24,6 +24,13 @@ for row,direction in enumerate(['front','back','right','left']):
             for p in [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]:
                 if p in remaining:remaining.remove(p);todo.append(p)
         assert not remaining,(direction,col,'stray fragment')
+        clear={(x,y) for y in range(-1,33) for x in range(-1,33) if x<0 or x>31 or y<0 or y>31 or not pixels[y*32+x][3]}
+        exterior={(-1,-1)};queue=[(-1,-1)]
+        while queue:
+            x,y=queue.pop()
+            for point in [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]:
+                if point in clear and point not in exterior:exterior.add(point);queue.append(point)
+        assert clear==exterior,(direction,col,'unexpected enclosed transparent hole',sorted(clear-exterior))
 approved=Image.open('design-reference/characters/hizuki32-user-edit/hair-highlight/hizuki-front-hair-highlight-32.png').convert('RGBA')
 assert atlas.crop((0,0,32,32)).tobytes()==approved.tobytes()
 print('PASS: 12 connected 27px sprites; source RGBA match; stable heads; approved front exact')
