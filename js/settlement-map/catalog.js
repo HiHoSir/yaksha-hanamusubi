@@ -53,5 +53,13 @@ packAsset('torii_gate','鳥居（中央通行可・4マス幅）',[4,4],false,fa
 });
 // Approved B Jizo is shared with the field; contact is authored independently.
 packAsset('jizo','地蔵',[1,1],true,false,{src:'assets/settlement-editor/chips/jizo.png',pack:'jizo-approved-v1'});
+// Tenyou water-sanctuary gate: 6x4 visual, explicit left/right contact cells,
+// center two cells reserved for event-gated future passage.
+packAsset('tenyo_water_gate','天妖の社・水上門',[6,4],false,false,{
+ src:'assets/settlement-editor/tenyo-gate-v1/tenyo_gate_6x4.png',
+ sourceRect:[0,0,192,128],pack:'tenyo-gate-v1',
+ occupiedTiles:[[0,0],[1,0],[4,0],[5,0]],
+ entranceLocal:[2,0],approachLocal:[2,1]
+});
 return {templates,byId};
 });
