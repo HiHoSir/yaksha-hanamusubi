@@ -11,13 +11,19 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  const calls=[],ctx={save(){},restore(){},beginPath(){},ellipse(){},fill(){},drawImage(...args){calls.push(args)}};
  for(const type of ['miko','guard'])for(const [row,dir] of ['d','u','l','r'].entries()){
   assert(art.draw(ctx,552,264,type,dir,1));const args=calls.at(-1);
-  assert.equal(args[2],row*256,'correct four-direction source row');assert.equal(args[3],256);assert.equal(args[4],256);
-  assert.equal(args[6]+248*args[8]/256,264+9*.56,'ground foot matches heroine');
-  assert.equal(args[8]*232/256,58*.96,'adult visible height matches existing NPC policy');
+  if(type==='miko'){
+   assert.equal(args[2],({d:0,u:1,l:3,r:2})[dir]*32,'SD direction row');assert.equal(args[3],32);assert.equal(args[4],32);
+   assert.equal(args[6]+30*args[8]/32,264+9*.56,'SD sole matches heroine');
+   assert(Math.abs(args[8]*27/32-58*.96)<.01,'SD visible height consistent');
+  }else{
+   assert.equal(args[2],row*256);assert.equal(args[3],256);assert.equal(args[4],256);
+   assert.equal(args[6]+248*args[8]/256,264+9*.56,'guard sole matches heroine');
+   assert.equal(args[8]*232/256,58*.96,'guard size remains unchanged');
+  }
  }
  assert.equal(art.draw(ctx,0,0,'traveler','d',1),false,'unrelated NPCs stay on their existing path');
  for(const entry of manifest.characters){
-  const im=await loadImage('assets/characters/tenyo-npc-v1/'+entry.id+'.png');assert.equal(im.width,256);assert.equal(im.height,1024);
+  const im=await loadImage(entry.id==='shirotae'?'assets/characters/tenyo-npc-v2/shirotae-walk-96x128.png':'assets/characters/tenyo-npc-v1/'+entry.id+'.png');if(entry.id==='shirotae'){assert.equal(im.width,96);assert.equal(im.height,128);for(let row=0;row<4;row++)for(let col=0;col<3;col++){const c=createCanvas(32,32),g=c.getContext('2d');g.drawImage(im,col*32,row*32,32,32,0,0,32,32);const d=g.getImageData(0,0,32,32).data;assert(d.some((v,i)=>i%4===3&&v===255),'nonempty SD pixel frame');}continue;}assert.equal(im.width,256);assert.equal(im.height,1024);
   for(let row=0;row<4;row++){
    const c=createCanvas(256,256),g=c.getContext('2d');g.drawImage(im,0,row*256,256,256,0,0,256,256);const p=g.getImageData(0,0,256,256).data;
    let top=256,bottom=-1,solid=0,clear=0;
@@ -29,7 +35,7 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  const game=fs.readFileSync('js/game.js','utf8');const npcSource=game.slice(game.indexOf('function npc(c,'),game.indexOf('function drawVillageCollisionDebug'));
  const runtime={...env,S:{area:'shrine'},YK_TENYO_NPC:art,characterScale:()=>1};vm.createContext(runtime);vm.runInContext(npcSource,runtime);
  for(const frame of [0,1,2])runtime.npc(ctx,552,264,'miko','白妙','l',frame);
- assert(calls.slice(-3).every(c=>c[2]===512),'static pose ignores walk frame');
+ assert(calls.slice(-3).every(c=>c[2]===96),'static pose uses approved left-facing SD row and ignores walk frame');
  const actual=JSON.parse(JSON.stringify(manifest.characters.find(c=>c.id==='guardian').frames));assert.deepEqual(actual.map(f=>f.sourceCell),[[0,0],[1,0],[1,1],[0,1]],'guardian left/right cells are reordered');
  // Render both real main-game NPC callbacks beside the canonical hero through
  // the shared shrine layer queue, at their shared authored cell centers.
@@ -60,5 +66,5 @@ const moduleSource=fs.readFileSync('js/tenyo-npc-art.js','utf8');
  assert.deepEqual(Array.from(residents,n=>[n.x,n.y,n.dir]),[[588,156,'l'],[708,372,'r']],'standing residents keep positions and conversation facing');
  const wait=game.match(/function waitAreaAssets\(destination\)\{([\s\S]*?)\n\}/)[0];const context={YK_TENYO:{whenReady:()=>Promise.resolve()},YK_TENYO_NPC:{whenReady:()=>Promise.reject(Error('NPC load error'))},assetLoaded(){}};
  vm.runInNewContext(wait+';this.wait=waitAreaAssets',context);await assert.rejects(context.wait('shrine'),/NPC load error/);
- console.log('PASS Tenyo NPC art: eight static directions, source-cell order, alpha, size/sole, real main path, lazy loading and failure safety');
+ console.log('PASS Tenyo NPC art: approved Shirotae SD + guard legacy, directions, alpha, size/sole, real main path, lazy loading and failure safety');
 })().catch(e=>{console.error(e);process.exit(1)});
