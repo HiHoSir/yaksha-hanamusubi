@@ -88,7 +88,7 @@ packAsset('tenyo_ripple_fx','浅瀬波紋アニメ',[1,1],false,true,{
 });
 // Imported user-authored clear-water pack. Native 32x32, four stacked animation frames.
 for(const id of ['shallow','mid','deep',...['deep_mid','mid_shallow'].flatMap(k=>['N','E','S','W'].map(d=>'shore_'+k+'_'+d))]){
-packAsset('clear_water_'+id,'透明水 '+id,[1,1],false,true,{src:'assets/settlement-editor/clear-water-v1/'+id+'.png',sourceRect:[0,0,32,32],animation:{frames:4,frameHeight:32,frameMs:360},pack:'clear-water-v1',hidden:id.startsWith('shore_'),paintable:!id.startsWith('shore_'),paintGroup:'surface'});
+packAsset('clear_water_'+id,'透明水 '+id,[1,1],false,true,{src:'assets/settlement-editor/clear-water-v1/'+id+'.png',sourceRect:[0,0,32,32],animation:{frames:4,frameHeight:32,frameMs:360},pack:'clear-water-v1',hidden:true,paintable:false,paintGroup:'surface'});
 }
 return {templates,byId};
 });

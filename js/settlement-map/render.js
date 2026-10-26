@@ -10,21 +10,25 @@ function draw(c,m,o={}){const images=o.images||{},tile=m.tileSize,objects=o.grou
 c.imageSmoothingEnabled=false;c.clearRect(0,0,m.width*tile,m.height*tile);
 if(o.backgroundImage)c.drawImage(o.backgroundImage,0,0);
 // Additional water-specific layers preserve the pre-existing object catalog.
-const waterFrame=Math.floor((o.animationTime||0)/450)%4;
+const waterFrame=o.forExport?0:Math.floor((o.animationTime||0)/360)%4;
 function layerTiles(entries,mode){for(const v of entries||[]){const id=mode==='bottom'?v.tileId:'clear_water_'+v.depth;const t=C.byId[id],im=images[id];if(!t||!im)continue;const x=v.x*tile,y=v.y*tile;let sr=t.sourceRect;if(t.autotile){sr=[0,mode==='surface'&&id==='auto_river'?(waterFrame%2)*192:0,32,32];}else if(t.animation){sr=[0,waterFrame*t.animation.frameHeight,32,32];}c.save();if(mode==='surface')c.globalAlpha=v.opacity??.65;c.drawImage(im,...sr,x,y,tile,tile);c.restore();}}
 const frames=M.autotileLayout(m),object=v=>{const im=images[v.templateId],t=C.byId[v.templateId],r=M.visualRect(m,v),index=frames.get(v.id),source=t.autotile?[index%8*32,Math.floor(index/8)*32+(t.animation?phase(o,t)*t.animation.frameHeight:0),32,32]:t.sourceRect;if(im)c.drawImage(im,...source,r.x,r.y,r.width,r.height);};
 const groundOrder=v=>{const t=C.byId[v.templateId];return t.bridgePassages?3:t.paintGroup==='base'?0:t.shallow?1:t.autotile?1:2;};
 for(const v of objects.filter(v=>C.byId[v.templateId].layer==='ground').sort((a,b)=>groundOrder(a)-groundOrder(b)))object(v);
-layerTiles(m.waterBottom,'bottom');layerTiles(m.waterSurface,'surface');
-// The supplied pack contains cardinal boundaries, not corner sprites. Draw only
-// matching shoreline faces; never claim unsupported 47-way transitions.
+layerTiles(m.waterBottom,'bottom');
+// Directional sprites contain the deeper tone on the side opposite the named
+// shallower neighbour. Select them on the deeper cell. Voronoi clipping keeps
+// every exposed side when several depth boundaries meet at the same cell.
 const waterDepth=new Map((m.waterSurface||[]).map(v=>[v.x+','+v.y,v.depth]));
-const order={shallow:0,mid:1,deep:2};
+const order={shallow:0,mid:1,deep:2},dirs=[['N',0,-1],['E',1,0],['S',0,1],['W',-1,0]];
+const distance={N:[0,1,0],E:[-1,0,1],S:[0,-1,1],W:[1,0,0]};
+function region(dir,others){let p=[[0,0],[1,0],[1,1],[0,1]],a=distance[dir];for(const other of others){if(other===dir)continue;const b=distance[other],f=q=>(a[0]-b[0])*q[0]+(a[1]-b[1])*q[1]+a[2]-b[2];const out=[];for(let i=0;i<p.length;i++){const x=p[i],y=p[(i+1)%p.length],fx=f(x),fy=f(y),ix=fx<=0,iy=fy<=0;if(ix)out.push(x);if(ix!==iy){const t=fx/(fx-fy);out.push([x[0]+t*(y[0]-x[0]),x[1]+t*(y[1]-x[1])]);}}p=out;}return p;}
 for(const v of m.waterSurface||[]){const d=order[v.depth];if(d===undefined)continue;
-for(const [dir,dx,dy] of [['N',0,-1],['E',1,0],['S',0,1],['W',-1,0]]){
-const adj=waterDepth.get((v.x+dx)+','+(v.y+dy));if(order[adj]!==d+1)continue;
-const id='clear_water_shore_'+(v.depth==='shallow'?'mid_shallow':'deep_mid')+'_'+dir;
-const im=images[id];if(!im)continue;c.save();c.globalAlpha=v.opacity??.65;c.drawImage(im,0,waterFrame*32,32,32,v.x*tile,v.y*tile,tile,tile);c.restore();}}
+const active=dirs.filter(([dir,dx,dy])=>order[waterDepth.get((v.x+dx)+','+(v.y+dy))]===d-1);
+if(!active.length){const im=images['clear_water_'+v.depth];if(im){c.save();c.globalAlpha=v.opacity??.65;c.drawImage(im,0,waterFrame*32,32,32,v.x*tile,v.y*tile,tile,tile);c.restore();}continue;}
+for(const [dir] of active){const id='clear_water_shore_'+(v.depth==='mid'?'mid_shallow':'deep_mid')+'_'+dir,im=images[id];if(!im)continue;
+c.save();c.globalAlpha=v.opacity??.65;if(active.length>1){const poly=region(dir,active.map(x=>x[0]));c.beginPath();poly.forEach(([x,y],i)=>{const px=(v.x+x)*tile,py=(v.y+y)*tile;i?c.lineTo(px,py):c.moveTo(px,py)});c.closePath();c.clip();}
+c.drawImage(im,0,waterFrame*32,32,32,v.x*tile,v.y*tile,tile,tile);c.restore();}}
 if(!o.groundOnly)for(const item of depthQueue(m,!o.forExport&&o.hero?o.actor:null,o.bounds)){if(item.object)object(item.object);else actor(c,item.actor,o.hero,o.bounds,tile);}
 if(!o.forExport&&o.actor&&images.tenyo_ripple_fx){const s=o.actor;if(m.objects.some(v=>v.templateId==='tenyo_shallows'&&v.x===Math.round(s.x)&&v.y===Math.round(s.y))){const f=Math.floor((o.animationTime||0)/170)%4;c.drawImage(images.tenyo_ripple_fx,0,f*32,32,32,Math.round(s.x*tile),Math.round(s.y*tile),tile,tile);}}
 if(o.forExport)return;

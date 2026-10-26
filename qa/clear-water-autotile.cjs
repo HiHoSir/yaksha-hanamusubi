@@ -1,0 +1,5 @@
+const assert=require('node:assert/strict'),M=require('../js/settlement-map/model.js'),R=require('../js/settlement-map/render.js');
+function render(cells){let m=M.createMap(5,5);m=M.paintWater(m,'surface','erase',[]);for(const [x,y,d] of cells)m=M.paintWater(m,'surface',d,[[x,y]],1);const calls=[],ctx={save(){},restore(){},clearRect(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},clip(){},drawImage(...a){calls.push(a)}};const C=require('../js/settlement-map/catalog.js'),images=Object.fromEntries(C.templates.map(t=>[t.id,{id:t.id}]));R.draw(ctx,m,{images,animationTime:0});return calls.filter(c=>c[0].id.startsWith('clear_water_shore_')).map(c=>({id:c[0].id,x:c[5],y:c[6]}));}
+assert.deepEqual(render([[2,2,'deep'],[3,2,'mid']]),[{id:'clear_water_shore_deep_mid_E',x:64,y:64}]);
+assert.deepEqual(new Set(render([[2,2,'mid'],[3,2,'shallow'],[2,1,'shallow']]).map(x=>x.id)),new Set(['clear_water_shore_mid_shallow_E','clear_water_shore_mid_shallow_N']));
+console.log('clear-water transitions passed');
