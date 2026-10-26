@@ -43,6 +43,14 @@ for(const [key,name]of [['sakura_pale','桜（淡桃）'],['sakura_pink','桜（
   packAsset(id,label+'・'+name,size,true,false,{src:'assets/settlement-editor/seasonal-trees-v1/'+id+'.png',sourceRect:rect,pack:'seasonal-trees-v1'});
  }
 }
+// Reuse the approved 64px torii without resampling the source PNG. Its 2x
+// nearest-neighbour draw spans four 32px cells in both directions.
+// x,y is the leftmost cell on the bottom contact row: only the two posts
+// block walking; the central two cells and every upper cell remain open.
+packAsset('torii_gate','鳥居（中央通行可・4マス幅）',[4,4],false,false,{
+ src:'assets/terrain/places-v1/torii.png',sourceRect:[0,0,64,64],
+ renderCells:[4,4],occupiedTiles:[[0,0],[3,0]],pack:'field-torii-reuse'
+});
 // Approved B Jizo is shared with the field; contact is authored independently.
 packAsset('jizo','地蔵',[1,1],true,false,{src:'assets/settlement-editor/chips/jizo.png',pack:'jizo-approved-v1'});
 return {templates,byId};
