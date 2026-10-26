@@ -25,6 +25,7 @@ const server=http.createServer((req,res)=>{const name=decodeURIComponent(req.url
  await page.evaluate(()=>__qaEval('const safe=[336,304];if(!YK_HOZUKI.blocked(...safe)){[S.x,S.y]=safe;map();}'));
  await page.screenshot({path:path.join(out,'village-cherry-mobile.png')});
  const report=await page.evaluate(()=>__qaEval('({html:__YK_HTML_BUILD,game:__YK_RUNNING_GAME_BUILD,hero:HIZUKI_FIELD_SD.datasetSrc,outline:!!window.YKSpriteOutline,ready:YK_HOZUKI.ready()})'));
- a.equal(report.html,report.game);a(report.hero.includes('field-sd-v2'));a(report.outline);a(report.ready);a.deepEqual(errors,[]);
+ a.equal(report.html,report.game);a(report.hero.includes('field-sd-v3'));a(report.outline);a(report.ready);a.deepEqual(errors,[]);
  console.log('PASS Chromium: actual ticker random walking, cell reservations/routes, chief dialogue/pause/story, inn entry/return, save reload, latest Hizuki/outline',report);
  }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
+

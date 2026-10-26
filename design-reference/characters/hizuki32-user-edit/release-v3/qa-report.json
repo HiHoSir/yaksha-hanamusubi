@@ -1,0 +1,52 @@
+{
+  "status": "all-direction shaded artwork prepared; integration branch BETA 16.1.59",
+  "frame_count": 12,
+  "cell": [
+    32,
+    32
+  ],
+  "opaque_height": 27,
+  "opaque_top": 3,
+  "opaque_bottom": 29,
+  "head_lock_rows": [
+    0,
+    17
+  ],
+  "approved_front_three_frames_unchanged": true,
+  "alpha_geometry_unchanged": true,
+  "editor_roundtrip": "PASS: source handlers and native Canvas; JSON/PNG exact",
+  "native_outline_and_actor_render": "PASS: repository sd-outline-integration.cjs and sprite-outline-unit.cjs",
+  "build_consistency": "PASS: HTML, runtime game.js and 43 resource versions = 16.1.59",
+  "javascript_syntax": "PASS: 20 staged JS/CJS files",
+  "github_actions": "pending new commit",
+  "pages": "pending deployment",
+  "safari": "not tested",
+  "production_main": "unchanged BETA 16.1.58",
+  "atlas_sha256": "cb2d5a5dee80815dff62d98b3fc702d9a926345d34f94a2950ca51b48c973629",
+  "runtime_paths": [
+    "js/game.js (field + loading)",
+    "js/hozuki-village-game.js",
+    "js/interior-maps.js",
+    "js/settlement-map/editor.js",
+    "interior-map-editor.html"
+  ],
+  "previous_art_only_CI": {
+    "run": 40290527669,
+    "base_game_code_matches_main": true,
+    "failed_groups": [
+      "Prologue completion and save safety",
+      "Title entrance and affected browser tests"
+    ],
+    "failed_browser_tests": [
+      "title-save-selection",
+      "hizuki-art",
+      "battle-layout (shop selection)",
+      "settlement",
+      "movement",
+      "dialog",
+      "residents",
+      "field-access"
+    ],
+    "note": "Title entrance itself passed; these unresolved general smoke failures are not reported as a graphics PASS."
+  }
+}

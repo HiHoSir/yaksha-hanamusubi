@@ -1,0 +1,234 @@
+{
+  "status": "approved front preserved; four-direction animation candidate awaiting visual QA",
+  "front_idle_matches_approved": true,
+  "head_lock_rows": [
+    0,
+    17
+  ],
+  "metrics": {
+    "front": [
+      {
+        "pose": "idle",
+        "bbox": [
+          6,
+          3,
+          25,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 29,
+        "components": [
+          343
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox": [
+          6,
+          3,
+          25,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 28,
+        "components": [
+          335
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox": [
+          6,
+          3,
+          25,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 29,
+        "components": [
+          335
+        ],
+        "head_equal_to_idle": true
+      }
+    ],
+    "back": [
+      {
+        "pose": "idle",
+        "bbox": [
+          7,
+          3,
+          25,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 19,
+        "components": [
+          322
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox": [
+          7,
+          3,
+          25,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 19,
+        "components": [
+          316
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox": [
+          7,
+          3,
+          25,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 19,
+        "components": [
+          318
+        ],
+        "head_equal_to_idle": true
+      }
+    ],
+    "left": [
+      {
+        "pose": "idle",
+        "bbox": [
+          8,
+          3,
+          24,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 27,
+        "components": [
+          249
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox": [
+          8,
+          3,
+          24,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 27,
+        "components": [
+          255
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox": [
+          8,
+          3,
+          24,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 27,
+        "components": [
+          251
+        ],
+        "head_equal_to_idle": true
+      }
+    ],
+    "right": [
+      {
+        "pose": "idle",
+        "bbox": [
+          8,
+          3,
+          24,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 27,
+        "components": [
+          249
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox": [
+          8,
+          3,
+          24,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 27,
+        "components": [
+          255
+        ],
+        "head_equal_to_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox": [
+          8,
+          3,
+          24,
+          30
+        ],
+        "height": 27,
+        "bottom": 29,
+        "opaque_colors": 27,
+        "components": [
+          251
+        ],
+        "head_equal_to_idle": true
+      }
+    ]
+  },
+  "atlas_rows": [
+    "front",
+    "back",
+    "right",
+    "left"
+  ],
+  "atlas_columns": [
+    "idle",
+    "walkA",
+    "walkB"
+  ],
+  "static_strip_order": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "source_sha256": "03453f85cee16c04d8a84939efc97211a373f0c6415cd300b9c3534711f97f9a",
+  "main_integration": "not performed",
+  "pages": "not published",
+  "safari": "not tested",
+  "editor_roundtrip": "PASS: unchanged main editor import/render/export handlers in Node VM + native Canvas; all12 preview buffers and JSON/PNG exports exact",
+  "browser_ui": "not tested",
+  "local_checks": "PASS: 12 frames, head lock, approved front exact, PNG/JSON/atlas/editor exports exact, binary alpha, single connected component, distinct poses"
+}

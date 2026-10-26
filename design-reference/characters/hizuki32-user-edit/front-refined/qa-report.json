@@ -1,0 +1,50 @@
+{
+  "status": "front-only appearance candidate; not approved or integrated",
+  "source": "sprite-walk-4dir(1).json",
+  "style_reference": "shirotae-walk-fixed.json",
+  "bbox": [
+    6,
+    3,
+    25,
+    30
+  ],
+  "opaque_height": 27,
+  "reference_opaque_height": 27,
+  "head_translation": [
+    0,
+    1
+  ],
+  "body_translation": [
+    0,
+    -1
+  ],
+  "deleted_source_rows": [
+    17,
+    18
+  ],
+  "protected_face_pixels": 50,
+  "protected_face_rgba_changes": 0,
+  "protected_eye_and_mouth_changes": 0,
+  "chin_edits": [
+    [
+      14,
+      17
+    ],
+    [
+      17,
+      17
+    ]
+  ],
+  "horn_rgba_changes": 0,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "pixel_changes": 267,
+  "v3_scope": "front idle only; other 11 slots remain unmodified input. Animation not finalized.",
+  "pages": "not published",
+  "safari": "not tested",
+  "single_connected_component": true,
+  "png_json_exact_match": true,
+  "unchanged_other_v3_slots": 11
+}

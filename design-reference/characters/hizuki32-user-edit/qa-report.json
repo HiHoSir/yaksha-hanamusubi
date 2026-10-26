@@ -1,0 +1,340 @@
+{
+  "status": "ASSET CANDIDATE - user visual approval pending",
+  "baseline_main": "97f0fc06e8fcf2d110cca0461742d870363c87af",
+  "beta": "16.1.58",
+  "source_sha256": "03453f85cee16c04d8a84939efc97211a373f0c6415cd300b9c3534711f97f9a",
+  "dimensions": [
+    32,
+    32
+  ],
+  "atlas": {
+    "dimensions": [
+      96,
+      128
+    ],
+    "rows": [
+      "front",
+      "back",
+      "right",
+      "left"
+    ],
+    "columns": [
+      "idle",
+      "walkA",
+      "walkB"
+    ]
+  },
+  "static_strip_order": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "head_lock_rows": [
+    0,
+    16
+  ],
+  "front_idle_changes": 2,
+  "front_eyes_unchanged": true,
+  "raw_height_29px_intentional": true,
+  "runtime_scale_note": "game.js uses fixed idle bounds: scale = 28 / idle opaque height (camera excluded). Front 29px => 0.965517; no image resampling or runtime changes made.",
+  "frames": {
+    "front": [
+      {
+        "pose": "idle",
+        "bbox_exclusive": [
+          6,
+          2,
+          25,
+          31
+        ],
+        "width": 19,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 348,
+        "opaque_colors": 29,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          348
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox_exclusive": [
+          6,
+          2,
+          25,
+          31
+        ],
+        "width": 19,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 345,
+        "opaque_colors": 29,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          345
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox_exclusive": [
+          6,
+          2,
+          25,
+          31
+        ],
+        "width": 19,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 345,
+        "opaque_colors": 29,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          345
+        ],
+        "head_matches_idle": true
+      }
+    ],
+    "back": [
+      {
+        "pose": "idle",
+        "bbox_exclusive": [
+          7,
+          2,
+          24,
+          31
+        ],
+        "width": 17,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 310,
+        "opaque_colors": 21,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          310
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox_exclusive": [
+          7,
+          2,
+          24,
+          31
+        ],
+        "width": 17,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 310,
+        "opaque_colors": 21,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          310
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox_exclusive": [
+          7,
+          2,
+          24,
+          31
+        ],
+        "width": 17,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 308,
+        "opaque_colors": 21,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          308
+        ],
+        "head_matches_idle": true
+      }
+    ],
+    "left": [
+      {
+        "pose": "idle",
+        "bbox_exclusive": [
+          8,
+          2,
+          24,
+          31
+        ],
+        "width": 16,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 261,
+        "opaque_colors": 30,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          261
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox_exclusive": [
+          8,
+          2,
+          24,
+          31
+        ],
+        "width": 16,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 271,
+        "opaque_colors": 30,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          271
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox_exclusive": [
+          8,
+          2,
+          24,
+          31
+        ],
+        "width": 16,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 266,
+        "opaque_colors": 30,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          266
+        ],
+        "head_matches_idle": true
+      }
+    ],
+    "right": [
+      {
+        "pose": "idle",
+        "bbox_exclusive": [
+          8,
+          2,
+          24,
+          31
+        ],
+        "width": 16,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 261,
+        "opaque_colors": 30,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          261
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkA",
+        "bbox_exclusive": [
+          8,
+          2,
+          24,
+          31
+        ],
+        "width": 16,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 271,
+        "opaque_colors": 30,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          271
+        ],
+        "head_matches_idle": true
+      },
+      {
+        "pose": "walkB",
+        "bbox_exclusive": [
+          8,
+          2,
+          24,
+          31
+        ],
+        "width": 16,
+        "height": 29,
+        "bottom": 30,
+        "opaque_pixels": 266,
+        "opaque_colors": 30,
+        "alpha_values": [
+          0,
+          255
+        ],
+        "components": [
+          266
+        ],
+        "head_matches_idle": true
+      }
+    ]
+  },
+  "changed_pixels": 1353,
+  "github": {
+    "asset_commit": "a6d98b331d49b59e59a4cbbe8e8ff85f990b34a1",
+    "branch": "improve/hizuki32-user-pixel-walk",
+    "pull_request": "https://github.com/HiHoSir/yaksha-hanamusubi/pull/31",
+    "verified_source_files": 25,
+    "verification": "All source blob SHAs match remote commit tree. PNG atlas re-fetched by commit with matching Git blob SHA. No runtime references changed."
+  },
+  "editor_roundtrip": "PASS: unmodified main import/export handlers executed in Node VM with native Canvas and minimal DOM; all 12 RGBA previews, exported JSON and exported PNG match",
+  "safari": "not tested",
+  "pages": "not published",
+  "browser_ui": "NOT TESTED: local Playwright browser executable unavailable; source/Canvas harness used",
+  "checks": {
+    "all_frames_rgba_32x32": true,
+    "all_head_locks": true,
+    "all_alpha_binary": true,
+    "all_single_connected_component": true,
+    "all_three_poses_distinct": true,
+    "atlas_json_pixel_match": true,
+    "editor_export_png_pixel_match": true,
+    "front_eye_mirror_x_31_minus_x": true,
+    "left_right_mirror": true,
+    "native_scaling_face_not_trimmed": true
+  },
+  "art_review": "Local stills inspected at 1x/6x. Movement is a candidate; user visual approval pending. Golden horn retained on front/profile; naturally hidden on rear."
+}
