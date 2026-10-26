@@ -72,5 +72,19 @@ packAsset('tenyo_stone_lantern','天妖の石灯篭',[1,2],true,false,{
  src:'assets/settlement-editor/tenyo-gate-v1/stone_lantern_1x2.png',
  sourceRect:[0,0,32,64],pack:'tenyo-gate-v1',occupiedTiles:[[0,0]]
 });
+// Walkable sanctuary shallows: animated surface, no water collision.
+packAsset('tenyo_shallows','霊池・歩ける浅瀬',[1,1],false,true,{
+ src:'assets/settlement-editor/tenyo-water-v1/shallow_water_32x4.png',
+ sourceRect:[0,0,32,32],occupiedTiles:[],paintable:true,paintGroup:'surface',
+ animation:{frames:4,frameHeight:32,frameMs:450},shallow:true,pack:'tenyo-water-v1'
+});
+for(let i=1;i<=3;i++)packAsset('tenyo_lotus_'+i,'ハスの葉 '+i,[1,1],false,true,{
+ src:'assets/settlement-editor/tenyo-water-v1/lotus_leaf_'+i+'.png',
+ sourceRect:[0,0,32,32],occupiedTiles:[],pack:'tenyo-water-v1'
+});
+packAsset('tenyo_ripple_fx','浅瀬波紋アニメ',[1,1],false,true,{
+ src:'assets/settlement-editor/tenyo-water-v1/shallow_ripple_32x4.png',
+ sourceRect:[0,0,32,32],occupiedTiles:[],hidden:true,pack:'tenyo-water-v1'
+});
 return {templates,byId};
 });
