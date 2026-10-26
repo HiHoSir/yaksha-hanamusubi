@@ -6,6 +6,7 @@ on:
       - improve/interior-map-editor-32px
       - improve/front-interaction
       - improve/field-grid-alignment
+      - improve/pixel-editor-4dir
   workflow_dispatch:
     inputs:
       source_branch:
@@ -52,6 +53,9 @@ jobs:
           fi
           if [[ "$GITHUB_REF_NAME" == "improve/field-grid-alignment" ]]; then
             branches+=("improve/field-grid-alignment")
+          fi
+          if [[ "$GITHUB_REF_NAME" == "improve/pixel-editor-4dir" ]]; then
+            branches+=("improve/pixel-editor-4dir")
           fi
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             branches+=("$REQUESTED_PREVIEW")
