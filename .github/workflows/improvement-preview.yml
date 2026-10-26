@@ -6,6 +6,7 @@ on:
       - improve/interior-map-editor-32px
       - improve/front-interaction
       - improve/field-grid-alignment
+      - improve/tenyo-water-gate-asset
   workflow_dispatch:
     inputs:
       source_branch:
