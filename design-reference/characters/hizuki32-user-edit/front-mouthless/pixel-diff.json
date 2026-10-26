@@ -1,0 +1,40 @@
+{
+  "status": "front-only appearance candidate",
+  "basis": "hizuki-front-refined-32.png",
+  "changes": [
+    {
+      "x": 15,
+      "y": 16,
+      "old": [
+        185,
+        67,
+        89,
+        255
+      ],
+      "new": [
+        246,
+        198,
+        165,
+        255
+      ]
+    },
+    {
+      "x": 16,
+      "y": 16,
+      "old": [
+        185,
+        67,
+        89,
+        255
+      ],
+      "new": [
+        246,
+        198,
+        165,
+        255
+      ]
+    }
+  ],
+  "other_pixels_unchanged": 1022,
+  "other_v3_slots_unchanged": 11
+}
