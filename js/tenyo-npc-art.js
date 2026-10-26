@@ -22,7 +22,9 @@ window.YK_TENYO_NPC=(()=>{
   // Approved Shirotae: 32px pixels, head/skin locked; no interpolation.
   if(type==='miko'){
    const sdRow=({d:0,u:1,r:2,l:3})[dir]??0;
-   const scale=(58*.96/27)*size;
+   // Same projected visible height as Hizuki SD: 28px * characterScale().
+   // Shirotae's approved idle silhouette covers 27 logical pixels (y=3..29).
+   const scale=(28/27)*size;
    c.save();c.imageSmoothingEnabled=false;
    c.fillStyle='rgba(16,24,32,.17)';c.beginPath();c.ellipse(x,foot,14*size,4*size,0,0,Math.PI*2);c.fill();
    c.drawImage(im,0,sdRow*32,32,32,x-16*scale,foot-30*scale,32*scale,32*scale);
