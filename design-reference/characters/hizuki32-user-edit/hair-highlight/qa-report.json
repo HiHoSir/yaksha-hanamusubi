@@ -1,0 +1,25 @@
+{
+  "status": "front hair shading candidate",
+  "hair_pixels_changed_per_front_frame": 61,
+  "front_frames_edited": 3,
+  "other_direction_frames_unchanged": 9,
+  "skin_eye_mouth_horn_outline_changes": 0,
+  "alpha_changes": 0,
+  "bbox_unchanged": true,
+  "head_matches_across_front_animation": true,
+  "new_hair_highlight_colors": [
+    [
+      180,
+      222,
+      246,
+      255
+    ],
+    [
+      210,
+      239,
+      252,
+      255
+    ]
+  ],
+  "main_integration": "not performed"
+}
