@@ -6,3 +6,4 @@ improve/hozuki-topview
 improve/interior-map-editor-32px
 improve/pixel-editor-touch-workspace
 improve/tenyo-water-gate-asset
+improve/pixel-editor-mobile-cursor

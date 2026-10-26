@@ -1,0 +1,21 @@
+name: Pixel editor mobile cursor
+on:
+  push:
+    branches: [main, improve/pixel-editor-mobile-cursor]
+    paths: ['pixel-editor.html', 'qa/pixel-editor-mobile.cjs', '.github/workflows/pixel-editor-mobile.yml']
+  pull_request:
+    paths: ['pixel-editor.html', 'qa/pixel-editor-mobile.cjs', '.github/workflows/pixel-editor-mobile.yml']
+permissions:
+  contents: read
+jobs:
+  mobile-cursor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --prefix /tmp/editor-qa --no-save --package-lock=false jsdom@26.1.0 @napi-rs/canvas@0.1.80
+      - run: node qa/pixel-editor-mobile.cjs
+        env:
+          NODE_PATH: /tmp/editor-qa/node_modules
