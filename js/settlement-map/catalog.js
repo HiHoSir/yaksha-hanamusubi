@@ -88,6 +88,16 @@ packAsset('tenyo_ripple_fx','浅瀬波紋アニメ',[1,1],false,true,{
 });
 // Original rock sprite variants with independently authored 1-cell contacts.
 for(const [id,name] of [['rock_group_a','岩群・大'],['rock_group_b','岩群・反転'],['rock_group_c','岩群・小'],['rock_group_d','岩群・小反転']])packAsset(id,name,[1,1],true,false,{src:'assets/settlement-editor/rock-pieces-v1/'+id+'.png',sourceRect:[0,0,48,48],pack:'rock-pieces-v1'});
+// Independent raised rock island; the middle front cell is reserved for the
+// separately placed lantern. All remaining footprint cells are explicit.
+packAsset('rock_island_lantern_base','岩の小島・灯籠台',[3,2],false,false,{
+ src:'assets/settlement-editor/rock-island-v1/stone-island-96x64.png',
+ sourceRect:[0,0,96,64],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]],pack:'rock-island-v1'
+});
+packAsset('rock_island_lantern_base_mirror','岩の小島・反転',[3,2],false,false,{
+ src:'assets/settlement-editor/rock-island-v1/stone-island-mirror-96x64.png',
+ sourceRect:[0,0,96,64],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]],pack:'rock-island-v1'
+});
 // Imported user-authored clear-water pack. Native 32x32, four stacked animation frames.
 for(const id of ['shallow','mid','deep',...['deep_mid','mid_shallow'].flatMap(k=>['N','E','S','W'].map(d=>'shore_'+k+'_'+d))]){
 packAsset('clear_water_'+id,'透明水 '+id,[1,1],false,true,{src:'assets/settlement-editor/clear-water-v1/'+id+'.png',sourceRect:[0,0,32,32],animation:{frames:4,frameHeight:32,frameMs:360},pack:'clear-water-v1',hidden:true,paintable:false,paintGroup:'surface'});
