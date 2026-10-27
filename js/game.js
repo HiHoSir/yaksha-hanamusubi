@@ -910,7 +910,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.71";
+const GAME_JS_BUILD="16.1.72";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1316,7 +1316,7 @@ function encounter(){return beginEncounter()}
 if(new URLSearchParams(location.search).get("battleTest")==="1"){
  const testButton=document.createElement("button");testButton.type="button";testButton.textContent="戦闘テスト";
  testButton.style.cssText="position:fixed;right:max(12px,env(safe-area-inset-right));bottom:calc(190px + env(safe-area-inset-bottom));top:auto;z-index:65;padding:8px 12px;border:1px solid #d9ba78;border-radius:12px;background:rgba(22,36,56,.78);color:#fff;font-size:12px;font-weight:bold;max-width:120px;box-shadow:0 2px 8px #0007";
- testButton.addEventListener("click",()=>{if(!busy&&!battle)beginEncounter(true)});
+ testButton.addEventListener("click",()=>{if(busy||battle)return;const priorArea=S.area;try{if(!D.enemies[priorArea]?.length)S.area="field";beginEncounter(true);}finally{S.area=priorArea;}});
  document.body.appendChild(testButton);
  const placeTestButton=()=>{testButton.style.bottom=(matchMedia("(orientation:landscape)").matches?"calc(145px + env(safe-area-inset-bottom))":"calc(190px + env(safe-area-inset-bottom))");};
  placeTestButton();window.addEventListener("resize",placeTestButton);
