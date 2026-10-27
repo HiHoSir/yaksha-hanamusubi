@@ -2,9 +2,9 @@ name: SD graphics
 on:
   push:
     branches: [main]
-    paths: ['js/game.js', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
+    paths: ['js/game.js', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'assets/characters/hizuki/field-sd-v3/**', 'assets/characters/tenyo-npc-v3/**', 'js/tenyo-npc-art.js', 'qa/approved-walk-assets.py', 'qa/approved-walk-runtime.cjs', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
   pull_request:
-    paths: ['js/game.js', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
+    paths: ['js/game.js', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'assets/characters/hizuki/field-sd-v3/**', 'assets/characters/tenyo-npc-v3/**', 'js/tenyo-npc-art.js', 'qa/approved-walk-assets.py', 'qa/approved-walk-runtime.cjs', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
 permissions:
   contents: read
 jobs:
@@ -17,6 +17,12 @@ jobs:
           node-version: 24
       - run: npm install --prefix /tmp/sd-qa --no-save --package-lock=false @napi-rs/canvas@0.1.80
       - run: node qa/sprite-outline-unit.cjs
-      - run: node qa/sd-outline-integration.cjs assets/characters/hizuki/field-sd-v2/walk-atlas-32.png
+      - run: node qa/sd-outline-integration.cjs assets/characters/hizuki/field-sd-v3/walk-atlas-32.png
+        env:
+          NODE_PATH: /tmp/sd-qa/node_modules
+
+      - run: python3 -m pip install pillow
+      - run: python3 qa/approved-walk-assets.py
+      - run: node qa/approved-walk-runtime.cjs
         env:
           NODE_PATH: /tmp/sd-qa/node_modules

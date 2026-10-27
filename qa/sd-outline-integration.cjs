@@ -12,8 +12,9 @@ const O=require('../js/sprite-outline.js'),P=require('../js/hozuki-village-core.
   R.actor(c,state,atlas,bounds,32,(...args)=>O.draw(...args,createCanvas));
  }
  const game=fs.readFileSync(__dirname+'/../js/game.js','utf8'),village=fs.readFileSync(__dirname+'/../js/hozuki-village-game.js','utf8');
- assert(!village.includes('field-sd-v1/'));assert(village.includes('field-sd-v2/walk-atlas-32.png?v='));
- assert(!game.includes('hizukiArt==="sd"&&S.area==="field"'));assert.equal((game.match(/YKSpriteOutline.draw\(c,HIZUKI_FIELD_SD/g)||[]).length,2);
+ assert(!village.includes('field-sd-v1/'));assert(village.includes('field-sd-v3/walk-atlas-32.png?v='));
+ assert(!game.includes('hizukiArt==="sd"&&S.area==="field"'));assert.equal((game.match(/YKSpriteOutline.draw\(c,HIZUKI_FIELD_SD/g)||[]).length,0);
  fs.writeFileSync(__dirname+'/outline-preview.png',preview.toBuffer('image/png'));
- console.log('PASS 12 outlined frames: exact opaque colours, boundary padding, village actor path, all directions/steps, new village atlas and loading/field calls');
+ console.log('PASS 12 outlined frames: exact opaque colours, boundary padding, village actor path, all directions/steps, new village atlas and no duplicate Hizuki outline');
 })();
+

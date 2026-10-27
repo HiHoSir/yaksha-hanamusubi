@@ -1,0 +1,106 @@
+{
+  "id": "shirotae-user-approved-2026-10-26",
+  "cell": [
+    32,
+    32
+  ],
+  "atlas": "shirotae-walk-96x128.png",
+  "rows": [
+    "front",
+    "back",
+    "right",
+    "left"
+  ],
+  "columns": [
+    "idle",
+    "walkA",
+    "walkB"
+  ],
+  "editor": "editor.json",
+  "source_filename": "shirotae-walk-fixed(1).json",
+  "source_sha256": "4306bca34ef28167558158b6916324c1ea4d6db48acfb33dd9ee7d9c5f4c0cbf",
+  "pixel_policy": "Exact user RGBA; intentional walking bounce preserved; no per-frame normalization",
+  "bounds": {
+    "front": [
+      [
+        6,
+        3,
+        26,
+        30
+      ],
+      [
+        6,
+        4,
+        26,
+        30
+      ],
+      [
+        6,
+        4,
+        26,
+        30
+      ]
+    ],
+    "back": [
+      [
+        5,
+        3,
+        26,
+        30
+      ],
+      [
+        5,
+        4,
+        26,
+        30
+      ],
+      [
+        5,
+        4,
+        26,
+        30
+      ]
+    ],
+    "right": [
+      [
+        7,
+        3,
+        25,
+        30
+      ],
+      [
+        7,
+        4,
+        25,
+        30
+      ],
+      [
+        7,
+        4,
+        25,
+        30
+      ]
+    ],
+    "left": [
+      [
+        7,
+        3,
+        25,
+        30
+      ],
+      [
+        7,
+        4,
+        25,
+        30
+      ],
+      [
+        7,
+        4,
+        25,
+        30
+      ]
+    ]
+  },
+  "revision": "16.1.62"
+}

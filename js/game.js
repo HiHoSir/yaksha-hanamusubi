@@ -205,7 +205,7 @@ function sdFieldBounds(row,col){
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.45";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v3/walk-atlas-32.png?v=16.1.62";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -781,7 +781,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   const scale=(28/bounds.height)*(z/.56),foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,20*z,6*z,.28);
-  YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
+  c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
    x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
   c.restore();return;
  }
@@ -910,7 +910,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.62";
+const GAME_JS_BUILD="16.1.65";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1897,7 +1897,7 @@ async function transitionArea(destination,commit,interiorId=null){
    const scale=28/bounds.height;
    const foot=y+9;
    c.save();c.imageSmoothingEnabled=false;
-   YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
+   c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
     x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
    c.restore();
   }
@@ -2621,3 +2621,5 @@ if(villageTestWarpBtn){
 }
 
 })();
+
+
