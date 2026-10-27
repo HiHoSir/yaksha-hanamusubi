@@ -15,7 +15,7 @@ async function backgroundFor(m){if(!m.background)return null;const im=await imag
 function setMap(next,backgroundImage){commit(next);bg=backgroundImage;draw();}
 async function importMap(text){const rev=revision,next=M.parse(text),backgroundImage=await backgroundFor(next);if(rev!==revision)throw Error('読み込み中に編集されたため中止しました');setMap(next,backgroundImage);}
 function point(e){const r=canvas.getBoundingClientRect();return [Math.floor((e.clientX-r.left)*canvas.width/r.width/map.tileSize),Math.floor((e.clientY-r.top)*canvas.height/r.height/map.tileSize)];}
-function hit(p){const sorted=[...map.objects.filter(o=>C.byId[o.templateId].layer==='ground'),...R.depthQueue(map,null,null).map(item=>item.object)];return sorted.reverse().find(o=>{const r=M.visualRect(map,o),x=(p[0]+.5)*map.tileSize,y=(p[1]+.5)*map.tileSize;return o.occupiedTiles.some(v=>M.key(v)===M.key(p))||(x>=r.x&&y>=r.y&&x<r.x+r.width&&y<r.y+r.height);});}
+function hit(p){const sorted=[...map.objects.filter(o=>C.byId[o.templateId].layer==='ground'),...R.depthQueue(map,null,null).map(item=>item.object)].reverse(),matches=o=>{const r=M.visualRect(map,o),x=(p[0]+.5)*map.tileSize,y=(p[1]+.5)*map.tileSize;return o.occupiedTiles.some(v=>M.key(v)===M.key(p))||(x>=r.x&&y>=r.y&&x<r.x+r.width&&y<r.y+r.height);};return sorted.find(o=>!C.byId[o.templateId].selectThrough&&matches(o))||sorted.find(matches);}
 function startWalk(){guard();if(!hero||!bounds)throw Error('緋月の画像を読み込めていません');if(!reportCache.reachable.size)throw Error('出現点が通行不可です。先に変更してください');finishStroke();walker=W.create(M.clone(map));$('mode').value='walk';status('試し歩き：マスをタップ、または方向キーで移動');}
 let waterBrush=null;
 const waterSection=document.createElement('section');waterSection.setAttribute('aria-label','水レイヤー編集');
