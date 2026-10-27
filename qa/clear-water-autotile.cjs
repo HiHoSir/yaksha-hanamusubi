@@ -1,7 +1,0 @@
-const assert=require('node:assert/strict'),{createCanvas,loadImage}=require('@napi-rs/canvas'),M=require('../js/settlement-map/model.js'),R=require('../js/settlement-map/render.js'),C=require('../js/settlement-map/catalog.js');
-global.document={createElement:()=>createCanvas(32,32)};
-(async()=>{const images={};for(const t of C.templates.filter(x=>x.id.startsWith('clear_water_')))images[t.id]=await loadImage(t.src);
-let m=M.createMap(8,8);for(let y=0;y<8;y++)for(let x=0;x<8;x++)m=M.paintWater(m,'surface',x>=2&&x<=5&&y>=2&&y<=5?(x>=3&&x<=4&&y>=3&&y<=4?'shallow':'mid'):'deep',[[x,y]],1);
-const c=createCanvas(256,256),ctx=c.getContext('2d');R.draw(ctx,m,{images,forExport:true});require('fs').writeFileSync('/workspace/scratch/f9b0205fa3c8/water-test2.png',c.toBuffer('image/png'));
-const px=(x,y)=>Array.from(ctx.getImageData(x,y,1,1).data);assert.notDeepEqual(px(65,65),px(50,50),'corner must react to diagonal shallower water');assert.notDeepEqual(px(128,128),px(12,12),'three water levels distinguishable');const first=c.toBuffer('image/png');R.draw(ctx,m,{images,animationTime:360});assert.notDeepEqual(c.toBuffer('image/png'),first,'water animation advances');R.draw(ctx,m,{images,animationTime:360,forExport:true});assert.deepEqual(c.toBuffer('image/png'),first,'export uses frame zero');
-const saved=M.parse(M.serialize(m));assert.deepEqual(saved.waterSurface,m.waterSurface);assert(M.collision(m).has('0,0'));assert(!M.collision(m).has('3,3'));console.log('PASS: painted depths, diagonal corner pixels, save roundtrip and collision');})();

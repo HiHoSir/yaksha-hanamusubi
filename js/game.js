@@ -205,7 +205,7 @@ function sdFieldBounds(row,col){
 const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
-HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v2/walk-atlas-32.png?v=16.1.45";
+HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v3/walk-atlas-32.png?v=16.1.62";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
 heroArtSelect.addEventListener("change",()=>{
@@ -387,8 +387,8 @@ function stabilizeLoadedState(){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
    if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||YK_INTERIOR_BASE.spawn(S);}
  }else if(area==="shrine"){
-   if(Number.isFinite(S.x)&&Number.isFinite(S.y))[S.x,S.y]=YK_TENYO.center(S.x,S.y);
-   if(!Number.isFinite(S.x)||!Number.isFinite(S.y)||YK_TENYO.blocked(S.x,S.y)||S.y>=15.5*YK_TENYO.CELL)[S.x,S.y]=YK_TENYO.spawn.slice();
+   const restoreShrine=()=>{if(S.area!=="shrine")return;if(Number.isFinite(S.x)&&Number.isFinite(S.y))[S.x,S.y]=YK_TENYO.center(S.x,S.y);if(!Number.isFinite(S.x)||!Number.isFinite(S.y)||YK_TENYO.blocked(S.x,S.y)||YK_TENYO.exit(S.x,S.y)||YK_TENYO.npcBlocked(S.x,S.y))[S.x,S.y]=YK_TENYO.spawn.slice();assetLoaded();};
+   if(YK_TENYO.ready())restoreShrine();else YK_TENYO.whenReady().then(restoreShrine).catch(()=>message('聖域を読み込めません。もう一度お試しください。',2500));
  }else{
    S.x=clamp(Number(S.x)||384,40,728);S.y=clamp(Number(S.y)||500,50,718);
    if(collision(S.x,S.y)){
@@ -781,7 +781,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
   const scale=(28/bounds.height)*(z/.56),foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,20*z,6*z,.28);
-  YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
+  c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
    x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
   c.restore();return;
  }
@@ -910,7 +910,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.55";
+const GAME_JS_BUILD="16.1.66";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1025,13 +1025,12 @@ function map(frameTime=performance.now()){
 
  if(S.area==="shrine"){
   YK_TENYO.load(assetLoaded);
-  YK_TENYO_NPC.load(assetLoaded);
   const shrineNpc=areaNPCs();
   YK_TENYO.draw(g,{...S,npcs:shrineNpc,...YK_CAMERA.position(S,fieldMotion,frameTime)},(x,y)=>hero(g,x,y,S.dir,S.frame,S.outfit,.56),(i,x,y)=>{const n=shrineNpc[i];if(n)npc(g,x,y,n.type,n.name,n.dir||"d",n.frame??1)},(x,y)=>{
    const c=E.chests.find(c=>c.area==="shrine");if(!c)return;
    const im=CHEST_ART[S.chests[c.id]?"open":"closed"];if(layerReady(im))g.drawImage(im,x-22,y-38,44,44);
   },collisionDebugVisible);
-  worldHint((YK_TENYO.failed()||YK_TENYO_NPC.failed())?"社の画像を読み込めません。再読み込みしてください":YK_TENYO.exit(S.x,S.y)?"南の参道からフィールドへ戻れます":"白妙に話しかけ、社を調べよう");return;
+  worldHint(YK_TENYO.failed()?"社の画像を読み込めません。再読み込みしてください":YK_TENYO.exit(S.x,S.y)?"南の参道からフィールドへ戻れます":"白妙に話しかけ、社を調べよう");return;
  }
  if(S.area==="field"){
   YK_LANDSCAPE.load(assetLoaded);YK_AUTOTILE.load(assetLoaded);
@@ -1104,7 +1103,7 @@ function map(frameTime=performance.now()){
  village:YK_SETTLEMENT.residents,
  teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","このごろ、同じお団子を二度買うお客さまがいるんです。買った記憶がないんですって。","でも約束した相手は、ずっと覚えていたいものですね。"]}],
  osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、緋月さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたら、見知らぬ地蔵の絵が出てきたのよ。","変ねえ。あの地蔵には毎朝挨拶している気がするのに、いつからあったのか思い出せないわ。"]}],
- shrine:[{...YK_TENYO.npcs[0],type:"miko",name:"白妙",stationary:true,talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]},{...YK_TENYO.npcs[1],type:"guard",name:"社守",stationary:true,talk:["この先は妖の気配が濃い。","刀を抜けるよう備えておけ。"]}],
+ shrine:[{...YK_TENYO.npcs[0],type:"miko",name:"白妙",stationary:true,talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]}],
  cove:[{x:585,y:570,type:"ferryman",name:"漁師・潮平",talk:["潮風の向こうに、不思議な花びらが舞っていたよ。"]},{x:190,y:450,type:"child",name:"浜の子",talk:["白い貝が光る夜は、森の道が開くんだって！"]}],
  forest:[{x:530,y:390,type:"traveler",name:"旅の薬師",talk:["この森は同じ道へ戻される。","花の灯りを追うんだ。"]}],
  waterfall:[{x:150,y:590,type:"child",name:"滝童",talk:["龍神さまの水鏡は、九尾の祠への道を映すよ。"]}],
@@ -1417,7 +1416,7 @@ const VILLAGE_LAYOUT={version:"15.57.0",size:YK_SETTLEMENT.size,doors:YK_SETTLEM
  exit:{to:"field",rect:[720,1230,816,1280]},northExit:{to:"field",rect:[710,0,830,58]}};
 function villageWaterBlocked(x,y){return !YK_LANDSCAPE.walkable(YK_SETTLEMENT.mapData,x,y);}
 function villageBlocked(x,y){return YK_HOZUKI.blocked(x,y,false);}
-function collision(x,y,ignoreNPC=false){if(YK_INTERIOR_MAPS.kind(S))return YK_INTERIOR_MAPS.blocked(S,x,y,!ignoreNPC);if(S.area==="shrine")return YK_TENYO.blocked(x,y)||(Math.abs(x-600)<19&&Math.abs(y-600)<16)||(!ignoreNPC&&npcBlocked(x,y));if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
+function collision(x,y,ignoreNPC=false){if(YK_INTERIOR_MAPS.kind(S))return YK_INTERIOR_MAPS.blocked(S,x,y,!ignoreNPC);if(S.area==="shrine")return YK_TENYO.blocked(x,y)||(Math.floor(x/32)===16&&Math.floor(y/32)===14)||(!ignoreNPC&&npcBlocked(x,y));if(S.area==="field"&&fieldCollisionDebugOff)return x<16||y<16||x>=YK_WORLD.size-16||y>=YK_WORLD.size-16;return YK_COLLISION.blocked(S.area,x,y,ignoreNPC,{debugMap:debugCollisionMap,landscape:YK_LANDSCAPE,world:window.YK_WORLD,villageBlocked,npcBlocked,interiorBlocked});}
 function exitArea(){if(S.area==='village')return YK_HOZUKI.exit(S.x,S.y)?'field':null;if(S.area==="shrine"&&YK_TENYO.exit(S.x,S.y))return "field";if(S.restStopId&&YK_INTERIOR_BASE.area(S)&&!YK_INTERIOR_MAPS.kind(S)&&YK_INTERIOR_BASE.exit(S)){leaveInterior();return null;}return YK_AREA_TRANSITIONS.exit(S.area,S.x,S.y,VILLAGE_LAYOUT,typeof YK_WORLD!=="undefined"?YK_WORLD:null);}
 let fieldEntryWaiting=false;
 function move(dx,dy,dir){
@@ -1462,6 +1461,7 @@ function move(dx,dy,dir){
  if(Math.hypot(S.x-startX,S.y-startY)<.001){S.frame=1;map();return;}
  if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:ladder?400:YK_MOVEMENT.duration(S.area,S.area==='field'?(Number($("speedSelect").value)||1):1)};
  fieldLadderMotion=ladder?{from:YK_ELEVATION.height(YK_WORLD.mapData,startX,startY),to:YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y)}:null;
+ if(S.area==='shrine')YK_TENYO.stepSound(S.sound);
  walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
@@ -1861,7 +1861,7 @@ let areaTransitionPending=false;
 function waitAreaAssets(destination,interiorId=null){
  if(["teahouse","osumiHome","villageRoom"].includes(destination))return YK_INTERIOR_MAPS.whenReady({...S,area:destination,lastInterior:interiorId||S.lastInterior});
  if(destination==='village')return YK_HOZUKI.whenReady();
- if(destination==='shrine')return Promise.all([YK_TENYO.whenReady(),YK_TENYO_NPC.whenReady(assetLoaded)]);
+ if(destination==='shrine')return YK_TENYO.whenReady();
  const images=[IMG[destination],destination==='field'?HIZUKI_FIELD_SD:null].filter(Boolean);
  return Promise.all(images.map(im=>new Promise((resolve,reject)=>{
   if(im.complete){im.naturalWidth?resolve():reject(new Error('画像を読み込めません'));return;}
@@ -1897,7 +1897,7 @@ async function transitionArea(destination,commit,interiorId=null){
    const scale=28/bounds.height;
    const foot=y+9;
    c.save();c.imageSmoothingEnabled=false;
-   YKSpriteOutline.draw(c,HIZUKI_FIELD_SD,col*32,row*32,32,32,
+   c.drawImage(HIZUKI_FIELD_SD,col*32,row*32,32,32,
     x-(bounds.left+bounds.width/2)*scale,foot-(bounds.bottom+1)*scale,32*scale,32*scale);
    c.restore();
   }
@@ -1924,7 +1924,7 @@ async function transitionArea(destination,commit,interiorId=null){
 function requestAreaExit(destination){
  const fieldReturn=S.area==='village'&&destination==='field'?YK_HOZUKI.fieldExit(YK_WORLD,S.worldPosition):null;
  return transitionArea(destination,()=>{
-  YK_AREA_TRANSITIONS.apply(S,destination,YK_WORLD,D.areas);if(fieldReturn)[S.x,S.y]=fieldReturn;
+  if(S.area==='shrine')YK_TENYO.stopSound();YK_AREA_TRANSITIONS.apply(S,destination,YK_WORLD,D.areas);if(fieldReturn)[S.x,S.y]=fieldReturn;
   walkPhase=0;YK_SAVE.auto(S);
  });
 }
@@ -1935,7 +1935,7 @@ function enterWorldPlace(k){
   S.worldPosition=[S.x,S.y];S.area=k;S.visitedAreas[k]=true;
   [S.x,S.y]=k==="village"?YK_HOZUKI.spawn.slice():k==="shrine"?YK_TENYO.spawn.slice():(YK_DESTINATION_SCENES.layouts[k]?.spawn||[70,430]).slice();
   if(k==='village')YK_HOZUKI.enter(S);
-  S.dir=k==="village"?"u":"r";S.frame=1;walkPhase=0;
+  S.dir=(k==="village"||k==="shrine")?"u":"r";S.frame=1;walkPhase=0;
   S.encounterSteps=0;S.encounterGrace=D.areas[k].grace||9;
   YK_SAVE.auto(S);
  });
@@ -2150,7 +2150,7 @@ function loop(t){if(battle&&t-lastBattleMotionPaint>=33){lastBattleMotionPaint=t
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
- }map(motionTime);}else if(idleNpcPaint||idleVillagePaint){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(!fieldMotion&&S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+ }map(motionTime);}else if(idleNpcPaint||idleVillagePaint||(S.area==="shrine"&&YK_TENYO.tickDue(t))){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(!fieldMotion&&S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
@@ -2621,3 +2621,4 @@ if(villageTestWarpBtn){
 }
 
 })();
+

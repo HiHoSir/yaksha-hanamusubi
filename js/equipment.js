@@ -37,7 +37,7 @@ add('love_tabi','愛結びの足袋','feet',{def:3,escape:15},null,0,'龍神の�
 add('tide_tabi','潮風の足袋','feet',{def:1,escape:12},null,0,'磯妖・泡くらげの落とし物');
 const starters={weapon:'flower_staff',head:'cloth_band',body:'plain_robe',feet:'plain_sandals'};
 const chests=[
- {id:'equip-shrine',area:'shrine',x:600,y:600,item:'moon_comb',quest:0},
+ {id:'equip-shrine',area:'shrine',x:528,y:464,item:'moon_comb',quest:0},
  {id:'equip-cove',area:'cove',x:320,y:590,item:'tide_staff',quest:0},
  {id:'equip-forest',area:'forest',x:360,y:510,item:'silk_robe',quest:0},
  {id:'equip-waterfall',area:'waterfall',x:650,y:430,item:'love_tabi',quest:0},

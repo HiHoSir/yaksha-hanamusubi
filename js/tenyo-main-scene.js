@@ -1,87 +1,21 @@
-// Tenyo shrine: background scenery plus foot-sorted torii/actors on the 48x32 grid.
-window.YK_TENYO=(()=>{
- // Source artwork cells are 32px. The established 75% map rendering maps
- // each source cell to 24 world units; collision, movement and debug share it.
- const CELL=48,WIDTH=1152,HEIGHT=768,ZOOM=1.5,WALK_CELL=24;
- let rows=["################################################","################################################","################################################","################.############..#...#############","#############.#.....#########..#...#############","############..#.....###...###......#..##########","############........###...###......#...#########","##########............................##########","##########............................##########","##########..............................########","##########..............................########","##########..............................########","###########............................#########","############...........................#########","##############.........................#########","##############.......................###########","###############...................#..###########","################.................###############","##################............##################","##################...##...##.###################","#######################...######################","#####################.......####################","#####################.......####################","#####################......#####################","#####################......#####################","####################.........###################","####################.........###################","####################.........###################","####################.........###################","####################........####################","#####################.......####################","#####################......#####################"];
- // JSON is the editable source; embedded rows provide a safe fallback until it loads.
- fetch('assets/maps/tenyo/walkability-48x32.json?v=16.1.21').then(r=>{if(!r.ok)throw Error('walkability fetch');return r.json()}).then(d=>{if(d.columns===48&&d.rows===32&&Array.isArray(d.grid)&&d.grid.length===32&&d.grid.every(r=>typeof r==='string'&&r.length===48&&/^[.#]+$/.test(r)))rows=d.grid;}).catch(e=>console.warn('Tenyo walkability fallback:',e));
- const spawn=[Math.floor(11.5*CELL/WALK_CELL)*WALK_CELL+WALK_CELL/2,Math.floor(14.5*CELL/WALK_CELL)*WALK_CELL+WALK_CELL/2];
- // Explicit authored contact cells; never infer occupancy from sprite bounds.
- const npcs=[{tileX:24,tileY:6,occupiedTiles:[[24,6]]},{tileX:29,tileY:15,occupiedTiles:[[29,15]]}].map(n=>({...n,x:(n.tileX+.5)*WALK_CELL,y:(n.tileY+.5)*WALK_CELL}));
- const chest=[12.5*CELL,12.5*CELL];
- // Authored visual group roots; collision remains the separate walkability JSON.
- const forestGroups=[{"name":"forest-north-cap","sourceFootY":144},{"name":"forest-north-east","sourceFootY":176},{"name":"forest-north-west","sourceFootY":192},{"name":"forest-east-upper","sourceFootY":224},{"name":"forest-east-side","sourceFootY":288},{"name":"forest-west-upper","sourceFootY":304},{"name":"forest-west-side","sourceFootY":512},{"name":"forest-east-middle","sourceFootY":512}];
- const imgs={},pending=[];
- let redraw=()=>{},failed=false;
- for(const name of ['background','shrine','torii-base','torii-upper','trees-back','trees-front',...forestGroups.map(g=>g.name)]){
-  const im=new Image();
-  pending.push(new Promise((resolve,reject)=>{
-   im.onload=()=>{resolve();redraw();};
-   im.onerror=()=>{failed=true;reject(new Error('天妖の社の画像を読み込めません: '+name));redraw();};
-  }));
-  im.src='assets/maps/tenyo/layer-'+name+(['background','shrine'].includes(name)?'.webp?v=4':'.png?v=16.1.21');
-  imgs[name]=im;
-  if(im.complete&&im.naturalWidth)im.onload();
- }
- const readyPromise=Promise.all(pending);
- // Images start eagerly; keep errors handled until the transition awaits them.
- readyPromise.catch(()=>{});
- function load(change){if(typeof change==='function')redraw=change;}
- function whenReady(){return readyPromise;}
- // All cutouts retain the original 1536x1024 canvas and origin.
- // The contact depth is authored separately from the image silhouettes.
- const TORII_CONTACT_FRONT=21*WALK_CELL;
- function drawLayer(c,name){const im=imgs[name];if(im.complete&&im.naturalWidth)c.drawImage(im,0,0,WIDTH,HEIGHT);}
- function tile(x,y){const col=Math.floor(x/WALK_CELL),row=Math.floor(y/WALK_CELL);return rows[row]?.[col]||'#';}
- function blocked(x,y){return tile(x,y)!=='.';}
- function center(x,y){return [Math.floor(x/WALK_CELL)*WALK_CELL+WALK_CELL/2,Math.floor(y/WALK_CELL)*WALK_CELL+WALK_CELL/2];}
- function npcBlocked(x,y,residents=npcs){
-  const col=Math.floor(x/WALK_CELL),row=Math.floor(y/WALK_CELL);
-  return residents.some(n=>n.occupiedTiles.some(([tx,ty])=>tx===col&&ty===row));
- }
- function step(x,y,dx,dy,collision){
-  if(Boolean(dx)===Boolean(dy))return {x,y};
-  const [cx,cy]=center(x,y),nx=cx+Math.sign(dx)*WALK_CELL,ny=cy+Math.sign(dy)*WALK_CELL;
-  if(blocked(nx,ny)||collision(nx,ny))return {x,y};
-  return {x:nx,y:ny};
- }
- function exit(x,y){return y>=15.5*CELL&&x>=11*CELL&&x<=13*CELL;}
- function draw(c,state,drawHero,drawNpc,drawChest,debugGrid=false){
-  const cameraX=Math.max(0,Math.min(WIDTH-768/ZOOM,state.x-768/ZOOM/2));
-  const cameraY=Math.max(0,Math.min(HEIGHT-768/ZOOM,state.y-768/ZOOM/2));
-  c.save();c.setTransform(ZOOM,0,0,ZOOM,-cameraX*ZOOM,-cameraY*ZOOM);
-  // Nearest-neighbor sampling preserves the disjoint cutout pixels even
-  // during fractional camera movement; no alpha seam or duplicated edge.
-  c.imageSmoothingEnabled=false;
-  drawLayer(c,'background');
-  // Wait for the complete partition set rather than showing partial scenery.
-  if(!failed&&!Object.values(imgs).every(im=>im.complete&&im.naturalWidth)){c.restore();return;}
-  drawLayer(c,'torii-base');
-  drawLayer(c,'trees-back');
-  drawLayer(c,'shrine');
-  // state.x/y is the interpolated rendered foot supplied by the game camera.
-  // At the contact edge itself, draw the gate before the actor (actor in front).
-  const actors=[...forestGroups.map(g=>({kind:'forest',name:g.name,y:g.sourceFootY*.75})),{kind:'torii',y:TORII_CONTACT_FRONT},...(state.npcs||npcs).map((p,i)=>({...p,kind:'npc',i})),{x:state.x,y:state.y,kind:'hero'},{x:chest[0],y:chest[1],kind:'chest'}].sort((a,b)=>a.y-b.y);
-  for(const a of actors){
-   if(a.kind==='forest')drawLayer(c,a.name);
-   else if(a.kind==='torii')drawLayer(c,'torii-upper');
-   else if(a.kind==='npc')drawNpc(a.i,a.x,a.y);
-   else if(a.kind==='hero')drawHero(a.x,a.y);
-   else drawChest(a.x,a.y);
-  }
-  // The remaining southern forest is fixed foreground; surrounding upper
-  // clusters share the rendered-foot queue instead of a horizontal cut.
-  drawLayer(c,'trees-front');
-  if(debugGrid){
-   c.lineWidth=1/ZOOM;
-   for(let row=0;row<rows.length;row++)for(let col=0;col<rows[row].length;col++){
-    c.fillStyle=npcBlocked((col+.5)*WALK_CELL,(row+.5)*WALK_CELL,state.npcs||npcs)?'#ffd34f77':rows[row][col]==='.'?'#00e06a44':'#fa304033';
-    c.fillRect(col*WALK_CELL,row*WALK_CELL,WALK_CELL,WALK_CELL);
-    c.strokeStyle='#ffffff66';c.strokeRect(col*WALK_CELL,row*WALK_CELL,WALK_CELL,WALK_CELL);
-   }
-  }
-  c.restore();
- }
- return {forestGroups,load,whenReady,failed:()=>failed,CELL,WALK_CELL,WIDTH,HEIGHT,spawn,npcs,npcBlocked,chest,blocked,exit,draw,tile,center,step};
+// Dedicated water sanctuary scene for Tenyo. The map and its collision share the editor data.
+window.YK_TENYO=(()=>{'use strict';
+ const CELL=32,WALK_CELL=32,WIDTH=896,HEIGHT=800,spawn=[432,752],npcs=[{tileX:13,tileY:7,occupiedTiles:[[13,7]],x:432,y:240}],chest=[528,464];
+ let core=null,map=null,pending=null,failed=false,redraw=()=>{},hero=null,bounds=null,images={},world=null,lastDraw=0;
+ const sound=SanctuaryWaterSound.create(window);
+ const image=src=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error('聖域の画像を読み込めません: '+src));im.src=src;});
+ function load(change){if(typeof change==='function')redraw=change;if(pending)return;pending=(async()=>{
+  const response=await fetch('assets/settlement-editor/maps/tenyo-sanctuary-water-v5.json?v=16.1.66');if(!response.ok)throw Error('聖域マップを読み込めません');map=SMModel.parse(await response.text());core=SanctuaryMainCore.create(SMModel,map);
+  const ids=new Set([...map.objects.map(o=>o.templateId),...(map.waterBottom||[]).map(o=>o.tileId),...SMCatalog.templates.filter(t=>t.id.startsWith('clear_water_')).map(t=>t.id),'tenyo_ripple_fx']);
+  await Promise.all([...ids].map(async id=>{images[id]=await image(SMCatalog.byId[id].src+'?v=16.1.66');}));
+  const [h,shiro,closed,open]=await Promise.all([image('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png?v=16.1.65'),image('assets/characters/tenyo-npc-v3/shirotae-walk-96x128.png?v=16.1.65'),image('assets/objects/tsuzura-closed.png?v=15.56.1'),image('assets/objects/tsuzura-open.png?v=15.56.1')]);hero=h;images.sanctuary_npc_shirotae=shiro;bounds=HozukiVillage.fieldBounds(hero,(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;});
+  SMCatalog.byId.sanctuary_story_chest={id:'sanctuary_story_chest',layer:'object',displayCells:[1,1],sourceRect:[0,0,32,32],occupiedTiles:[],submergedHeight:0};
+  for(const [id,im] of [['closed',closed],['open',open]]){const c=document.createElement('canvas');c.width=32;c.height=32;const cx=c.getContext('2d');cx.imageSmoothingEnabled=true;cx.drawImage(im,0,0,32,32);images['chest_'+id]=c;}
+  world=document.createElement('canvas');world.width=WIDTH;world.height=HEIGHT;redraw();
+ })().catch(e=>{failed=true;throw e;});pending.catch(()=>{});}
+ function whenReady(){load();return pending;}function blocked(x,y){return core?core.blocked(x,y):true;}function center(x,y){return core?core.center(x,y):[Math.floor(x/32)*32+16,Math.floor(y/32)*32+16];}function npcBlocked(x,y,residents=npcs){return core?core.npcBlocked(x,y,residents):false;}function exit(x,y){return core?core.exit(x,y):false;}function step(x,y,dx,dy,collision){return core?core.step(x,y,dx,dy,collision):{x,y};}function tile(x,y){return blocked(x,y)?'#':'.';}
+ function draw(c,state,drawHero,drawNpc,drawChest,debugGrid=false){if(!world||!map)return;const actor=HozukiVillage.spriteState({x:state.x/32-.5,y:state.y/32-.5,dir:state.dir||'d',frame:state.frame??1});const person=(state.npcs||npcs)[0]||npcs[0];const scene={...map,objects:[...map.objects,{id:'story-shirotae',templateId:'sanctuary_npc_shirotae',x:13,y:7,dir:person.dir||'d',frame:0,occupiedTiles:[]},{id:'story-chest',templateId:'sanctuary_story_chest',x:16,y:14,occupiedTiles:[]}]};images.sanctuary_story_chest=images['chest_'+(state.chests?.['equip-shrine']?'open':'closed')];SMRender.draw(world.getContext('2d'),scene,{images,hero,bounds,actor,animationTime:performance.now(),shadows:true,collision:debugGrid});
+  const scale=HozukiVillage.FIELD_ZOOM,viewport=768/scale,clamp=(v,max)=>max<viewport?(max-viewport)/2:Math.max(0,Math.min(v,max-viewport)),x=clamp(state.x-viewport/2,WIDTH),y=clamp(state.y-viewport/2,HEIGHT);c.save();c.setTransform(1,0,0,1,0,0);c.fillStyle='#14385b';c.fillRect(0,0,768,768);c.setTransform(scale,0,0,scale,-x*scale,-y*scale);c.imageSmoothingEnabled=false;c.drawImage(world,0,0);c.restore();lastDraw=performance.now();}
+ function tickDue(now){return now-lastDraw>=80;}function stepSound(enabled){sound.setEnabled(enabled);if(enabled){sound.unlock();sound.step();}}function stopSound(){sound.pause();}
+ return {CELL,WALK_CELL,WIDTH,HEIGHT,spawn,npcs,chest,load,whenReady,failed:()=>failed,ready:()=>!!world,blocked,center,npcBlocked,exit,draw,tile,step,tickDue,stepSound,stopSound};
 })();
