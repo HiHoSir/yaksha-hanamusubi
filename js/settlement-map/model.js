@@ -2,12 +2,15 @@
 'use strict';const clone=v=>JSON.parse(JSON.stringify(v)),key=p=>p.join(','),inside=(m,p)=>Array.isArray(p)&&p.length===2&&p.every(Number.isInteger)&&p[0]>=0&&p[1]>=0&&p[0]<m.width&&p[1]<m.height;
 function createMap(width=17,height=15,tileSize=32){const m={version:2,catalogRevision:4,collisionMode:'auto',placement:'ground-bottom-left',tileSize,width,height,background:null,terrainBlocks:[],terrainPassages:[],objects:[],waterBottom:[],waterSurface:[],entrances:[],spawn:[0,0]};return checked(m);}
 function visualRect(m,o){const t=C.byId[o.templateId],s=m.tileSize/32,r=t.sourceRect;
+// Position the separate lantern on its authored island support, without changing collision.
+const support=o.templateId==='tenyo_stone_lantern'&&m.objects.find(v=>{const p=C.byId[v.templateId]?.supportSurface;return p&&p.accept.includes(o.templateId)&&v.x+p.slot[0]===o.x&&v.y+p.slot[1]===o.y;});
+const visualOffsetY=(support?C.byId[support.templateId].supportSurface.offsetY:0)*s;
 // A reusable low-res source may be rendered into an explicit multi-cell
 // rectangle; sourceRect always remains the real source-image crop size.
 // Do not infer contact/occupancy from either rectangle.
-if(!t.renderCells)return {x:o.x*m.tileSize+Math.floor((t.displayCells[0]*32-r[2])/2)*s,y:(o.y+1)*m.tileSize-r[3]*s,width:r[2]*s,height:r[3]*s};
+if(!t.renderCells)return {x:o.x*m.tileSize+Math.floor((t.displayCells[0]*32-r[2])/2)*s,y:(o.y+1)*m.tileSize-r[3]*s+visualOffsetY,width:r[2]*s,height:r[3]*s};
 const width=t.renderCells[0]*m.tileSize,height=t.renderCells[1]*m.tileSize;
-return {x:o.x*m.tileSize+(t.displayCells[0]*m.tileSize-width)/2,y:(o.y+1)*m.tileSize-height,width,height};}
+return {x:o.x*m.tileSize+(t.displayCells[0]*m.tileSize-width)/2,y:(o.y+1)*m.tileSize-height+visualOffsetY,width,height};}
 function validate(m){const errors=[];if(!m||typeof m!=='object'||Array.isArray(m))return ['地図の形式が違います'];
 if(m.version!==2||m.catalogRevision!==4||m.placement!=='ground-bottom-left')errors.push('version=2・catalogRevision=4・接地下辺形式が必要です');
 if(!['auto','manual'].includes(m.collisionMode))errors.push('歩行判定方式が不正です');

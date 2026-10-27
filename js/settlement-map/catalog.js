@@ -92,11 +92,11 @@ for(const [id,name] of [['rock_group_a','岩群・大'],['rock_group_b','岩群�
 // separately placed lantern. All remaining footprint cells are explicit.
 packAsset('rock_island_lantern_base','岩の小島・灯籠台',[3,2],false,false,{
  src:'assets/settlement-editor/rock-island-v1/stone-island-96x64.png',
- sourceRect:[0,0,96,64],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]],pack:'rock-island-v1'
+ sourceRect:[0,0,96,64],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]],supportSurface:{slot:[1,0],offsetY:-26,accept:['tenyo_stone_lantern']},submergedHeight:12,pack:'rock-island-v1'
 });
 packAsset('rock_island_lantern_base_mirror','岩の小島・反転',[3,2],false,false,{
  src:'assets/settlement-editor/rock-island-v1/stone-island-mirror-96x64.png',
- sourceRect:[0,0,96,64],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]],pack:'rock-island-v1'
+ sourceRect:[0,0,96,64],occupiedTiles:[[0,-1],[1,-1],[2,-1],[0,0],[2,0]],supportSurface:{slot:[1,0],offsetY:-26,accept:['tenyo_stone_lantern']},submergedHeight:12,pack:'rock-island-v1'
 });
 // Imported user-authored clear-water pack. Native 32x32, four stacked animation frames.
 for(const id of ['shallow','mid','deep',...['deep_mid','mid_shallow'].flatMap(k=>['N','E','S','W'].map(d=>'shore_'+k+'_'+d))]){
