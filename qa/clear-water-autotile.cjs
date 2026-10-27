@@ -1,5 +1,7 @@
-const assert=require('node:assert/strict'),M=require('../js/settlement-map/model.js'),R=require('../js/settlement-map/render.js');
-function render(cells){let m=M.createMap(5,5);m=M.paintWater(m,'surface','erase',[]);for(const [x,y,d] of cells)m=M.paintWater(m,'surface',d,[[x,y]],1);const calls=[],ctx={save(){},restore(){},clearRect(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},clip(){},drawImage(...a){calls.push(a)}};const C=require('../js/settlement-map/catalog.js'),images=Object.fromEntries(C.templates.map(t=>[t.id,{id:t.id}]));R.draw(ctx,m,{images,animationTime:0});return calls.filter(c=>c[0].id.startsWith('clear_water_shore_')).map(c=>({id:c[0].id,x:c[5],y:c[6]}));}
-assert.deepEqual(render([[2,2,'deep'],[3,2,'mid']]),[{id:'clear_water_shore_deep_mid_E',x:64,y:64}]);
-assert.deepEqual(new Set(render([[2,2,'mid'],[3,2,'shallow'],[2,1,'shallow']]).map(x=>x.id)),new Set(['clear_water_shore_mid_shallow_E','clear_water_shore_mid_shallow_N']));
-console.log('clear-water transitions passed');
+const assert=require('node:assert/strict'),{createCanvas,loadImage}=require('@napi-rs/canvas'),M=require('../js/settlement-map/model.js'),R=require('../js/settlement-map/render.js'),C=require('../js/settlement-map/catalog.js');
+global.document={createElement:()=>createCanvas(32,32)};
+(async()=>{const images={};for(const t of C.templates.filter(x=>x.id.startsWith('clear_water_')))images[t.id]=await loadImage(t.src);
+let m=M.createMap(8,8);for(let y=0;y<8;y++)for(let x=0;x<8;x++)m=M.paintWater(m,'surface',x>=2&&x<=5&&y>=2&&y<=5?(x>=3&&x<=4&&y>=3&&y<=4?'shallow':'mid'):'deep',[[x,y]],1);
+const c=createCanvas(256,256),ctx=c.getContext('2d');R.draw(ctx,m,{images,forExport:true});require('fs').writeFileSync('/workspace/scratch/f9b0205fa3c8/water-test2.png',c.toBuffer('image/png'));
+const px=(x,y)=>Array.from(ctx.getImageData(x,y,1,1).data);assert.notDeepEqual(px(65,65),px(50,50),'corner must react to diagonal shallower water');assert.notDeepEqual(px(128,128),px(12,12),'three water levels distinguishable');const first=c.toBuffer('image/png');R.draw(ctx,m,{images,animationTime:360});assert.notDeepEqual(c.toBuffer('image/png'),first,'water animation advances');R.draw(ctx,m,{images,animationTime:360,forExport:true});assert.deepEqual(c.toBuffer('image/png'),first,'export uses frame zero');
+const saved=M.parse(M.serialize(m));assert.deepEqual(saved.waterSurface,m.waterSurface);assert(M.collision(m).has('0,0'));assert(!M.collision(m).has('3,3'));console.log('PASS: painted depths, diagonal corner pixels, save roundtrip and collision');})();
