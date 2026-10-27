@@ -1494,19 +1494,16 @@ function move(dx,dy,dir){
  const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
  const src=layerReady(HIZUKI_BATTLE_FRAMES[0])?HIZUKI_BATTLE_FRAMES[0].src:"";
  const fragment=document.createDocumentFragment();
- for(let i=0;i<4;i++){
+ for(let i=0;i<members.length;i++){
   const member=members[i],card=document.createElement("div");
+  if(!member)continue;
   card.className="battlePartyCard"+(member?"":" is-empty");
   if(member){
-   const portrait=src?document.createElement("img"):document.createElement("div");
-   portrait.className="battlePartyPortrait"+(src?"":" battlePartyPortraitFallback");
-   if(src){portrait.src=src;portrait.alt="";portrait.setAttribute("aria-hidden","true");}
-   else portrait.textContent="緋";
    const info=document.createElement("div");info.className="battlePartySummary";
    const name=document.createElement("strong");name.textContent=member.name;
    const hp=document.createElement("span");hp.textContent="体 "+member.hp+"/"+member.maxhp;
    const mp=document.createElement("span");mp.textContent="技 "+member.mp+"/"+member.maxmp;
-   info.append(name,hp,mp);card.append(portrait,info);
+   info.append(name,hp,mp);card.append(info);
   }else{
    const info=document.createElement("div");info.className="battlePartySummary";
    info.textContent="—";card.append(info);card.setAttribute("aria-label","空き枠");
@@ -1520,81 +1517,7 @@ function renderBattle(){
  bg.clearRect(0,0,768,430);bg.imageSmoothingEnabled=false;
  // The approved grassland background is the full-viewport CSS stage behind this transparent actor canvas.
 
- // Rear-view foreground party, using the approved upward-facing atlas instead
- // of inventing or mirroring a new heroine design. Existing action art remains
- // available during explicit attack/skill/hit/victory poses.
- const normalSlash=battleFx?.kind==="slash"&&battleFx?.target==="enemy";
- // The old Yashahime pose sprites do not match the current blue-bob Hizuki.
- // Reuse the approved battle-v2 actor until dedicated hit/victory art is approved.
- const actionPose=false;
- const sprite=null;
- const portrait=layerReady(HIZUKI_4DIR)?HIZUKI_4DIR:null;
- if(actionPose&&!normalSlash&&layerReady(sprite)){
-  const box=battleSpriteLayout(sprite,S.outfit,battlePose);
-  bg.save();bg.imageSmoothingEnabled=true;bg.imageSmoothingQuality="high";
-  bg.drawImage(sprite,box.left-25,box.top+42,box.width*1.18,box.height*1.18);bg.restore();
- }else{
-  const phase=normalSlash?Math.min(2,Math.floor((performance.now()-battleFx.start)/(BATTLE_PACE.windup/2))):0;
-  const resultArt=battlePose==="victory"?(battle.levelUpResult?HIZUKI_BATTLE_EXPRESSIONS.levelup:HIZUKI_BATTLE_EXPRESSIONS.victory):null;
-  const attackElapsed=normalSlash?Math.max(0,performance.now()-battleFx.start):0;
-  const attackPhase=attackElapsed<500?0:attackElapsed<600?1:2;
-  const skillCast=battlePose==="skill"&&battleFx?.kind==="petals"&&battleFx?.target==="enemy";
-  const skillElapsed=skillCast?Math.max(0,performance.now()-battleFx.start):0;
-  const skillPhase=skillElapsed<500?0:skillElapsed<600?1:2;
-  const skillArt=skillCast?HIZUKI_SKILL_FRAMES[skillPhase]:null;
-  const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
-  // Never show the idle pose while a result asset is loading.
-  const image=resultArt?resultArt:(layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0]);
-  if(!layerReady(image)){const stale=document.getElementById("battleHeroOverlay");if(stale)stale.style.visibility="hidden";return;}
-  bg.save();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
-  // Portrait composition: a large heroine on the LEFT, with her face fully visible.
-  // The lower body may extend beyond the scene; do not mask or fade the source PNG.
-  // Keep the top/left silhouette within the canvas while allowing overlap with HUD.
-  const sourceWidth=Math.max(1,image.naturalWidth),sourceHeight=Math.max(1,image.naturalHeight);
-  const hit=battlePose==="hit"&&!!battleFx,victory=battlePose==="victory";
-  const now=performance.now(),hpRatio=Math.max(0,Math.min(1,S.hp/Math.max(1,S.maxhp)));
-  const breathPeriod=hpRatio>.6?2700:hpRatio>.3?1900:1250;
-  const breathStrength=hpRatio>.6?.006:hpRatio>.3?.011:.017;
-  const breath=Math.sin(now*Math.PI*2/breathPeriod)*breathStrength;
-  const hitAge=hit?Math.max(0,now-(battleFx?.start||now)):0;
-  const impact=hit?Math.exp(-hitAge/135):0;
-  const shake=impact*Math.sin(hitAge*.14)*10;
-  // Full-body portrait mode: contain the entire original image inside the
-  // actual 768x430 canvas, leaving margins for breathing and hit shake.
-  // Never position the source at a negative Y or clip it with a mask.
-  const availableWidth=450,availableHeight=390;
-  const fit=Math.min(availableWidth/sourceWidth,availableHeight/sourceHeight);
-  const width=sourceWidth*fit,height=sourceHeight*fit;
-  const w=width*(1+breath*.32),h=height*(1+breath);
-  const x=Math.max(8,Math.min(768-w-8,16+shake+(hit?impact*9:0)));
-  const y=Math.max(8,Math.min(430-h-8,430-h-12+(hit?impact*7:0)+(victory?-3:0)));
-  // A restrained silhouette shadow separates the approved sprite from bright battle backgrounds.
-  // Keep it on the same draw operation so breathing and hit recoil stay synchronized.
-  // Thin four-direction silhouette edge, followed by a small soft shadow. No sprite recoloring.
-  const edge="drop-shadow(1px 0 0 rgba(18,22,36,.72)) drop-shadow(-1px 0 0 rgba(18,22,36,.72)) drop-shadow(0 1px 0 rgba(18,22,36,.72)) drop-shadow(0 -1px 0 rgba(18,22,36,.72))";
-  bg.filter=edge+" drop-shadow(1px 2px 2px rgba(18,22,36,.55))"+(hit?" sepia(.25) saturate(1.3) hue-rotate(320deg)":"");
-  if(hit)bg.globalAlpha=1-impact*.25;
-  // The original PNG already contains the full silhouette. Never mask its lower half.
-  // Render the heroine on a separate full-viewport layer, independent of
-  // the 768x430 battle effects canvas and its object-fit letterboxing.
-  let actor=document.getElementById("battleHeroOverlay");
-  if(!actor){
-    actor=document.createElement("img");actor.id="battleHeroOverlay";
-    actor.alt="";actor.setAttribute("aria-hidden","true");
-    document.getElementById("battle").appendChild(actor);
-  }
-  const displaySrc=image.src;
-  if(actor.src!==displaySrc)actor.src=displaySrc;
-  actor.style.visibility="visible";
-  actor.classList.toggle("battleHeroVictory",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
-  actor.classList.toggle("battleHeroResult",!!resultArt);
-  actor.classList.toggle("battleHeroLevelUp",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.levelup);
-  // 勝利素材だけを差し替え、採用済みの攻撃位置・拡大率とレベルアップ演出を維持。
-  actor.style.transform=(actor.classList.contains("battleHeroLevelUp")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
-  bg.restore();
-  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
-  if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
- }
+ // Classic front-view battle: no heroine illustration or pose layer.
  const age=battleFx?Math.max(0,performance.now()-battleFx.start):0;
  const impactDelay=battleFx?.impactDelay||0;
  const hitProgress=battleFx?Math.min(1,Math.max(0,(age-impactDelay)/(battleFx.duration-impactDelay))):1;
