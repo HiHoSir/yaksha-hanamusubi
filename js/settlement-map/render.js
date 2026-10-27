@@ -25,7 +25,7 @@ function waterTile(images,depth,neighbours,frame,noFoam=false){
   // Each boundary belongs to the deeper cell; direct deep-to-shallow is
   // treated as a single transition and samples the shallower neighbour.
   const min=Math.min(...n),delta=depth-f,selected=delta>.18?Math.max(min,Math.min(depth-1,Math.round(f))):depth;
-  const i=(y*32+x)*4,src=samples[selected];for(let k=0;k<4;k++)result.data[i+k]=src[i+k];
+  const i=(y*32+x)*4,src=samples[selected];if(noFoam){const low=Math.max(0,Math.min(2,Math.floor(f))),high=Math.min(2,low+1),mix=Math.max(0,Math.min(1,f-low));for(let k=0;k<4;k++)result.data[i+k]=samples[low][i+k]*(1-mix)+samples[high][i+k]*mix;}else for(let k=0;k<4;k++)result.data[i+k]=src[i+k];
   if(!noFoam&&delta>.14&&delta<.23&&depth>min){const dir=Math.abs(gx)>Math.abs(gy)?(gx<0?'W':'E'):(gy<0?'N':'S'),fdata=foam[dir];if(fdata){let best=0,score=-1;for(let k=0;k<32;k++){const j=(dir==='N'||dir==='S'?(k*32+x):(y*32+k))*4,brightness=fdata[j]+fdata[j+1]+fdata[j+2];if(brightness>score){score=brightness;best=j;}}for(let k=0;k<3;k++)result.data[i+k]=fdata[best+k];}}
  }
  ctx.putImageData(result,0,0);if(cache.size>=1024)cache.clear();cache.set(key,surface);return surface;
