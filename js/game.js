@@ -1492,18 +1492,19 @@ function move(dx,dy,dir){
 }function renderBattlePartyCards(){
  const root=$("battlePartyCards");if(!root)return;
  const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
- const src=layerReady(HIZUKI_BATTLE_FRAMES[0])?HIZUKI_BATTLE_FRAMES[0].src:"";
  const fragment=document.createDocumentFragment();
  for(let i=0;i<members.length;i++){
   const member=members[i],card=document.createElement("div");
   if(!member)continue;
   card.className="battlePartyCard"+(member?"":" is-empty");
   if(member){
+   const portrait=document.createElement("span");portrait.className="battlePartyPortrait";portrait.setAttribute("aria-hidden","true");
    const info=document.createElement("div");info.className="battlePartySummary";
    const name=document.createElement("strong");name.textContent=member.name;
+   const level=document.createElement("span");level.textContent=S.lv+"段";
    const hp=document.createElement("span");hp.textContent="体 "+member.hp+"/"+member.maxhp;
    const mp=document.createElement("span");mp.textContent="技 "+member.mp+"/"+member.maxmp;
-   info.append(name,hp,mp);card.append(info);
+   info.append(name,level,hp,mp);card.append(portrait,info);
   }else{
    const info=document.createElement("div");info.className="battlePartySummary";
    info.textContent="—";card.append(info);card.setAttribute("aria-label","空き枠");

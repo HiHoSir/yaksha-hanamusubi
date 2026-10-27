@@ -18,6 +18,9 @@ const server=http.createServer((req,res)=>{
  // Verify the actual battle command touch targets instead of the hidden field pad.
  assert(await page.locator('#battle').isVisible(),'battle overlay hidden '+height);
  assert(await page.locator('#battleCommands').isVisible(),'battle commands hidden '+height);
+ const first=await page.locator('[data-cmd]').nth(0).boundingBox(), second=await page.locator('[data-cmd]').nth(1).boundingBox(), fourth=await page.locator('[data-cmd]').nth(3).boundingBox();
+ assert(second.y>first.y&&fourth.x>first.x,'commands must be arranged in two columns');
+ assert(await page.locator('.battlePartyPortrait').isVisible(),'party status must show Hizuki sprite');
  const battleButtons=page.locator('#battleCommands [data-cmd]');
  assert(await battleButtons.count()>=5,'battle commands missing '+height);
  for(const button of await battleButtons.all()){
