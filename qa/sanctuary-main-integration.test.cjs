@@ -1,4 +1,4 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),M=require('../js/settlement-map/model'),K=require('../js/sanctuary-main-core');
 const map=M.parse(fs.readFileSync('assets/settlement-editor/maps/tenyo-sanctuary-water-v5.json','utf8'));
 test('shrine start and exits keep the approach accessible',()=>{const k=K.create(M,map),reachable=M.flood(map,k.spawnTile);assert.deepEqual(k.spawnTile,[13,23]);assert(k.exit(13*32+16,24*32+16));assert(!k.exit(...k.spawn));assert(!k.blocked(...k.spawn));assert(reachable.has('14,7'));assert(reachable.has('13,8'));});
-test('only Shirotae occupies one empty upper-building cell',()=>{const k=K.create(M,map);assert.equal(k.npcs.length,1);assert.deepEqual(k.npcs[0].occupiedTiles,[[13,7]]);assert(!M.collision(map).has('13,7'));assert(k.npcBlocked(13*32+16,7*32+16));assert(!k.npcBlocked(14*32+16,7*32+16));});
+test('three residents occupy their authored gate cells',()=>{const k=K.create(M,map);assert.deepEqual(k.npcs.map(n=>n.occupiedTiles),[[[12,8]],[[13,7]],[[14,7]]]);for(const n of k.npcs){assert(!M.collision(map).has(n.tileX+','+n.tileY));assert(k.npcBlocked(n.x,n.y));}});

@@ -910,7 +910,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.69";
+const GAME_JS_BUILD="16.1.70";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1103,7 +1103,7 @@ function map(frameTime=performance.now()){
  village:YK_SETTLEMENT.residents,
  teahouse:[{id:"teahouse-girl-odango-inside",x:384,y:245,type:"teagirl",name:"茶屋娘・お団子",dir:"d",frame:1,role:"茶屋",talk:["いらっしゃいませ！ 花見団子はいかがですか？","このごろ、同じお団子を二度買うお客さまがいるんです。買った記憶がないんですって。","でも約束した相手は、ずっと覚えていたいものですね。"]}],
  osumiHome:[{id:"village-woman-osumi-inside",x:384,y:390,type:"woman",name:"里の女・お澄",dir:"d",frame:1,role:"家仕事",talk:["あら、緋月さま。狭い家ですがどうぞ。","畑仕事の道具を片づけていたら、見知らぬ地蔵の絵が出てきたのよ。","変ねえ。あの地蔵には毎朝挨拶している気がするのに、いつからあったのか思い出せないわ。"]}],
- shrine:[{...YK_TENYO.npcs[0],type:"miko",name:"白妙",stationary:true,talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]}],
+ shrine:[{...YK_TENYO.npcs[0],type:"miko",name:"白妙",stationary:true,talk:["花結びは、失われた記憶を結び直す力。","海の入り江、その先の忘れの森へお進みください。"]},{...YK_TENYO.npcs[1],type:"guard",name:"社守・左",stationary:true,talk:["この門は、わしらが代々守り継いできた。","門の向こうへ通じる道は、今は静かに閉ざされている。"]},{...YK_TENYO.npcs[2],type:"guard",name:"社守・右",stationary:true,talk:["この先には、まだ誰も知らぬ広い世界があるという。","その道が開く時まで、私たちはここを守り続ける。"]}],
  cove:[{x:585,y:570,type:"ferryman",name:"漁師・潮平",talk:["潮風の向こうに、不思議な花びらが舞っていたよ。"]},{x:190,y:450,type:"child",name:"浜の子",talk:["白い貝が光る夜は、森の道が開くんだって！"]}],
  forest:[{x:530,y:390,type:"traveler",name:"旅の薬師",talk:["この森は同じ道へ戻される。","花の灯りを追うんだ。"]}],
  waterfall:[{x:150,y:590,type:"child",name:"滝童",talk:["龍神さまの水鏡は、九尾の祠への道を映すよ。"]}],
