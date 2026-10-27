@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - improve/approved-hizuki-shirotae-walk
+      - improve/pixel-editor-mobile-cursor
       - improve/interior-map-editor-32px
       - improve/front-interaction
       - improve/field-grid-alignment
@@ -54,8 +54,8 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == "improve/field-grid-alignment" ]]; then
             branches+=("improve/field-grid-alignment")
           fi
-          if [[ "$GITHUB_REF_NAME" == "improve/approved-hizuki-shirotae-walk" ]]; then
-            branches+=("improve/approved-hizuki-shirotae-walk")
+          if [[ "$GITHUB_REF_NAME" == "improve/pixel-editor-mobile-cursor" ]]; then
+            branches+=("improve/pixel-editor-mobile-cursor")
           fi
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             branches+=("$REQUESTED_PREVIEW")
