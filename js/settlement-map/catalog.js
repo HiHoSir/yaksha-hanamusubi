@@ -90,6 +90,9 @@ packAsset('tenyo_ripple_fx','浅瀬波紋アニメ',[1,1],false,true,{
 for(const [id,name] of [['rock_group_a','岩群・大'],['rock_group_b','岩群・反転'],['rock_group_c','岩群・小'],['rock_group_d','岩群・小反転']])packAsset(id,name,[1,1],true,false,{src:'assets/settlement-editor/rock-pieces-v1/'+id+'.png',sourceRect:[0,0,48,48],pack:'rock-pieces-v1'});
 // Existing field waterfall: two 80×96 frames arranged horizontally.
 packAsset('sanctuary_waterfall','滝（アニメーション）',[3,3],false,false,{src:'assets/animation/fluid-v1/waterfall.png',sourceRect:[0,0,80,96],occupiedTiles:[[0,0],[1,0],[2,0]],animation:{frames:2,frameWidth:80,frameMs:360},pack:'fluid-v1'});
+// Full-map scenery overlay and separate falls. Art is independent of collision.
+packAsset('sanctuary_forest_frame_v1','聖域の森と岩場',[27,25],false,false,{src:'assets/settlement-editor/sanctuary-frame-v1/forest-frame.png',sourceRect:[0,0,864,800],occupiedTiles:[],submergedHeight:0,pack:'sanctuary-frame-v1'});
+packAsset('sanctuary_fall_art_v1','聖域の滝・新規原画',[3,4],false,false,{src:'assets/settlement-editor/sanctuary-frame-v1/waterfall.png',sourceRect:[0,0,96,128],occupiedTiles:[],submergedHeight:0,pack:'sanctuary-frame-v1'});
 // Larger overlapping canopies use the existing village trees; only the trunk cell blocks.
 for(const [id,name,src] of [['sanctuary_tree_broad','森・広葉樹','assets/settlement-editor/chips/tree_broadleaf.png'],['sanctuary_tree_conifer','森・針葉樹','assets/settlement-editor/chips/tree_conifer.png'],['sanctuary_tree_sakura','森・桜','assets/settlement-editor/seasonal-trees-v1/tree_sakura_pink.png']])packAsset(id,name,[1,2],true,false,{src,sourceRect:id==='sanctuary_tree_conifer'?[2,10,28,43]:[2,17,28,30],renderCells:[2,2],submergedHeight:0,pack:'sanctuary-forest'});
 // Independent raised rock island; the middle front cell is reserved for the
