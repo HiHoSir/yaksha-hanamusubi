@@ -54,3 +54,5 @@ for(const command of ['heal','herb','guard','escape']){
  const {c,until}=scenario();c.cmd('target-0');c.endBattle();until(5000);assert.equal(c.S.hp,100);assert.equal(c.S.wins,0,'cancelled battle timers do not award victory');
 }
 console.log('Battle tempo PASS: contact timing, damage hold, enemy wind-up, complete death fade, guarded lethal, dodge, heal/item/guard/escape, defeat, result and timer cancellation');
+
+{const {c}=scenario();c.renderBattle();assert.equal(c.document.getElementById("battleHeroOverlay").src,undefined,"battle must not render heroine portrait");}

@@ -8,6 +8,7 @@ on:
       - improve/front-interaction
       - improve/field-grid-alignment
       - improve/tenyo-water-gate-asset
+      - improve/battle-classic-ui
   workflow_dispatch:
     inputs:
       source_branch:
@@ -48,6 +49,9 @@ jobs:
           done < production/docs/pages-active-previews.txt
           if [[ "$GITHUB_REF_NAME" == "improve/interior-map-editor-32px" ]]; then
             branches+=("improve/interior-map-editor-32px")
+          fi
+          if [[ "$GITHUB_REF_NAME" == "improve/battle-classic-ui" ]]; then
+            branches+=("improve/battle-classic-ui")
           fi
           if [[ "$GITHUB_REF_NAME" == "improve/front-interaction" ]]; then
             branches+=("improve/front-interaction")

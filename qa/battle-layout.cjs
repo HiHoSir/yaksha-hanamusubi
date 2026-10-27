@@ -18,6 +18,9 @@ const server=http.createServer((req,res)=>{
  // Verify the actual battle command touch targets instead of the hidden field pad.
  assert(await page.locator('#battle').isVisible(),'battle overlay hidden '+height);
  assert(await page.locator('#battleCommands').isVisible(),'battle commands hidden '+height);
+ const first=await page.locator('[data-cmd]').nth(0).boundingBox(), second=await page.locator('[data-cmd]').nth(1).boundingBox(), fourth=await page.locator('[data-cmd]').nth(3).boundingBox();
+ assert(second.y>first.y&&fourth.x>first.x,'commands must be arranged in two columns');
+ assert(await page.locator('.battlePartyPortrait').isVisible(),'party status must show Hizuki sprite');
  const battleButtons=page.locator('#battleCommands [data-cmd]');
  assert(await battleButtons.count()>=5,'battle commands missing '+height);
  for(const button of await battleButtons.all()){
@@ -35,10 +38,13 @@ const server=http.createServer((req,res)=>{
  const commands=await page.locator('#battleCommands').boundingBox(),battle=await page.locator('#battle').boundingBox();assert(commands.y+commands.height<=battle.y+battle.height,'commands clipped '+height);
  await page.screenshot({path:path.join(__dirname,'results/autotile/battle-mobile-'+height+'.png')});
  if(process.argv.includes('--hero-only')){
-  await require('./battle-hero-layout.cjs')(page,assert);
+  assert.equal(await page.locator('#battleHeroOverlay').count(),0,'hero illustration must not appear');
+  assert.equal(await page.locator('.battlePartyCard.is-empty').count(),0,'empty party slots hidden');
+  const cmdBox=await page.locator('#battleCommands').boundingBox();assert(cmdBox.y<height*.4,'commands should be at top');
   assert.deepEqual(errors,[]);await context.close();continue;
  }
- await require('./battle-victory-layout.cjs')(page,assert);
+ assert.equal(await page.locator('#battleHeroOverlay').count(),0,'hero illustration must not appear');
+ assert.equal(await page.locator('.battlePartyCard.is-empty').count(),0,'empty party slots hidden');
  await page.evaluate(()=>window.__qaEval('endBattle()'));
  assert(!(await page.locator('#virtualStick').isVisible()),'legacy stick must stay hidden after battle '+height);
   assert(await page.locator('#up').isVisible(),'four-way D-pad must be visible after battle '+height);
