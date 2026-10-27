@@ -54,6 +54,9 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == "improve/field-grid-alignment" ]]; then
             branches+=("improve/field-grid-alignment")
           fi
+          if [[ "$GITHUB_REF_NAME" == "improve/tenyo-water-gate-asset" ]]; then
+            branches+=("improve/tenyo-water-gate-asset")
+          fi
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             branches+=("$REQUESTED_PREVIEW")
           fi
