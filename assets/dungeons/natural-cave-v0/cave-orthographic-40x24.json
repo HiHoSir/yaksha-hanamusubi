@@ -1039,6 +1039,7 @@
     ]
   ],
   "wallFaceRows": 104,
-  "draw": "fixed orthographic: black upper cells, 32px vertical front faces, 32px walkable floor",
+  "sideFaceCells": 108,
+  "draw": "fixed orthographic: black upper cells, 32px front faces, shaded 5px side edges, 32px walkable floor",
   "collision": "blocked rock cells never become walkable due to face artwork"
 }
