@@ -111,8 +111,10 @@ def main():
         for lx in range(32):
           wx=x*32+lx
           # An uninterrupted contour across consecutive wall cells.
-          upper=13+variation(wx,y*37+17)
-          lower=29+variation(wx,y*37+49)//2
+          # The whole blocked cell nearest the floor is a 32px wall face;
+          # the blocked row above remains its black overhead top.
+          upper=2+variation(wx,y*37+17)
+          lower=31+min(0,variation(wx,y*37+49)//2)
           # Silhouette naturally rolls back at exposed ends.
           if south and west: upper+=max(0,12-lx)//2
           if south and east: upper+=max(0,lx-19)//2
@@ -149,7 +151,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'wallTop':'opaque near-black','wallFace':'SFC 8-tone rock, interpolated connected silhouettes and side planes; rendered only within blocked cells','warning':'candidate presentation; visual approval pending'}
+      'wallTop':'opaque near-black','wallFace':'one complete 32px blocked-cell layer facing south; blocked row above forms black upper depth','warning':'candidate presentation; visual approval pending'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
