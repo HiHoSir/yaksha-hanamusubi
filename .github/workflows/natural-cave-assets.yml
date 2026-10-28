@@ -7,6 +7,7 @@ on:
       - 'tools/build-natural-cave-autotile.py'
       - 'qa/natural-cave-autotile-pixels.py'
       - 'qa/natural-cave-layout.cjs'
+      - 'previews/natural-cave-walk.html'
       - '.github/workflows/natural-cave-assets.yml'
   workflow_dispatch:
 permissions:
@@ -27,6 +28,22 @@ jobs:
       - run: python tools/build-natural-cave-autotile.py
       - run: python qa/natural-cave-autotile-pixels.py
       - run: node --test qa/natural-cave-layout.cjs
+      - name: Validate interactive cave preview references
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          p=Path('previews/natural-cave-walk.html').read_text()
+          assert "const origin='..'" in p
+          assert 'data-dir="up"' in p and 'data-dir="left"' in p
+          assert 'data-dir="down"' in p and 'data-dir="right"' in p
+          assert "rows[y]?.[x]==='.'" in p
+          assert 'cave-layout-20x12-candidate.png' in p
+          assert 'field-sd-v3/walk-atlas-32.png' in p
+          assert Image.open('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png').size == (96,128)
+          assert Image.open('assets/dungeons/natural-cave-v0/cave-layout-20x12-candidate.png').size == (640,384)
+          print('Preview paths, controls and source PNG dimensions PASS')
+          PY
       - name: Verify PNG dimensions and actual pixel edge continuity
         run: |
           python - <<'PY'
