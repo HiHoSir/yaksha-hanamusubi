@@ -145,6 +145,40 @@ def main():
       'movement':'only level 0 is traversable; no ladders or ramps'}
     (OUT/'cave-elevation-20x12.json').write_text(json.dumps(height_data,indent=2)+'\n')
     sample.save(OUT/'cave-layout-20x12-candidate.png')
+    # Orthographic two-cell-height wall pilot. Expand only the QA geometry
+    # to a 40x24 authored grid so a blocked wall can occupy separate
+    # TOP (dark) and FACE (rock) cells. Unlike perspective projection,
+    # nothing is shifted or distorted by a camera height parameter.
+    expanded=[''.join(ch*2 for ch in row) for row in rows for _ in range(2)]
+    H=len(expanded);W=len(expanded[0])
+    assert (W,H)==(40,24)
+    full=Image.new('RGBA',(W*32,H*32))
+    face_rows=[]
+    for yy in range(H):
+      for xx in range(W):
+        c=expanded[yy][xx]
+        south=expanded[yy+1][xx] if yy+1<H else '#'
+        # Only the frontmost blocked row is the 32px cliff face.
+        is_face=c=='#' and south=='.'
+        # Internal blocked rock behind that row remains solid black.
+        source=floor if c=='.' else rock
+        full.paste(source,(xx*32,yy*32))
+        if is_face:
+          face_rows.append((xx,yy))
+          for v in range(32):
+            for u in range(32):
+              wx=xx*32+u
+              rgb=cliff.getpixel(((wx+v//7)%32,(yy*32+v)%32))
+              val=(rgb[0]*3+rgb[1]*6+rgb[2])//10
+              k=max(1,min(6,val//34+1+(1 if v<3 else -2 if v>28 else 0)))
+              full.putpixel((xx*32+u,yy*32+v),palette[k]+(255,))
+    full.save(OUT/'cave-orthographic-40x24-candidate.png')
+    ortho={'tileSize':32,'width':W,'height':H,
+      'rows':expanded,'heightLevels':[[0 if c=='.' else 2 for c in r] for r in expanded],
+      'wallFaceRows':len(face_rows),'draw':'fixed orthographic: black upper cells, 32px vertical front faces, 32px walkable floor',
+      'collision':'blocked rock cells never become walkable due to face artwork'}
+    (OUT/'cave-orthographic-40x24.json').write_text(json.dumps(ortho,indent=2)+'\n')
+
     # 3x3 exact-scale repetition QA image, not a production tile.
     repetition=Image.new('RGBA',(96,96))
     for y in range(3):
