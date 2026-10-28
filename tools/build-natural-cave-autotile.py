@@ -80,36 +80,65 @@ def main():
           # decoratively later, never allowed to visually shrink walkability.
           tile=floor
         sample.paste(tile,(x*32,y*32))
-    # Irregular pixel silhouette with shared, world-space contour values.
-    # Rock remains inside blocked cells; black occupies the upper area.
-    # Neighboring wall tiles use the same world x positions, so runs do not
-    # restart their shape at every 32px grid boundary.
-    def contour(wx, wy):
-      h=(wx*37 + wy*19 + (wx//7)*23)
-      return ((h ^ (h>>3)) % 5)-2
-    for y,row in enumerate(rows[:-1]):
+    # SFC-era cave wall treatment: connected hand-shaped silhouettes, tonal
+    # separation, and reused original rock texture. All depth pixels stay in
+    # the BLOCKED cell, never intruding on the 32px movement footprint.
+    # Use a low-frequency interpolated contour sampled in world coordinates;
+    # restarting a rectangle every tile is the cause of the FC-like appearance.
+    from PIL import ImageColor
+    palette=[
+      (13,15,20), (25,28,35), (36,39,46),
+      (49,51,57), (65,65,70), (79,77,79),
+      (99,95,93), (117,109,103)]
+    def variation(wx,seed):
+      # Continuous contour between 8px-spaced hand-tuned control points.
+      def knot(k):
+        h=((k*1103515245+seed*12345+0x9e3779b9)&0xffffffff)
+        h^=h>>13
+        return (-3,-1,0,1,3,2,-2,0)[h&7]
+      k=wx//8; t=(wx%8)/8
+      t=t*t*(3-2*t)
+      return round(knot(k)*(1-t)+knot(k+1)*t)
+    def tone(rgb, wx, wy, is_rim=False, is_base=False):
+      lum=(rgb[0]*3+rgb[1]*6+rgb[2])//10
+      # Convert source to one coherent rock palette, retaining its detailed
+      # original luminance instead of painting flat colors or random speckles.
+      idx=max(1,min(6,(lum//34)+1))
+      if is_rim: idx=min(7,idx+1)
+      if is_base: idx=max(0,idx-2)
+      return palette[idx]+(255,)
+    for y,row in enumerate(rows):
       for x,ch in enumerate(row):
-        if ch!='#' or rows[y+1][x]!='.':
-          continue
-        left_open=x==0 or row[x-1]=='.'
-        right_open=x==19 or row[x+1]=='.'
-        # A stable rock face sampled from original approved texture.
-        # Each column has a jagged upper boundary and stepped lower edge.
+        if ch!='#': continue
+        south=(y+1<len(rows) and rows[y+1][x]=='.')
+        west=(x>0 and row[x-1]=='.')
+        east=(x+1<len(row) and row[x+1]=='.')
+        if not (south or west or east): continue
         for lx in range(32):
           wx=x*32+lx
-          # Taper the vertical rock wall at exposed end caps.
-          taper=(max(0,8-lx) if left_open else 0)+(max(0,lx-23) if right_open else 0)
-          top=19+contour(wx,y)-taper//2
-          bottom=30+contour(wx,y+3)-taper
-          top=max(12,min(24,top));bottom=max(top+2,min(31,bottom))
-          for py in range(top,bottom+1):
-            tx=wx; ty=y*32+py
-            # Sample rock in world coordinates, so neighboring cells share
-            # coherent striations instead of visibly repeated rectangles.
-            src=cliff.getpixel((wx%32,(py+wx//11)%32))
-            shade=0.70 if py<top+2 else 0.84 if py>bottom-3 else 0.92
-            color=tuple(int(v*shade) for v in src[:3])+(255,)
-            sample.putpixel((tx,ty),color)
+          # An uninterrupted contour across consecutive wall cells.
+          upper=15+variation(wx,y*37+17)
+          lower=30+variation(wx,y*37+49)//2
+          # Silhouette naturally rolls back at exposed ends.
+          if south and west: upper+=max(0,5-lx)//2
+          if south and east: upper+=max(0,lx-26)//2
+          for py in range(32):
+            wy=y*32+py
+            front=south and upper<=py<=lower
+            # Dark, narrower lateral rock faces turn into the black void
+            # rather than terminating as vertical rectangle edges.
+            left=west and lx<=max(2,7+variation(wy,x*19+11)) and py>=5
+            right=east and lx>=min(29,24-variation(wy,x*19+29)) and py>=5
+            if not(front or left or right):continue
+            src=cliff.getpixel(((wx+py//9)%32,(wy+wx//13)%32))
+            is_rim=front and py<=upper+1
+            is_base=front and py>=lower-2
+            color=tone(src[:3],wx,wy,is_rim,is_base)
+            # Side planes are in deeper shadow than front-facing wall.
+            if (left or right) and not front:
+              i=max(1,palette.index(color[:3])-2)
+              color=palette[i]+(255,)
+            sample.putpixel((wx,wy),color)
     sample.save(OUT/'cave-layout-20x12-candidate.png')
     # 3x3 exact-scale repetition QA image, not a production tile.
     repetition=Image.new('RGBA',(96,96))
@@ -120,7 +149,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'wallTop':'opaque near-black','wallFace':'jagged 8-20px vertical face in blocked cells next to southern floor; world-space coherent contours and end caps','warning':'candidate presentation; visual approval pending'}
+      'wallTop':'opaque near-black','wallFace':'SFC 8-tone rock, interpolated connected silhouettes and side planes; rendered only within blocked cells','warning':'candidate presentation; visual approval pending'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
