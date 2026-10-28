@@ -30,7 +30,7 @@ def floor_mask(m):
     if e:d.rectangle((25,6,31,25),fill=255)
     if s:d.rectangle((6,25,25,31),fill=255)
     if w:d.rectangle((0,6,6,25),fill=255)
-    for bit,rect in ((16,(0,0,5,5)),(32,(26,0,31,5)),(64,(26,26,31,31)),(128,(0,26,5,31))):
+    for bit,rect in ((16,(26,0,31,5)),(32,(26,26,31,31)),(64,(0,26,5,31)),(128,(0,0,5,5))):
         if m&bit:d.rectangle(rect,fill=255)
     return im
 def main():
