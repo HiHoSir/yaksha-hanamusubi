@@ -70,7 +70,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/dungeons/natural-cave-v0/floor-base-candidate.png \
+          git add assets/dungeons/natural-cave-v0/cave-elevation-20x12.json \
+                  assets/dungeons/natural-cave-v0/floor-base-candidate.png \
                   assets/dungeons/natural-cave-v0/wall-face-reference.png \
                   assets/dungeons/natural-cave-v0/rock-source-candidate.png \
                   assets/dungeons/natural-cave-v0/water-frames-reference.png \
