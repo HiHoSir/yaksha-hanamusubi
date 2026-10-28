@@ -47,6 +47,6 @@ function move(k){if(!ready||moving)return;const d=dirs[k];if(!d)return;dir=d[2];
 document.querySelectorAll('button[data-dir]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();move(b.dataset.dir)});b.addEventListener('contextmenu',e=>e.preventDefault())});
 window.addEventListener('keydown',e=>{const k={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'}[e.key];if(k){e.preventDefault();move(k)}});
 ['grid','collision','follow'].forEach(k=>document.getElementById(k).addEventListener('change',redraw));
-Promise.all([load('map',asset+'cave-layout-20x12-candidate.png?art=sfc-rock-20261028-v3'),load('hero',heroSrc)]).then(()=>{if(images.map.width!==640||images.map.height!==384||images.hero.width!==96||images.hero.height!==128)throw Error('PNG dimensions');ready=true;redraw()}).catch(e=>{status.textContent='画像読み込みエラー：'+e.message});
+Promise.all([load('map',asset+'cave-layout-20x12-candidate.png?art=sfc-rock-20261028-v4'),load('hero',heroSrc)]).then(()=>{if(images.map.width!==640||images.map.height!==384||images.hero.width!==96||images.hero.height!==128)throw Error('PNG dimensions');ready=true;redraw()}).catch(e=>{status.textContent='画像読み込みエラー：'+e.message});
 })();
 </script></body></html>
