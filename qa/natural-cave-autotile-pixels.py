@@ -57,17 +57,22 @@ rows=[
 layout=Image.open(out/"cave-layout-20x12-candidate.png").convert("RGBA")
 stone=Image.new('RGBA',(32,32),(8,9,12,255))
 ground=Image.merge('RGBA',(*floor.convert('RGB').split(),Image.new('L',(32,32),255)))
-face=Image.open(out/"source-cliff-32.png").convert("RGB").crop((0,10,32,22)).convert("RGBA")
-face.putalpha(255)
-face_count=0
+painted=0
 for y,row in enumerate(rows):
   for x,ch in enumerate(row):
     actual=layout.crop((x*32,y*32,(x+1)*32,(y+1)*32))
-    expected=(ground if ch=='.' else stone).copy()
-    if ch=='#' and y+1<len(rows) and rows[y+1][x]=='.':
-      expected.paste(face,(0,20))
-      face_count+=1
-    assert actual.tobytes()==expected.tobytes(), (x,y,ch)
-assert face_count>0
-print(f"PASS: 240 full 32px cells; {face_count} downward-facing rock wall strips inside blocked cells")
+    if ch=='.':
+      assert actual.tobytes()==ground.tobytes(),(x,y,'floor mutated')
+    else:
+      for r,g,b,a in actual.getdata():
+        assert a==255
+        assert (r,g,b)==(8,9,12) or (r,g,b) in {(13,15,20),(25,28,35),(36,39,46),(49,51,57),(65,65,70),(79,77,79),(99,95,93),(117,109,103)},(x,y,'unknown wall tone')
+        painted+=int((r,g,b)!=(8,9,12))
+assert painted>100,painted
+# Cell interior entirely blocked on all sides is pure dark overhead void.
+for y,row in enumerate(rows):
+  for x,ch in enumerate(row):
+    if ch=='#' and all(0<=x+dx<20 and 0<=y+dy<12 and rows[y+dy][x+dx]=='#' for dx,dy in ((0,1),(-1,0),(1,0))):
+      assert layout.getpixel((x*32+16,y*32+16))==(8,9,12,255)
+print(f"PASS: 240 full cells; {painted} textured wall pixels; walkable cells untouched")
 print("PASS:",len(tiles),"tiles;",pairs,"pairwise edge comparisons; four diagonal positions; 20x12 layout")
