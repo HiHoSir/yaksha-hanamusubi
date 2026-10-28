@@ -1,9 +1,5 @@
-# Approved improvement preview branches retained across main deployments.
-# Keep only branches authorized for publication; one improve/<slug> per line.
-improve/ui-dpad-touch
-improve/sd-all-maps
-improve/hozuki-topview
+# Pages preview allowlist: editor previews only; no historical game versions.
+# Main / is always the only published production game.
 improve/interior-map-editor-32px
 improve/pixel-editor-touch-workspace
-improve/tenyo-water-gate-asset
 improve/pixel-editor-mobile-cursor
