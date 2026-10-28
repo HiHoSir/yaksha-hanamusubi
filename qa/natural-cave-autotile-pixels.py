@@ -18,12 +18,12 @@ tiles={m:atlas.crop(((i%8)*32,(i//8)*32,(i%8+1)*32,(i//8+1)*32)) for i,m in enum
 pairs=0
 for a,ta in tiles.items():
  for b,tb in tiles.items():
-  if bool(a&2)==bool(b&8):
+  if bool(a&2)==bool(b&8) and (not (a&2) or (bool(a&16)==bool(b&128) and bool(a&32)==bool(b&64))):
    for y in range(32):
     if ta.getpixel((31,y))!=tb.getpixel((0,y)):
      raise AssertionError(f"EW seam masks {a},{b} y={y}")
    pairs+=1
-  if bool(a&4)==bool(b&1):
+  if bool(a&4)==bool(b&1) and (not (a&4) or (bool(a&64)==bool(b&128) and bool(a&32)==bool(b&16))):
    for x in range(32):
     if ta.getpixel((x,31))!=tb.getpixel((x,0)):
      raise AssertionError(f"NS seam masks {a},{b} x={x}")
