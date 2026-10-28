@@ -271,6 +271,6 @@
   "risePx": 32,
   "faceCells": 52,
   "sideCells": 44,
-  "geometry": "elevation-derived rock faces; 30px diagonal clipped convex ends; dark overhead top",
+  "geometry": "elevation-derived rock faces; 6px top-down corner bevels; dark overhead top",
   "movement": "only level 0 is traversable; no ladders or ramps"
 }
