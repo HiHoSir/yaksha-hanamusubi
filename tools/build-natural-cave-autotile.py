@@ -137,7 +137,7 @@ def main():
       'rockLevel':2,'risePx':32,'faceCells':face_cells,'sideCells':side_cells,
       'geometry':'vertical wall faces are generated from neighboring elevation differences',
       'movement':'only level 0 is traversable; no ladders or ramps'}
-    (OUT/'cave-elevation-20x12.json').write_text(json.dumps(height_data,indent=2)+'\\n')
+    (OUT/'cave-elevation-20x12.json').write_text(json.dumps(height_data,indent=2)+'\n')
     sample.save(OUT/'cave-layout-20x12-candidate.png')
     # 3x3 exact-scale repetition QA image, not a production tile.
     repetition=Image.new('RGBA',(96,96))
