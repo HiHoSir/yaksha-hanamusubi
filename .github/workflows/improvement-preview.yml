@@ -46,20 +46,13 @@ jobs:
             [[ -z "$branch" || "$branch" == \#* ]] && continue
             branches+=("$branch")
           done < production/docs/pages-active-previews.txt
-          if [[ "$GITHUB_REF_NAME" == "improve/interior-map-editor-32px" ]]; then
-            branches+=("improve/interior-map-editor-32px")
-          fi
-          if [[ "$GITHUB_REF_NAME" == "improve/front-interaction" ]]; then
-            branches+=("improve/front-interaction")
-          fi
-          if [[ "$GITHUB_REF_NAME" == "improve/field-grid-alignment" ]]; then
-            branches+=("improve/field-grid-alignment")
-          fi
-          if [[ "$GITHUB_REF_NAME" == "improve/pixel-editor-mobile-cursor" ]]; then
-            branches+=("improve/pixel-editor-mobile-cursor")
-          fi
+
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
-            branches+=("$REQUESTED_PREVIEW")
+            case "$REQUESTED_PREVIEW" in
+              improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/natural-cave-tiles)
+                branches+=("$REQUESTED_PREVIEW") ;;
+              *) echo "::error::Only editor previews or isolated cave QA are supported; historical game snapshots are prohibited: $REQUESTED_PREVIEW"; exit 1 ;;
+            esac
           fi
 
           declare -A seen=()
@@ -72,6 +65,33 @@ jobs:
             git -C production fetch --no-tags --depth=1 origin "refs/heads/$branch"
             git -C production archive FETCH_HEAD | tar -C "site/previews/$slug" -xf -
             rm -rf "site/previews/$slug/.github"
+            # Full historical game snapshots are prohibited. Editor branches
+            # may retain their relative assets, but not unrelated heavyweight
+            # game media, source references and test output.
+            if [[ "$slug" == "natural-cave-tiles" ]]; then
+              # Publish only the standalone walking QA and its 2 required PNGs.
+              stage="$(mktemp -d)"
+              mv "site/previews/$slug" "$stage/branch"
+              mkdir -p "site/previews/$slug/previews" "site/previews/$slug/assets/dungeons/natural-cave-v0" "site/previews/$slug/assets/characters/hizuki/field-sd-v3"
+              cp "$stage/branch/previews/natural-cave-walk.html" "site/previews/$slug/previews/"
+              cp "$stage/branch/assets/dungeons/natural-cave-v0/cave-layout-20x12-candidate.png" "site/previews/$slug/assets/dungeons/natural-cave-v0/"
+              cp "$stage/branch/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png" "site/previews/$slug/assets/characters/hizuki/field-sd-v3/"
+              rm -rf "$stage"
+              test -f "site/previews/$slug/previews/natural-cave-walk.html"
+              continue
+            fi
+            case "$slug" in
+              interior-map-editor-32px|pixel-editor-touch-workspace|pixel-editor-mobile-cursor) ;;
+              *) echo "::error::Non-editor full-game preview forbidden: $slug"; exit 1 ;;
+            esac
+            rm -rf "site/previews/$slug/assets/enemies" \
+                   "site/previews/$slug/assets/prologue" \
+                   "site/previews/$slug/design-reference" \
+                   "site/previews/$slug/qa" \
+                   "site/previews/$slug/docs" \
+                   "site/previews/$slug/.agents"
+            # Keep editor JS, CSS, tiles, NPC, map and related assets.
+
 
             SLUG="$slug" python3 - <<'PY'
           import os, pathlib, re
@@ -103,6 +123,18 @@ jobs:
             done
           fi
           test -f site/index.html
+          test ! -d site/previews/sd-all-maps
+          test ! -d site/previews/hozuki-topview
+          test ! -d site/previews/ui-dpad-touch
+          test ! -d site/previews/tenyo-water-gate-asset
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('site')
+          total = sum(p.stat().st_size for p in root.rglob('*') if p.is_file())
+          print(f'Pages raw site size: {total / 1_000_000:.1f} MB')
+          if total >= 900_000_000:
+              raise SystemExit('Site exceeds the 900MB guardrail')
+          PY
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload complete Pages site
