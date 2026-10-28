@@ -75,72 +75,69 @@ def main():
           # decoratively later, never allowed to visually shrink walkability.
           tile=floor
         sample.paste(tile,(x*32,y*32))
-    # SFC-era cave wall treatment: connected hand-shaped silhouettes, tonal
-    # separation, and reused original rock texture. All depth pixels stay in
-    # the BLOCKED cell, never intruding on the 32px movement footprint.
-    # Use a low-frequency interpolated contour sampled in world coordinates;
-    # restarting a rectangle every tile is the cause of the FC-like appearance.
-    palette=[
-      (13,15,20), (25,28,35), (36,39,46),
-      (49,51,57), (65,65,70), (79,77,79),
-      (99,95,93), (117,109,103)]
+    # Height-driven cave geometry. Unlike an independently painted wall sprite,
+    # the visible face is calculated from the same elevated terrain cells used
+    # for blocking. 0 = reachable floor; 2 = elevated, inaccessible cave rock.
+    # In top-down projection the upper rock surface is dark, while its exposed
+    # vertical faces are attached to the LOWER edge of the elevated cell.
+    heights=[[0 if ch=='.' else 2 for ch in row] for row in rows]
+    assert len(heights)==12 and all(len(r)==20 for r in heights)
+    palette=[(13,15,20),(25,28,35),(36,39,46),(49,51,57),
+             (65,65,70),(79,77,79),(99,95,93),(117,109,103)]
     def variation(wx,seed):
-      # Continuous contour between 8px-spaced hand-tuned control points.
       def knot(k):
         h=((k*1103515245+seed*12345+0x9e3779b9)&0xffffffff)
         h^=h>>13
         return (-3,-1,0,1,3,2,-2,0)[h&7]
-      k=wx//8; t=(wx%8)/8
-      t=t*t*(3-2*t)
+      k=wx//8;t=(wx%8)/8;t=t*t*(3-2*t)
       return round(knot(k)*(1-t)+knot(k+1)*t)
-    def tone(rgb, wx, wy, is_rim=False, is_base=False):
+    def color_at(wx,wy,shade=0):
+      rgb=cliff.getpixel(((wx+wy//9)%32,(wy+wx//13)%32))
       lum=(rgb[0]*3+rgb[1]*6+rgb[2])//10
-      # Convert source to one coherent rock palette, retaining its detailed
-      # original luminance instead of painting flat colors or random speckles.
-      idx=max(1,min(6,(lum//34)+1))
-      if is_rim: idx=min(7,idx+1)
-      if is_base: idx=max(0,idx-2)
-      return palette[idx]+(255,)
-    for y,row in enumerate(rows):
-      for x,ch in enumerate(row):
-        if ch!='#': continue
-        south=(y+1<len(rows) and rows[y+1][x]=='.')
-        west=(x>0 and row[x-1]=='.')
-        east=(x+1<len(row) and row[x+1]=='.')
-        if not (south or west or east): continue
+      i=max(1,min(6,lum//34+1+shade))
+      return palette[i]+(255,)
+    face_cells=0
+    side_cells=0
+    for y in range(12):
+      for x in range(20):
+        h=heights[y][x]
+        if h==0:continue
+        south=heights[y+1][x] if y+1<12 else h
+        west=heights[y][x-1] if x>0 else h
+        east=heights[y][x+1] if x<19 else h
+        # Same topological height differences drive face visibility.
+        south_face=h>south
+        left_face=h>west
+        right_face=h>east
+        if not (south_face or left_face or right_face):continue
+        face_cells+=int(south_face);side_cells+=int(left_face or right_face)
         for lx in range(32):
           wx=x*32+lx
-          # An uninterrupted contour across consecutive wall cells.
-          # The whole blocked cell nearest the floor is a 32px wall face;
-          # the blocked row above remains its black overhead top.
-          upper=2+variation(wx,y*37+17)
+          # 2-level rise is a full 32px face inside the elevated cell,
+          # leaving a full 32px walkable floor south of it.
+          upper=max(0,2+variation(wx,y*37+17))
           lower=31+min(0,variation(wx,y*37+49)//2)
-          # Silhouette naturally rolls back at exposed ends.
-          if south and west: upper+=max(0,12-lx)//2
-          if south and east: upper+=max(0,lx-19)//2
-          # Recede rounded side corners into the dark void; corners are
-          # defined across multiple pixels, not one-cell rectangular caps.
-          if south and west and lx<8: lower-=((8-lx)*2)//3
-          if south and east and lx>23: lower-=((lx-23)*2)//3
+          if south_face and left_face:
+            upper+=max(0,12-lx)//2
+            if lx<8:lower-=((8-lx)*2)//3
+          if south_face and right_face:
+            upper+=max(0,lx-19)//2
+            if lx>23:lower-=((lx-23)*2)//3
           for py in range(32):
             wy=y*32+py
-            front=south and upper<=py<=lower
-            # Dark, narrower lateral rock faces turn into the black void
-            # rather than terminating as vertical rectangle edges.
-            left=west and lx<=max(2,5+variation(wy,11)) and py>=7
-            right=east and lx>=min(29,26-variation(wy,29)) and py>=7
-            if not(front or left or right):continue
-            src=cliff.getpixel(((wx+py//9)%32,(wy+wx//13)%32))
-            is_rim=front and py<=upper+2
-            is_base=front and py>=lower-3
-            color=tone(src[:3],wx,wy,is_rim,is_base)
-            # Side planes are in deeper shadow than front-facing wall.
-            if (left or right) and not front:
-              i=max(1,palette.index(color[:3])-2)
-              color=palette[i]+(255,)
-            sample.putpixel((wx,wy),color)
-    # Ground-to-wall contact shadow: keep it within blocked cells to protect
-    # collision and SD character visibility. Thin stepped tonal transition.
+            face=south_face and upper<=py<=lower
+            side_l=left_face and lx<=max(2,5+variation(wy,11)) and py>=7
+            side_r=right_face and lx>=min(29,26-variation(wy,29)) and py>=7
+            if not(face or side_l or side_r):continue
+            shade=1 if face and py<=upper+2 else -2 if face and py>=lower-3 else 0
+            if not face:shade-=2
+            sample.putpixel((wx,wy),color_at(wx,wy,shade))
+    assert face_cells>0 and side_cells>0
+    height_data={'cellSize':32,'levels':heights,'floorLevel':0,
+      'rockLevel':2,'risePx':32,'faceCells':face_cells,'sideCells':side_cells,
+      'geometry':'vertical wall faces are generated from neighboring elevation differences',
+      'movement':'only level 0 is traversable; no ladders or ramps'}
+    (OUT/'cave-elevation-20x12.json').write_text(json.dumps(height_data,indent=2)+'\\n')
     sample.save(OUT/'cave-layout-20x12-candidate.png')
     # 3x3 exact-scale repetition QA image, not a production tile.
     repetition=Image.new('RGBA',(96,96))
@@ -151,7 +148,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'wallTop':'opaque near-black','wallFace':'one complete 32px blocked-cell layer facing south; blocked row above forms black upper depth','warning':'candidate presentation; visual approval pending'}
+      'wallTop':'opaque near-black','wallFace':'derived from height=2 next to height=0, risePx=32; dark top face','warning':'candidate presentation; visual approval pending'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
