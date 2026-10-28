@@ -2,8 +2,8 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>自然洞窟・歩行検査（未採用候補）</title>
 <style>body{background:#15171b;color:#eee;font:15px system-ui;margin:0;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px}canvas{display:block;width:100%;max-width:640px;image-rendering:pixelated;background:#08090d;border:1px solid #777;touch-action:none}.pad{display:grid;grid-template-columns:repeat(3,70px);gap:8px;margin:14px 0;max-width:230px}.pad button{min-height:58px;font-size:25px;touch-action:none;background:#353841;border:1px solid #999;border-radius:9px;color:#fff}.pad button:nth-child(1){grid-column:2}.pad button:nth-child(2){grid-column:1;grid-row:2}.pad button:nth-child(3){grid-column:2;grid-row:2}.pad button:nth-child(4){grid-column:3;grid-row:2}label{display:inline-flex;align-items:center;margin:8px 12px 8px 0}small{color:#bec2c9}#status{min-height:3em}</style></head><body><main>
-<h1>自然洞窟：歩行・衝突検査（デザイン未承認）</h1>
-<p>矢印キー・画面の十字キーで1マスずつ移動。水色の緋月は現行の実SDスプライト。床・岩壁は既存素材から構成した検査候補です。</p>
+<h1>自然洞窟：黒い上面＋垂直岩壁・歩行検査</h1>
+<p>矢印キー・画面の十字キーで1マスずつ移動。水色の緋月は現行の実SDスプライト。壁の上面は黒、南側の通路に面する壁だけ下端12pxに垂直の岩肌を描画します。床・岩壁は検査候補です。</p>
 <canvas id="stage" width="640" height="384" aria-label="洞窟20列12行の歩行検査画面"></canvas>
 <label><input type="checkbox" id="grid">グリッド</label>
 <label><input type="checkbox" id="collision">通行不可表示</label>
@@ -47,6 +47,6 @@ function move(k){if(!ready||moving)return;const d=dirs[k];if(!d)return;dir=d[2];
 document.querySelectorAll('button[data-dir]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();move(b.dataset.dir)});b.addEventListener('contextmenu',e=>e.preventDefault())});
 window.addEventListener('keydown',e=>{const k={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'}[e.key];if(k){e.preventDefault();move(k)}});
 ['grid','collision','follow'].forEach(k=>document.getElementById(k).addEventListener('change',redraw));
-Promise.all([load('map',asset+'cave-layout-20x12-candidate.png'),load('hero',heroSrc)]).then(()=>{if(images.map.width!==640||images.map.height!==384||images.hero.width!==96||images.hero.height!==128)throw Error('PNG dimensions');ready=true;redraw()}).catch(e=>{status.textContent='画像読み込みエラー：'+e.message});
+Promise.all([load('map',asset+'cave-layout-20x12-candidate.png?art=wallface-20261028-v2'),load('hero',heroSrc)]).then(()=>{if(images.map.width!==640||images.map.height!==384||images.hero.width!==96||images.hero.height!==128)throw Error('PNG dimensions');ready=true;redraw()}).catch(e=>{status.textContent='画像読み込みエラー：'+e.message});
 })();
 </script></body></html>
