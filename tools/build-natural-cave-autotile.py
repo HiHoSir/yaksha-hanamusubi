@@ -73,8 +73,10 @@ def main():
         if char=='#':tile=rock
         else:
           mask=normal(sum(bit for dx,dy,bit in d if 0<=x+dx<20 and 0<=y+dy<12 and rows[y+dy][x+dx]=='.'))
-          idx=MASKS.index(mask)
-          tile=atlas.crop(((idx%8)*32,(idx//8)*32,(idx%8+1)*32,(idx//8+1)*32))
+          # Occupancy is FULL-CELL: a floor tile is 32x32 floor, and a
+          # blocked tile is 32x32 rock. Transition masks can be layered
+          # decoratively later, never allowed to visually shrink walkability.
+          tile=floor
         sample.paste(tile,(x*32,y*32))
     sample.save(OUT/'cave-layout-20x12-candidate.png')
     # 3x3 exact-scale repetition QA image, not a production tile.
@@ -86,7 +88,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'warning':'wall raster is sourced from grass-cliff; palette and transitions need visual approval'}
+      'warning':'full-cell geometry for walkable/blocked layout; 47-mask atlas is a separate unapproved decorative candidate'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
