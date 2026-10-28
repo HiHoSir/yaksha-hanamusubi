@@ -271,6 +271,6 @@
   "risePx": 32,
   "faceCells": 52,
   "sideCells": 44,
-  "geometry": "vertical wall faces are generated from neighboring elevation differences",
+  "geometry": "elevation-derived rock faces; 30px diagonal clipped convex ends; dark overhead top",
   "movement": "only level 0 is traversable; no ladders or ramps"
 }

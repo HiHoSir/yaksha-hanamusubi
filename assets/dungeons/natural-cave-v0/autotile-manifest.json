@@ -56,6 +56,6 @@
   "layout": "cave-layout-20x12-candidate.png",
   "collision": "full integer cells; # blocked, . passable; never derived from source image",
   "wallTop": "opaque near-black",
-  "wallFace": "derived from height=2 next to height=0, risePx=32; dark top face",
+  "wallFace": "height-derived 32px rock faces with 30px clipped convex upper corners; black top",
   "warning": "candidate presentation; visual approval pending"
 }
