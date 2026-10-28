@@ -55,5 +55,7 @@
   ],
   "layout": "cave-layout-20x12-candidate.png",
   "collision": "full integer cells; # blocked, . passable; never derived from source image",
-  "warning": "unlit void replaces visible cliff-top texture; wall-face depth art remains a later task"
+  "wallTop": "opaque near-black",
+  "wallFace": "12px vertical rock face at bottom of blocked cell, only with floor immediately south",
+  "warning": "candidate presentation; visual approval pending"
 }
