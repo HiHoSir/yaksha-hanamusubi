@@ -38,4 +38,31 @@ for bit,point in corner_cases:
   assert all(mask.getpixel(p)==0 for p in other),(bit,'unexpected corner')
 # Four-direction movement remains whole-cell and unchanged by decoration.
 assert Image.open(out/"cave-layout-20x12-candidate.png").size==(640,384)
+# Full-cell raster contract: each 32x32 logical cell contains exclusively
+# the ground or rock image. No inset walkable texture may make a traversable
+# cell appear narrower than the collision grid.
+rows=[
+'####################',
+'#..........#.......#',
+'#.####.....#.......#',
+'#.#..#.............#',
+'#.#..#####..#####..#',
+'#.#.............#..#',
+'#.######.######.#..#',
+'#........#......#..#',
+'#..#######..#####..#',
+'#..................#',
+'#..................#',
+'####################']
+layout=Image.open(out/"cave-layout-20x12-candidate.png").convert("RGBA")
+stone=mod.edge_tiled(Image.open(out/"source-cliff-32.png").convert("RGBA"))
+stone=stone.point(lambda p:int(p*.72) if p<256 else p)
+stone=Image.merge('RGBA',(*stone.convert('RGB').split(),Image.new('L',(32,32),255)))
+ground=Image.merge('RGBA',(*floor.convert('RGB').split(),Image.new('L',(32,32),255)))
+for y,row in enumerate(rows):
+  for x,ch in enumerate(row):
+    actual=layout.crop((x*32,y*32,(x+1)*32,(y+1)*32))
+    expected=ground if ch=='.' else stone
+    assert actual.tobytes()==expected.tobytes(), (x,y,ch)
+print("PASS: 240 cells exactly match full 32x32 ground/rock grid")
 print("PASS:",len(tiles),"tiles;",pairs,"pairwise edge comparisons; four diagonal positions; 20x12 layout")
