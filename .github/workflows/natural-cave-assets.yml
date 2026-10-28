@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -84,3 +85,9 @@ jobs:
         with:
           name: natural-cave-source-candidates
           path: assets/dungeons/natural-cave-v0/
+
+      - name: Request isolated Pages preview through existing production workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run improvement-preview.yml --ref main -f source_branch=improve/natural-cave-tiles
