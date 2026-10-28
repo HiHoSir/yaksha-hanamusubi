@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>自然洞窟・歩行検査（未採用候補）</title>
+<style>body{background:#15171b;color:#eee;font:15px system-ui;margin:0;padding:12px}main{max-width:850px;margin:auto}h1{font-size:19px}canvas{display:block;width:100%;max-width:640px;image-rendering:pixelated;background:#08090d;border:1px solid #777;touch-action:none}.pad{display:grid;grid-template-columns:repeat(3,70px);gap:8px;margin:14px 0;max-width:230px}.pad button{min-height:58px;font-size:25px;touch-action:none;background:#353841;border:1px solid #999;border-radius:9px;color:#fff}.pad button:nth-child(1){grid-column:2}.pad button:nth-child(2){grid-column:1;grid-row:2}.pad button:nth-child(3){grid-column:2;grid-row:2}.pad button:nth-child(4){grid-column:3;grid-row:2}label{display:inline-flex;align-items:center;margin:8px 12px 8px 0}small{color:#bec2c9}#status{min-height:3em}</style></head><body><main>
+<h1>自然洞窟：歩行・衝突検査（デザイン未承認）</h1>
+<p>矢印キー・画面の十字キーで1マスずつ移動。水色の緋月は現行の実SDスプライト。床・岩壁は既存素材から構成した検査候補です。</p>
+<canvas id="stage" width="640" height="384" aria-label="洞窟20列12行の歩行検査画面"></canvas>
+<label><input type="checkbox" id="grid">グリッド</label>
+<label><input type="checkbox" id="collision">通行不可表示</label>
+<label><input type="checkbox" id="follow" checked>中央カメラ追従</label>
+<div class="pad"><button data-dir="up" aria-label="上">▲</button><button data-dir="left" aria-label="左">◀</button><button data-dir="down" aria-label="下">▼</button><button data-dir="right" aria-label="右">▶</button></div>
+<p id="status" role="status">画像を読み込み中…</p><small>これは独立QAページです。本編セーブ、イベント、戦闘には接続しません。グリッド・判定色は検査描画専用です。</small>
+</main><script>
+(()=>{'use strict';
+const S=32,W=20,H=12,rows=[
+'####################',
+'#..........#.......#',
+'#.####.....#.......#',
+'#.#..#.............#',
+'#.#..#####..#####..#',
+'#.#.............#..#',
+'#.######.######.#..#',
+'#........#......#..#',
+'#..#######..#####..#',
+'#..................#',
+'#..................#',
+'####################'];
+const origin='../..',asset=origin+'/assets/dungeons/natural-cave-v0/',heroSrc=origin+'/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png';
+const images={};let ready=false,pos=[1,10],dir=0,step=0,moving=false;
+const c=document.getElementById('stage'),ctx=c.getContext('2d'),status=document.getElementById('status');
+ctx.imageSmoothingEnabled=false;
+const load=(key,src)=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{images[key]=im;resolve()};im.onerror=()=>reject(Error(src));im.src=src});
+const pass=(x,y)=>Number.isInteger(x)&&Number.isInteger(y)&&rows[y]?.[x]==='.';
+function redraw(){
+ctx.clearRect(0,0,640,384);ctx.imageSmoothingEnabled=false;
+if(!ready)return;
+const follow=document.getElementById('follow').checked,ox=follow?320-(pos[0]+.5)*32:0,oy=follow?192-(pos[1]+.5)*32:0;
+ctx.fillStyle='#08090d';ctx.fillRect(0,0,640,384);
+ctx.drawImage(images.map,ox,oy);
+ctx.drawImage(images.hero,step*32,dir*32,32,32,Math.round(ox+pos[0]*32),Math.round(oy+pos[1]*32),32,32);
+if(document.getElementById('collision').checked){ctx.fillStyle='rgba(230,70,70,.23)';rows.forEach((r,y)=>Array.from(r).forEach((cell,x)=>{if(cell==='#')ctx.fillRect(ox+x*32,oy+y*32,32,32)}))}
+if(document.getElementById('grid').checked){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;ctx.beginPath();for(let x=0;x<=W;x++){ctx.moveTo(Math.round(ox+x*32)+.5,oy);ctx.lineTo(Math.round(ox+x*32)+.5,oy+H*32)}for(let y=0;y<=H;y++){ctx.moveTo(ox,Math.round(oy+y*32)+.5);ctx.lineTo(ox+W*32,Math.round(oy+y*32)+.5)}ctx.stroke()}
+status.textContent='緋月の位置：('+pos[0]+', '+pos[1]+') ／ 到着マス判定：32px単位 ／ '+(pos[0]===18&&pos[1]===1?'出口に到達':pos[0]===11&&pos[1]===7?'探索ポイントに到達':'探索中');
+}
+const dirs={up:[0,-1,1],right:[1,0,2],down:[0,1,0],left:[-1,0,3]};
+function move(k){if(!ready||moving)return;const d=dirs[k];if(!d)return;dir=d[2];const x=pos[0]+d[0],y=pos[1]+d[1];if(pass(x,y)){pos=[x,y];step=step===1?2:1}else step=0;redraw()}
+document.querySelectorAll('button[data-dir]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();move(b.dataset.dir)});b.addEventListener('contextmenu',e=>e.preventDefault())});
+window.addEventListener('keydown',e=>{const k={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'}[e.key];if(k){e.preventDefault();move(k)}});
+['grid','collision','follow'].forEach(k=>document.getElementById(k).addEventListener('change',redraw));
+Promise.all([load('map',asset+'cave-layout-20x12-candidate.png'),load('hero',heroSrc)]).then(()=>{if(images.map.width!==640||images.map.height!==384||images.hero.width!==96||images.hero.height!==128)throw Error('PNG dimensions');ready=true;redraw()}).catch(e=>{status.textContent='画像読み込みエラー：'+e.message});
+})();
+</script></body></html>
