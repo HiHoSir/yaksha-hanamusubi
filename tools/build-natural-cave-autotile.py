@@ -80,12 +80,36 @@ def main():
           # decoratively later, never allowed to visually shrink walkability.
           tile=floor
         sample.paste(tile,(x*32,y*32))
-    # Wall top (black) -> vertical rock face -> floor.  The face fits
-    # entirely inside its blocked 32px cell, never shrinking a floor cell.
+    # Irregular pixel silhouette with shared, world-space contour values.
+    # Rock remains inside blocked cells; black occupies the upper area.
+    # Neighboring wall tiles use the same world x positions, so runs do not
+    # restart their shape at every 32px grid boundary.
+    def contour(wx, wy):
+      h=(wx*37 + wy*19 + (wx//7)*23)
+      return ((h ^ (h>>3)) % 5)-2
     for y,row in enumerate(rows[:-1]):
       for x,ch in enumerate(row):
-        if ch=='#' and rows[y+1][x]=='.':
-          sample.paste(face,(x*32,(y+1)*32-12))
+        if ch!='#' or rows[y+1][x]!='.':
+          continue
+        left_open=x==0 or row[x-1]=='.'
+        right_open=x==19 or row[x+1]=='.'
+        # A stable rock face sampled from original approved texture.
+        # Each column has a jagged upper boundary and stepped lower edge.
+        for lx in range(32):
+          wx=x*32+lx
+          # Taper the vertical rock wall at exposed end caps.
+          taper=(max(0,8-lx) if left_open else 0)+(max(0,lx-23) if right_open else 0)
+          top=19+contour(wx,y)-taper//2
+          bottom=30+contour(wx,y+3)-taper
+          top=max(12,min(24,top));bottom=max(top+2,min(31,bottom))
+          for py in range(top,bottom+1):
+            tx=wx; ty=y*32+py
+            # Sample rock in world coordinates, so neighboring cells share
+            # coherent striations instead of visibly repeated rectangles.
+            src=cliff.getpixel((wx%32,(py+wx//11)%32))
+            shade=0.70 if py<top+2 else 0.84 if py>bottom-3 else 0.92
+            color=tuple(int(v*shade) for v in src[:3])+(255,)
+            sample.putpixel((tx,ty),color)
     sample.save(OUT/'cave-layout-20x12-candidate.png')
     # 3x3 exact-scale repetition QA image, not a production tile.
     repetition=Image.new('RGBA',(96,96))
@@ -96,7 +120,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'wallTop':'opaque near-black','wallFace':'12px vertical rock face at bottom of blocked cell, only with floor immediately south','warning':'candidate presentation; visual approval pending'}
+      'wallTop':'opaque near-black','wallFace':'jagged 8-20px vertical face in blocked cells next to southern floor; world-space coherent contours and end caps','warning':'candidate presentation; visual approval pending'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
