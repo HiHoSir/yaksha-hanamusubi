@@ -103,3 +103,36 @@ for y,row in enumerate(rows[:-1]):
       cuts+=1
 assert cuts>0
 print(f"PASS: {cuts} visibly clipped convex rock-wall corners")
+
+# Orthographic 40x24 QA: dark overhead, full-size 32px south faces,
+# shaded left/right joins, unchanged 32px walkable floor texture.
+orth=json.loads((out/"cave-orthographic-40x24.json").read_text())
+ortho_img=Image.open(out/"cave-orthographic-40x24-candidate.png").convert("RGBA")
+assert ortho_img.size==(1280,768)
+assert (orth["width"],orth["height"],orth["tileSize"])==(40,24,32)
+assert orth["rows"]==[z for r in rows for z in (''.join(ch*2 for ch in r),)*2]
+face_count=side_count=dark_count=0
+for y,row in enumerate(orth["rows"]):
+ for x,ch in enumerate(row):
+  cell=ortho_img.crop((x*32,y*32,(x+1)*32,(y+1)*32))
+  if ch=='.':
+   assert cell.tobytes()==ground.tobytes(),(x,y,'floor changed')
+   continue
+  south=y+1<24 and orth["rows"][y+1][x]=='.'
+  left=x>0 and row[x-1]=='.'
+  right=x<39 and row[x+1]=='.'
+  if south:
+   face_count+=1
+   assert cell.getpixel((16,16))!=(8,9,12,255),(x,y,'missing face')
+   assert cell.getpixel((16,30))!=(8,9,12,255),(x,y,'truncated wall height')
+  elif left or right:
+   side_count+=1
+   assert cell.getpixel((16,16))==(8,9,12,255),(x,y,'side covers overhead')
+   if left:assert cell.getpixel((1,16))!=(8,9,12,255)
+   if right:assert cell.getpixel((30,16))!=(8,9,12,255)
+  else:
+   dark_count+=1
+   assert cell.getpixel((16,16))==(8,9,12,255),(x,y,'overhead not black')
+assert face_count==orth["wallFaceRows"] and side_count>0 and dark_count>0
+assert orth["sideFaceCells"]>=side_count
+print(f"PASS: orthographic cave: {face_count} 32px fronts, {side_count} side joins, {dark_count} dark top cells, full-cell floors")
