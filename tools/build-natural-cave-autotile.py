@@ -128,11 +128,11 @@ def main():
             face=south_face and upper<=py<=lower
             side_l=left_face and lx<=max(2,5+variation(wy,11)) and py>=7
             side_r=right_face and lx>=min(29,26-variation(wy,29)) and py>=7
-            # Field-style 30px diagonal clipping at convex exposed ends:
-            # the top-left/top-right triangles reveal black cave void.
-            # This is an actual silhouette cut (not a metadata-only flag).
-            cut_left=south_face and left_face and lx+py<30
-            cut_right=south_face and right_face and (31-lx)+py<30
+            # Top-down cave walls must NOT inherit the field camera's
+            # 30px perspective wedge. Use a small 6px rock bevel only at
+            # exposed ends. It never changes logical cell occupancy.
+            cut_left=south_face and left_face and lx+py<6
+            cut_right=south_face and right_face and (31-lx)+py<6
             if cut_left or cut_right: continue
             if not(face or side_l or side_r):continue
             shade=1 if face and py<=upper+2 else -2 if face and py>=lower-3 else 0
@@ -141,7 +141,7 @@ def main():
     assert face_cells>0 and side_cells>0
     height_data={'cellSize':32,'levels':heights,'floorLevel':0,
       'rockLevel':2,'risePx':32,'faceCells':face_cells,'sideCells':side_cells,
-      'geometry':'elevation-derived rock faces; 30px diagonal clipped convex ends; dark overhead top',
+      'geometry':'elevation-derived rock faces; 6px top-down corner bevels; dark overhead top',
       'movement':'only level 0 is traversable; no ladders or ramps'}
     (OUT/'cave-elevation-20x12.json').write_text(json.dumps(height_data,indent=2)+'\n')
     sample.save(OUT/'cave-layout-20x12-candidate.png')
@@ -154,7 +154,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'wallTop':'opaque near-black','wallFace':'height-derived 32px rock faces with 30px clipped convex upper corners; black top','warning':'candidate presentation; visual approval pending'}
+      'wallTop':'opaque near-black','wallFace':'height-derived 32px rock faces with 6px top-down corner bevels; black top','warning':'candidate presentation; visual approval pending'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
