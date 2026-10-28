@@ -36,13 +36,9 @@ def floor_mask(m):
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
     floor=Image.open(OUT/'floor-base-candidate.png').convert('RGBA')
-    cliff=Image.open(OUT/'source-cliff-32.png').convert('RGBA')
-    assert floor.size==cliff.size==(32,32)
-    rock=edge_tiled(cliff)
-    # Reuse existing illustrated texture; darken for a distinctly enclosed cave.
-    rock=rock.point(lambda p:int(p*.72) if p<256 else p)
-    # RGBA alpha must remain opaque: convert source RGB before composition.
-    rock=Image.merge('RGBA',(*rock.convert('RGB').split(),Image.new('L',(32,32),255)))
+    # No visible cliff top: blocked cells represent unlit cave void.
+    # Keep the original cliff source for later side-facing wall treatment.
+    rock=Image.new('RGBA',(32,32),(8,9,12,255))
     floor=Image.merge('RGBA',(*floor.convert('RGB').split(),Image.new('L',(32,32),255)))
     atlas=Image.new('RGBA',(256,192),(0,0,0,0))
     for i,m in enumerate(MASKS):
@@ -88,7 +84,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'warning':'full-cell geometry for walkable/blocked layout; 47-mask atlas is a separate unapproved decorative candidate'}
+      'warning':'unlit void replaces visible cliff-top texture; wall-face depth art remains a later task'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
