@@ -39,6 +39,12 @@ def main():
     # No visible cliff top: blocked cells represent unlit cave void.
     # Keep the original cliff source for later side-facing wall treatment.
     rock=Image.new('RGBA',(32,32),(8,9,12,255))
+    cliff=Image.open(OUT/'source-cliff-32.png').convert('RGBA')
+    # Read the existing illustrated rock texture as a vertical face only.
+    # A wall's *top* remains black. Its lower 12px face appears exclusively
+    # when a walkable cell is directly south of the blocked wall cell.
+    face=cliff.convert('RGB').crop((0,10,32,22)).convert('RGBA')
+    face=Image.merge('RGBA',(*face.convert('RGB').split(),Image.new('L',(32,12),255)))
     floor=Image.merge('RGBA',(*floor.convert('RGB').split(),Image.new('L',(32,32),255)))
     atlas=Image.new('RGBA',(256,192),(0,0,0,0))
     for i,m in enumerate(MASKS):
@@ -74,6 +80,12 @@ def main():
           # decoratively later, never allowed to visually shrink walkability.
           tile=floor
         sample.paste(tile,(x*32,y*32))
+    # Wall top (black) -> vertical rock face -> floor.  The face fits
+    # entirely inside its blocked 32px cell, never shrinking a floor cell.
+    for y,row in enumerate(rows[:-1]):
+      for x,ch in enumerate(row):
+        if ch=='#' and rows[y+1][x]=='.':
+          sample.paste(face,(x*32,(y+1)*32-12))
     sample.save(OUT/'cave-layout-20x12-candidate.png')
     # 3x3 exact-scale repetition QA image, not a production tile.
     repetition=Image.new('RGBA',(96,96))
@@ -84,7 +96,7 @@ def main():
       'atlas':'cave-floor-wall-autotile-47-candidate.png','atlasColumns':8,'atlasRows':6,
       'maskOrder':MASKS,'layout':'cave-layout-20x12-candidate.png',
       'collision':'full integer cells; # blocked, . passable; never derived from source image',
-      'warning':'unlit void replaces visible cliff-top texture; wall-face depth art remains a later task'}
+      'wallTop':'opaque near-black','wallFace':'12px vertical rock face at bottom of blocked cell, only with floor immediately south','warning':'candidate presentation; visual approval pending'}
     (OUT/'autotile-manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     # Strong structural QA: all masks valid and opposite-edge continuity on shared arms.
     assert atlas.size==(256,192)
