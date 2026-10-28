@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Pixel-level structural checks for the candidate atlas, not art approval."""
 import importlib.util
+import json
 from pathlib import Path
 from PIL import Image
 root=Path(__file__).resolve().parent.parent
@@ -76,3 +77,10 @@ for y,row in enumerate(rows):
       assert layout.getpixel((x*32+16,y*32+16))==(8,9,12,255)
 print(f"PASS: 240 full cells; {painted} textured wall pixels; walkable cells untouched")
 print("PASS:",len(tiles),"tiles;",pairs,"pairwise edge comparisons; four diagonal positions; 20x12 layout")
+
+height=json.loads((out/"cave-elevation-20x12.json").read_text())
+assert height["risePx"]==32 and height["floorLevel"]==0 and height["rockLevel"]==2
+assert height["levels"]==[[0 if ch=="." else 2 for ch in row] for row in rows]
+assert height["faceCells"]==sum(1 for y in range(11) for x in range(20) if rows[y][x]=="#" and rows[y+1][x]==".")
+assert height["sideCells"]>0
+print("PASS: elevation JSON matches grid, 32px cliff rise, and derived south-facing cliff edges")
