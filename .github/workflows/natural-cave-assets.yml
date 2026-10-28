@@ -1,0 +1,61 @@
+name: Natural cave asset candidates
+on:
+  push:
+    branches: [improve/natural-cave-tiles]
+    paths:
+      - 'tools/build-natural-cave-candidates.py'
+      - 'qa/natural-cave-layout.cjs'
+      - '.github/workflows/natural-cave-assets.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow==11.3.0
+      - run: python tools/build-natural-cave-candidates.py
+      - run: node --test qa/natural-cave-layout.cjs
+      - name: Verify PNG dimensions and actual pixel edge continuity
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('assets/dungeons/natural-cave-v0')
+          expected={'floor-base-candidate.png':(32,32),'wall-face-reference.png':(32,32),
+                    'rock-source-candidate.png':(32,32),'water-frames-reference.png':(32,128),
+                    'source-candidates-4x2.png':(128,64)}
+          for name,size in expected.items():
+              im=Image.open(p/name).convert('RGBA')
+              assert im.size==size,(name,im.size)
+              print(name,im.size,im.getbbox())
+          im=Image.open(p/'floor-base-candidate.png').convert('RGBA')
+          assert all(im.getpixel((0,y))==im.getpixel((31,y)) for y in range(32))
+          assert all(im.getpixel((x,0))==im.getpixel((x,31)) for x in range(32))
+          print('Floor opposite-edge pixel equality PASS (not visual approval)')
+          PY
+      - name: Commit generated candidates to isolated improvement branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/dungeons/natural-cave-v0/floor-base-candidate.png \
+                  assets/dungeons/natural-cave-v0/wall-face-reference.png \
+                  assets/dungeons/natural-cave-v0/rock-source-candidate.png \
+                  assets/dungeons/natural-cave-v0/water-frames-reference.png \
+                  assets/dungeons/natural-cave-v0/source-candidates-4x2.png \
+                  assets/dungeons/natural-cave-v0/manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets: build reusable cave PNG candidates [skip ci]'
+            git push origin HEAD:improve/natural-cave-tiles
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: natural-cave-source-candidates
+          path: assets/dungeons/natural-cave-v0/
