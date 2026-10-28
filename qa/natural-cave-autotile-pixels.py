@@ -85,7 +85,7 @@ assert height["faceCells"]==sum(1 for y in range(11) for x in range(20) if rows[
 assert height["sideCells"]>0
 print("PASS: elevation JSON matches grid, 32px cliff rise, and derived south-facing cliff edges")
 
-# The field-derived 30px diagonal cut must be visible in actual pixels,
+# A top-down 6px corner bevel must be visible in actual pixels,
 # not only recorded in elevation JSON. Corner pixels remain black,
 # while a lower point of the face is textured.
 cuts=0
@@ -97,6 +97,9 @@ for y,row in enumerate(rows[:-1]):
     if left or right:
       px=x*32+(1 if left else 30)
       assert layout.getpixel((px,y*32+2))==(8,9,12,255),(x,y,'clipped corner is not black')
+      # At 12px below the top the full rock face must be present;
+      # this guards against accidentally retaining a 30px void wedge.
+      assert layout.getpixel((px,y*32+20))[:3]!=(8,9,12),(x,y,'perspective wedge remains')
       cuts+=1
 assert cuts>0
 print(f"PASS: {cuts} visibly clipped convex rock-wall corners")
