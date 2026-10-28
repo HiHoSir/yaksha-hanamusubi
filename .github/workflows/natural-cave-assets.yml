@@ -10,6 +10,9 @@ on:
       - 'previews/natural-cave-walk.html'
       - '.github/workflows/natural-cave-assets.yml'
   workflow_dispatch:
+concurrency:
+  group: natural-cave-assets-branch
+  cancel-in-progress: false
 permissions:
   contents: write
   actions: write
