@@ -1,0 +1,64 @@
+{
+  "status": "ASSET CANDIDATE — NOT APPROVED",
+  "tileSize": 32,
+  "sheet": {
+    "path": "source-candidates-4x2.png",
+    "cols": 4,
+    "rows": 2
+  },
+  "tiles": [
+    {
+      "id": "cave_floor_candidate",
+      "cell": [
+        0,
+        0
+      ],
+      "walkable": true,
+      "origin": "assets/terrain/landscape-v1/barren.png",
+      "processing": "crop upper-left quadrant; 2px edge loop"
+    },
+    {
+      "id": "cave_wall_face_reference",
+      "cell": [
+        1,
+        0
+      ],
+      "walkable": false,
+      "origin": "assets/terrain/cliffs-v1/grass-cliff-32.png",
+      "processing": "copy; visual reference, not autotile"
+    },
+    {
+      "id": "cave_rock_candidate",
+      "cell": [
+        2,
+        0
+      ],
+      "walkable": false,
+      "origin": "assets/settlement-editor/chips/rocks.png",
+      "occupiedTilesRelative": [
+        [
+          0,
+          0
+        ]
+      ],
+      "processing": "copy; transparency review pending"
+    },
+    {
+      "id": "cave_shallow_water_reference",
+      "cell": [
+        3,
+        0
+      ],
+      "walkable": false,
+      "origin": "assets/settlement-editor/clear-water-v1/shallow.png",
+      "processing": "first of four frames; color/opacity review pending"
+    }
+  ],
+  "todo": [
+    "review visual consistency and alpha",
+    "3x3 visual repetition",
+    "build connected wall transitions",
+    "47-mask compatibility",
+    "real SD and field transition testing"
+  ]
+}
