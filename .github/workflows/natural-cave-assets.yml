@@ -42,10 +42,10 @@ jobs:
           assert 'data-dir="up"' in p and 'data-dir="left"' in p
           assert 'data-dir="down"' in p and 'data-dir="right"' in p
           assert "rows[y]?.[x]==='.'" in p
-          assert 'cave-layout-20x12-candidate.png' in p
+          assert 'cave-orthographic-40x24-candidate.png' in p
           assert 'field-sd-v3/walk-atlas-32.png' in p
           assert Image.open('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png').size == (96,128)
-          assert Image.open('assets/dungeons/natural-cave-v0/cave-layout-20x12-candidate.png').size == (640,384)
+          assert Image.open('assets/dungeons/natural-cave-v0/cave-orthographic-40x24-candidate.png').size == (1280,768)
           print('Preview paths, controls and source PNG dimensions PASS')
           PY
       - name: Verify PNG dimensions and actual pixel edge continuity
@@ -70,7 +70,9 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/dungeons/natural-cave-v0/cave-elevation-20x12.json \
+          git add assets/dungeons/natural-cave-v0/cave-orthographic-40x24-candidate.png \
+                  assets/dungeons/natural-cave-v0/cave-orthographic-40x24.json \
+                  assets/dungeons/natural-cave-v0/cave-elevation-20x12.json \
                   assets/dungeons/natural-cave-v0/floor-base-candidate.png \
                   assets/dungeons/natural-cave-v0/wall-face-reference.png \
                   assets/dungeons/natural-cave-v0/rock-source-candidate.png \
