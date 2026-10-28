@@ -55,5 +55,5 @@
   ],
   "layout": "cave-layout-20x12-candidate.png",
   "collision": "full integer cells; # blocked, . passable; never derived from source image",
-  "warning": "full-cell geometry for walkable/blocked layout; 47-mask atlas is a separate unapproved decorative candidate"
+  "warning": "unlit void replaces visible cliff-top texture; wall-face depth art remains a later task"
 }
