@@ -55,9 +55,7 @@ rows=[
 '#..................#',
 '####################']
 layout=Image.open(out/"cave-layout-20x12-candidate.png").convert("RGBA")
-stone=mod.edge_tiled(Image.open(out/"source-cliff-32.png").convert("RGBA"))
-stone=stone.point(lambda p:int(p*.72) if p<256 else p)
-stone=Image.merge('RGBA',(*stone.convert('RGB').split(),Image.new('L',(32,32),255)))
+stone=Image.new('RGBA',(32,32),(8,9,12,255))
 ground=Image.merge('RGBA',(*floor.convert('RGB').split(),Image.new('L',(32,32),255)))
 for y,row in enumerate(rows):
   for x,ch in enumerate(row):
