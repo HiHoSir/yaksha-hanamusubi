@@ -154,28 +154,52 @@ def main():
     assert (W,H)==(40,24)
     full=Image.new('RGBA',(W*32,H*32))
     face_rows=[]
+    side_rows=[]
+    # Top-down renderer: all terrain pixels stay on their own 32px cells.
+    # Height 2 is unlit rock; height 0 is the entire walkable floor tile.
+    # South-facing cliffs use a full 32px illustrated face. Exposed left/right
+    # sides use narrow shaded strips within the same blocked cells, never
+    # camera-offset polygons or field-perspective corner cuts.
     for yy in range(H):
       for xx in range(W):
         c=expanded[yy][xx]
+        full.paste(floor if c=='.' else rock,(xx*32,yy*32))
+        if c=='.':continue
         south=expanded[yy+1][xx] if yy+1<H else '#'
-        # Only the frontmost blocked row is the 32px cliff face.
-        is_face=c=='#' and south=='.'
-        # Internal blocked rock behind that row remains solid black.
-        source=floor if c=='.' else rock
-        full.paste(source,(xx*32,yy*32))
-        if is_face:
-          face_rows.append((xx,yy))
-          for v in range(32):
-            for u in range(32):
-              wx=xx*32+u
-              rgb=cliff.getpixel(((wx+v//7)%32,(yy*32+v)%32))
-              val=(rgb[0]*3+rgb[1]*6+rgb[2])//10
-              k=max(1,min(6,val//34+1+(1 if v<3 else -2 if v>28 else 0)))
-              full.putpixel((xx*32+u,yy*32+v),palette[k]+(255,))
+        west=expanded[yy][xx-1] if xx>0 else '#'
+        east=expanded[yy][xx+1] if xx+1<W else '#'
+        face=south=='.'
+        left=west=='.'
+        right=east=='.'
+        if not(face or left or right):continue
+        if face:face_rows.append((xx,yy))
+        if left or right:side_rows.append((xx,yy))
+        for v in range(32):
+          for u in range(32):
+            # Face spans the cell height, side edges are 5px of carved
+            # rock in the void. The join remains inside the blocked cell.
+            side_left=left and u<5+(1 if v%13==0 else 0)
+            side_right=right and u>=27-(1 if v%11==0 else 0)
+            if not(face or side_left or side_right):continue
+            wx=xx*32+u
+            wy=yy*32+v
+            rgb=cliff.getpixel(((wx+v//7)%32,(wy+u//13)%32))
+            val=(rgb[0]*3+rgb[1]*6+rgb[2])//10
+            # Coherent 8-tone SFC-style shading from source rock pixels.
+            shade=(1 if v<3 else -1 if v>28 else 0) if face else -2
+            if face and v in (3,4) and (wx//9)%4==0:shade-=1
+            if face and v>=29:shade-=1
+            if side_left:shade-=1
+            if side_right:shade-=2
+            if face and left and u<3:shade-=1
+            if face and right and u>28:shade-=1
+            k=max(1,min(7,val//34+1+shade))
+            full.putpixel((wx,wy),palette[k]+(255,))
+    assert face_rows and side_rows
     full.save(OUT/'cave-orthographic-40x24-candidate.png')
     ortho={'tileSize':32,'width':W,'height':H,
       'rows':expanded,'heightLevels':[[0 if c=='.' else 2 for c in r] for r in expanded],
-      'wallFaceRows':len(face_rows),'draw':'fixed orthographic: black upper cells, 32px vertical front faces, 32px walkable floor',
+      'wallFaceRows':len(face_rows),'sideFaceCells':len(side_rows),'draw':'fixed orthographic: black upper cells, 32px front faces, shaded 5px side edges, 32px walkable floor',
       'collision':'blocked rock cells never become walkable due to face artwork'}
     (OUT/'cave-orthographic-40x24.json').write_text(json.dumps(ortho,indent=2)+'\n')
 
