@@ -57,10 +57,17 @@ rows=[
 layout=Image.open(out/"cave-layout-20x12-candidate.png").convert("RGBA")
 stone=Image.new('RGBA',(32,32),(8,9,12,255))
 ground=Image.merge('RGBA',(*floor.convert('RGB').split(),Image.new('L',(32,32),255)))
+face=Image.open(out/"source-cliff-32.png").convert("RGB").crop((0,10,32,22)).convert("RGBA")
+face.putalpha(255)
+face_count=0
 for y,row in enumerate(rows):
   for x,ch in enumerate(row):
     actual=layout.crop((x*32,y*32,(x+1)*32,(y+1)*32))
-    expected=ground if ch=='.' else stone
+    expected=(ground if ch=='.' else stone).copy()
+    if ch=='#' and y+1<len(rows) and rows[y+1][x]=='.':
+      expected.paste(face,(0,20))
+      face_count+=1
     assert actual.tobytes()==expected.tobytes(), (x,y,ch)
-print("PASS: 240 cells exactly match full 32x32 ground/rock grid")
+assert face_count>0
+print(f"PASS: 240 full 32px cells; {face_count} downward-facing rock wall strips inside blocked cells")
 print("PASS:",len(tiles),"tiles;",pairs,"pairwise edge comparisons; four diagonal positions; 20x12 layout")
