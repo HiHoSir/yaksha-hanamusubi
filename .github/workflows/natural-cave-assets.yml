@@ -32,6 +32,24 @@ jobs:
       - run: python tools/build-natural-cave-autotile.py
       - run: python qa/natural-cave-autotile-pixels.py
       - run: node --test qa/natural-cave-layout.cjs
+      - name: Validate inline HTML JavaScript syntax and embedded PNG
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re,base64,struct
+          html=Path('previews/natural-cave-walk.html').read_text()
+          js=re.search(r'<script>([\\s\\S]*?)</script>',html).group(1)
+          Path('/tmp/cave-preview.js').write_text(js)
+          match=re.search(r"'data:image/png;base64,([^']+)'",js)
+          assert match, 'Embedded PNG missing'
+          raw=match.group(1)
+          assert not any(c.isspace() for c in raw), 'Inline PNG has forbidden literal whitespace/newlines'
+          png=base64.b64decode(raw,validate=True)
+          assert png[:8]==b'\\x89PNG\\r\\n\\x1a\\n'
+          assert struct.unpack('>II',png[16:24])==(1280,768)
+          print('Inline PNG valid: 1280x768; JavaScript extraction complete')
+          PY
+          node --check /tmp/cave-preview.js
       - name: Validate interactive cave preview references
         run: |
           python - <<'PY'
