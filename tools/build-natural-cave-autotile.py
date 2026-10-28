@@ -40,11 +40,6 @@ def main():
     # Keep the original cliff source for later side-facing wall treatment.
     rock=Image.new('RGBA',(32,32),(8,9,12,255))
     cliff=Image.open(OUT/'source-cliff-32.png').convert('RGBA')
-    # Read the existing illustrated rock texture as a vertical face only.
-    # A wall's *top* remains black. Its lower 12px face appears exclusively
-    # when a walkable cell is directly south of the blocked wall cell.
-    face=cliff.convert('RGB').crop((0,10,32,22)).convert('RGBA')
-    face=Image.merge('RGBA',(*face.convert('RGB').split(),Image.new('L',(32,12),255)))
     floor=Image.merge('RGBA',(*floor.convert('RGB').split(),Image.new('L',(32,32),255)))
     atlas=Image.new('RGBA',(256,192),(0,0,0,0))
     for i,m in enumerate(MASKS):
@@ -85,7 +80,6 @@ def main():
     # the BLOCKED cell, never intruding on the 32px movement footprint.
     # Use a low-frequency interpolated contour sampled in world coordinates;
     # restarting a rectangle every tile is the cause of the FC-like appearance.
-    from PIL import ImageColor
     palette=[
       (13,15,20), (25,28,35), (36,39,46),
       (49,51,57), (65,65,70), (79,77,79),
@@ -117,28 +111,34 @@ def main():
         for lx in range(32):
           wx=x*32+lx
           # An uninterrupted contour across consecutive wall cells.
-          upper=15+variation(wx,y*37+17)
-          lower=30+variation(wx,y*37+49)//2
+          upper=13+variation(wx,y*37+17)
+          lower=29+variation(wx,y*37+49)//2
           # Silhouette naturally rolls back at exposed ends.
-          if south and west: upper+=max(0,5-lx)//2
-          if south and east: upper+=max(0,lx-26)//2
+          if south and west: upper+=max(0,12-lx)//2
+          if south and east: upper+=max(0,lx-19)//2
+          # Recede rounded side corners into the dark void; corners are
+          # defined across multiple pixels, not one-cell rectangular caps.
+          if south and west and lx<8: lower-=((8-lx)*2)//3
+          if south and east and lx>23: lower-=((lx-23)*2)//3
           for py in range(32):
             wy=y*32+py
             front=south and upper<=py<=lower
             # Dark, narrower lateral rock faces turn into the black void
             # rather than terminating as vertical rectangle edges.
-            left=west and lx<=max(2,7+variation(wy,x*19+11)) and py>=5
-            right=east and lx>=min(29,24-variation(wy,x*19+29)) and py>=5
+            left=west and lx<=max(2,5+variation(wy,11)) and py>=7
+            right=east and lx>=min(29,26-variation(wy,29)) and py>=7
             if not(front or left or right):continue
             src=cliff.getpixel(((wx+py//9)%32,(wy+wx//13)%32))
-            is_rim=front and py<=upper+1
-            is_base=front and py>=lower-2
+            is_rim=front and py<=upper+2
+            is_base=front and py>=lower-3
             color=tone(src[:3],wx,wy,is_rim,is_base)
             # Side planes are in deeper shadow than front-facing wall.
             if (left or right) and not front:
               i=max(1,palette.index(color[:3])-2)
               color=palette[i]+(255,)
             sample.putpixel((wx,wy),color)
+    # Ground-to-wall contact shadow: keep it within blocked cells to protect
+    # collision and SD character visibility. Thin stepped tonal transition.
     sample.save(OUT/'cave-layout-20x12-candidate.png')
     # 3x3 exact-scale repetition QA image, not a production tile.
     repetition=Image.new('RGBA',(96,96))
