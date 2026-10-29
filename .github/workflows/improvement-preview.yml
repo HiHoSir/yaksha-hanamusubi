@@ -49,7 +49,7 @@ jobs:
 
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             case "$REQUESTED_PREVIEW" in
-              improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/natural-cave-tiles)
+              improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/ai-pixel-editor-bridge|improve/natural-cave-tiles)
                 branches+=("$REQUESTED_PREVIEW") ;;
               *) echo "::error::Only editor previews or isolated cave QA are supported; historical game snapshots are prohibited: $REQUESTED_PREVIEW"; exit 1 ;;
             esac
@@ -63,6 +63,22 @@ jobs:
             slug="${branch#improve/}"
             mkdir -p "site/previews/$slug"
             git -C production fetch --no-tags --depth=1 origin "refs/heads/$branch"
+            # The AI pixel lab preview uses just a self-contained editor and the
+            # approved field-sd-v3 atlas. Never publish a full game snapshot.
+            if [[ "$slug" == "ai-pixel-editor-bridge" ]]; then
+              mkdir -p "site/previews/$slug/previews/ai-pixel-editor" \
+                       "site/previews/$slug/assets/characters/hizuki/field-sd-v3"
+              for name in ai-pixel-editor.html ai-pixel-bridge.js; do
+                git -C production show "FETCH_HEAD:previews/ai-pixel-editor/$name" > \
+                  "site/previews/$slug/previews/ai-pixel-editor/$name"
+              done
+              git -C production show "FETCH_HEAD:assets/characters/hizuki/field-sd-v3/walk-atlas-32.png" > \
+                "site/previews/$slug/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png"
+              test -s "site/previews/$slug/previews/ai-pixel-editor/ai-pixel-editor.html"
+              test -s "site/previews/$slug/previews/ai-pixel-editor/ai-pixel-bridge.js"
+              test -s "site/previews/$slug/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png"
+              continue
+            fi
             git -C production archive FETCH_HEAD | tar -C "site/previews/$slug" -xf -
             rm -rf "site/previews/$slug/.github"
             # Full historical game snapshots are prohibited. Editor branches
