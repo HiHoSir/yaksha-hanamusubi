@@ -3,6 +3,7 @@
 improve/interior-map-editor-32px
 improve/pixel-editor-touch-workspace
 improve/pixel-editor-mobile-cursor
+improve/ai-pixel-editor-bridge
 
 # Standalone QA only: published by minimal-file route, not a game snapshot.
 improve/natural-cave-tiles
