@@ -81,6 +81,10 @@ function compareAndShow(){
   status(changed+'画素の変更候補を確認しました。元画像は未変更です。'+(changed>256?' 大きな編集なので適用時に確認します。':''));
  }catch(e){$('aiApply').disabled=true;status('パッチ検証エラー: '+e.message);}
 }
+$('aiLoadHizuki').addEventListener('click',async()=>{
+ try{if(!confirm('現在の12コマを既存の緋月画像で置き換えますか？'))return;await api.loadApproved();proposal=null;$('aiApply').disabled=true;drawArray($('aiBefore'),api.current());drawArray($('aiAfter'),api.current());status('既存の緋月32pxを読み込みました。方向とポーズを切り替えて編集できます。');}
+ catch(e){status('読み込みエラー: '+e.message);}
+});
 $('aiCopy').addEventListener('click',async()=>{
  try{
   const value=generatePrompt();$('aiPromptOutput').value=value;
