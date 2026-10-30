@@ -1,0 +1,31 @@
+{
+  "Running": {
+    "original_clip_duration_seconds": 0.6333333253860474,
+    "eight_frame_rate": 12.631579399108887,
+    "left_right_foot_z_opposition_corr": -0.910604,
+    "left_right_foot_half_cycle_z_alignment_corr": 0.99479,
+    "cycle_end_foot_joint_pos_difference_max_model_units": 1.4e-06,
+    "foot_height_ranges_model_units": {
+      "LeftFoot": 0.61259,
+      "RightFoot": 0.50275,
+      "LeftToeBase": 0.74045,
+      "RightToeBase": 0.63784
+    },
+    "scale_channels_deviating": 0
+  },
+  "Walking": {
+    "original_clip_duration_seconds": 1.0333333015441895,
+    "eight_frame_rate": 7.741935729980469,
+    "left_right_foot_z_opposition_corr": -0.930778,
+    "left_right_foot_half_cycle_z_alignment_corr": 0.999755,
+    "cycle_end_foot_joint_pos_difference_max_model_units": 0.0,
+    "foot_height_ranges_model_units": {
+      "LeftFoot": 0.17416,
+      "RightFoot": 0.14406,
+      "LeftToeBase": 0.18157,
+      "RightToeBase": 0.1766
+    },
+    "scale_channels_deviating": 0
+  },
+  "scope": "Original GLB joint data, not rendered V7 256px PNG. Sprite pixel change ratio is measured client-side."
+}
