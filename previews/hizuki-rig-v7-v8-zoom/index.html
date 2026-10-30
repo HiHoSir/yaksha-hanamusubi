@@ -12,7 +12,7 @@ a{color:var(--accent)}header,.wrap{max-width:1000px;margin:auto;padding:14px}
 header{padding-top:max(18px,env(safe-area-inset-top))}h1{font-size:clamp(22px,5vw,30px);margin:0 0 5px}h2{font-size:18px;margin:0 0 10px}p{color:var(--sub);margin:6px 0 15px}.wrap{padding-top:0}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:12px 0}.field{flex:1 1 150px;min-width:140px}.field label{display:block;font-size:13px;color:var(--sub);margin-bottom:4px}
 select,button,input{font:inherit}select,button{background:#22364f;color:var(--txt);border:1px solid #4f6883;border-radius:9px;padding:10px 12px;min-height:43px}select{width:100%}button{cursor:pointer;touch-action:manipulation}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #94d7ff;outline-offset:2px}button.active{border-color:#ace8ff;background:#224e69;color:#fff}
-.mode{display:flex;gap:8px}.mode button{flex:1}.card{border:1px solid var(--line);background:var(--panel);border-radius:13px;overflow:hidden}
+.mode{display:flex;gap:8px}[hidden]{display:none!important}.split[hidden],.labels[hidden]{display:none!important}.mode button{flex:1}.card{border:1px solid var(--line);background:var(--panel);border-radius:13px;overflow:hidden}
 .canvas-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:var(--sub)}
 .view{height:clamp(350px,58vh,650px);position:relative;background:#111a29;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
 .view:active{cursor:grabbing}canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -74,7 +74,7 @@ else{ctx.drawImage(original,sx,sy,256,280,x,y,dw,dh);ctx.save();ctx.beginPath();
 function redrawUI(){let eight=inEight();$('modebar').hidden=eight;$('split').hidden=!overlay||eight;$('labels').hidden=eight;$('labels').children[0].textContent=overlay?'V7（左側）':'V7（旧）';$('labels').children[1].textContent=overlay?'V8（右側）':'V8（修正）';$('caption').textContent=jaNames[Number(act.value)]+'・'+(eight?'8方向':angle.value==='front'?'正面':'右横');$('zoom').value=zoom;$('zout').textContent=zoom.toFixed(1)+'×';$('openCurrent').href=eight?'assets/QA_V7_vs_V8_crouch_8dir_native256.png':`actions/${String(Number(act.value)+1).padStart(2,'0')}_${actNames[Number(act.value)]}_comparison.png`;render()}
 function reset(){zoom=1;panX=0;panY=0;redrawUI()}
 function setZoom(val){zoom=Math.min(8,Math.max(1,Number(val)));redrawUI()}
-for(const key of ['act','angle'])$(key).addEventListener('change',()=>{if(key==='act'&&act.value!=='6'&&angle.value==='crouch8')angle.value='front';reset()});
+for(const key of ['act','angle'])$(key).addEventListener('change',()=>{if(key==='angle'&&angle.value==='crouch8'&&act.value!=='6')act.value='6';if(key==='act'&&act.value!=='6'&&angle.value==='crouch8')angle.value='front';reset()});
 $('parallel').onclick=()=>{overlay=false;$('parallel').classList.add('active');$('overlay').classList.remove('active');reset()};
 $('overlay').onclick=()=>{overlay=true;$('overlay').classList.add('active');$('parallel').classList.remove('active');reset()};
 $('splitRange').oninput=e=>{split=Number(e.target.value);render()};
