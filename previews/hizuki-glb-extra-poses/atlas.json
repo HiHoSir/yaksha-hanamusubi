@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "name": "Hizuki GLB extra action poses",
+  "source": "Meshy_AI_Blue_Blossom_Shrine_S_All_Animations.glb",
+  "source_rig_joints": 56,
+  "original_animations": [
+    "Walking",
+    "Running"
+  ],
+  "generated_actions": "hand-authored bone orientations, not embedded animation clips",
+  "directions": [
+    "front",
+    "front_right",
+    "right",
+    "back_right",
+    "back",
+    "back_left",
+    "left",
+    "front_left"
+  ],
+  "direction_degrees": [
+    0,
+    45,
+    90,
+    135,
+    180,
+    225,
+    270,
+    315
+  ],
+  "sizes": [
+    96,
+    128,
+    256
+  ],
+  "frame_columns": 5,
+  "direction_rows": 8,
+  "cell_order": "columns = time frames 0..4; rows = front/front-right/right/back-right/back/back-left/left/front-left",
+  "actions": {
+    "attack": {
+      "frame_count": 5,
+      "duration_seconds": 0.65,
+      "fps": 7.692307692307692,
+      "loop": false,
+      "frame_alphas": [
+        0.18,
+        0.62,
+        1,
+        0.75,
+        0.08
+      ],
+      "file_template": "attack_8dir_{size}.png"
+    },
+    "magic": {
+      "frame_count": 5,
+      "duration_seconds": 1.0,
+      "fps": 5.0,
+      "loop": false,
+      "frame_alphas": [
+        0.18,
+        0.56,
+        0.91,
+        1,
+        0.4
+      ],
+      "file_template": "magic_8dir_{size}.png"
+    },
+    "hurt": {
+      "frame_count": 5,
+      "duration_seconds": 0.6,
+      "fps": 8.333333333333334,
+      "loop": false,
+      "frame_alphas": [
+        0.12,
+        0.82,
+        1,
+        0.66,
+        0.12
+      ],
+      "file_template": "hurt_8dir_{size}.png"
+    },
+    "victory": {
+      "frame_count": 5,
+      "duration_seconds": 1.12,
+      "fps": 4.4642857142857135,
+      "loop": false,
+      "frame_alphas": [
+        0.25,
+        0.72,
+        1,
+        0.95,
+        0.75
+      ],
+      "file_template": "victory_8dir_{size}.png"
+    },
+    "crouch": {
+      "frame_count": 5,
+      "duration_seconds": 0.86,
+      "fps": 5.813953488372093,
+      "loop": false,
+      "frame_alphas": [
+        0.24,
+        0.72,
+        1,
+        0.96,
+        0.55
+      ],
+      "file_template": "crouch_8dir_{size}.png"
+    },
+    "jump": {
+      "frame_count": 5,
+      "duration_seconds": 0.82,
+      "fps": 6.097560975609756,
+      "loop": false,
+      "frame_alphas": [
+        0.18,
+        0.65,
+        1,
+        0.73,
+        0.15
+      ],
+      "file_template": "jump_8dir_{size}.png"
+    }
+  },
+  "render_details": {
+    "transparent": true,
+    "origin": "top-left",
+    "consistent_orthographic_camera": true,
+    "floor_alignment": "neutral except jump",
+    "resampling": "LANCZOS per RGBA cell"
+  },
+  "notes": "5-keyframe exploratory poses. Attack is unarmed; accessories/weapons/FX not modeled. These are GLB-based rendered graphics, not hand-pixelled pixel art. Size is cell dimension rather than character height."
+}
