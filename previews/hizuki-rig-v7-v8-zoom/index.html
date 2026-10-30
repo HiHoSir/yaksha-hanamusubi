@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c1421">
+<title>緋月 V7 ↔ V8 拡大比較</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1421;--panel:#17243a;--line:#3a4c64;--txt:#f2f6fb;--sub:#bac6d4;--accent:#9ed9ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+a{color:var(--accent)}header,.wrap{max-width:1000px;margin:auto;padding:14px}
+header{padding-top:max(18px,env(safe-area-inset-top))}h1{font-size:clamp(22px,5vw,30px);margin:0 0 5px}h2{font-size:18px;margin:0 0 10px}p{color:var(--sub);margin:6px 0 15px}.wrap{padding-top:0}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:12px 0}.field{flex:1 1 150px;min-width:140px}.field label{display:block;font-size:13px;color:var(--sub);margin-bottom:4px}
+select,button,input{font:inherit}select,button{background:#22364f;color:var(--txt);border:1px solid #4f6883;border-radius:9px;padding:10px 12px;min-height:43px}select{width:100%}button{cursor:pointer;touch-action:manipulation}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #94d7ff;outline-offset:2px}button.active{border-color:#ace8ff;background:#224e69;color:#fff}
+.mode{display:flex;gap:8px}.mode button{flex:1}.card{border:1px solid var(--line);background:var(--panel);border-radius:13px;overflow:hidden}
+.canvas-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:var(--sub)}
+.view{height:clamp(350px,58vh,650px);position:relative;background:#111a29;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
+.view:active{cursor:grabbing}canvas{display:block;width:100%;height:100%;touch-action:none}
+.labels{position:absolute;pointer-events:none;left:10px;right:10px;top:9px;display:flex;justify-content:space-between;gap:5px;font-size:12px;font-weight:650;color:#fff;text-shadow:0 1px 4px #000;background:transparent}.labels span{background:#233449bd;border-radius:6px;padding:3px 9px}
+.control-bottom{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px}.control-bottom input[type=range]{flex:1;min-width:100px;accent-color:#9bdcff}
+.control-bottom button{padding:6px 13px;min-height:38px}.control-bottom output{min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
+.split{display:flex;gap:10px;align-items:center;padding:0 12px 12px}.split input{flex:1;accent-color:#9bdcff}.hint{padding:0 12px 12px;font-size:12px;color:var(--sub)}
+.extras{margin-top:18px}.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.mini{padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--panel)}.mini h3{font-size:15px;margin:0 0 6px}.mini img{width:100%;border-radius:5px;display:block;margin-bottom:5px}.mini a{font-size:13px}.notice{font-size:13px;line-height:1.7;color:var(--sub);border-left:3px solid #6f99b6;padding-left:10px;margin:18px 0 25px}
+@media(max-width:500px){.mode button{padding:9px 4px;font-size:13px}.canvas-head{font-size:12px}.view{height:59vh;min-height:345px}header,.wrap{padding-left:10px;padding-right:10px}}
+</style>
+</head>
+<body>
+<header>
+<h1>緋月 V7 ↔ V8 拡大比較</h1>
+<p>元の検査画像をそのまま使用。アセットのサイズ変換はしていません。拡大して袖・手・足・衣装の変形を確認できます。</p>
+</header>
+<main class="wrap">
+<div class="bar">
+<div class="field"><label for="act">動作</label><select id="act">
+<option value="0">走行 / Running</option><option value="1">歩行 / Walking</option><option value="2">攻撃 / Attack</option><option value="3">術 / Magic</option><option value="4">被弾 / Hurt</option><option value="5">勝利 / Victory</option><option value="6">しゃがみ / Crouch</option><option value="7">ジャンプ / Jump</option></select></div>
+<div class="field"><label for="angle">視点</label><select id="angle"><option value="front">正面</option><option value="side">右横</option><option value="crouch8">しゃがみ8方向（全体）</option></select></div>
+</div>
+<div class="bar mode" id="modebar"><button id="parallel" class="active">V7 / V8 並列</button><button id="overlay">V7 / V8 重ね比較</button></div>
+<section class="card">
+<div class="canvas-head"><span id="caption">走行・正面</span><span>ドラッグ移動 · 2本指で拡大</span></div>
+<div class="view" id="view"><canvas id="canvas" aria-label="V7とV8の拡大比較画像"></canvas><div class="labels" id="labels"><span>V7（旧）</span><span>V8（修正）</span></div></div>
+<div class="control-bottom"><button id="minus" aria-label="縮小">−</button><input aria-label="拡大率" type="range" id="zoom" min="1" max="8" step="0.1" value="1"><button id="plus" aria-label="拡大">＋</button><output id="zout">1.0×</output><button id="reset">位置リセット</button></div>
+<div class="split" id="split" hidden><label for="splitRange">比較境界</label><span>V7</span><input type="range" id="splitRange" min="0" max="100" value="50" step="1"><span>V8</span></div>
+<div class="hint">※拡大は画面上で行い、元のPNGを再縮小・再サンプリングして保存するものではありません。元画像の解像度を超える細部は復元できません。</div>
+</section>
+<div class="bar"><a id="openCurrent" href="actions/01_running_comparison.png" target="_blank" rel="noopener">選択中の比較画像を別タブで開く</a><a href="assets/QA_V7_vs_V8_8actions_native256.png" target="_blank" rel="noopener">8動作の全体画像</a></div>
+<section class="extras"><h2>動作別の個別画像</h2><p>各画像をタップすると、動作ごとの原寸比較PNGを開けます。元画像から切り出しただけで、画素数は変更していません。</p>
+<div class="list" id="thumbnails"></div></section>
+<div class="bar"><a href="assets/QA_V7_vs_V8_crouch_8dir_native256.png" target="_blank" rel="noopener">しゃがみの8方向比較（2048px）</a><a href="assets/QA_V7_vs_V8_running_crouch_native256.gif" target="_blank" rel="noopener">走行・しゃがみの動画比較（GIF）</a></div>
+<p class="notice">このページは既存のV7/V8の検査画像を拡大表示するためのものです。新しいレンダリングやモデル修復は行っていません。画像の細部の評価は原寸でも確認してください。</p>
+</main>
+<script>
+(()=>{
+'use strict';
+const actNames=['running','walking','attack','magic','hurt','victory','crouch','jump'];
+const jaNames=['走行','歩行','攻撃','術','被弾','勝利','しゃがみ','ジャンプ'];
+const $=id=>document.getElementById(id), act=$('act'),angle=$('angle'), canvas=$('canvas'),ctx=canvas.getContext('2d'),view=$('view');
+const original=new Image(),crouch=new Image(); original.src='assets/QA_V7_vs_V8_8actions_native256.png'; crouch.src='assets/QA_V7_vs_V8_crouch_8dir_native256.png';
+let zoom=1,panX=0,panY=0,overlay=false,split=50,ready=false;
+const active=new Map();let lastDist=0,lastCenter=null;
+const inEight=()=>act.value==='6'&&angle.value==='crouch8';
+function base(){const dpr=Math.min(window.devicePixelRatio||1,2);const w=view.clientWidth,h=view.clientHeight;if(w<1||h<1)return null;const cw=Math.round(w*dpr),ch=Math.round(h*dpr);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#111a29';ctx.fillRect(0,0,w,h);return {w,h}}
+function render(){const rect=base();if(!rect)return;const {w,h}=rect;const eight=inEight();const img=eight?crouch:original;if(!img.complete||!img.naturalWidth){ctx.fillStyle='#d0dfeb';ctx.textAlign='center';ctx.fillText('画像を読み込み中…',w/2,h/2);return}
+const overlayNow=overlay&&!eight, sw=eight?2048:(overlayNow?256:512),sh=eight?534:280;
+const fit=Math.min((w-12)/sw,(h-16)/sh);const scale=fit*zoom, dw=sw*scale,dh=sh*scale;
+const x=(w-dw)/2+panX,y=(h-dh)/2+panY;
+ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+if(eight){ctx.drawImage(crouch,0,0,2048,534,x,y,dw,dh)}else{
+const i=Number(act.value),sx=angle.value==='side'?512:0,sy=i*280;
+if(!overlayNow)ctx.drawImage(original,sx,sy,512,280,x,y,dw,dh);
+else{ctx.drawImage(original,sx,sy,256,280,x,y,dw,dh);ctx.save();ctx.beginPath();ctx.rect(x+(dw*split/100),y,dw*(1-split/100),dh);ctx.clip();ctx.drawImage(original,sx+256,sy,256,280,x,y,dw,dh);ctx.restore();ctx.fillStyle='#b4e7ff';ctx.fillRect(x+(dw*split/100)-1,y,2,dh)}
+}
+}
+function redrawUI(){let eight=inEight();$('modebar').hidden=eight;$('split').hidden=!overlay||eight;$('labels').hidden=eight;$('labels').children[0].textContent=overlay?'V7（左側）':'V7（旧）';$('labels').children[1].textContent=overlay?'V8（右側）':'V8（修正）';$('caption').textContent=jaNames[Number(act.value)]+'・'+(eight?'8方向':angle.value==='front'?'正面':'右横');$('zoom').value=zoom;$('zout').textContent=zoom.toFixed(1)+'×';$('openCurrent').href=eight?'assets/QA_V7_vs_V8_crouch_8dir_native256.png':`actions/${String(Number(act.value)+1).padStart(2,'0')}_${actNames[Number(act.value)]}_comparison.png`;render()}
+function reset(){zoom=1;panX=0;panY=0;redrawUI()}
+function setZoom(val){zoom=Math.min(8,Math.max(1,Number(val)));redrawUI()}
+for(const key of ['act','angle'])$(key).addEventListener('change',()=>{if(key==='act'&&act.value!=='6'&&angle.value==='crouch8')angle.value='front';reset()});
+$('parallel').onclick=()=>{overlay=false;$('parallel').classList.add('active');$('overlay').classList.remove('active');reset()};
+$('overlay').onclick=()=>{overlay=true;$('overlay').classList.add('active');$('parallel').classList.remove('active');reset()};
+$('splitRange').oninput=e=>{split=Number(e.target.value);render()};
+$('minus').onclick=()=>setZoom(zoom-0.5);$('plus').onclick=()=>setZoom(zoom+0.5);$('zoom').oninput=e=>setZoom(e.target.value);$('reset').onclick=reset;
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}function mid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+view.addEventListener('pointerdown',e=>{e.preventDefault();view.setPointerCapture(e.pointerId);active.set(e.pointerId,{x:e.clientX,y:e.clientY});lastDist=0;lastCenter=null});
+view.addEventListener('pointermove',e=>{if(!active.has(e.pointerId))return;const prev=active.get(e.pointerId);active.set(e.pointerId,{x:e.clientX,y:e.clientY});const pts=[...active.values()];if(pts.length===1){panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;render()}
+else if(pts.length===2){const d=dist(...pts),center=mid(...pts);if(lastDist>0)zoom=Math.max(1,Math.min(8,zoom*(d/lastDist)));if(lastCenter){panX+=center.x-lastCenter.x;panY+=center.y-lastCenter.y}lastDist=d;lastCenter=center;redrawUI()}});
+function pointerup(e){active.delete(e.pointerId);lastDist=0;lastCenter=null}view.addEventListener('pointerup',pointerup);view.addEventListener('pointercancel',pointerup);view.addEventListener('lostpointercapture',pointerup);
+view.addEventListener('wheel',e=>{e.preventDefault();setZoom(zoom*(e.deltaY<0?1.15:1/1.15))},{passive:false});
+original.onload=render;crouch.onload=render;original.onerror=()=>{ctx.fillText('画像の読み込みに失敗しました',30,100)};
+new ResizeObserver(()=>render()).observe(view);
+const list=$('thumbnails');jaNames.forEach((ja,i)=>{const name=actNames[i],n=String(i+1).padStart(2,'0');const card=document.createElement('div');card.className='mini';card.innerHTML=`<h3>${ja}（V7/V8）</h3><a href="actions/${n}_${name}_comparison.png" target="_blank" rel="noopener"><img src="actions/${n}_${name}_comparison.png" loading="lazy" alt="${ja} 比較画像"></a><button type="button" data-i="${i}">この動作を拡大比較</button>`;list.appendChild(card);card.querySelector("button").onclick=()=>{act.value=String(i);if(angle.value==="crouch8"&&i!==6)angle.value="front";reset();window.scrollTo({top:0,behavior:"smooth"})}});
+redrawUI();
+})();
+</script>
+</body></html>
