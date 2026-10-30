@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>緋月 8方向アニメーション・96px / 128px 実寸比較</title>
+<style>
+:root{color-scheme:dark;--bg:#151a29;--card:#20283b;--border:#445069;--fg:#f0f4fb;--sub:#b3c1d5;--accent:#aecbff}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",system-ui,sans-serif}main{max-width:820px;margin:auto;padding:16px 12px 50px}h1{font-size:20px;margin:6px 0 10px}p{font-size:13px;line-height:1.6;color:var(--sub);margin:8px 0 12px}.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin:12px 0}.sub{color:var(--sub);font-size:12px}.heading{font-weight:700;margin:0 0 8px}.controls{display:flex;flex-wrap:wrap;gap:7px}.controls button{font-size:13px;min-height:38px;touch-action:manipulation}.controls button,.control{border:1px solid var(--border);border-radius:10px;background:#303b55;color:var(--fg);padding:8px 12px}.controls button.active{background:#dce6fc;color:#192336;border-color:#dce6fc;font-weight:700}.compare{display:flex;justify-content:center;align-items:flex-end;gap:8px}.view{flex:1;min-width:0;text-align:center}.view h2{font-size:16px;margin:0 0 4px}.view .note{font-size:11px;color:var(--sub)}canvas{display:block;max-width:100%;height:auto;margin:auto;border:1px solid #3e4860;border-radius:10px;background-color:#1b2233;image-rendering:pixelated}.frame-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px}.frame-controls input[type=range]{max-width:180px;width:100%;accent-color:#c2d5ff}.frame-controls label{display:flex;gap:5px;align-items:center}.foot{font-size:12px;color:var(--sub)}.help{font-size:12px;line-height:1.7;color:var(--sub)}a{color:#b6d7ff}strong{color:#fff}@media(max-width:430px){main{padding:10px 8px 40px}.panel{padding:10px}.compare{gap:3px}.view h2{font-size:14px}canvas{border-radius:8px}}
+</style></head><body><main><h1>緋月 GLBアニメーション｜実寸比較</h1>
+<p>これは32px版ではありません。GLBから作成した立ち姿・歩行・走行の<strong>96px / 128pxセル</strong>を、表示倍率100%で比較するための試験ページです。透過PNGを使用しています。</p>
+<section class="panel"><div class="heading">動作</div><div class="controls" id="actions"><button data-action="idle" class="active">立ち姿</button><button data-action="walk">歩行</button><button data-action="run">走行</button></div></section>
+<section class="panel"><div class="heading">向き</div><div class="controls" id="directions"><button data-dir="0" class="active">正面</button><button data-dir="1">右斜前</button><button data-dir="2">右</button><button data-dir="3">右斜後</button><button data-dir="4">背面</button><button data-dir="5">左斜後</button><button data-dir="6">左</button><button data-dir="7">左斜前</button></div></section>
+<section class="panel"><div class="compare"><div class="view"><h2>96pxセル</h2><canvas id="view96" width="158" height="188" aria-label="96px表示"></canvas><div class="note">本体高さ 約80px</div></div><div class="view"><h2>128pxセル</h2><canvas id="view128" width="158" height="188" aria-label="128px表示"></canvas><div class="note">本体高さ 約105px</div></div></div><p class="foot">左右は同じモーション／同じコマ。キャラの大きさを自動で揃えず、等倍で表示しています。足元の水平線は接地位置の目安です。</p></section>
+<section class="panel"><div class="frame-controls"><button id="pause" class="control">⏸ 一時停止</button><label>コマ <input id="frame" type="range" min="0" max="7" step="1" value="0" aria-label="フレーム"></label><span id="frameText">1/8</span><label><input type="checkbox" id="smooth" checked>補間ON</label></div><p class="help">歩行：約7.74コマ/秒、走行：約12.63コマ/秒（元アニメーション長から算出）。立ち姿は専用モーションではなく暫定合成です。スマホ横向き・縦向きどちらにも対応しています。</p></section>
+<section class="panel"><div class="heading">作成済み素材について</div><p>向き8種類 ×〔立ち姿1＋歩行8＋走行8〕で合計136コマ。これをそれぞれ96px・128pxのセルに格納しています。ゲーム本編への差し替えはまだしていません。</p><div id="loadStatus" class="sub">画像を読み込み中…</div></section>
+</main><script>
+(()=>{'use strict';
+const state={action:'idle',direction:0,paused:false,frame:0,smooth:true};const data={idle:{frames:1,fps:1},walk:{frames:8,fps:7.74193572},run:{frames:8,fps:12.6315791}};
+const imgs={};let start=performance.now(),frameWhenPaused=0;
+const cv={96:document.getElementById('view96'),128:document.getElementById('view128')};
+function draw(now){const action=data[state.action],n=action.frames;let f=state.paused?frameWhenPaused:Math.floor((now-start)/1000*action.fps)%n;if(n===1)f=0;state.frame=f;
+ for(const size of [96,128]){const canvas=cv[size],ctx=canvas.getContext('2d'),img=imgs[state.action+'-'+size];ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#1b2233';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.strokeStyle='#52617e';ctx.beginPath();ctx.moveTo(10,165);ctx.lineTo(canvas.width-10,165);ctx.stroke();
+ if(img?.complete&&img.naturalWidth){ctx.imageSmoothingEnabled=state.smooth;const dx=Math.round((canvas.width-size)/2),dy=Math.round(165-size*0.92);ctx.drawImage(img,f*size,state.direction*size,size,size,dx,dy,size,size);}else{ctx.fillStyle='#fff';ctx.font='12px sans-serif';ctx.fillText('loading...',10,30);}}
+ document.getElementById('frameText').textContent=(f+1)+'/'+n;
+ if(!document.getElementById('frame').matches(':active'))document.getElementById('frame').value=f;
+ requestAnimationFrame(draw);}
+function selectButtons(id,attr,selected){document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('active',b.dataset[attr]===String(selected)));}
+document.getElementById('actions').addEventListener('click',e=>{const b=e.target.closest('button[data-action]');if(!b)return;state.action=b.dataset.action;state.frame=0;frameWhenPaused=0;start=performance.now();document.getElementById('frame').max=data[state.action].frames-1;selectButtons('actions','action',state.action);});
+document.getElementById('directions').addEventListener('click',e=>{const b=e.target.closest('button[data-dir]');if(!b)return;state.direction=Number(b.dataset.dir);selectButtons('directions','dir',state.direction);});
+document.getElementById('pause').addEventListener('click',e=>{state.paused=!state.paused;if(state.paused)frameWhenPaused=state.frame;else start=performance.now()-1000*frameWhenPaused/data[state.action].fps;e.currentTarget.textContent=state.paused?'▶ 再開':'⏸ 一時停止';});
+document.getElementById('frame').addEventListener('input',e=>{frameWhenPaused=Number(e.target.value);state.paused=true;document.getElementById('pause').textContent='▶ 再開';});
+document.getElementById('smooth').addEventListener('change',e=>{state.smooth=!!e.target.checked;});
+let loaded=0,failed=0;for(const a of ['idle','walk','run'])for(const s of [96,128]){const img=new Image();img.onload=()=>{if(++loaded+failed===6)document.getElementById('loadStatus').textContent=`読込成功: ${loaded} / 6`;};img.onerror=()=>{failed++;document.getElementById('loadStatus').textContent='画像が読み込めません（'+a+'_'+s+'）';};img.src='assets/'+a+'_8dir_'+s+'.png';imgs[a+'-'+s]=img;}
+requestAnimationFrame(draw);
+})();
+</script></body></html>
