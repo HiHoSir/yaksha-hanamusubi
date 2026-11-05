@@ -13,13 +13,13 @@
  const canvas=host.querySelector("canvas"),q=canvas.getContext("2d",{alpha:false});
  const frame=host.querySelector(".ykAttractFrame"),caption=host.querySelector(".ykAttractCaption");
  const idleMs=12000,sceneMs=6600;
- let idleTimer=0,sceneTimer=0,active=false,serial=0;
+ let idleTimer=0,sceneTimer=0,sceneResolve=null,active=false,serial=0,blockClicksUntil=0;
  const history=[];
  const sceneNames=[["village","鬼灯村"],["field","花霞野"],["shrine","天妖の社"]];
  const safeTitle=()=>title.classList.contains("show")&&!mainActions.hidden&&!document.hidden;
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const bounded=(p,ms=10000)=>Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(Error("読み込み時間を超えました")),ms))]);
- let fieldHero=null;
+ let fieldHero=null,fieldHeroImage=null;
  function image(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error("画像を読み込めません: "+src));im.src=src;});}
  async function prepare(id){
   if(id==="village"){await bounded(window.YK_HOZUKI.whenReady());return window.YK_HOZUKI.ready();}
@@ -44,7 +44,7 @@
   }else if(id==="field"){
    const [x,y]=window.YK_WORLD.start;
    c.save();c.translate(0,32);c.scale(1.2,1.2);
-   const im=window.__ykAttractFieldHero;
+   const im=fieldHeroImage;
    const ok=window.YK_LANDSCAPE.drawQuarter(c,window.YK_WORLD.mapData,{
     x,foot:y,draw:(px,py,z)=>{
      if(!im||!im.naturalWidth)return;
@@ -62,6 +62,7 @@
  }
  function stop(){
   ++serial;active=false;clearTimeout(sceneTimer);sceneTimer=0;
+  if(sceneResolve){const finish=sceneResolve;sceneResolve=null;finish();}
   host.hidden=true;frame.classList.remove("ykAttractEnter");
   resetIdle();
  }
@@ -77,14 +78,14 @@
    try{
     const ready=await prepare(id);
     if(!ready)throw Error("描画素材が未準備です");
-    if(id==="field")window.__ykAttractFieldHero=await fieldHero;
+    if(id==="field")fieldHeroImage=await fieldHero;
     if(token!==serial||!active)return false;
     const still=snapshot(id);
     q.clearRect(0,0,768,768);q.drawImage(still,0,0);
     caption.textContent=name;history.push(id);shown++;
     frame.classList.remove("ykAttractEnter");void frame.offsetWidth;
     frame.classList.add("ykAttractEnter");
-    await new Promise(resolve=>{sceneTimer=setTimeout(resolve,sceneMs);});
+    await new Promise(resolve=>{sceneResolve=resolve;sceneTimer=setTimeout(()=>{sceneResolve=null;resolve();},sceneMs);});
    }catch(error){
     console.warn("[title-demo] skip "+id+":",error);
     history.push("skip:"+id);
@@ -99,7 +100,8 @@
  // Pointer/keyboard input never falls through to the game while the demo is visible.
  function onPointer(event){
   if(active){
-   event.preventDefault();event.stopImmediatePropagation();stop();return;
+   event.preventDefault();event.stopImmediatePropagation();
+   blockClicksUntil=performance.now()+550;stop();return;
   }
   if(title.classList.contains("show"))resetIdle();
  }
@@ -108,6 +110,7 @@
   else if(title.classList.contains("show"))resetIdle();
  }
  document.addEventListener("pointerdown",onPointer,true);
+ document.addEventListener("click",event=>{if(performance.now()<blockClicksUntil){event.preventDefault();event.stopImmediatePropagation();}},true);
  document.addEventListener("keydown",onKey,true);
  document.addEventListener("visibilitychange",()=>{if(document.hidden){if(active)stop();clearTimeout(idleTimer);}else resetIdle();});
  new MutationObserver(()=>{if(!title.classList.contains("show")){if(active)stop();clearTimeout(idleTimer);}else resetIdle();}).observe(title,{attributes:true,attributeFilter:["class"]});
