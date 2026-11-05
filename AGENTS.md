@@ -1,4 +1,6 @@
-# 鬼哭の花契り — Project agent instructions
+# 鬼哭の花結び — Project agent instructions
+
+**正式タイトル（2026-11-05）:** 第1作・本作は『鬼哭の花結び』、第2作・続編は『鬼哭の花契り』。タイトル画面等の表示で混同しない。
 
 This repository contains reusable task skills in `.agents/skills/`. Read relevant SKILL.md files **before** coding, creating images or changing deployed assets.
 
