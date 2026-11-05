@@ -594,3 +594,79 @@ body:has(#title.show) #stage{min-height:0}
 #titleLoadNotice{min-height:1.2em;font-size:12px;color:#ffddad}
 #title .titlebox #titleLoadBack{min-height:44px}
 
+
+
+/* beta16.1.73: restrained title and noncombat attract loop */
+#title {background:#000;}
+#title .titleArt {background:#000;pointer-events:none;}
+#title .titleBackdrop,#title .titleLogo,#title .titleShade {display:none!important;}
+#title .titleCalligraphy {
+  position:absolute;top:17%;left:50%;transform:translateX(-50%);
+  width:min(90vw,720px);color:#f7f4ed;text-align:center;
+  font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  font-size:clamp(45px,10vmin,91px);font-weight:900;line-height:1.1;
+  letter-spacing:.1em;white-space:nowrap;text-shadow:0 1px 1px #777;
+}
+#title .titleCalligraphy span {display:block;}
+#title .titleCalligraphy small {display:block;font-size:.64em;letter-spacing:.2em;margin-top:.14em;}
+#title .titlebox {
+  top:auto;left:50%;right:auto;bottom:max(8%,env(safe-area-inset-bottom));
+  transform:translateX(-50%);width:min(88%,420px);padding:0;
+  background:transparent;border:0;border-radius:0;box-shadow:none;
+  backdrop-filter:none;text-align:center;
+}
+#title .subtitle {display:none;}
+#title #titleMainActions button {
+  display:block;width:92%;min-height:42px;margin:3px auto;
+  padding:6px 8px;border:0;border-radius:0;box-shadow:none;
+  background:transparent!important;color:#eeeae2;
+  font-size:clamp(15px,2.5vmin,21px);font-weight:600;letter-spacing:.19em;
+  text-shadow:none;
+}
+#title #titleMainActions button.primary {background:transparent!important;}
+#title #titleMainActions button:focus-visible,
+#title #titleMainActions button:hover {outline:1px solid #b1aaa0;outline-offset:0;}
+#title #titleMainActions button:active {color:#fff;}
+#title #titleMainActions #watchDemo {font-size:13px;opacity:.75;min-height:36px;}
+#title #titleMainActions #enemyDebugBtn {font-size:10px!important;letter-spacing:.07em;opacity:.35;}
+#title .version {font-size:10px;color:#999;margin-top:10px;}
+#titleLoadSelection {background:#000;color:#eee;}
+#titleLoadSelection h2 {font-size:18px;}
+#titleLoadSelection button {background:transparent!important;border:1px solid #999;}
+#ykAttract[hidden] {display:none!important;}
+#ykAttract {
+  position:absolute;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;background:#000;color:#f8f5ed;touch-action:manipulation;
+}
+#ykAttract .ykAttractFrame {
+  position:relative;flex:none;width:min(100vw,80dvh);height:min(100vw,80dvh);
+  overflow:hidden;background:#07121a;image-rendering:pixelated;
+}
+#ykAttract .ykAttractFrame canvas {
+  display:block;width:100%;height:100%;image-rendering:pixelated;
+}
+#ykAttract .ykAttractFrame.ykAttractEnter {
+  animation:ykAttractAppear 6.6s ease-in-out both;
+}
+#ykAttract .ykAttractCaption {margin-top:12px;font-size:18px;letter-spacing:.22em;}
+#ykAttract .ykAttractHint {
+  position:absolute;bottom:max(16px,env(safe-area-inset-bottom));
+  left:3%;right:3%;font-size:11px;text-align:center;opacity:.7;
+}
+@keyframes ykAttractAppear {
+  0% {opacity:0;transform:scale(1.035) translateX(3px);}
+  12% {opacity:1;}
+  86% {opacity:1;}
+  100% {opacity:0;transform:scale(1.08) translateX(-6px);}
+}
+@media (max-height:540px) and (orientation:landscape) {
+  #title .titleCalligraphy {top:4%;font-size:clamp(29px,9vh,48px);}
+  #title .titlebox {bottom:max(0%,env(safe-area-inset-bottom));}
+  #title #titleMainActions button {font-size:13px;min-height:29px;margin:0 auto;padding:2px 8px;}
+  #title #titleMainActions #watchDemo {min-height:26px;font-size:11px;}
+  #title .version {margin-top:0;}
+  #ykAttract .ykAttractFrame {width:min(92vh,65vw);height:min(92vh,65vw);}
+  #ykAttract .ykAttractCaption {font-size:13px;margin-top:3px;}
+  #ykAttract .ykAttractHint {display:none;}
+}
