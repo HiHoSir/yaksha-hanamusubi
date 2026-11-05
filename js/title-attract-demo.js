@@ -16,7 +16,7 @@
  let idleTimer=0,sceneTimer=0,sceneResolve=null,active=false,serial=0,blockClicksUntil=0;
  const history=[];
  const sceneNames=[["village","鬼灯村"],["field","花霞野"],["shrine","天妖の社"]];
- const safeTitle=()=>title.classList.contains("show")&&!mainActions.hidden&&!document.hidden;
+ const safeTitle=()=>title.classList.contains("show")&&!mainActions.hidden&&!document.hidden&&!window.YK_PROLOGUE?.active;
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const bounded=(p,ms=10000)=>Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(Error("読み込み時間を超えました")),ms))]);
  let fieldHero=null,fieldHeroImage=null;
