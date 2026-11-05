@@ -32,40 +32,44 @@ jobs:
       - run: python tools/build-natural-cave-autotile.py
       - run: python qa/natural-cave-autotile-pixels.py
       - run: node --test qa/natural-cave-layout.cjs
-      - name: Validate inline HTML JavaScript syntax and embedded PNG
+      - name: Validate embedded cave editor assets, JSON and JavaScript
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re,base64,struct
+          import re,base64,struct,json
           html=Path('previews/natural-cave-walk.html').read_text()
-          js=re.search(r'<script>([\s\S]*?)</script>',html).group(1)
+          assert '自然洞窟 マップチップエディタ' in html
+          js=html.split('<script>',1)[1].split('</script>',1)[0]
           Path('/tmp/cave-preview.js').write_text(js)
-          match=re.search(r"'data:image/png;base64,([^']+)'",js)
-          assert match, 'Embedded PNG missing'
-          raw=match.group(1)
-          assert not any(c.isspace() for c in raw), 'Inline PNG has forbidden literal whitespace/newlines'
-          png=base64.b64decode(raw,validate=True)
-          assert png[:8]==b'\x89PNG\r\n\x1a\n'
-          assert struct.unpack('>II',png[16:24])==(1280,768)
-          print('Inline PNG valid: 1280x768; JavaScript extraction complete')
+          assets=[
+            ('ATLAS_DATA','assets/dungeons/natural-cave-v1/cave-corrected-atlas-12x7.png',(384,224)),
+            ('OVERLAY_DATA','assets/dungeons/natural-cave-v1/cave-corrected-overlay-12x7.png',(384,224)),
+            ('ARCH_DATA','assets/dungeons/natural-cave-v1/cave-corrected-arch-2x2.png',(64,64)),
+          ]
+          for variable,path,expected in assets:
+              match=re.search('const '+variable+"='data:image/png;base64,([^']+)';",js)
+              assert match,variable+' data URL missing'
+              encoded=match.group(1)
+              assert not any(c.isspace() for c in encoded),variable+' base64 whitespace'
+              png=base64.b64decode(encoded,validate=True)
+              assert png==Path(path).read_bytes(),variable+' mismatch to committed asset'
+              assert png[:8]==bytes([137,80,78,71,13,10,26,10])
+              assert struct.unpack('>II',png[16:24])==expected
+              print(variable,expected,'bytes',len(png))
+          match=re.search('const SAMPLE=(.*?);',js,re.S)
+          assert match,'sample JSON missing'
+          obj=json.loads(match.group(1))
+          assert obj['tileSize']==32 and obj['width']==32 and obj['height']==22
+          assert len(obj['tileIds'])==22 and all(len(r)==32 for r in obj['tileIds'])
+          assert obj['elevation'] is None and obj['heightLevels'] is None
+          assert obj['archOverlay']['widthCells']==2
+          assert obj==json.loads(Path('assets/dungeons/natural-cave-v1/cave-map-v7.json').read_text())
+          for tool in ('paint','erase','pick','fill','collision','spawn','pan','walk'):
+              assert 'data-tool="'+tool+'"' in html
+          assert 'yaksha.cave.mapchip.editor.v1' in js
+          print('Cave editor 84-chip atlas, original sample and controls PASS')
           PY
           node --check /tmp/cave-preview.js
-      - name: Validate interactive cave preview references
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-          p=Path('previews/natural-cave-walk.html').read_text()
-          assert "const origin='..'" in p
-          assert 'data-dir="up"' in p and 'data-dir="left"' in p
-          assert 'data-dir="down"' in p and 'data-dir="right"' in p
-          assert "rows[y]?.[x]==='.'" in p
-          assert 'cave-orthographic-40x24-candidate.png' in p
-          assert 'field-sd-v3/walk-atlas-32.png' in p
-          assert Image.open('assets/characters/hizuki/field-sd-v3/walk-atlas-32.png').size == (96,128)
-          assert Image.open('assets/dungeons/natural-cave-v0/cave-orthographic-40x24-candidate.png').size == (1280,768)
-          print('Preview paths, controls and source PNG dimensions PASS')
-          PY
       - name: Verify PNG dimensions and actual pixel edge continuity
         run: |
           python - <<'PY'
