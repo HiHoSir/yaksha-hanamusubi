@@ -1,0 +1,169 @@
+{
+  "id": "natural-cave-wall-straights-v1",
+  "tileSize": 32,
+  "atlasColumns": 12,
+  "atlasRows": 9,
+  "originalIds": [
+    0,
+    83
+  ],
+  "addedIds": [
+    84,
+    107
+  ],
+  "addedCount": 24,
+  "roles": {
+    "84": {
+      "role": "horizontal_wall_face_straight",
+      "direction": "horizontal",
+      "side": "face",
+      "variant": 1
+    },
+    "85": {
+      "role": "horizontal_wall_face_straight",
+      "direction": "horizontal",
+      "side": "face",
+      "variant": 2
+    },
+    "86": {
+      "role": "horizontal_wall_face_straight",
+      "direction": "horizontal",
+      "side": "face",
+      "variant": 3
+    },
+    "87": {
+      "role": "horizontal_wall_face_straight",
+      "direction": "horizontal",
+      "side": "face",
+      "variant": 1
+    },
+    "88": {
+      "role": "horizontal_wall_face_straight",
+      "direction": "horizontal",
+      "side": "face",
+      "variant": 2
+    },
+    "89": {
+      "role": "horizontal_wall_face_straight",
+      "direction": "horizontal",
+      "side": "face",
+      "variant": 3
+    },
+    "90": {
+      "role": "horizontal_floor_rim",
+      "direction": "horizontal",
+      "side": "north",
+      "variant": 1
+    },
+    "91": {
+      "role": "horizontal_floor_rim",
+      "direction": "horizontal",
+      "side": "north",
+      "variant": 2
+    },
+    "92": {
+      "role": "horizontal_floor_rim",
+      "direction": "horizontal",
+      "side": "north",
+      "variant": 3
+    },
+    "93": {
+      "role": "horizontal_floor_rim",
+      "direction": "horizontal",
+      "side": "south",
+      "variant": 1
+    },
+    "94": {
+      "role": "horizontal_floor_rim",
+      "direction": "horizontal",
+      "side": "south",
+      "variant": 2
+    },
+    "95": {
+      "role": "horizontal_floor_rim",
+      "direction": "horizontal",
+      "side": "south",
+      "variant": 3
+    },
+    "96": {
+      "role": "vertical_rock_straight",
+      "direction": "vertical",
+      "side": "left",
+      "variant": 1
+    },
+    "97": {
+      "role": "vertical_rock_straight",
+      "direction": "vertical",
+      "side": "left",
+      "variant": 2
+    },
+    "98": {
+      "role": "vertical_rock_straight",
+      "direction": "vertical",
+      "side": "left",
+      "variant": 3
+    },
+    "99": {
+      "role": "vertical_rock_straight",
+      "direction": "vertical",
+      "side": "right",
+      "variant": 1
+    },
+    "100": {
+      "role": "vertical_rock_straight",
+      "direction": "vertical",
+      "side": "right",
+      "variant": 2
+    },
+    "101": {
+      "role": "vertical_rock_straight",
+      "direction": "vertical",
+      "side": "right",
+      "variant": 3
+    },
+    "102": {
+      "role": "vertical_floor_rim",
+      "direction": "vertical",
+      "side": "left",
+      "variant": 1
+    },
+    "103": {
+      "role": "vertical_floor_rim",
+      "direction": "vertical",
+      "side": "left",
+      "variant": 2
+    },
+    "104": {
+      "role": "vertical_floor_rim",
+      "direction": "vertical",
+      "side": "left",
+      "variant": 3
+    },
+    "105": {
+      "role": "vertical_floor_rim",
+      "direction": "vertical",
+      "side": "right",
+      "variant": 1
+    },
+    "106": {
+      "role": "vertical_floor_rim",
+      "direction": "vertical",
+      "side": "right",
+      "variant": 2
+    },
+    "107": {
+      "role": "vertical_floor_rim",
+      "direction": "vertical",
+      "side": "right",
+      "variant": 3
+    }
+  },
+  "collision": "authored; new walls default blocked",
+  "elevation": null,
+  "connections": "visual-only candidate; exact edge seams not yet approved",
+  "sources": [
+    "cave-corrected-atlas-12x7.png",
+    "cave-wall-straights-new24-12x2.png"
+  ],
+  "note": "All existing 84 tile pixels preserved; straight pieces cropped/composited from previously generated cave rock art."
+}

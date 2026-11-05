@@ -5,6 +5,7 @@ on:
     paths:
       - 'tools/build-natural-cave-candidates.py'
       - 'tools/build-natural-cave-autotile.py'
+      - 'tools/build-cave-straights-atlas.py'
       - 'qa/natural-cave-autotile-pixels.py'
       - 'qa/natural-cave-layout.cjs'
       - 'previews/natural-cave-walk.html'
@@ -30,6 +31,7 @@ jobs:
       - run: python -m pip install pillow==11.3.0
       - run: python tools/build-natural-cave-candidates.py
       - run: python tools/build-natural-cave-autotile.py
+      - run: python tools/build-cave-straights-atlas.py
       - run: python qa/natural-cave-autotile-pixels.py
       - run: node --test qa/natural-cave-layout.cjs
       - name: Validate embedded cave editor assets, JSON and JavaScript
@@ -42,8 +44,8 @@ jobs:
           js=html.split('<script>',1)[1].split('</script>',1)[0]
           Path('/tmp/cave-preview.js').write_text(js)
           assets=[
-            ('ATLAS_DATA','assets/dungeons/natural-cave-v1/cave-corrected-atlas-12x7.png',(384,224)),
-            ('OVERLAY_DATA','assets/dungeons/natural-cave-v1/cave-corrected-overlay-12x7.png',(384,224)),
+            ('ATLAS_DATA','assets/dungeons/natural-cave-v1/cave-wall-straights-atlas-12x9.png',(384,288)),
+            ('OVERLAY_DATA','assets/dungeons/natural-cave-v1/cave-wall-straights-overlay-12x9.png',(384,288)),
             ('ARCH_DATA','assets/dungeons/natural-cave-v1/cave-corrected-arch-2x2.png',(64,64)),
           ]
           for variable,path,expected in assets:
@@ -67,7 +69,10 @@ jobs:
           for tool in ('paint','erase','pick','fill','collision','spawn','pan','walk'):
               assert 'data-tool="'+tool+'"' in html
           assert 'yaksha.cave.mapchip.editor.v1' in js
-          print('Cave editor 84-chip atlas, original sample and controls PASS')
+          assert 'data-tab="straight"' in html and '全108種' in html
+          assert 'AC=12,AR=9' in js and 'all:Array.from({length:108}' in js
+          assert 'cave-wall-straights-atlas-12x9.png' in js
+          print('Cave editor 108-chip atlas, 24 new straights, original sample and controls PASS')
           PY
           node --check /tmp/cave-preview.js
       - name: Verify PNG dimensions and actual pixel edge continuity
@@ -92,7 +97,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/dungeons/natural-cave-v0/cave-orthographic-40x24-candidate.png \
+          git add assets/dungeons/natural-cave-v1/cave-wall-straights-new24-12x2.png \
+                  assets/dungeons/natural-cave-v0/cave-orthographic-40x24-candidate.png \
                   assets/dungeons/natural-cave-v0/cave-orthographic-40x24.json \
                   assets/dungeons/natural-cave-v0/cave-elevation-20x12.json \
                   assets/dungeons/natural-cave-v0/floor-base-candidate.png \
