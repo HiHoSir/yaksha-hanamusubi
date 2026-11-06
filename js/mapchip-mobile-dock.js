@@ -16,6 +16,7 @@
   const cursor = {x: 16, y: 16};
   let navPointer = null;
   let pushHeld = false;
+  let pushPointer = null;
   let lineMode = false;
   let activeSheet = null;
 
@@ -107,11 +108,18 @@
   push.addEventListener('pointerdown', event => {
     if (!mobile()) return;
     event.preventDefault();
+    pushPointer = event.pointerId;
     pushStart();
   });
-  window.addEventListener('pointerup', pushEnd);
-  window.addEventListener('pointercancel', pushEnd);
-  window.addEventListener('blur', pushEnd);
+  function releasePush(event) {
+    if (pushPointer !== null && event.pointerId === pushPointer) {
+      pushPointer = null;
+      pushEnd();
+    }
+  }
+  window.addEventListener('pointerup', releasePush);
+  window.addEventListener('pointercancel', releasePush);
+  window.addEventListener('blur', () => { pushPointer = null; pushEnd(); });
   push.addEventListener('click', event => {
     if (event.detail !== 0) return; // Pointer presses have already been handled.
     pushStart();
