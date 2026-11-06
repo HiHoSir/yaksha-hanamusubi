@@ -51,7 +51,7 @@ footer{max-width:1280px;margin:auto;padding:8px 12px 25px;font-size:11px;color:v
 <div class="right">
 <section><h2>地図と保存</h2>
  <div class="row"><label>横<input type="number" id="width" min="4" max="96" value="32"></label><label>縦<input type="number" id="height" min="4" max="96" value="22"></label><button id="resize">サイズ変更</button></div>
- <div class="row"><button id="sample">前回の配置を読込</button><button id="newWalls">新壁の配置例</button><button id="load108">直線壁の配置例</button><button id="newMap">新しい地図</button></div>
+ <div class="row"><button id="sample">前回の配置を読込</button><button id="newWalls">新壁の配置例</button><button id="newMap">新しい地図</button></div>
  <div class="row"><button id="exportJson" class="primary">JSON保存</button><label class="file">JSON読込<input type="file" id="importJson" accept=".json,application/json"></label></div>
  <div class="row"><button id="exportPng">マップPNG保存</button><button id="copyJson">JSONをコピー</button></div>
  <p>編集内容はこの端末のブラウザ内に自動保存。別の端末やChatGPTへの引き継ぎはJSON保存を使用してください。</p>
@@ -230,7 +230,7 @@ async function load108(){
   load(json,'108チップ直線壁配置例');
  }catch(e){message('配置例の読込に失敗しました：'+e.message)}
 }
-function newWallExample(){const n=blank(20,14);n.tileIds=Array.from({length:14},()=>Array(20).fill(5));const block=(x,y,id)=>{n.tileIds[y][x]=id;n.walkable=n.walkable.filter(([a,b])=>a!==x||b!==y)};for(let x=4;x<=15;x++){block(x,3,x===4?84:x===15?87:85);block(x,10,x===4?90:x===15?92:91)}for(let y=4;y<10;y++){block(4,y,88);block(15,y,89)}block(10,3,86);n.start=[9,7];n.source='new wall candidate 9 tiles #84-92';return n;}
+function newWallExample(){const n=blank(20,14);n.tileIds=Array.from({length:14},()=>Array(20).fill(5));const block=(x,y,id)=>{n.tileIds[y][x]=id;n.walkable=n.walkable.filter(([a,b])=>a!==x||b!==y)};for(let x=4;x<=15;x++){block(x,3,x===4?84:x===15?87:85);block(x,10,x===4?90:x===15?92:91)}for(let y=4;y<10;y++){block(4,y,88);block(15,y,89)}n.start=[9,7];n.source='new wall candidate 9 tiles #84-92';return n;}
 function setup(){
  if(initialized)return;initialized=true;
  let hadSaved=false;
