@@ -42,9 +42,9 @@ footer{max-width:1280px;margin:auto;padding:8px 12px 25px;font-size:11px;color:v
 </section>
 <section>
  <div class="palette-head"><strong>マップチップ</strong><span class="tiny" id="currentTile">未選択</span></div>
- <div class="tabs" id="tabs"><button data-tab="wall" aria-pressed="true">岩壁・角</button><button data-tab="straight" aria-pressed="false">新壁9種</button><button data-tab="floor" aria-pressed="false">床・水</button><button data-tab="deco" aria-pressed="false">岩・装飾</button><button data-tab="all" aria-pressed="false">全108種</button></div>
+ <div class="tabs" id="tabs"><button data-tab="wall" aria-pressed="true">岩壁・角</button><button data-tab="straight" aria-pressed="false">新壁9種</button><button data-tab="transition" aria-pressed="false">階段・出口</button><button data-tab="floor" aria-pressed="false">床・水</button><button data-tab="deco" aria-pressed="false">岩・装飾</button><button data-tab="all" aria-pressed="false">全108種</button></div>
  <div id="palette" aria-label="32pxタイル一覧"></div>
- <p class="hint">既存84種＋直線壁24種（#84〜92は新しい壁候補に差替え）。32px単位で配置し、接続補正・高さ演算なし。壁の連結補正や高さ演算は行いません。</p>
+ <p class="hint">既存108種＋新壁候補9種（#84〜92を差替え）＋階段・出口3種（#108〜110）。32px単位で配置し、接続補正・高さ演算なし。壁の連結補正や高さ演算は行いません。</p>
  <div class="preset" id="presets"><button data-preset="straightH">横壁3連</button><button data-preset="straightV">縦壁3連</button><button data-preset="alcove">窪み2連（24・25）</button><button data-preset="archTop">アーチ上部2連（39・40）</button><button data-preset="rock3">岩塊3連（48〜50）</button><button data-preset="water2">水際2連（72・73）</button><button data-preset="arch2x2">独立アーチ2×2</button></div>
 </section>
 </div>
@@ -74,13 +74,15 @@ const ARCH_DATA='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqa
 const HERO_URL='https://hihosir.github.io/yaksha-hanamusubi/assets/characters/hizuki/field-sd-v2/walk-atlas-32.png';
 const DEMO_PARAM=new URLSearchParams(location.search).get('layout')==='wall108';
 const DEMO_URL='../assets/dungeons/natural-cave-v1/cave-map-108-layout.json';
-const $=id=>document.getElementById(id),T=32,AC=12,AR=9,MAX_HISTORY=70,STORE='yaksha.cave.mapchip.editor.wall20261106.fixedSouth';
+const $=id=>document.getElementById(id),T=32,AC=12,AR=9,MAX_HISTORY=70,STORE='yaksha.cave.mapchip.editor.wall20261106.transitions';
 const floorIds=new Set([0,1,2,3,4,5,6,7,15,16,17,18,19,20,21,22,23,24,25,60,61,62,63,64,65,72,73,74,75]);
 const wallIds=new Set([8,9,10,11,12,13,14,...Array.from({length:22},(_,i)=>i+26),...Array.from({length:24},(_,i)=>i+84)]);
 const decoIds=new Set([...Array.from({length:12},(_,i)=>i+48),...Array.from({length:6},(_,i)=>i+66),...Array.from({length:8},(_,i)=>i+76)]);
-const groups={wall:[...Array.from({length:7},(_,i)=>i+8),...Array.from({length:22},(_,i)=>i+26),...Array.from({length:24},(_,i)=>i+84)],straight:Array.from({length:9},(_,i)=>i+84),floor:[...Array.from({length:8},(_,i)=>i),...Array.from({length:11},(_,i)=>i+15),...Array.from({length:6},(_,i)=>i+60),...Array.from({length:4},(_,i)=>i+72)],deco:[...decoIds],all:Array.from({length:108},(_,i)=>i)};
+const groups={wall:[...Array.from({length:7},(_,i)=>i+8),...Array.from({length:22},(_,i)=>i+26),...Array.from({length:24},(_,i)=>i+84)],straight:Array.from({length:9},(_,i)=>i+84),floor:[...Array.from({length:8},(_,i)=>i),...Array.from({length:11},(_,i)=>i+15),...Array.from({length:6},(_,i)=>i+60),...Array.from({length:4},(_,i)=>i+72)],deco:[...decoIds],transition:[108,109,110],all:Array.from({length:111},(_,i)=>i)};
 const replacement=new Image();replacement.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAAgCAMAAACFKlUGAAAAS1BMVEXluXjVoGq+iWW3gGGmenOgbl6gbVugbVKJYnmIYFSCVlJzUGl1UFJlR1FbPFJKQUdVOEREMkhDKzo5JzgxJDQuJjkuIS8mHSsSERjfPv3UAAAEUElEQVR42s2ai3KjMAxF83CpU6VObbC9//+lK8kGsgGhmtmmYTrBVFUJF+nqkMnhzy9vAOAc/7Sl9eAxqwctDm/ntzP9nN+mFb++8TFo5z/8tkD41ugtOpdbsoYBoFybEDe0nT5ww1drP+zJlA2X1prjMp5fVKB6A1sF8hAoEYL0B+Zgjh2p0hlrD/bY4ZJ+xQe2M8t4ftEKAkg7BHKlfpzQYjml08kcUsJySeloUQjaoRT4K5JqGc8v22KpD3SlbQKVBkuCc2Rj+iO1UY89ZXvLHdUbUsj2pb0e49LpX0Ag3uIttyg0JFYoJhA9KByr6Vhbl4EFssHUo3/jr1tBEEkg1zjFikLiFBuqJ59OLMqkxXywiL+oB1EdOOdj6xTruYJAriDv6aqdYwEirX3kteODRfx1pxh5bWwVqMgTpSlWBOpIgK4I0BWBuiJQt4iLAp1HfBL+4LwNWuf1/GGKCxcwxaF2WLNJhxhJJWHIJWxB62hK0ZJcLiVfdtRry7ho0hooKaBl1vMnUDMKyBmaRaxQm0njmCeBotRixNBYKz0KgEueAz0LZHsWaBmXKkgDJQW01vOHOa6A3AFozEeZaITNo7CRnFquMBg3xxgReee8q4HHuCSQBkoKaJn1/AnUjAJyxo1b+6OGg1uKm6AUyyv/f1t5ghHT+2VcmGIaKCmgdRTyhzGugNzRV32aPGioJn2TxvzgmwUSW0wBJQW0wnr+BGpBAbkQxwpqf8QFuEHcehQpCoxniPWlPsA/xiWBNFBSQMus5g9zXAE5M7793NZiaFx8gWELAzpSoivqdEWdrqjTLeOSQBooKaBl1vMnUDMKyBlmIG6xph6rJC1WEI1xNPHkPY5xAtEb7fA0qSQu46JACigpoGWmeF4FNaOAnKF5zeOlbYqVFolREggfQiJ5FKnfl5uAO7KeHupDykNcnGIKKCmgBVM8L+4ghxSQY0Ogid1k0nkYnN961ECFCCTRo6g8g6s79uZxzD/GsyTQNigpoAVz/N6D5rgCcuVmolE2FxA2h4MNDiKrucU7fyYI8pFH2GjU93GpgjRQUkArrOdPoBYUkAtM0rjITR6U8YSeC0/yIKowV2p7WyAgv4+iBR40UPouR2QB1FSQw6soU7dpjNGnbEDX9tMP0wcNlPaB1gxqKsi5+rF9W48NRdYETxBoG5S+DVoPHjTGNZCjRWgtoJyHXbLuEUgDJQW04nr+BGpRAbm4r4CmvnQ/LpAGSgpowXr+BGqggBxVUN9u0gMpxBL9uEAaKO0DrRnUNJBjI9kY2NIHkX2tvGcItAlKCmiF1fw8xxWQw3+WypXu+LjDPWOKaaCkcERcz59ALSogFx3smPKoD+OYe8oU2wal7wr0kJ4VgUaQ4zrYYdLwNJPWvt2Qv72tZ4keMn77QrlBmsC/LtD75+Vy+bpc3i9f16/r5/V6vVzxGHef73j4Psfvs+a4LtCPfP3lv21/AVuWxYeoT6+0AAAAAElFTkSuQmCC';
 const replacedNames=['┐','━（上）','┯','┌','│（┐から）','│（┌から）','└','━（下）','┘'];
+const transitionNames=['登り階段','下り階段','外への出口'];
+const transitionImage=new Image();transitionImage.src='../assets/dungeons/natural-cave-v1/cave-transitions-up-down-exit-3x1.png?v=1';
 const atlas=new Image(),overlay=new Image(),arch=new Image(),hero=new Image();
 atlas.src=ATLAS_DATA;overlay.src=OVERLAY_DATA;arch.src=ARCH_DATA;hero.src=HERO_URL;
 const canvas=$('map'),ctx=canvas.getContext('2d',{alpha:false}),view=$('viewport');
@@ -88,11 +90,11 @@ let state,history=[],future=[],tool='paint',layer='base',tab='straight',selected
 let hx=10,hy=9,hdir=0,hframe=0,pointers=new Map(),gesture=null,drawing=false,lastCell=null,changed=false,hold=null,initialized=false;
 const key=(x,y)=>x+','+y;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-function blank(w,h){return {format:'yaksha-cave-mapchips-v1',version:9,tileSize:T,width:w,height:h,atlasColumns:AC,atlasRows:AR,tileIds:Array.from({length:h},()=>Array(w).fill(0)),walkable:Array.from({length:w*h},(_,i)=>[i%w,Math.floor(i/w)]),blockedProps:[],decorations:[],archOverlays:[],start:[Math.floor(w/2),Math.floor(h/2)],heightLevels:null,elevation:null,renderer:'pure 32px tile-only; no height projection',tileAtlas:'assets/dungeons/natural-cave-v1/cave-wall-straights-atlas-12x9.png',overlayAtlas:'assets/dungeons/natural-cave-v1/cave-wall-straights-overlay-12x9.png',source:'assets/dungeons/natural-cave-v1/cave-wall-straights-atlas-12x9.png'};}
+function blank(w,h){return {format:'yaksha-cave-mapchips-v1',version:10,tileSize:T,width:w,height:h,atlasColumns:AC,atlasRows:AR,tileIds:Array.from({length:h},()=>Array(w).fill(0)),walkable:Array.from({length:w*h},(_,i)=>[i%w,Math.floor(i/w)]),blockedProps:[],decorations:[],archOverlays:[],start:[Math.floor(w/2),Math.floor(h/2)],heightLevels:null,elevation:null,renderer:'pure 32px tile-only; no height projection',tileAtlas:'assets/dungeons/natural-cave-v1/cave-wall-straights-atlas-12x9.png',overlayAtlas:'assets/dungeons/natural-cave-v1/cave-wall-straights-overlay-12x9.png',source:'assets/dungeons/natural-cave-v1/cave-wall-straights-atlas-12x9.png'};}
 function normalize(input){
  if(!input||typeof input!=='object')throw Error('JSONが正しくありません');
  const w=Number(input.width),h=Number(input.height);if(!Number.isInteger(w)||!Number.isInteger(h)||w<4||h<4||w>96||h>96||input.tileSize!==T)throw Error('地図寸法または32px規格が不正です');
- if(!Array.isArray(input.tileIds)||input.tileIds.length!==h||input.tileIds.some(row=>!Array.isArray(row)||row.length!==w||row.some(v=>!Number.isInteger(v)||v< -1||v>=AC*AR)))throw Error('tileIdsが不正です（-1〜107）');
+ if(!Array.isArray(input.tileIds)||input.tileIds.length!==h||input.tileIds.some(row=>!Array.isArray(row)||row.length!==w||row.some(v=>!Number.isInteger(v)||v< -1||v>110)))throw Error('tileIdsが不正です（-1〜110）');
  const validPoint=a=>Array.isArray(a)&&a.length===2&&a.every(Number.isInteger)&&a[0]>=0&&a[0]<w&&a[1]>=0&&a[1]<h;
  if(!Array.isArray(input.walkable)||!input.walkable.every(validPoint))throw Error('walkableが不正です');
  if(!Array.isArray(input.blockedProps)||!input.blockedProps.every(validPoint))throw Error('blockedPropsが不正です');
@@ -103,7 +105,7 @@ function normalize(input){
  const result={...blank(w,h),tileIds:input.tileIds.map(r=>r.slice()),walkable:input.walkable.map(a=>a.slice()),blockedProps:input.blockedProps.map(a=>a.slice()),decorations:dec.map(a=>a.slice()),archOverlays:arches.map(a=>({sprite:'assets/dungeons/natural-cave-v1/cave-corrected-arch-2x2.png',x:a.x,y:a.y,widthCells:2,heightCells:2,walkable:true,occupiedTiles:[]})),start:input.start.slice()};
  return result;
 }
-function encode(){const arches=state.archOverlays.map(a=>({...a}));const out={...state,format:'yaksha-cave-mapchips-v1',version:9,heightLevels:null,elevation:null,archOverlays:arches};out.archOverlay=arches[0]?{...arches[0]}:null;return JSON.stringify(out,null,2);}
+function encode(){const arches=state.archOverlays.map(a=>({...a}));const transitionTiles=[];for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++){const id=state.tileIds[y][x];if(id>=108&&id<=110)transitionTiles.push({x,y,tileId:id,kind:['stairs_up','stairs_down','outside_exit'][id-108],destination:null});}const out={...state,format:'yaksha-cave-mapchips-v1',version:10,heightLevels:null,elevation:null,archOverlays:arches,transitionTiles};out.archOverlay=arches[0]?{...arches[0]}:null;return JSON.stringify(out,null,2);}
 function snapshot(){return JSON.stringify(state)}
 function commitHistory(){history.push(snapshot());if(history.length>MAX_HISTORY)history.shift();future.length=0}
 function restore(s){state=normalize(JSON.parse(s));syncDimensions();render();save()}
@@ -117,16 +119,17 @@ function hasPoint(arr,x,y){return arr.some(a=>a[0]===x&&a[1]===y)}
 function removePoint(arr,x,y){const n=arr.findIndex(a=>a[0]===x&&a[1]===y);if(n>=0)arr.splice(n,1)}
 function isWalkable(x,y){return hasPoint(state.walkable,x,y)&&!hasPoint(state.blockedProps,x,y)}
 function setWalk(x,y,open){if(!inBounds(x,y))return;removePoint(state.walkable,x,y);removePoint(state.blockedProps,x,y);if(open)state.walkable.push([x,y]);}
-function tilePass(id){return floorIds.has(id)}
+function tilePass(id){return floorIds.has(id)||(id>=108&&id<=110)}
 // The first preview inverted the southern edge. Transform the existing pixels,
 // preserving the original source image while fixing the rendered and exported map.
 function drawCandidate(c,id,x,y){
+ if(id>=108&&id<=110){if(!transitionImage.complete||transitionImage.naturalWidth!==96)return false;c.save();c.imageSmoothingEnabled=false;c.drawImage(transitionImage,(id-108)*32,0,32,32,x,y,32,32);c.restore();return true;}
  if(!replacement.complete||replacement.naturalWidth!==288)return false;
  c.save();c.imageSmoothingEnabled=false;
  c.drawImage(replacement,(id-84)*32,0,32,32,x,y,32,32);
  c.restore();return true;
 }
-function drawTile(id,x,y,alpha=false){if(id<0)return;if(!alpha&&id>=84&&id<=92&&drawCandidate(ctx,id,x*T,y*T))return;const img=alpha?overlay:atlas;if(!img.complete||!img.naturalWidth)return;ctx.drawImage(img,id%AC*T,Math.floor(id/AC)*T,T,T,x*T,y*T,T,T)}
+function drawTile(id,x,y,alpha=false){if(id<0)return;if(!alpha&&((id>=84&&id<=92)||(id>=108&&id<=110))&&drawCandidate(ctx,id,x*T,y*T))return;const img=alpha?overlay:atlas;if(!img.complete||!img.naturalWidth)return;ctx.drawImage(img,id%AC*T,Math.floor(id/AC)*T,T,T,x*T,y*T,T,T)}
 function render(){
  if(!state)return;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#0a090d';ctx.fillRect(0,0,canvas.width,canvas.height);
  for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++)drawTile(state.tileIds[y][x],x,y);
@@ -144,10 +147,10 @@ function render(){
 function updatePalette(){
  const p=$('palette');p.textContent='';if(!atlas.complete||!atlas.naturalWidth)return;
  for(const id of groups[tab]){const b=document.createElement('button');b.type='button';b.className='tile';b.setAttribute('aria-pressed',String(selected===id&&stamp===null));b.title='チップ '+id;
-  const c=document.createElement('canvas');c.width=32;c.height=32;const ct=c.getContext('2d');ct.imageSmoothingEnabled=false;if(id>=84&&id<=92&&drawCandidate(ct,id,0,0)){}else ct.drawImage(atlas,id%AC*32,Math.floor(id/AC)*32,32,32,0,0,32,32);b.appendChild(c);
-  const label=document.createElement('small');label.textContent=id>=84&&id<=92?('#'+id+' '+replacedNames[id-84]):('#'+id);b.appendChild(label);b.onclick=()=>{selected=id;stamp=null;layer=decoIds.has(id)?'deco':'base';$('layer').value=layer;setTool('paint');updatePalette();updateSelection()};p.appendChild(b)}
+  const c=document.createElement('canvas');c.width=32;c.height=32;const ct=c.getContext('2d');ct.imageSmoothingEnabled=false;if(((id>=84&&id<=92)||(id>=108&&id<=110))&&drawCandidate(ct,id,0,0)){}else ct.drawImage(atlas,id%AC*32,Math.floor(id/AC)*32,32,32,0,0,32,32);b.appendChild(c);
+  const label=document.createElement('small');label.textContent=id>=108&&id<=110?('#'+id+' '+transitionNames[id-108]):id>=84&&id<=92?('#'+id+' '+replacedNames[id-84]):('#'+id);b.appendChild(label);b.onclick=()=>{selected=id;stamp=null;layer=decoIds.has(id)?'deco':'base';$('layer').value=layer;setTool('paint');updatePalette();updateSelection()};p.appendChild(b)}
 }
-function updateSelection(){let label=stamp?stamp.name:(selected>=84&&selected<=92?('チップ #'+selected+' '+replacedNames[selected-84]):('チップ #'+selected));$('currentTile').textContent=label+' / '+(layer==='base'?'地形':layer==='deco'?'装飾':'アーチ');$('selectedInfo').textContent='選択：'+label+'　編集層：'+layer;}
+function updateSelection(){let label=stamp?stamp.name:(selected>=108&&selected<=110?('チップ #'+selected+' '+transitionNames[selected-108]):selected>=84&&selected<=92?('チップ #'+selected+' '+replacedNames[selected-84]):('チップ #'+selected));$('currentTile').textContent=label+' / '+(layer==='base'?'地形':layer==='deco'?'装飾':'アーチ');$('selectedInfo').textContent='選択：'+label+'　編集層：'+layer;}
 function setTool(t){tool=t;for(const b of document.querySelectorAll('[data-tool]'))b.setAttribute('aria-pressed',String(b.dataset.tool===t));$('collisionLabel').hidden=t!=='collision';$('passLabel').hidden=t==='collision';view.classList.toggle('pan',t==='pan');message(t==='walk'?'十字キー・方向ボタンで移動を検査できます。':t==='pan'?'ドラッグで画面を移動します。':'選択中：'+t);}
 function setTab(t){tab=t;for(const b of document.querySelectorAll('[data-tab]'))b.setAttribute('aria-pressed',String(b.dataset.tab===t));updatePalette()}
 function autoPass(id,x,y){const m=$('passMode').value;if(m==='keep')return;if(m==='open')setWalk(x,y,true);else if(m==='block')setWalk(x,y,false);else setWalk(x,y,tilePass(id));}
@@ -224,7 +227,7 @@ function validate(){const bad=[],open=new Set(state.walkable.map(a=>key(...a)).f
  const report='通行可能 '+open.size+'／到達可能 '+seen.size+'／到達不能 '+(open.size-seen.size)+'／明示装飾占有 '+state.blockedProps.length+'／アーチ '+state.archOverlays.length+'個'+(bad.length?'\n'+bad.slice(0,4).join('\n'):'');$('report').textContent=report;message(report);return {open:open.size,reachable:seen.size,unreachable:open.size-seen.size};}
 function download(filename,blob){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)}
 function exportPng(){const c=document.createElement('canvas');c.width=state.width*T;c.height=state.height*T;const ct=c.getContext('2d');ct.imageSmoothingEnabled=false;ct.fillStyle='#0a090d';ct.fillRect(0,0,c.width,c.height);
- for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++){const id=state.tileIds[y][x];if(id>=0)ct.drawImage(atlas,id%AC*T,Math.floor(id/AC)*T,T,T,x*T,y*T,T,T)}
+ for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++){const id=state.tileIds[y][x];if(id>=0){if(((id>=84&&id<=92)||(id>=108&&id<=110))&&drawCandidate(ct,id,x*T,y*T)){}else ct.drawImage(atlas,id%AC*T,Math.floor(id/AC)*T,T,T,x*T,y*T,T,T)}}
  for(const [x,y,id] of state.decorations)ct.drawImage(overlay,id%AC*T,Math.floor(id/AC)*T,T,T,x*T,y*T,T,T);
  for(const a of state.archOverlays)ct.drawImage(arch,a.x*T,a.y*T,64,64);
  c.toBlob(b=>b?download('cave-map-'+state.width+'x'+state.height+'.png',b):message('PNG出力失敗'),'image/png');}
@@ -238,7 +241,7 @@ async function load108(){
   load(json,'108チップ直線壁配置例');
  }catch(e){message('配置例の読込に失敗しました：'+e.message)}
 }
-function newWallExample(){const n=blank(20,14);n.tileIds=Array.from({length:14},()=>Array(20).fill(5));const block=(x,y,id)=>{n.tileIds[y][x]=id;n.walkable=n.walkable.filter(([a,b])=>a!==x||b!==y)};for(let x=4;x<=15;x++){block(x,3,x===4?87:x===15?84:85);block(x,10,x===4?90:x===15?92:91)}for(let y=4;y<10;y++){block(4,y,89);block(15,y,88)}n.start=[9,7];n.source='new wall candidate 9 tiles #84-92';return n;}
+function newWallExample(){const n=blank(20,14);n.tileIds=Array.from({length:14},()=>Array(20).fill(5));const block=(x,y,id)=>{n.tileIds[y][x]=id;n.walkable=n.walkable.filter(([a,b])=>a!==x||b!==y)};for(let x=4;x<=15;x++){block(x,3,x===4?87:x===15?84:85);block(x,10,x===4?90:x===15?92:91)}for(let y=4;y<10;y++){block(4,y,89);block(15,y,88)}n.tileIds[5][7]=108;n.tileIds[5][12]=109;n.tileIds[8][10]=110;n.start=[9,7];n.source='new wall candidate 9 tiles #84-92 and transitions #108-110';return n;}
 function setup(){
  if(initialized)return;initialized=true;
  let hadSaved=false;
@@ -247,7 +250,7 @@ function setup(){
   state=raw?normalize(JSON.parse(raw)):normalize(newWallExample());
  }catch(e){state=normalize(newWallExample());message('保存データが不正だったため新壁の配置例を読み込みました')}
  hx=state.start[0];hy=state.start[1];syncDimensions();updatePalette();updateSelection();setTool('paint');render();save();center(hx,hy);
- message('下側の角と直線に岩肌を追加した壁9種（#84〜92）を反映しました。');
+ message('階段・出口3種（#108〜110）を追加しました。タブ「階段・出口」から配置できます。');
  if(DEMO_PARAM&&!hadSaved)load(newWallExample(),'新壁の配置例');
 }
 for(const b of document.querySelectorAll('[data-tool]'))b.onclick=()=>setTool(b.dataset.tool);
@@ -272,7 +275,7 @@ $('validate').onclick=validate;$('resetHero').onclick=()=>{hx=state.start[0];hy=
 for(const b of document.querySelectorAll('[data-dir]')){const [dx,dy]=b.dataset.dir.split(',').map(Number);b.addEventListener('pointerdown',e=>{e.preventDefault();if(hold)clearInterval(hold);walk(dx,dy);hold=setInterval(()=>walk(dx,dy),150);b.setPointerCapture(e.pointerId)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>{if(hold){clearInterval(hold);hold=null}})}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();return}const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};if(d[e.key]&&document.activeElement?.tagName!=='INPUT'){e.preventDefault();walk(...d[e.key])}});
 atlas.onload=()=>{if(overlay.complete&&overlay.naturalWidth&&arch.complete&&arch.naturalWidth)setup()};overlay.onload=()=>{if(atlas.complete&&atlas.naturalWidth&&arch.complete&&arch.naturalWidth)setup()};arch.onload=()=>{if(atlas.complete&&atlas.naturalWidth&&overlay.complete&&overlay.naturalWidth)setup()};
-for(const [name,img] of [['チップ',atlas],['装飾',overlay],['アーチ',arch]])img.onerror=()=>message(name+'画像を読み込めませんでした。');hero.onload=()=>render();replacement.onload=()=>{if(initialized){updatePalette();render()}};replacement.onerror=()=>message('新壁9種の画像読込に失敗しました');
+for(const [name,img] of [['チップ',atlas],['装飾',overlay],['アーチ',arch]])img.onerror=()=>message(name+'画像を読み込めませんでした。');hero.onload=()=>render();replacement.onload=()=>{if(initialized){updatePalette();render()}};transitionImage.onload=()=>{if(initialized){updatePalette();render()}};transitionImage.onerror=()=>message('階段・出口の画像読込に失敗しました');replacement.onerror=()=>message('新壁9種の画像読込に失敗しました');
 // Cached data URLs can finish before event handler registration.
 if(atlas.complete&&atlas.naturalWidth&&overlay.complete&&overlay.naturalWidth&&arch.complete&&arch.naturalWidth)setup();
 </script></body></html>
