@@ -42,7 +42,7 @@ footer{max-width:1280px;margin:auto;padding:8px 12px 25px;font-size:11px;color:v
 </section>
 <section>
  <div class="palette-head"><strong>マップチップ</strong><span class="tiny" id="currentTile">未選択</span></div>
- <div class="tabs" id="tabs"><button data-tab="wall" aria-pressed="true">岩壁・角</button><button data-tab="straight" aria-pressed="false">新壁9種</button><button data-tab="transition" aria-pressed="false">階段・出口</button><button data-tab="floor" aria-pressed="false">床・水</button><button data-tab="deco" aria-pressed="false">岩・装飾</button><button data-tab="all" aria-pressed="false">全108種</button></div>
+ <div class="tabs" id="tabs"><button data-tab="wall" aria-pressed="true">岩壁・角</button><button data-tab="straight" aria-pressed="false">新壁9種</button><button data-tab="transition" aria-pressed="false">階段・出口</button><button data-tab="floor" aria-pressed="false">床・水</button><button data-tab="deco" aria-pressed="false">岩・装飾</button><button data-tab="all" aria-pressed="false">全111種</button></div>
  <div id="palette" aria-label="32pxタイル一覧"></div>
  <p class="hint">既存108種＋新壁候補9種（#84〜92を差替え）＋階段・出口3種（#108〜110）。32px単位で配置し、接続補正・高さ演算なし。壁の連結補正や高さ演算は行いません。</p>
  <div class="preset" id="presets"><button data-preset="straightH">横壁3連</button><button data-preset="straightV">縦壁3連</button><button data-preset="alcove">窪み2連（24・25）</button><button data-preset="archTop">アーチ上部2連（39・40）</button><button data-preset="rock3">岩塊3連（48〜50）</button><button data-preset="water2">水際2連（72・73）</button><button data-preset="arch2x2">独立アーチ2×2</button></div>
@@ -105,7 +105,7 @@ function normalize(input){
  const result={...blank(w,h),tileIds:input.tileIds.map(r=>r.slice()),walkable:input.walkable.map(a=>a.slice()),blockedProps:input.blockedProps.map(a=>a.slice()),decorations:dec.map(a=>a.slice()),archOverlays:arches.map(a=>({sprite:'assets/dungeons/natural-cave-v1/cave-corrected-arch-2x2.png',x:a.x,y:a.y,widthCells:2,heightCells:2,walkable:true,occupiedTiles:[]})),start:input.start.slice()};
  return result;
 }
-function encode(){const arches=state.archOverlays.map(a=>({...a}));const transitionTiles=[];for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++){const id=state.tileIds[y][x];if(id>=108&&id<=110)transitionTiles.push({x,y,tileId:id,kind:['stairs_up','stairs_down','outside_exit'][id-108],destination:null});}const out={...state,format:'yaksha-cave-mapchips-v1',version:10,heightLevels:null,elevation:null,archOverlays:arches,transitionTiles};out.archOverlay=arches[0]?{...arches[0]}:null;return JSON.stringify(out,null,2);}
+function encode(){const arches=state.archOverlays.map(a=>({...a}));const transitionTiles=[];for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++){const id=state.tileIds[y][x];if(id>=108&&id<=110)transitionTiles.push({x,y,tileId:id,kind:['stairs_up','stairs_down','outside_exit'][id-108],destination:null});}const out={...state,format:'yaksha-cave-mapchips-v1',version:10,heightLevels:null,elevation:null,archOverlays:arches,transitionAtlas:'assets/dungeons/natural-cave-v1/cave-transitions-up-down-exit-3x1.png',transitionTileBase:108,transitionTiles};out.archOverlay=arches[0]?{...arches[0]}:null;return JSON.stringify(out,null,2);}
 function snapshot(){return JSON.stringify(state)}
 function commitHistory(){history.push(snapshot());if(history.length>MAX_HISTORY)history.shift();future.length=0}
 function restore(s){state=normalize(JSON.parse(s));syncDimensions();render();save()}
