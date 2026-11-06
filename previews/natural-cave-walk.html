@@ -42,16 +42,16 @@ footer{max-width:1280px;margin:auto;padding:8px 12px 25px;font-size:11px;color:v
 </section>
 <section>
  <div class="palette-head"><strong>マップチップ</strong><span class="tiny" id="currentTile">未選択</span></div>
- <div class="tabs" id="tabs"><button data-tab="wall" aria-pressed="true">岩壁・角</button><button data-tab="straight" aria-pressed="false">直線壁24</button><button data-tab="floor" aria-pressed="false">床・水</button><button data-tab="deco" aria-pressed="false">岩・装飾</button><button data-tab="all" aria-pressed="false">全108種</button></div>
+ <div class="tabs" id="tabs"><button data-tab="wall" aria-pressed="true">岩壁・角</button><button data-tab="straight" aria-pressed="false">新壁9種</button><button data-tab="floor" aria-pressed="false">床・水</button><button data-tab="deco" aria-pressed="false">岩・装飾</button><button data-tab="all" aria-pressed="false">全108種</button></div>
  <div id="palette" aria-label="32pxタイル一覧"></div>
- <p class="hint">既存84種＋新規直線壁24種。32px単位で配置し、接続補正・高さ演算なし。壁の連結補正や高さ演算は行いません。</p>
+ <p class="hint">既存84種＋直線壁24種（#84〜92は新しい壁候補に差替え）。32px単位で配置し、接続補正・高さ演算なし。壁の連結補正や高さ演算は行いません。</p>
  <div class="preset" id="presets"><button data-preset="straightH">横壁3連</button><button data-preset="straightV">縦壁3連</button><button data-preset="alcove">窪み2連（24・25）</button><button data-preset="archTop">アーチ上部2連（39・40）</button><button data-preset="rock3">岩塊3連（48〜50）</button><button data-preset="water2">水際2連（72・73）</button><button data-preset="arch2x2">独立アーチ2×2</button></div>
 </section>
 </div>
 <div class="right">
 <section><h2>地図と保存</h2>
  <div class="row"><label>横<input type="number" id="width" min="4" max="96" value="32"></label><label>縦<input type="number" id="height" min="4" max="96" value="22"></label><button id="resize">サイズ変更</button></div>
- <div class="row"><button id="sample">前回の配置を読込</button><button id="load108">直線壁の配置例</button><button id="newMap">新しい地図</button></div>
+ <div class="row"><button id="sample">前回の配置を読込</button><button id="newWalls">新壁の配置例</button><button id="load108">直線壁の配置例</button><button id="newMap">新しい地図</button></div>
  <div class="row"><button id="exportJson" class="primary">JSON保存</button><label class="file">JSON読込<input type="file" id="importJson" accept=".json,application/json"></label></div>
  <div class="row"><button id="exportPng">マップPNG保存</button><button id="copyJson">JSONをコピー</button></div>
  <p>編集内容はこの端末のブラウザ内に自動保存。別の端末やChatGPTへの引き継ぎはJSON保存を使用してください。</p>
@@ -74,15 +74,17 @@ const ARCH_DATA='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqa
 const HERO_URL='https://hihosir.github.io/yaksha-hanamusubi/assets/characters/hizuki/field-sd-v2/walk-atlas-32.png';
 const DEMO_PARAM=new URLSearchParams(location.search).get('layout')==='wall108';
 const DEMO_URL='../assets/dungeons/natural-cave-v1/cave-map-108-layout.json';
-const $=id=>document.getElementById(id),T=32,AC=12,AR=9,MAX_HISTORY=70,STORE=DEMO_PARAM?'yaksha.cave.mapchip.editor.wall108':'yaksha.cave.mapchip.editor.v1';
+const $=id=>document.getElementById(id),T=32,AC=12,AR=9,MAX_HISTORY=70,STORE='yaksha.cave.mapchip.editor.wall20261106';
 const floorIds=new Set([0,1,2,3,4,5,6,7,15,16,17,18,19,20,21,22,23,24,25,60,61,62,63,64,65,72,73,74,75]);
 const wallIds=new Set([8,9,10,11,12,13,14,...Array.from({length:22},(_,i)=>i+26),...Array.from({length:24},(_,i)=>i+84)]);
 const decoIds=new Set([...Array.from({length:12},(_,i)=>i+48),...Array.from({length:6},(_,i)=>i+66),...Array.from({length:8},(_,i)=>i+76)]);
-const groups={wall:[...Array.from({length:7},(_,i)=>i+8),...Array.from({length:22},(_,i)=>i+26),...Array.from({length:24},(_,i)=>i+84)],straight:Array.from({length:24},(_,i)=>i+84),floor:[...Array.from({length:8},(_,i)=>i),...Array.from({length:11},(_,i)=>i+15),...Array.from({length:6},(_,i)=>i+60),...Array.from({length:4},(_,i)=>i+72)],deco:[...decoIds],all:Array.from({length:108},(_,i)=>i)};
+const groups={wall:[...Array.from({length:7},(_,i)=>i+8),...Array.from({length:22},(_,i)=>i+26),...Array.from({length:24},(_,i)=>i+84)],straight:Array.from({length:9},(_,i)=>i+84),floor:[...Array.from({length:8},(_,i)=>i),...Array.from({length:11},(_,i)=>i+15),...Array.from({length:6},(_,i)=>i+60),...Array.from({length:4},(_,i)=>i+72)],deco:[...decoIds],all:Array.from({length:108},(_,i)=>i)};
+const replacement=new Image();replacement.src='data:image/png;base64,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';
+const replacedNames=['┐','━（上）','┯','┌','│（┐から）','│（┌から）','└','━（下）','┘'];
 const atlas=new Image(),overlay=new Image(),arch=new Image(),hero=new Image();
 atlas.src=ATLAS_DATA;overlay.src=OVERLAY_DATA;arch.src=ARCH_DATA;hero.src=HERO_URL;
 const canvas=$('map'),ctx=canvas.getContext('2d',{alpha:false}),view=$('viewport');
-let state,history=[],future=[],tool='paint',layer='base',tab='wall',selected=12,stamp=null,zoom=1,grid=true,collision=false,showHero=true;
+let state,history=[],future=[],tool='paint',layer='base',tab='straight',selected=84,stamp=null,zoom=1,grid=true,collision=false,showHero=true;
 let hx=10,hy=9,hdir=0,hframe=0,pointers=new Map(),gesture=null,drawing=false,lastCell=null,changed=false,hold=null,initialized=false;
 const key=(x,y)=>x+','+y;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -116,7 +118,7 @@ function removePoint(arr,x,y){const n=arr.findIndex(a=>a[0]===x&&a[1]===y);if(n>
 function isWalkable(x,y){return hasPoint(state.walkable,x,y)&&!hasPoint(state.blockedProps,x,y)}
 function setWalk(x,y,open){if(!inBounds(x,y))return;removePoint(state.walkable,x,y);removePoint(state.blockedProps,x,y);if(open)state.walkable.push([x,y]);}
 function tilePass(id){return floorIds.has(id)}
-function drawTile(id,x,y,alpha=false){if(id<0)return;const img=alpha?overlay:atlas;if(!img.complete||!img.naturalWidth)return;ctx.drawImage(img,id%AC*T,Math.floor(id/AC)*T,T,T,x*T,y*T,T,T)}
+function drawTile(id,x,y,alpha=false){if(id<0)return;if(!alpha&&id>=84&&id<=92&&replacement.complete&&replacement.naturalWidth===288){ctx.drawImage(replacement,(id-84)*T,0,T,T,x*T,y*T,T,T);return}const img=alpha?overlay:atlas;if(!img.complete||!img.naturalWidth)return;ctx.drawImage(img,id%AC*T,Math.floor(id/AC)*T,T,T,x*T,y*T,T,T)}
 function render(){
  if(!state)return;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#0a090d';ctx.fillRect(0,0,canvas.width,canvas.height);
  for(let y=0;y<state.height;y++)for(let x=0;x<state.width;x++)drawTile(state.tileIds[y][x],x,y);
@@ -134,10 +136,10 @@ function render(){
 function updatePalette(){
  const p=$('palette');p.textContent='';if(!atlas.complete||!atlas.naturalWidth)return;
  for(const id of groups[tab]){const b=document.createElement('button');b.type='button';b.className='tile';b.setAttribute('aria-pressed',String(selected===id&&stamp===null));b.title='チップ '+id;
-  const c=document.createElement('canvas');c.width=32;c.height=32;const ct=c.getContext('2d');ct.imageSmoothingEnabled=false;ct.drawImage(atlas,id%AC*32,Math.floor(id/AC)*32,32,32,0,0,32,32);b.appendChild(c);
-  const label=document.createElement('small');label.textContent='#'+id;b.appendChild(label);b.onclick=()=>{selected=id;stamp=null;layer=decoIds.has(id)?'deco':'base';$('layer').value=layer;setTool('paint');updatePalette();updateSelection()};p.appendChild(b)}
+  const c=document.createElement('canvas');c.width=32;c.height=32;const ct=c.getContext('2d');ct.imageSmoothingEnabled=false;if(id>=84&&id<=92&&replacement.complete&&replacement.naturalWidth===288)ct.drawImage(replacement,(id-84)*32,0,32,32,0,0,32,32);else ct.drawImage(atlas,id%AC*32,Math.floor(id/AC)*32,32,32,0,0,32,32);b.appendChild(c);
+  const label=document.createElement('small');label.textContent=id>=84&&id<=92?('#'+id+' '+replacedNames[id-84]):('#'+id);b.appendChild(label);b.onclick=()=>{selected=id;stamp=null;layer=decoIds.has(id)?'deco':'base';$('layer').value=layer;setTool('paint');updatePalette();updateSelection()};p.appendChild(b)}
 }
-function updateSelection(){let label=stamp?stamp.name:('チップ #'+selected);$('currentTile').textContent=label+' / '+(layer==='base'?'地形':layer==='deco'?'装飾':'アーチ');$('selectedInfo').textContent='選択：'+label+'　編集層：'+layer;}
+function updateSelection(){let label=stamp?stamp.name:(selected>=84&&selected<=92?('チップ #'+selected+' '+replacedNames[selected-84]):('チップ #'+selected));$('currentTile').textContent=label+' / '+(layer==='base'?'地形':layer==='deco'?'装飾':'アーチ');$('selectedInfo').textContent='選択：'+label+'　編集層：'+layer;}
 function setTool(t){tool=t;for(const b of document.querySelectorAll('[data-tool]'))b.setAttribute('aria-pressed',String(b.dataset.tool===t));$('collisionLabel').hidden=t!=='collision';$('passLabel').hidden=t==='collision';view.classList.toggle('pan',t==='pan');message(t==='walk'?'十字キー・方向ボタンで移動を検査できます。':t==='pan'?'ドラッグで画面を移動します。':'選択中：'+t);}
 function setTab(t){tab=t;for(const b of document.querySelectorAll('[data-tab]'))b.setAttribute('aria-pressed',String(b.dataset.tab===t));updatePalette()}
 function autoPass(id,x,y){const m=$('passMode').value;if(m==='keep')return;if(m==='open')setWalk(x,y,true);else if(m==='block')setWalk(x,y,false);else setWalk(x,y,tilePass(id));}
@@ -228,25 +230,27 @@ async function load108(){
   load(json,'108チップ直線壁配置例');
  }catch(e){message('配置例の読込に失敗しました：'+e.message)}
 }
+function newWallExample(){const n=blank(20,14);n.tileIds=Array.from({length:14},()=>Array(20).fill(5));const block=(x,y,id)=>{n.tileIds[y][x]=id;n.walkable=n.walkable.filter(([a,b])=>a!==x||b!==y)};for(let x=4;x<=15;x++){block(x,3,x===4?84:x===15?87:85);block(x,10,x===4?90:x===15?92:91)}for(let y=4;y<10;y++){block(4,y,88);block(15,y,89)}block(10,3,86);n.start=[9,7];n.source='new wall candidate 9 tiles #84-92';return n;}
 function setup(){
  if(initialized)return;initialized=true;
  let hadSaved=false;
  try{
   const raw=localStorage.getItem(STORE);hadSaved=!!raw;
-  state=raw?normalize(JSON.parse(raw)):normalize(SAMPLE);
- }catch(e){state=normalize(SAMPLE);message('保存データが不正だったため前回の配置を読み込みました')}
+  state=raw?normalize(JSON.parse(raw)):normalize(newWallExample());
+ }catch(e){state=normalize(newWallExample());message('保存データが不正だったため新壁の配置例を読み込みました')}
  hx=state.start[0];hy=state.start[1];syncDimensions();updatePalette();updateSelection();setTool('paint');render();save();center(hx,hy);
- message('108種類の32pxチップを読み込みました。配置例は「直線壁の配置例」から開けます。');
- if(DEMO_PARAM&&!hadSaved)load108();
+ message('新しい壁9種（#84〜92）を反映しました。新壁の配置例を編集できます。');
+ if(DEMO_PARAM&&!hadSaved)load(newWallExample(),'新壁の配置例');
 }
 for(const b of document.querySelectorAll('[data-tool]'))b.onclick=()=>setTool(b.dataset.tool);
 for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>setTab(b.dataset.tab);
 $('layer').onchange=()=>{layer=$('layer').value;stamp=null;updateSelection();updatePalette()};
-for(const b of document.querySelectorAll('[data-preset]'))b.onclick=()=>{const map={straightH:{name:'横壁3連',ids:[[84,85,86]]},straightV:{name:'縦壁3連',ids:[[96],[97],[98]]},alcove:{name:'窪み2連',ids:[[24,25]]},archTop:{name:'アーチ上部2連',ids:[[39,40]]},rock3:{name:'岩塊3連',ids:[[48,49,50]]},water2:{name:'水際2連',ids:[[72,73]]},arch2x2:{name:'独立アーチ2×2',kind:'arch'}};stamp=map[b.dataset.preset];layer=b.dataset.preset==='rock3'?'deco':b.dataset.preset==='arch2x2'?'arch':'base';$('layer').value=layer;setTool('paint');updatePalette();updateSelection()};
+for(const b of document.querySelectorAll('[data-preset]'))b.onclick=()=>{const map={straightH:{name:'横壁3連',ids:[[84,85,87]]},straightV:{name:'縦壁3連',ids:[[88],[88],[88]]},alcove:{name:'窪み2連',ids:[[24,25]]},archTop:{name:'アーチ上部2連',ids:[[39,40]]},rock3:{name:'岩塊3連',ids:[[48,49,50]]},water2:{name:'水際2連',ids:[[72,73]]},arch2x2:{name:'独立アーチ2×2',kind:'arch'}};stamp=map[b.dataset.preset];layer=b.dataset.preset==='rock3'?'deco':b.dataset.preset==='arch2x2'?'arch':'base';$('layer').value=layer;setTool('paint');updatePalette();updateSelection()};
 $('showGrid').onchange=()=>{grid=$('showGrid').checked;render()};$('showCollision').onchange=()=>{collision=$('showCollision').checked;render()};$('showHero').onchange=()=>{showHero=$('showHero').checked;render()};
 $('zoom').onchange=()=>setZoom(+$('zoom').value);$('zoomin').onclick=()=>setZoom(zoom+.25);$('zoomout').onclick=()=>setZoom(zoom-.25);
 $('undo').onclick=undo;$('redo').onclick=redo;
 $('load108').onclick=()=>{if(confirm('直線壁の配置例を読み込みますか？現在の編集内容は「戻す」で復元できます。'))load108()};
+$('newWalls').onclick=()=>{if(confirm('新壁9種の配置例を読み込みますか？'))load(newWallExample(),'新壁の配置例')};
 $('sample').onclick=()=>{if(confirm('前回の洞窟配置を読み込みますか？現在の編集内容は「戻す」で復元できます。'))load(SAMPLE,'前回の配置')};
 $('newMap').onclick=()=>{if(!confirm('全面を床チップにした新しい地図を作りますか？'))return;load(blank(clamp(+$('width').value,4,96),clamp(+$('height').value,4,96)),'新しい地図')};
 $('resize').onclick=()=>{const w=clamp(+$('width').value||state.width,4,96),h=clamp(+$('height').value||state.height,4,96);if(w===state.width&&h===state.height)return;const n=blank(w,h);
@@ -260,7 +264,7 @@ $('validate').onclick=validate;$('resetHero').onclick=()=>{hx=state.start[0];hy=
 for(const b of document.querySelectorAll('[data-dir]')){const [dx,dy]=b.dataset.dir.split(',').map(Number);b.addEventListener('pointerdown',e=>{e.preventDefault();if(hold)clearInterval(hold);walk(dx,dy);hold=setInterval(()=>walk(dx,dy),150);b.setPointerCapture(e.pointerId)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>{if(hold){clearInterval(hold);hold=null}})}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();return}const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};if(d[e.key]&&document.activeElement?.tagName!=='INPUT'){e.preventDefault();walk(...d[e.key])}});
 atlas.onload=()=>{if(overlay.complete&&overlay.naturalWidth&&arch.complete&&arch.naturalWidth)setup()};overlay.onload=()=>{if(atlas.complete&&atlas.naturalWidth&&arch.complete&&arch.naturalWidth)setup()};arch.onload=()=>{if(atlas.complete&&atlas.naturalWidth&&overlay.complete&&overlay.naturalWidth)setup()};
-for(const [name,img] of [['チップ',atlas],['装飾',overlay],['アーチ',arch]])img.onerror=()=>message(name+'画像を読み込めませんでした。');hero.onload=()=>render();
+for(const [name,img] of [['チップ',atlas],['装飾',overlay],['アーチ',arch]])img.onerror=()=>message(name+'画像を読み込めませんでした。');hero.onload=()=>render();replacement.onload=()=>{if(initialized){updatePalette();render()}};replacement.onerror=()=>message('新壁9種の画像読込に失敗しました');
 // Cached data URLs can finish before event handler registration.
 if(atlas.complete&&atlas.naturalWidth&&overlay.complete&&overlay.naturalWidth&&arch.complete&&arch.naturalWidth)setup();
 </script></body></html>
