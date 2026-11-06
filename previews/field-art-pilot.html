@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#101a18"><title>鬼哭の花結び｜冒険風景・一画面美術検証</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;background:#101a18;color:#f3ead4}*{box-sizing:border-box}html,body{margin:0;min-height:100%;overscroll-behavior:none}body{display:flex;flex-direction:column;align-items:center;background:radial-gradient(circle at 50% 5%,#29362a 0%,#101a18 72%)}header{width:min(100%,760px);padding:15px 17px 9px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}h1{font-size:16px;letter-spacing:.08em;margin:0;font-weight:700}header small{font-size:10px;white-space:nowrap;color:#b8c7b1}.viewer{width:min(100%,760px);position:relative;overflow:hidden;background:#0d292a;border:1px solid #475947;box-shadow:0 14px 36px #0009}.viewer canvas{display:block;width:100%;aspect-ratio:4/3;image-rendering:pixelated;touch-action:none}.viewer .light{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 24% 4%,rgba(255,235,174,.2),transparent 54%),linear-gradient(122deg,rgba(255,208,136,.08),transparent 36%,rgba(31,84,87,.09) 98%);mix-blend-mode:screen;opacity:.85}.viewer.ambient-off .light{opacity:0}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#122528e8;font-size:13px;color:#eee6c7;white-space:pre-line;text-align:center;padding:22px}.loading[hidden]{display:none}.bar{width:min(100%,760px);padding:11px 12px 7px;display:flex;justify-content:space-between;align-items:center;gap:8px}.hint{font-size:12px;color:#e5dec0;line-height:1.6;min-height:33px}.toggles{display:flex;gap:7px}button{border:1px solid #6c7a61;border-radius:8px;background:#283930;color:#f3ead4;padding:9px 12px;font:inherit;touch-action:manipulation}.toggles button{font-size:11px;white-space:nowrap}button:active{background:#52684e}.controls{margin:0 auto;width:min(100%,760px);padding:0 12px 18px;display:flex;justify-content:center;gap:20px;align-items:center}.dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,49px);gap:5px}.dpad button{padding:0;font-size:22px;font-weight:bold}.dpad button:first-child{grid-column:2;grid-row:1}.dpad button:nth-child(2){grid-column:1;grid-row:2}.dpad button:nth-child(3){grid-column:2;grid-row:2}.dpad button:nth-child(4){grid-column:3;grid-row:2}.note{max-width:330px;color:#b4c5ac;font-size:11px;line-height:1.65}footer{padding:0 20px 20px;font-size:10px;color:#82968a;text-align:center}@media (max-width:420px){header{padding:12px}h1{font-size:13px}.bar{align-items:flex-start}.dpad{grid-template-columns:repeat(3,49px);grid-template-rows:repeat(2,43px)}.note{max-width:190px}.toggles button{padding:8px}}
+</style></head><body>
+<header><h1>鬼哭の花結び <span style="font-weight:400">｜冒険風景</span></h1><small>美術検証 v0.1 · 本編未反映</small></header>
+<div class="viewer" id="viewer"><canvas id="scene" width="640" height="480" aria-label="緋月が歩ける和風フィールドの美術検証"></canvas><div class="light" aria-hidden="true"></div><div class="loading" id="loading">採用済みのゲーム素材を読み込み中…</div></div>
+<div class="bar"><div class="hint" id="hint">緋月と一緒に、社へ続く道を歩いてみよう。</div><div class="toggles"><button id="lightButton" type="button" aria-pressed="true">光：ON</button><button id="gridButton" type="button" aria-pressed="false">検査：OFF</button></div></div>
+<div class="controls"><div class="dpad" aria-label="移動操作"><button data-dir="up" aria-label="上へ">↑</button><button data-dir="left" aria-label="左へ">←</button><button data-dir="down" aria-label="下へ">↓</button><button data-dir="right" aria-label="右へ">→</button></div><div class="note">方向ボタン・キーボード・画面スワイプで移動。<br>移動は32px単位、既存の緋月SD画像と背景素材を使用。ゲーム本体のマップ・セーブ・イベントは変更しません。</div></div>
+<footer>既存素材再利用の検証用。イラストの完全再現ではなく、歩ける画面の美術的な方向性を比較する試作です。</footer>
+<script>
+(()=>{'use strict';
+ const ROOT='https://hihosir.github.io/yaksha-hanamusubi/';
+ const TILE=32,W=30,H=23;const CAN=document.getElementById('scene'),ctx=CAN.getContext('2d');ctx.imageSmoothingEnabled=false;
+ const viewer=document.getElementById('viewer'),hint=document.getElementById('hint'),loading=document.getElementById('loading');
+ const assets={
+  hero:['assets/characters/hizuki/field-sd-v2/walk-atlas-32.png',96,128],
+  grass:['assets/terrain/grass-v1/grass.png',256,256],
+  water:['assets/animation/fluid-v1/field-water.png',128,64],
+  sand:['assets/terrain/landscape-v1/sand.png',64,64],
+  trees:['assets/field-map-objects-v3/trees.png',32,32],
+  mountain:['assets/field-map-objects-v3/mountain-large.png',128,64],
+  torii:['assets/terrain/places-v1/torii.png',64,64],
+  shrine:['assets/field-map-objects-v3/shrine.png',64,64],
+  village:['assets/field-map-objects-v3/village.png',64,32],
+  jizo:['assets/terrain/places-v1/jizo.png',32,32],
+  lantern:['assets/terrain/landscape-v2/lantern.png',24,40],
+  bridge:['assets/terrain/landscape-v2/bridge.png',96,40],
+  waterfall:['assets/animation/fluid-v1/waterfall.png',160,96],
+  flower:['assets/settlements/common-v1/wildflowers-4x4.png',128,128]
+ };
+ const images={},errors=[];
+ const ground=Array.from({length:H},()=>Array.from({length:W},()=> 'grass'));
+ // The river is an authored two-cell stream. Bridge cells are explicitly walkable.
+ for(let y=0;y<H;y++){
+  const bx=y<5?21:y<10?20:y<15?19:y<19?20:21;
+  for(let x=bx;x<Math.min(W,bx+(y<8?3:2));x++)ground[y][x]='river';
+  for(let x=0;x<W;x++)if(x>=26&&y>=15)ground[y][x]='sea';
+ }
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(ground[y][x]==='grass'&&[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>['river','sea'].includes(ground[y+dy]?.[x+dx])))ground[y][x]='sand';
+ const bridgeCells=[];for(let x=18;x<=21;x++)bridgeCells.push([x,12]);
+ const trees=[];
+ const addTree=(x,y)=>trees.push({kind:'trees',x,y,w:1,h:1,contact:[[x,y]],blocks:[[x,y]],layer:'object'});
+ // Two forest banks create a strong natural frame, leaving a four-way walkable clearing.
+ for(let y=1;y<21;y++)for(let x=0;x<30;x++){
+  const western=x<=2||(x<=5&&y<=8)||(x<=4&&y>=17);
+  const north=(y<=2&&x<=15);
+  const eastern=(x>=25&&y<=13)||(x>=27&&y>=14);
+  if((western||north||eastern)&&((x*5+y*3)%7!==1)&&ground[y][x]==='grass')addTree(x,y);
+ }
+ // Artist-directed arrangements: natural groves and a framed approach to the shrine.
+ [[6,3],[7,2],[9,2],[12,2],[14,3],[15,4],[5,10],[6,11],[5,12],[6,14],[9,11],[12,11],[14,13],[14,14],[15,15],[16,18],[12,19],[24,7],[25,9],[24,14],[23,17],[25,20],[9,20],[10,21]].forEach(p=>{
+  if(ground[p[1]]?.[p[0]]==='grass'&&!trees.some(t=>t.x===p[0]&&t.y===p[1]))addTree(...p);
+ });
+ const objects=[
+  {kind:'shrine',x:9,y:3,w:2,h:2,contact:[[9,4],[10,4]],blocks:[[9,3],[10,3],[9,4],[10,4]],layer:'object'},
+  {kind:'torii',x:9,y:6,w:2,h:2,contact:[[9,7],[10,7]],blocks:[[9,7],[10,7]],layer:'object'},
+  {kind:'jizo',x:6,y:9,w:1,h:1,contact:[[6,9]],blocks:[[6,9]],layer:'object'},
+  {kind:'lantern',x:7.125,y:6.75,w:.75,h:1.25,contact:[[7,7]],blocks:[[7,7]],layer:'object'},
+  {kind:'lantern',x:12.125,y:6.75,w:.75,h:1.25,contact:[[12,7]],blocks:[[12,7]],layer:'object'},
+  {kind:'bridge',x:18,y:11.6,w:4,h:1.15,contact:bridgeCells,blocks:[],layer:'floor'},
+  {kind:'waterfall',x:20.9,y:2.6,w:2.5,h:3,contact:[],blocks:[],layer:'object'},
+  {kind:'village',x:24,y:11,w:2,h:1,contact:[[24,11],[25,11]],blocks:[[24,11],[25,11]],layer:'object'},
+  {kind:'mountain',x:2,y:0,w:4,h:2,contact:[[2,1],[3,1],[4,1],[5,1]],blocks:[[2,1],[3,1],[4,1],[5,1]],layer:'object'}
+ ];
+ // Do not add groves on top of the authored foundations.
+ const reserved=new Set(objects.flatMap(o=>o.blocks.map(([x,y])=>x+','+y)));
+ objects.push(...trees.filter(t=>!reserved.has(t.x+','+t.y)));
+ const blocked=new Set();for(const o of objects)for(const [x,y] of o.blocks)blocked.add(`${x},${y}`);
+ const waterCell=(x,y)=>ground[y]?.[x]==='river'||ground[y]?.[x]==='sea';
+ const bridges=new Set(bridgeCells.map(p=>p.join(',')));
+ function passable(x,y){return x>=0&&x<W&&y>=0&&y<H&&!blocked.has(`${x},${y}`)&&(!waterCell(x,y)||bridges.has(`${x},${y}`));}
+ const start={x:10,y:16},hero={x:start.x,y:start.y,fromX:start.x,fromY:start.y,toX:start.x,toY:start.y,dir:0,moving:false,t0:0};
+ const order={down:0,up:1,right:2,left:3};const step=[[0,1],[0,-1],[1,0],[-1,0]];
+ const authoredFlowers=[];for(let y=3;y<H-1;y++)for(let x=4;x<26;x++){
+  if(((x*37+y*19)%13===0||(x*29+y*17)%17===3)&&!waterCell(x,y)&&!blocked.has(`${x},${y}`)&&!(x>=8&&x<=12&&y>=5&&y<=10))authoredFlowers.push({x,y,index:(x*3+y*7)%16});
+ }
+ function validate(){const issues=[];const seen=new Set();for(const o of objects)for(const [x,y] of o.blocks){if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||x>=W||y<0||y>=H)issues.push('invalid occupied tile '+o.kind);if(seen.has(`${x},${y}`))issues.push('overlap '+x+','+y);seen.add(`${x},${y}`)}
+  if(!passable(start.x,start.y))issues.push('blocked start');
+  const q=[[start.x,start.y]],visited=new Set([`${start.x},${start.y}`]);for(let i=0;i<q.length;i++){const [x,y]=q[i];for(const [dx,dy] of step){const a=x+dx,b=y+dy,k=a+','+b;if(!visited.has(k)&&passable(a,b)){visited.add(k);q.push([a,b])}}}
+  for(const [x,y,name] of [[10,8,'torii approach'],[18,12,'bridge approach'],[21,12,'bridge far bank'],[23,11,'village approach']])if(!visited.has(x+','+y))issues.push('unreachable '+name);
+  return {issues,reachable:visited.size,objects:objects.length,source:'authored integer occupancy'};
+ }
+ const audit=validate();console.info('FIELD_ART_PILOT_AUDIT',audit);if(audit.issues.length)console.error('FIELD_ART_PILOT_ISSUES',audit.issues);
+ const overlay={grid:false,light:true};document.getElementById('gridButton').onclick=()=>{overlay.grid=!overlay.grid;document.getElementById('gridButton').textContent='検査：'+(overlay.grid?'ON':'OFF');document.getElementById('gridButton').setAttribute('aria-pressed',String(overlay.grid));};
+ document.getElementById('lightButton').onclick=()=>{overlay.light=!overlay.light;viewer.classList.toggle('ambient-off',!overlay.light);document.getElementById('lightButton').textContent='光：'+(overlay.light?'ON':'OFF');document.getElementById('lightButton').setAttribute('aria-pressed',String(overlay.light));};
+ function attempt(dir,time=performance.now()){const nd=order[dir];if(nd===undefined)return;hero.dir=nd;if(hero.moving)return;const [dx,dy]=step[nd],nx=hero.x+dx,ny=hero.y+dy;if(!passable(nx,ny))return;hero.fromX=hero.x;hero.fromY=hero.y;hero.toX=nx;hero.toY=ny;hero.t0=time;hero.moving=true;}
+ let pressed=null,pressTimer=0;for(const button of document.querySelectorAll('[data-dir]')){const d=button.dataset.dir;button.addEventListener('pointerdown',e=>{e.preventDefault();pressed=d;button.setPointerCapture(e.pointerId);attempt(d);});button.addEventListener('pointerup',()=>{pressed=null});button.addEventListener('pointercancel',()=>{pressed=null});}
+ const keyMap={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};
+ window.addEventListener('keydown',e=>{const d=keyMap[e.key];if(d){e.preventDefault();pressed=d;attempt(d)}});window.addEventListener('keyup',e=>{if(keyMap[e.key]===pressed)pressed=null});
+ let touch=null;CAN.addEventListener('touchstart',e=>{if(e.touches.length===1)touch={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});CAN.addEventListener('touchend',e=>{if(!touch||!e.changedTouches.length)return;const p=e.changedTouches[0],dx=p.clientX-touch.x,dy=p.clientY-touch.y;touch=null;if(Math.max(Math.abs(dx),Math.abs(dy))<16)return;attempt(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));},{passive:true});
+ const drawTile=(im,cx,cy,x,y,n)=>ctx.drawImage(im,(cx%n)*32,(cy%n)*32,32,32,x,y,32,32);
+ const compact=(n)=>Math.floor(n);
+ function update(time){if(hero.moving){const progress=Math.min(1,(time-hero.t0)/185);if(progress>=1){hero.x=hero.toX;hero.y=hero.toY;hero.moving=false;}}
+  if(pressed&&!hero.moving&&time-pressTimer>=160){attempt(pressed,time);pressTimer=time;}
+  const hx=hero.moving?hero.fromX+(hero.toX-hero.fromX)*Math.min(1,(time-hero.t0)/185):hero.x;
+  const hy=hero.moving?hero.fromY+(hero.toY-hero.fromY)*Math.min(1,(time-hero.t0)/185):hero.y;
+  const camX=Math.max(0,Math.min(W*32-CAN.width,(hx+.5)*32-CAN.width/2));
+  const camY=Math.max(0,Math.min(H*32-CAN.height,(hy+.5)*32-CAN.height/2));
+  return {hx,hy,camX,camY};
+ }
+ function draw(now){const {hx,hy,camX,camY}=update(now);ctx.clearRect(0,0,640,480);ctx.save();ctx.translate(-Math.round(camX),-Math.round(camY));
+  const left=Math.max(0,Math.floor(camX/32)),right=Math.min(W-1,Math.ceil((camX+640)/32));const top=Math.max(0,Math.floor(camY/32)),bottom=Math.min(H-1,Math.ceil((camY+480)/32));
+  const waterFrame=Math.floor(now/360)%2;
+  for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++){
+   const kind=ground[y][x];drawTile(images.grass,x,y,x*32,y*32,8);
+   if(kind==='river'||kind==='sea')ctx.drawImage(images.water,waterFrame*64+(x%2)*32,(y%2)*32,32,32,x*32,y*32,32,32);
+   if(kind==='sand')drawTile(images.sand,x,y,x*32,y*32,2);
+  }
+  // Naturally varied grass paths are intentionally open cells, not a paved-road overlay.
+  for(const f of authoredFlowers)if(f.x>=left-1&&f.x<=right+1&&f.y>=top-1&&f.y<=bottom+1)ctx.drawImage(images.flower,(f.index%4)*32,Math.floor(f.index/4)*32,32,32,f.x*32,f.y*32,32,32);
+  const drawObject=o=>{if(!images[o.kind])return;const x=Math.round(o.x*32),y=Math.round(o.y*32),w=o.w*32,h=o.h*32;if(o.kind==='waterfall')ctx.drawImage(images.waterfall,waterFrame*80,0,80,96,x,y,w,h);else ctx.drawImage(images[o.kind],x,y,w,h)};
+  for(const o of objects.filter(o=>o.layer==='floor'))drawObject(o);
+  // Depth order from actual object ground contact. Collision is explicit integer tiles.
+  const sprites=objects.filter(o=>o.layer==='object').map(o=>({o,foot:(o.y+o.h)*32}));
+  sprites.push({hero:true,foot:(hy+1)*32});sprites.sort((a,b)=>a.foot-b.foot||((a.hero?1:0)-(b.hero?1:0)));
+  for(const entry of sprites){if(entry.hero){const frame=hero.moving?(Math.floor((now-hero.t0)/65)%2?1:2):0;ctx.drawImage(images.hero,frame*32,hero.dir*32,32,32,Math.round(hx*32),Math.round(hy*32),32,32)}else drawObject(entry.o);}
+  if(overlay.grid){ctx.lineWidth=1;ctx.strokeStyle='#efffd966';for(let x=left;x<=right+1;x++){ctx.beginPath();ctx.moveTo(x*32+.5,top*32);ctx.lineTo(x*32+.5,(bottom+1)*32);ctx.stroke()}for(let y=top;y<=bottom+1;y++){ctx.beginPath();ctx.moveTo(left*32,y*32+.5);ctx.lineTo((right+1)*32,y*32+.5);ctx.stroke()}
+   ctx.fillStyle='#dc6b6b7d';for(const k of blocked){const [x,y]=k.split(',').map(Number);if(x>=left&&x<=right&&y>=top&&y<=bottom)ctx.fillRect(x*32,y*32,32,32)}
+   ctx.fillStyle='#5dc3da6c';for(const [x,y] of bridgeCells)ctx.fillRect(x*32,y*32,32,32);
+  }
+  ctx.restore();
+  if(hero.y<10&&hero.x>=7&&hero.x<=13)hint.textContent='鳥居の先に小さな社。旅はここから広がっていく。';
+  else if(hero.x>=17)hint.textContent='せせらぎの向こうに、まだ知らない場所が見える。';
+  else hint.textContent='草花を抜けて鳥居へ。川沿いには橋もある。';
+  requestAnimationFrame(draw);
+ }
+ function load(){return Promise.all(Object.entries(assets).map(([key,[path,w,h]])=>new Promise(resolve=>{const im=new Image();im.onload=()=>{if(im.naturalWidth!==w||im.naturalHeight!==h)errors.push(`${key}: サイズ ${im.naturalWidth}×${im.naturalHeight} (想定 ${w}×${h})`);else images[key]=im;resolve()};im.onerror=()=>{errors.push(`${key}: 読込失敗`);resolve()};im.src=ROOT+path;})));}
+ window.FIELD_ART_PILOT={validate,ground,objects,passable,assets,hero};
+ load().then(()=>{if(errors.length){loading.textContent='既存素材を読み込めませんでした。\n'+errors.join('\n')+'\n\nネット接続とPages上の素材公開を確認してください。';console.error('FIELD_ART_PILOT_ASSETS',errors);return;}loading.hidden=true;requestAnimationFrame(draw)});
+})();
+</script></body></html>
