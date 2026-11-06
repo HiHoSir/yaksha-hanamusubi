@@ -69,11 +69,13 @@ jobs:
             # may retain their relative assets, but not unrelated heavyweight
             # game media, source references and test output.
             if [[ "$slug" == "natural-cave-tiles" ]]; then
-              # Publish only the standalone walking QA and its 2 required PNGs.
+              # Publish only the standalone walking QA and its required PNGs.
               stage="$(mktemp -d)"
               mv "site/previews/$slug" "$stage/branch"
               mkdir -p "site/previews/$slug/previews" "site/previews/$slug/assets/dungeons/natural-cave-v0" "site/previews/$slug/assets/characters/hizuki/field-sd-v3"
               cp "$stage/branch/previews/natural-cave-walk.html" "site/previews/$slug/previews/"
+              mkdir -p "site/previews/$slug/assets/dungeons/natural-cave-v1"
+              cp "$stage/branch/assets/dungeons/natural-cave-v1/cave-transitions-up-down-exit-3x1.png" "site/previews/$slug/assets/dungeons/natural-cave-v1/"
               cp "$stage/branch/assets/dungeons/natural-cave-v0/cave-layout-20x12-candidate.png" "site/previews/$slug/assets/dungeons/natural-cave-v0/"
               cp "$stage/branch/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png" "site/previews/$slug/assets/characters/hizuki/field-sd-v3/"
               rm -rf "$stage"
