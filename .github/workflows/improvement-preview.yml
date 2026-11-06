@@ -8,6 +8,7 @@ on:
       - improve/front-interaction
       - improve/field-grid-alignment
       - improve/tenyo-water-gate-asset
+      - improve/field-vista-pilot
   workflow_dispatch:
     inputs:
       source_branch:
@@ -46,6 +47,9 @@ jobs:
             [[ -z "$branch" || "$branch" == \#* ]] && continue
             branches+=("$branch")
           done < production/docs/pages-active-previews.txt
+          # The isolated visual pilot is intentionally not added to main's allowlist.
+          # This branch deploys one HTML file without publishing its game snapshot.
+          branches+=("improve/field-vista-pilot")
 
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             case "$REQUESTED_PREVIEW" in
@@ -80,6 +84,17 @@ jobs:
               cp "$stage/branch/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png" "site/previews/$slug/assets/characters/hizuki/field-sd-v3/"
               rm -rf "$stage"
               test -f "site/previews/$slug/previews/natural-cave-walk.html"
+              continue
+            fi
+            if [[ "$slug" == "field-vista-pilot" ]]; then
+              # Only a standalone walking art QA page; production assets are
+              # referenced from the main Pages root by the page itself.
+              stage="$(mktemp -d)"
+              mv "site/previews/$slug" "$stage/branch"
+              mkdir -p "site/previews/$slug"
+              cp "$stage/branch/previews/field-art-pilot.html" "site/previews/$slug/field-art-pilot.html"
+              rm -rf "$stage"
+              test -f "site/previews/$slug/field-art-pilot.html"
               continue
             fi
             case "$slug" in
