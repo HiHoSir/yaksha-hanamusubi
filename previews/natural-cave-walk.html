@@ -249,7 +249,7 @@ for(const b of document.querySelectorAll('[data-preset]'))b.onclick=()=>{const m
 $('showGrid').onchange=()=>{grid=$('showGrid').checked;render()};$('showCollision').onchange=()=>{collision=$('showCollision').checked;render()};$('showHero').onchange=()=>{showHero=$('showHero').checked;render()};
 $('zoom').onchange=()=>setZoom(+$('zoom').value);$('zoomin').onclick=()=>setZoom(zoom+.25);$('zoomout').onclick=()=>setZoom(zoom-.25);
 $('undo').onclick=undo;$('redo').onclick=redo;
-$('load108').onclick=()=>{if(confirm('直線壁の配置例を読み込みますか？現在の編集内容は「戻す」で復元できます。'))load108()};
+
 $('newWalls').onclick=()=>{if(confirm('新壁9種の配置例を読み込みますか？'))load(newWallExample(),'新壁の配置例')};
 $('sample').onclick=()=>{if(confirm('前回の洞窟配置を読み込みますか？現在の編集内容は「戻す」で復元できます。'))load(SAMPLE,'前回の配置')};
 $('newMap').onclick=()=>{if(!confirm('全面を床チップにした新しい地図を作りますか？'))return;load(blank(clamp(+$('width').value,4,96),clamp(+$('height').value,4,96)),'新しい地図')};
