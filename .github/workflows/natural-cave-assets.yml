@@ -70,18 +70,22 @@ jobs:
           assert obj==json.loads(Path('assets/dungeons/natural-cave-v1/cave-map-v7.json').read_text())
           for tool in ('paint','erase','pick','fill','collision','spawn','pan','walk'):
               assert 'data-tool="'+tool+'"' in html
-          assert 'yaksha.cave.mapchip.editor.v1' in js
-          assert 'data-tab="straight"' in html and '全108種' in html
-          assert 'id="load108"' in html and 'const DEMO_URL=' in js
+          assert 'yaksha.cave.mapchip.editor.wall20261106.transitions' in js
+          assert 'data-tab="straight"' in html and 'data-tab="transition"' in html and '全111種' in html
+          assert 'id="newWalls"' in html and 'const DEMO_URL=' in js
           assert 'cave-map-108-layout.json' in js and "'layout')==='wall108'" in js
           demo=json.loads(Path('assets/dungeons/natural-cave-v1/cave-map-108-layout.json').read_text())
           assert demo['width']==32 and demo['height']==22 and demo['atlasRows']==9
           assert sum(84<=tile<108 for row in demo['tileIds'] for tile in row)==38
           from PIL import Image
           assert Image.open('assets/dungeons/natural-cave-v1/cave-map-108-layout-preview.png').size==(1024,704)
-          assert 'AC=12,AR=9' in js and 'all:Array.from({length:108}' in js
+          assert 'AC=12,AR=9' in js and 'all:Array.from({length:111}' in js
           assert 'cave-wall-straights-atlas-12x9.png' in js
-          print('Cave editor 108-chip atlas, 24 new straights, original sample and controls PASS')
+          assert 'transition:[108,109,110]' in js
+          assert 'transitionTiles.push' in js
+          assert 'cave-transitions-up-down-exit-3x1.png' in js
+          assert Image.open('assets/dungeons/natural-cave-v1/cave-transitions-up-down-exit-3x1.png').size==(96,32)
+          print('Cave editor 111-chip set, original sample, stairs and exit controls PASS')
           PY
           node --check /tmp/cave-preview.js
       - name: Verify PNG dimensions and actual pixel edge continuity
