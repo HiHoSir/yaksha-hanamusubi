@@ -764,3 +764,33 @@ body:has(#title.show) #stage{min-height:0}
  #battle .battlePartyCard:not(.is-empty){min-height:31px;padding:2px 7px}
  #battle .battleInfo{min-height:27px;padding:3px 9px}
 }
+
+/* Battle heroine skin toggle: Hana default; legacy retains original art without cropping. */
+#battle .battleTop{display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0}
+#battle .battleTop #enemyTargetInfo{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#battle .battleVariantInline{
+ display:inline-flex;align-items:center;gap:5px;flex:none;margin-left:auto;
+ font:12px/1.2 system-ui,sans-serif;color:#f9e8bc;white-space:nowrap;
+}
+#battle .battleVariantInline select{
+ min-width:52px;min-height:34px;padding:3px 8px;border:1px solid #d6b77e;
+ border-radius:4px;background:rgba(7,19,34,.93);color:#fff0d0;font-size:13px;
+}
+#battle #battleHeroOverlay.battleHeroLegacy:not(.battleHeroLevelUp){
+ aspect-ratio:auto;object-fit:contain;object-position:center bottom;
+ width:min(82vw,420px);height:min(76dvh,640px);bottom:-13%;
+}
+@media(orientation:portrait){
+ #battle #battleHeroOverlay.battleHeroLegacy:not(.battleHeroLevelUp){
+  left:30%;width:min(82vw,420px);height:min(76dvh,640px);bottom:-13%;
+ }
+}
+@media(orientation:landscape){
+ #battle #battleHeroOverlay.battleHeroLegacy:not(.battleHeroLevelUp){
+  left:36%;width:min(42vw,430px);height:90dvh;bottom:-26%;
+ }
+}
+@media(max-width:350px){
+ #battle .battleVariantInline{font-size:11px;gap:3px}
+ #battle .battleVariantInline select{padding:2px 5px;min-width:45px}
+}
