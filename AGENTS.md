@@ -30,10 +30,17 @@ This repository contains reusable task skills in `.agents/skills/`. Read relevan
 | Proven image-to-GitHub binary transfer, atlas and main commit | [github-image-atlas](skills/github-image-atlas/SKILL.md) |
 | Paired intact/worn enemy preprocessing and atlas build | [enemy-atlas-pipeline](skills/enemy-atlas-pipeline/SKILL.md) |
 
+
+## AI制作の最初の確認（実行可能な正本）
+- **実行時仕様の正本は `config/production-canon.json` と、そこから検査する実コード・アセット**。古い文書や過去の採用ログに異なる仕様があったら現行ファイルで照合し、`node qa/production-preflight.cjs --check` を実行。チェック不能なら未確認と明示する。
+- 村・探索マップの素材制作前には `node qa/production-preflight.cjs --profile village-exploration` で対象のアセット用途・正本・視点を取得。採用済みワールドマップの縮小オブジェクト群は、そのまま村やダンジョンに流用しない。新しい場面では `config/scene-contracts/*.json` の素材役割を明示し、`node qa/production-preflight.cjs --scene <scene-contract.json>` を通す。
+- 失敗を再現するテストは `node qa/production-preflight.test.cjs`。GitHub Actions `production-canon.yml` が `improve/**` と main で自動検査。機械的チェック合格は**美術品質・接地・実機Safariの合格ではない**。従来の生成前手順、タイル接続、透過・配置・デバイス検査は省略しない。
+- 新桃太郎伝説風の承認済みフィールド描画と、PCエンジン風に制作した採用済み開始ムービーは保全対象。改修時は事前承認と回帰検査を要する。保護ファイルのGit blob SHAは `config/production-canon.json` で管理し、**検査失敗の解消だけを目的に無断更新しない**。新しい基準は承認後に更新する。
+
 ## Standing rules
 - **Beta-first integration policy:** This is an actively playable beta. Implement accepted features and improvements in the actual main game by default, not only in isolated demos, previews or labs. Use a demo-only approach only for a concrete reason (e.g. risk to save data, incompatible controls, unapproved art, technical uncertainty requiring isolation); explicitly state that reason and what is not yet integrated. Before reporting completion, verify the main game's real entry point, asset references, rendering path, and relevant tests. A successful demo alone is never evidence of main-game integration.
 - **Mandatory version bump for every change:** Every change committed to `main`, however small (code, assets, documentation, configuration, or QA fixes), MUST update the displayed BETA version and all corresponding HTML asset cache-busting query versions in `index.html` in the same delivery. Never report a change as delivered without a version bump; confirm the new version and commit SHA. If changes require separate commits, complete the version bump before reporting delivery.
-- **現行緋月の単一正本（2026-10-17）:** `docs/characters/HIZUKI_CANON.md`。正式外見は現行フィールドの水色ショートボブ（`assets/characters/hizuki/bluebob-v1/walk-atlas-256.png`）。現行フィールド・鬼灯村の実表示は採用済み候補3のSD版 `assets/characters/hizuki/field-sd-v2/walk-atlas-32.png`（`game.js` の共通足元・スケールを維持）。外見正本とフィールド用描画アセットを混同しない。旧紫髪・長髪の設定画、旧 `yashahime` 戦闘画像は歴史資料・移行待ち。新素材の外見参照に使わず、ゲームの既存参照はQAなしに削除しない。
+- **現行緋月の単一正本（2026-11-07更新）:** 外見正本は `docs/characters/HIZUKI_CANON.md` と `assets/characters/hizuki/bluebob-v1/walk-atlas-256.png`。**本編で実表示する採用済みSD歩行画像は `assets/characters/hizuki/field-sd-v3/walk-atlas-32.png`**（`js/game.js` と一致。ユーザー編集済みRGBAと意図的な歩行バウンスを保持）。`field-sd-v1`/`v2` は履歴とし、新たな歩行素材の正本にしない。旧紫髪・長髪・`yashahime` 戦闘画像は歴史資料・移行待ち。外見正本と実表示のSDアトラスを混同しない。
 - Repository: `HiHoSir/yaksha-hanamusubi`, production branch `main`. Preserve existing save data, maps, controls and game-start flow.
 - For any game asset task, read **github-artifact-delivery** and the relevant art/QA skill together. Do not automatically ask the user to upload files manually; verify the actual remote PNG and commit before declaring implementation complete.
 - For battle-only work, do not modify heroine field movement sheets, world tiles or unrelated enemy graphics.
