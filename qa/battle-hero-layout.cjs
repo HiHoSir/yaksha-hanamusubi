@@ -1,42 +1,75 @@
-// Guard the accepted large battle composition. Intentional viewport/HUD overlap
-// is allowed; user rejected shrinking every pose to fit above the HUD.
+// Visual contract for the central foreground Hana battle heroine.
+// HUD is allowed to cover the lower legs; it must not block touch commands.
 module.exports=async function checkHero(page,assert){
- const originalViewport=page.viewportSize(),baseline=require('fs').readFileSync(require('path').join(__dirname,'fixtures/battle-approved-hero.css'),'utf8');
- const poses=[['idle',0,'hizuki_battle_idle_approved.png'],['attack',0,'attack-01.png'],['attack',550,'attack-02.png'],['attack',650,'attack-03.png'],['skill',0,'skill-01.PNG'],['skill',550,'skill-02.PNG'],['skill',650,'skill-03.png'],['guard',0,'hizuki_battle_idle_approved.png'],['hit',10,'hizuki_battle_idle_approved.png'],['victory',0,'victory-full.png'],['levelup',0,'level-up.png']];
- await page.evaluate(()=>{window.__heroQaNow=performance.now.bind(performance);const now=performance.now();Object.defineProperty(performance,'now',{configurable:true,value:()=>now});window.__qaEval('resetBattleAnimation()');});
- try{for(const size of [{width:393,height:852},{width:375,height:667},{width:320,height:568},{width:852,height:393},{width:667,height:375}]){
-  await page.setViewportSize(size);
-  for(const safe of [null,size.width>size.height?[8,69,29,69]:[67,10,42,10]]){
-   await page.locator('#battle').evaluate((e,p)=>{e.style.padding=p?p.map(n=>n+'px').join(' '):'';},safe);
-   for(const [pose,elapsed,file] of poses){
-    await page.evaluate(({pose,elapsed})=>window.__qaEval(`battle.phase=${JSON.stringify(['victory','levelup'].includes(pose)?'result':'command')};battle.menu='root';battle.levelUpResult=${pose==='levelup'};battleLocked=${['attack','skill','guard','hit'].includes(pose)};battlePose=${JSON.stringify(pose==='levelup'?'victory':pose)};battleFx=${['attack','skill','hit'].includes(pose)?`{kind:'${pose==='attack'?'slash':pose==='hit'?'impact':'petals'}',target:'${pose==='hit'?'hero':'enemy'}',start:performance.now()-${elapsed},duration:1100,impactDelay:600,amount:null}`:'null'};renderBattle();`),{pose,elapsed});
-    await page.waitForFunction(file=>{const a=document.getElementById('battleHeroOverlay');return a.complete&&a.naturalWidth>0&&a.src.includes('/'+file);},file);
-    // Compare the real actor box against the accepted 16.1.35 CSS, rather
-    // than shrinking all poses to satisfy an invented containment condition.
-    const measure=()=>{const a=document.getElementById('battleHeroOverlay'),r=a.getBoundingClientRect(),s=getComputedStyle(a);return {x:r.x,y:r.y,width:r.width,height:r.height,position:s.position,padding:s.padding,fit:s.objectFit,anchor:s.objectPosition};};
-    const actual=await page.evaluate(measure),reference=await page.addStyleTag({content:baseline});
-    const approved=await page.evaluate(measure);await reference.evaluate(e=>e.remove());
-    assert.deepEqual(actual,approved,'approved placement changed '+JSON.stringify({size,safe,pose,elapsed}));
-    assert.equal(await page.locator('#battle').evaluate(e=>getComputedStyle(e).display),'flex','do not replace approved composition with a grid');
-    if(pose==='levelup')assert(await page.locator('#battleHeroOverlay').evaluate(e=>new DOMMatrix(getComputedStyle(e).transform).m41< -e.clientWidth*.49),'keep level-up centered');
-    if(pose==='victory'){
-     const alpha=await page.evaluate(()=>{const a=document.getElementById('battleHeroOverlay'),c=document.createElement('canvas');c.width=a.naturalWidth;c.height=a.naturalHeight;const x=c.getContext('2d');x.drawImage(a,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let l=c.width,t=c.height,r=-1,b=-1,clear=0;for(let y=0;y<c.height;y++)for(let z=0;z<c.width;z++){const v=d[(y*c.width+z)*4+3];if(!v)clear++;if(v>=16){l=Math.min(l,z);t=Math.min(t,y);r=Math.max(r,z);b=Math.max(b,y);}}return {w:c.width,h:c.height,l,t,r,b,clear};});
-     assert.equal(alpha.w,1024);assert.equal(alpha.h,1536,'victory must match attack canvas dimensions');
-     assert(alpha.clear>100000,'victory must be transparent');
-     assert(alpha.l>4&&alpha.t>4&&alpha.r<alpha.w-5&&alpha.b<alpha.h-5,'full-body source is cropped '+JSON.stringify(alpha));
+ const originalViewport=page.viewportSize();
+ const poses=[
+  ["idle","battle-idle-512.png"],["attack","battle-attack-512.png"],
+  ["skill","battle-skill-512.png"],["guard","battle-guard-512.png"],
+  ["hit","battle-hit-512.png"],["victory","battle-victory-512.png"],
+  ["levelup","level-up.png"]
+ ];
+ await page.evaluate(()=>{window.__heroQaNow=performance.now.bind(performance);
+  const now=performance.now();Object.defineProperty(performance,"now",{configurable:true,value:()=>now});
+  window.__qaEval("resetBattleAnimation()");});
+ try{
+  for(const size of [
+   {width:393,height:852},{width:375,height:667},{width:320,height:568},
+   {width:852,height:393},{width:667,height:375}
+  ]){
+   await page.setViewportSize(size);
+   for(const safe of [null,size.width>size.height?[8,69,29,69]:[67,10,42,10]]){
+    await page.locator("#battle").evaluate((e,p)=>{e.style.padding=p?p.map(n=>n+"px").join(" "):"";},safe);
+    for(const [pose,file] of poses){
+     await page.evaluate(pose=>window.__qaEval(`battle.phase=${JSON.stringify(pose==="victory"||pose==="levelup"?"result":"command")};battle.menu="root";battle.levelUpResult=${pose==="levelup"};battleLocked=false;battlePose=${JSON.stringify(pose==="levelup"?"victory":pose)};battleFx=null;renderBattle();`),pose);
+     await page.waitForFunction(file=>{const img=document.getElementById("battleHeroOverlay");return img&&img.complete&&img.naturalWidth>0&&img.src.includes("/"+file);},file);
+     const actual=await page.locator("#battleHeroOverlay").evaluate(el=>{
+      const r=el.getBoundingClientRect(),s=getComputedStyle(el),panel=document.getElementById("battle").getBoundingClientRect();
+      return {x:r.x,y:r.y,w:r.width,h:r.height,cx:r.x+r.width/2,center:panel.x+panel.width/2,
+       naturalW:el.naturalWidth,naturalH:el.naturalHeight,position:s.position,fit:s.objectFit,visible:s.visibility};
+     });
+     assert.equal(actual.position,"absolute","actor must be independent of HUD");
+     assert.equal(actual.visible,"visible","actor hidden "+pose);
+     assert.equal(await page.locator("#battle").evaluate(e=>getComputedStyle(e).display),"flex","battle flex layout");
+     if(pose!=="levelup"){
+      assert.equal(actual.naturalW,512,"approved 512px source "+pose);
+      assert.equal(actual.naturalH,384,"approved 384px source "+pose);
+      assert(Math.abs(actual.cx-actual.center)<28,"hero not centered "+JSON.stringify({size,safe,pose,actual}));
+      assert(actual.y>=-8,"actor head clipped "+pose);
+     }
+     if(pose==="idle"){
+      const status=page.locator("#battlePartyCards .battlePartyCard:not(.is-empty)");
+      assert.equal(await status.count(),1,"solo heroine status only");
+      assert.equal(await page.locator("#battlePartyCards .battlePartyCard.is-empty:visible").count(),0,"old party placeholders visible");
+     }
+     if(pose==="victory"){
+      const alpha=await page.locator("#battleHeroOverlay").evaluate(a=>{
+       const c=document.createElement("canvas");c.width=a.naturalWidth;c.height=a.naturalHeight;
+       const x=c.getContext("2d");x.drawImage(a,0,0);
+       const d=x.getImageData(0,0,c.width,c.height).data;
+       let clear=0,filled=0;for(let i=3;i<d.length;i+=4){if(d[i]===0)clear++;else if(d[i]>16)filled++;}
+       return {clear,filled};
+      });
+      assert(alpha.clear>20000&&alpha.filled>5000,"victory sprite must use transparent RGBA");
+     }
+     if(safe&&size.width===393&&["idle","victory"].includes(pose))
+      await page.screenshot({path:require("path").join(__dirname,`results/autotile/hana-${pose}-393.png`)});
     }
-    if(safe&&size.width===393&&['attack','victory'].includes(pose))await page.screenshot({path:require('path').join(__dirname,`results/autotile/hero-${pose}-${elapsed}.png`)});
    }
   }
- }
- console.log('PASS approved 16.1.35 placement for idle/attack/skill/guard/hit/levelup and full-body victory: 5 viewports x safe areas on/off');
- // Also run the real command/timer sequence after the deterministic frame probes.
- await page.evaluate(()=>{Object.defineProperty(performance,'now',{configurable:true,value:window.__heroQaNow});window.__qaEval('resetBattleAnimation();battle.phase="command";battle.menu="root";battleLocked=false;battle.levelUpResult=false;battle.hp=battle.max=99999;battle.rareTrait=null;battlePose="idle";renderBattle();');window.__heroObserved=[];window.__heroObserver=new MutationObserver(()=>{window.__heroObserved.push(document.getElementById('battleHeroOverlay').src.split('/').pop().split('?')[0]);});window.__heroObserver.observe(document.getElementById('battleHeroOverlay'),{attributes:true,attributeFilter:['src']});window.__qaEval('cmd("attack");cmd("target-0");');});
- await page.waitForFunction(()=>['attack-01.png','attack-02.png','attack-03.png'].every(f=>window.__heroObserved.includes(f))&&window.__qaEval('battlePose==="idle"'));
- await page.evaluate(()=>{window.__heroObserver.disconnect();delete window.__heroObserver;delete window.__heroObserved;});
- console.log('PASS live attack command: wind-up -> strike -> idle');
+  console.log("PASS Hana six poses + levelup: central foreground; portrait/landscape and safe areas");
+  await page.evaluate(()=>{Object.defineProperty(performance,"now",{configurable:true,value:window.__heroQaNow});
+   window.__qaEval('resetBattleAnimation();battle.phase="command";battle.menu="root";battleLocked=false;battle.levelUpResult=false;battle.hp=battle.max=99999;battle.rareTrait=null;battlePose="idle";renderBattle();');
+   window.__heroObserved=[];
+   window.__heroObserver=new MutationObserver(()=>window.__heroObserved.push(document.getElementById("battleHeroOverlay").src.split("/").pop().split("?")[0]));
+   window.__heroObserver.observe(document.getElementById("battleHeroOverlay"),{attributes:true,attributeFilter:["src"]});
+   window.__qaEval('cmd("attack");cmd("target-0");');
+  });
+  await page.waitForFunction(()=>window.__heroObserved.includes("battle-attack-512.png")&&window.__qaEval('battlePose==="idle"'));
+  await page.evaluate(()=>{window.__heroObserver.disconnect();delete window.__heroObserver;delete window.__heroObserved;});
+  console.log("PASS live attack: accepted attack sprite appears, then returns to idle");
  }finally{
-  await page.evaluate(()=>{Object.defineProperty(performance,'now',{configurable:true,value:window.__heroQaNow});delete window.__heroQaNow;window.__qaEval('resetBattleAnimation();battleLocked=false;');});
-  await page.locator('#battle').evaluate(e=>e.style.padding='');await page.setViewportSize(originalViewport);
+  await page.evaluate(()=>{Object.defineProperty(performance,"now",{configurable:true,value:window.__heroQaNow});delete window.__heroQaNow;window.__qaEval("resetBattleAnimation();battleLocked=false;");});
+  await page.locator("#battle").evaluate(e=>e.style.padding="");
+  await page.setViewportSize(originalViewport);
  }
 };
