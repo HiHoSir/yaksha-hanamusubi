@@ -78,6 +78,7 @@ module.exports=async function checkHero(page,assert){
    }
   }
   // Functional switch uses the same production state and actor rendering path.
+  await page.evaluate(()=>window.__qaEval('battle.levelUpResult=false;battlePose="victory";renderBattle();'));
   await page.locator("#battleHizukiLiveSelect").selectOption("legacy");
   await page.waitForFunction(()=>document.getElementById("battleHeroOverlay").src.includes("/battle-expressions-v2/victory-full.png"));
   assert.equal(await page.locator("#battleHizukiSelect").inputValue(),"legacy","settings control synced");
