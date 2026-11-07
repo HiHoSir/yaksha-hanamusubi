@@ -9,3 +9,6 @@ improve/natural-cave-tiles
 
 # Standalone battle UI / pose QA only: no game runtime or save-data copy.
 improve/battle-front-center-hizuki
+
+# Isolated walk QA only: 32px movement grid, new/old four-way sprites, no save logic.
+improve/hizuki-hana-walk-toggle
