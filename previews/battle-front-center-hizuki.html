@@ -17,7 +17,9 @@ button{font:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer}
 #enemy{position:absolute;z-index:0;left:70%;top:31%;width:min(27vw,210px);max-height:34dvh;object-fit:contain;transform:translate(-50%,-50%);image-rendering:pixelated;filter:drop-shadow(2px 4px 3px #111b);pointer-events:none}
 header,.stats,.message,.commands,.notice{position:relative;z-index:3}
 header{display:flex;align-items:center;justify-content:space-between;min-height:27px;padding:5px 10px;border:1px solid #e5c38d88;border-radius:4px;background:#081727a6}
-header span:last-child{font-size:11px;color:#ead6b0}
+header .previewVariant{display:inline-flex;align-items:center;gap:6px;font:12px sans-serif;color:#ead6b0;white-space:nowrap}
+header .previewVariant select{background:#132338;color:#fff0d0;border:1px solid #d7ba80;border-radius:4px;min-height:35px;padding:3px 7px}
+#hero.legacy{aspect-ratio:auto;width:min(82vw,420px);height:min(76dvh,640px);bottom:-13%;object-position:center bottom}
 .stats{align-self:flex-start;display:flex;justify-content:space-between;align-items:center;gap:14px;width:min(100%,480px);min-height:41px;padding:5px 12px;background:#081823d9;border:1px solid #e9c990b3;border-radius:4px;white-space:nowrap;font-size:13px}
 .stats strong{font-size:14px}
 .message{min-height:37px;display:flex;align-items:center;padding:7px 12px;border:1px solid #f1d59acc;background:#081522db;border-radius:4px;font-size:14px}
@@ -27,6 +29,7 @@ header span:last-child{font-size:11px;color:#ead6b0}
 .notice{align-self:flex-end;display:inline-flex;gap:6px;padding:3px 7px;background:#0817249c;font:10px sans-serif;color:#d8e4e8;pointer-events:none}
 @media (orientation:portrait){
  #hero{left:22%;width:min(128vw,540px);bottom:9%}
+ #hero.legacy{left:30%;width:min(82vw,420px);height:min(76dvh,640px);bottom:-13%}
  #enemy{left:68%;top:35%;width:min(35vw,180px)}
  .stats{width:100%;min-height:38px}
  .message{min-height:34px;font-size:13px}
@@ -34,6 +37,7 @@ header span:last-child{font-size:11px;color:#ead6b0}
 }
 @media (orientation:landscape){
  #hero{left:36%;width:min(56vw,510px);bottom:3%}
+ #hero.legacy{left:36%;width:min(42vw,430px);height:90dvh;bottom:-26%}
  .stats{margin-top:auto;width:min(43%,420px);min-height:35px}
  .message{min-height:32px;padding:4px 10px;font-size:13px}
  .commands{grid-template-columns:repeat(6,minmax(0,1fr))}
@@ -51,7 +55,8 @@ header span:last-child{font-size:11px;color:#ead6b0}
 </head>
 <body>
 <main id="battle" aria-label="緋月の戦闘画面・位置確認用">
-<header><strong>戦闘</strong><span>左寄せレイアウト検査用</span></header>
+<header><strong>戦闘</strong><label class="previewVariant">緋月
+<select id="previewVariant" aria-label="新旧グラフィック切替"><option value="hana20261107">新</option><option value="legacy">旧</option></select></label></header>
 <img id="enemy" src="assets/enemies/redoni.png" alt="敵のサンプル">
 <img id="hero" src="assets/characters/hizuki/hana-20261107/battle/battle-idle-512.png" alt="緋月の待機ポーズ">
 <section class="stats" aria-label="緋月の能力値"><strong>緋月 12段</strong><span>体 86/100</span><span>技 22/30</span></section>
@@ -68,13 +73,42 @@ header span:last-child{font-size:11px;color:#ead6b0}
 </main>
 <script>
 const root="assets/characters/hizuki/hana-20261107/battle/";
+const legacy="../../assets/characters/hizuki/";
 const poseLabels={idle:"どうする？",attack:"緋月の攻撃！",skill:"緋月の花結び！",guard:"緋月は身を守っている！",hit:"緋月は攻撃を受けた！",victory:"緋月の勝利！"};
+const legacyImages={
+ idle:legacy+"battle-v2/hizuki_battle_idle_approved.png",
+ attack:legacy+"battle-attack-v1/attack-02.png",
+ skill:legacy+"battle-skill-v1/skill-02.PNG",
+ guard:legacy+"battle-v2/hizuki_battle_idle_approved.png",
+ hit:legacy+"battle-v2/hizuki_battle_idle_approved.png",
+ victory:legacy+"battle-expressions-v2/victory-full.png"
+};
 const art=document.querySelector("#hero"),msg=document.querySelector("#message");
-for(const pose of Object.keys(poseLabels)){const i=new Image();i.src=root+"battle-"+pose+"-512.png";}
+const variantControl=document.querySelector("#previewVariant");
+let pose="idle",variant=new URLSearchParams(location.search).get("battleHizuki")==="legacy"?"legacy":"hana20261107";
+variantControl.value=variant;
+function drawPose(){
+ const button=document.querySelector('[data-pose="'+pose+'"]');
+ art.classList.toggle("legacy",variant==="legacy");
+ art.src=variant==="legacy"?legacyImages[pose]:root+"battle-"+pose+"-512.png";
+ art.alt="緋月・"+(variant==="legacy"?"旧":"新")+"・"+button.textContent;
+ msg.textContent=poseLabels[pose];
+ document.querySelectorAll("[data-pose]").forEach(b=>b.classList.toggle("selected",b===button));
+}
+for(const p of Object.keys(poseLabels)){
+ const img=new Image();img.src=root+"battle-"+p+"-512.png";
+}
+for(const url of new Set(Object.values(legacyImages))){const img=new Image();img.src=url;}
+variantControl.addEventListener("change",()=>{
+ variant=variantControl.value;
+ const url=new URL(location.href);url.searchParams.set("battleHizuki",variant);
+ history.replaceState(null,"",url.pathname+url.search+url.hash);
+ drawPose();
+});
 document.querySelectorAll("[data-pose]").forEach(button=>button.addEventListener("click",()=>{
- const pose=button.dataset.pose;art.src=root+"battle-"+pose+"-512.png";art.alt="緋月・"+button.textContent;
- msg.textContent=poseLabels[pose];document.querySelectorAll("[data-pose]").forEach(b=>b.classList.toggle("selected",b===button));
+ pose=button.dataset.pose;drawPose();
 }));
+drawPose();
 </script>
 </body>
 </html>
