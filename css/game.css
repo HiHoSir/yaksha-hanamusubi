@@ -689,7 +689,7 @@ body:has(#title.show) #stage{min-height:0}
    Show the face/horn and shoulders; allow legs to be hidden like a late-SFC battle. */
 #battle #battleHeroOverlay:not(.battleHeroLevelUp){
  position:absolute;z-index:1;
- left:50%;right:auto;top:auto;bottom:-8%;
+ left:50%;right:auto;top:auto;bottom:5%;
  width:min(124vw,540px);height:auto;aspect-ratio:512 / 384;
  max-width:none;max-height:none;object-fit:contain;object-position:center bottom;
  transform-origin:center 62%;
@@ -741,7 +741,7 @@ body:has(#title.show) #stage{min-height:0}
 #battle .battleHelp{display:none}
 @media(orientation:portrait){
  #battle.show{justify-content:flex-end;overflow:hidden}
- #battle #battleHeroOverlay:not(.battleHeroLevelUp){width:min(128vw,540px);bottom:-6%}
+ #battle #battleHeroOverlay:not(.battleHeroLevelUp){width:min(128vw,540px);bottom:9%}
  #battle .battleCommands{grid-template-columns:repeat(3,minmax(0,1fr))}
  #battle .battlePartyCards{width:100%}
  #battle .battlePartyCard:not(.is-empty){min-height:38px}
@@ -750,7 +750,7 @@ body:has(#title.show) #stage{min-height:0}
 }
 @media(orientation:landscape){
  #battle.show{justify-content:flex-end;gap:4px}
- #battle #battleHeroOverlay:not(.battleHeroLevelUp){width:min(56vw,510px);bottom:-9%}
+ #battle #battleHeroOverlay:not(.battleHeroLevelUp){width:min(56vw,510px);bottom:3%}
  #battle .battlePartyCards{margin:auto 0 0;width:min(43%,420px)}
  #battle .battlePartyCard:not(.is-empty){min-height:35px}
  #battle .battleCommands{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:auto}
@@ -759,7 +759,7 @@ body:has(#title.show) #stage{min-height:0}
 }
 @media(orientation:landscape) and (max-height:400px){
  #battle.show{gap:3px}
- #battle #battleHeroOverlay:not(.battleHeroLevelUp){width:min(51vw,470px);bottom:-11%}
+ #battle #battleHeroOverlay:not(.battleHeroLevelUp){width:min(51vw,470px);bottom:0%}
  #battle .battleCommands button{min-height:36px}
  #battle .battlePartyCard:not(.is-empty){min-height:31px;padding:2px 7px}
  #battle .battleInfo{min-height:27px;padding:3px 9px}
