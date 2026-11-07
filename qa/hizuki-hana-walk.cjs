@@ -43,4 +43,6 @@ assert(interior.includes('host.YK_HANA_WALK.draw(c,'),"interior uses shared rend
 assert(html.includes('<option value="hana">'),"user setting exists");
 assert(html.includes('js/hizuki-hana-walk.js'),"shared module loaded");
 assert(game.includes('localStorage.setItem(HANA_WALK_SETTING,hizukiArt)'),"selection persists");
+assert(game.includes('S.frame=hizukiArt==="hana"?(walkPhase%2?0:2):[1,0,1,2][walkPhase]'),
+ "Hana uses A/B without idle; legacy retains A/idle/B/idle");
 console.log("Hana walking PASS: 240x448 RGBA, 12 frames, feet, draw sizing, field/village/interior toggle and persistence");
