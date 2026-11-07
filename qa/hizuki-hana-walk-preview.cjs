@@ -3,7 +3,7 @@
 const assert=require("node:assert/strict");
 const fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 const html=fs.readFileSync(path.join(__dirname,"../previews/hizuki-hana-walk-toggle.html"),"utf8");
-const scripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)].map(x=>x[1]).filter(x=>x.trim());
+const scripts=[html.split("<script>")[1]?.split("</script>")[0]].filter(x=>x?.trim());
 assert.equal(scripts.length,1,"single preview app inline script");
 const trace=[],elements=new Map(),listeners=new Map(),buttonListeners=[];
 let time=0,nextId=0;
