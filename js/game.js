@@ -156,7 +156,11 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 }
 // The withheld stardust artwork is intentionally not loaded in public builds.
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
-let hizukiArt=["legacy","pixel","sd"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"sd";
+const HANA_WALK_SETTING="yaksha_hana_walk_variant_v1";
+const savedWalkArt=(()=>{try{return localStorage.getItem(HANA_WALK_SETTING)}catch{return null}})();
+const WALK_ART_VARIANTS=["hana","sd","pixel","bluebob","legacy"];
+let hizukiArt=WALK_ART_VARIANTS.includes(charSizeParams.get("heroArt"))?
+ charSizeParams.get("heroArt"):(WALK_ART_VARIANTS.includes(savedWalkArt)?savedWalkArt:"hana");
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
 const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=p==="idle"?"assets/characters/hizuki/battle-v2/hizuki_battle_idle_approved.png?v=15.57.215":`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 // User-approved original HD attack triptych; keep full-resolution RGBA originals.
@@ -208,8 +212,11 @@ HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
 HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v3/walk-atlas-32.png?v=16.1.62";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
+if(hizukiArt==="hana")YK_HANA_WALK.ensure(assetLoaded);
 heroArtSelect.addEventListener("change",()=>{
  hizukiArt=heroArtSelect.value;
+ if(hizukiArt==="hana")YK_HANA_WALK.ensure(assetLoaded);
+ try{localStorage.setItem(HANA_WALK_SETTING,hizukiArt);}catch{}
  const url=new URL(location.href);url.searchParams.set("heroArt",hizukiArt);
  history.replaceState(null,"",url.pathname+url.search+url.hash);
  map();titleHero();
@@ -767,8 +774,15 @@ function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  z*=characterScale();
  if(hizukiArt==="pixel")ensureImage(HIZUKI_PIXEL);
- if(hizukiArt==="sd")ensureImage(HIZUKI_FIELD_SD);
- if(outfit==="normal"&&hizukiArt==="sd"&&layerReady(HIZUKI_FIELD_SD)){
+ if(hizukiArt==="sd"||hizukiArt==="hana")ensureImage(HIZUKI_FIELD_SD);
+ if(outfit==="normal"&&hizukiArt==="hana"&&YK_HANA_WALK.ready()){
+  const foot=y+9*z;
+  c.save();c.imageSmoothingEnabled=false;
+  shadow(c,x,foot,21*z,7*z,.28);
+  YK_HANA_WALK.draw(c,x,foot,dir,frame,48*(z/.56));
+  c.restore();return;
+ }
+ if(outfit==="normal"&&(hizukiArt==="sd"||hizukiArt==="hana")&&layerReady(HIZUKI_FIELD_SD)){
   const row=HIZUKI_4DIR_ROW[dir]??0;
   const motion=Math.max(0,Math.min(2,Number(frame)||0));
   // Approved candidate 3: columns neutral/right step/left step. Side views must alternate both steps.
@@ -1008,11 +1022,11 @@ function map(frameTime=performance.now()){
  if(S.area!=="field"&&S.area!=="village"&&!YK_INTERIOR_MAPS.kind(S)&&(!YK_INTERIOR_BASE.area(S)||S.restStopId))ensureNpcAssets();
  if(S.area==='village'){
   YK_HOZUKI.load(assetLoaded);if(YK_HOZUKI.ready())YK_HOZUKI.stabilize(S);
-  YK_HOZUKI.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible);return;
+  YK_HOZUKI.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible,hizukiArt==="hana");return;
  }
  if(YK_INTERIOR_MAPS.kind(S)){
   if(!YK_INTERIOR_MAPS.ready(S)){const id=S.lastInterior;YK_INTERIOR_MAPS.whenReady(S).then(()=>{if(S.lastInterior===id&&YK_INTERIOR_MAPS.kind(S)){YK_INTERIOR_MAPS.stabilize(S);map();}}).catch(()=>message('室内を読み込めません。再入場してください。',2500));return;}
-  YK_INTERIOR_MAPS.stabilize(S);YK_INTERIOR_MAPS.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible,frameTime);return;
+  YK_INTERIOR_MAPS.stabilize(S);YK_INTERIOR_MAPS.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible,frameTime,hizukiArt==="hana");return;
  }
  if(S.area==="debugField"){drawDebugField(g);return;}
  if(S.area==="teahouse"){
@@ -1038,7 +1052,7 @@ function map(frameTime=performance.now()){
   const climbT=fieldLadderMotion&&fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||400),0,1):1;
   const climbHeight=fieldLadderMotion&&fieldMotion?fieldLadderMotion.from+(fieldLadderMotion.to-fieldLadderMotion.from)*climbT:undefined;
   g.save();g.translate(0,32);g.scale(1.2,1.2);
-  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>hero(g,px,py+((hizukiArt==='sd'?14:29)-9*.56)*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
+  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>hero(g,px,py+((['sd','hana'].includes(hizukiArt)?(hizukiArt==='hana'?24:14):29)-9*.56)*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
    oceanOutside:true,
    elevationTerrain:true,
   });
