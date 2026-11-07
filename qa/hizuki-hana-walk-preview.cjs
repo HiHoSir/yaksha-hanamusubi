@@ -108,7 +108,9 @@ function last(){return trace[trace.length-1];}
  pointer(right,"pointerdown");
  assert.equal(last().frame,0);
  assert.equal(element("pose").textContent.includes("手前の腕 後ろ"),true,"right A arm is behind");
- advance(340);
+ advance(200);
+ assert.equal(last().frame,1,"right A passes through idle");
+ advance(140);
  assert.equal(last().frame,2);
  assert.equal(element("pose").textContent.includes("手前の腕 前"),true,"right B arm is ahead");
  pointer(right,"pointerup");
@@ -117,7 +119,9 @@ function last(){return trace[trace.length-1];}
  pointer(left,"pointerdown");
  assert.equal(last().frame,0);
  assert.equal(element("pose").textContent.includes("手前の腕 後ろ"),true,"left A arm is behind");
- advance(340);
+ advance(200);
+ assert.equal(last().frame,1,"left A passes through idle");
+ advance(140);
  assert.equal(last().frame,2);
  assert.equal(element("pose").textContent.includes("手前の腕 前"),true,"left B arm is ahead");
  pointer(left,"pointerup");
