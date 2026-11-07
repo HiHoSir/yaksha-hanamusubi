@@ -1,0 +1,68 @@
+{
+  "game": "鬼哭の花結び",
+  "title": "緋月—2026-11-07 approved-sprite practical-size candidates",
+  "status": "ART_REGISTERED_NOT_RUNTIME_INTEGRATED",
+  "world_movement_grid": [
+    32,
+    32
+  ],
+  "resizing": "nearest-neighbor deterministic; no image generation",
+  "walking": {
+    "file": "walk/walk-atlas-80x112.png",
+    "atlas": [
+      240,
+      448
+    ],
+    "frame": [
+      80,
+      112
+    ],
+    "rows": [
+      "front",
+      "back",
+      "right",
+      "left"
+    ],
+    "columns": [
+      "idle",
+      "step-a",
+      "step-b"
+    ],
+    "foot_anchor": [
+      40,
+      105
+    ],
+    "policy": "left=horizontal mirror of right; front/back step-b=mirror of step-a",
+    "alpha": "RGBA binary"
+  },
+  "battle": {
+    "canvas": [
+      512,
+      384
+    ],
+    "foot_anchor": [
+      256,
+      360
+    ],
+    "files": [
+      "battle/battle-idle-512.png",
+      "battle/battle-attack-512.png",
+      "battle/battle-skill-512.png",
+      "battle/battle-hit-512.png",
+      "battle/battle-guard-512.png",
+      "battle/battle-victory-512.png"
+    ],
+    "alpha": "RGBA"
+  },
+  "source": "Previously user-approved portrait and walking images in this project conversation; originals retained in the downloadable source ZIP",
+  "qa": {
+    "localDimensions": "PASS",
+    "localAlpha": "PASS",
+    "walkMirrorAndAnchor": "PASS",
+    "battleCommonAnchor": "PASS",
+    "productionRenderer": "NOT_TESTED",
+    "GitHubPages": "NOT_TESTED",
+    "iPhoneSafari": "NOT_TESTED"
+  },
+  "notice": "New sprites are candidate assets only; existing battle and movement runtime assets remain unchanged until in-game visual QA."
+}
