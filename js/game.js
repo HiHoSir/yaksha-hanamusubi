@@ -212,10 +212,10 @@ HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
 HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v3/walk-atlas-32.png?v=16.1.62";
 const heroArtSelect=$("heroArtSelect");
 heroArtSelect.value=hizukiArt;
-if(hizukiArt==="hana")YK_HANA_WALK.ensure(assetLoaded);
+if(hizukiArt==="hana"&&typeof YK_HANA_WALK!=="undefined")YK_HANA_WALK.ensure(assetLoaded);
 heroArtSelect.addEventListener("change",()=>{
  hizukiArt=heroArtSelect.value;
- if(hizukiArt==="hana")YK_HANA_WALK.ensure(assetLoaded);
+ if(hizukiArt==="hana"&&typeof YK_HANA_WALK!=="undefined")YK_HANA_WALK.ensure(assetLoaded);
  try{localStorage.setItem(HANA_WALK_SETTING,hizukiArt);}catch{}
  const url=new URL(location.href);url.searchParams.set("heroArt",hizukiArt);
  history.replaceState(null,"",url.pathname+url.search+url.hash);
@@ -775,7 +775,7 @@ function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
  z*=characterScale();
  if(hizukiArt==="pixel")ensureImage(HIZUKI_PIXEL);
  if(hizukiArt==="sd"||hizukiArt==="hana")ensureImage(HIZUKI_FIELD_SD);
- if(outfit==="normal"&&hizukiArt==="hana"&&YK_HANA_WALK.ready()){
+ if(outfit==="normal"&&hizukiArt==="hana"&&typeof YK_HANA_WALK!=="undefined"&&YK_HANA_WALK.ready()){
   const foot=y+9*z;
   c.save();c.imageSmoothingEnabled=false;
   shadow(c,x,foot,21*z,7*z,.28);
