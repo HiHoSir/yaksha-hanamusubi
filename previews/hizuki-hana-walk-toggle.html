@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12212a"><title>鬼哭の花結び | 新旧歩行アセット実動プレビュー</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#0e1b21;color:#f3e4c7;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif}
+main{max-width:780px;margin:auto;min-height:100dvh;display:flex;flex-direction:column;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom))}
+h1{font-size:17px;font-weight:700;margin:0}p{margin:0;font-size:12px;color:#c9cdbf;line-height:1.4}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+select,button{background:#213742;color:#fff7d6;border:1px solid #bd9b6a;border-radius:7px;min-height:44px;font-size:14px;padding:6px 10px}
+.stage{position:relative;flex:1;min-height:240px;max-height:70dvh;border:2px solid #b4a17c;border-radius:8px;overflow:hidden;background:#233e42;touch-action:none}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
+.tag{position:absolute;top:5px;left:6px;font-size:11px;padding:3px 7px;border-radius:4px;background:#0a1925cc;pointer-events:none}
+.controls{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(2,46px);gap:4px;justify-content:center;align-items:center;touch-action:manipulation}
+.controls button{font-size:20px;font-weight:700;min-width:64px;min-height:44px;padding:4px}
+.controls button:active{background:#8b5361}
+#status{min-height:21px}
+@media(orientation:landscape){main{max-width:none;padding-top:5px;display:grid;grid-template-columns:1fr 248px;grid-template-rows:auto 1fr auto;gap:7px}h1{grid-column:1/3}.stage{grid-column:1;grid-row:2/4;max-height:86dvh}.toolbar,.controls,#status,.helper{grid-column:2}.toolbar{align-self:start}.helper{display:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>鬼哭の花結び — 緋月・歩行グラフィック比較</h1>
+<div class="toolbar"><label>歩行画像：
+<select id="variant"><option value="hana">新・80×112原画</option><option value="sd">旧・32px SD</option></select>
+</label><span id="pose">正面・待機</span></div>
+<div class="stage" id="stage" aria-label="鬼灯村のマップで歩行画像を比較">
+<canvas id="screen" width="768" height="640"></canvas><span class="tag">32px移動格子・画像は選択時のみ変更</span>
+</div>
+<div class="controls" role="group" aria-label="4方向移動">
+<span></span><button data-dir="u" aria-label="上へ歩く">↑</button><span></span>
+<button data-dir="l" aria-label="左へ歩く">←</button><button data-dir="d" aria-label="下へ歩く">↓</button><button data-dir="r" aria-label="右へ歩く">→</button>
+</div>
+<p class="helper">ボタン・スワイプ・キーボードの矢印キーで歩けます。切替後も位置と向きはそのままです。</p>
+<p id="status" role="status">地面と歩行素材を読み込んでいます。</p>
+</main>
+<script src="js/hizuki-hana-walk.js"></script>
+<script>
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id),view=$("screen"),ctx=view.getContext("2d");
+const ground=new Image(),sd=new Image();
+let terrainReady=false,sdReady=false,collision=new Set(),walk=null;
+const state={x:336,y:528,dir:"d",frame:1,mode:"hana"};
+const key={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]},labels={u:"背面",d:"正面",l:"左向き",r:"右向き"};
+ground.onload=()=>{terrainReady=true;draw()};ground.onerror=()=>{$("status").textContent="背景読み込みエラー";draw()};
+ground.src="assets/maps/hozuki-village-v1/ground.png";
+sd.onload=()=>{sdReady=true;draw()};sd.src="assets/characters/hizuki/field-sd-v3/walk-atlas-32.png";
+YK_HANA_WALK.ensure(draw);
+fetch("assets/maps/hozuki-village-v1/collision.json").then(r=>{if(!r.ok)throw Error("collision");return r.json()})
+ .then(m=>{collision=new Set(m.blocked.map(([x,y])=>x+","+y));draw();})
+ .catch(()=>{$("status").textContent="衝突データを読めません（移動検査制限あり）";});
+function tryMove(dir){
+ const [dx,dy]=key[dir],nx=state.x+dx*32,ny=state.y+dy*32;
+ state.dir=dir;
+ if(nx<16||ny<16||nx>=672||ny>=576||collision.has(Math.floor(nx/32)+","+Math.floor(ny/32))){
+  $("status").textContent="その方向は通行できません。";draw();return;
+ }
+ state.x=nx;state.y=ny;state.frame=state.frame===0?2:0;
+ $("status").textContent=(state.mode==="hana"?"新歩行":"旧SD")+" ／ "+labels[dir]+" ／ マス ("+Math.floor(nx/32)+","+Math.floor(ny/32)+")";
+ draw();clearTimeout(walk);walk=setTimeout(()=>{state.frame=1;draw()},165);
+}
+function draw(){
+ const width=view.width,height=view.height,zoom=1.65;
+ ctx.clearRect(0,0,width,height);
+ ctx.save();ctx.imageSmoothingEnabled=false;
+ ctx.fillStyle="#284a43";ctx.fillRect(0,0,width,height);
+ ctx.translate(width/2-state.x*zoom,height*.56-state.y*zoom);ctx.scale(zoom,zoom);
+ if(terrainReady)ctx.drawImage(ground,0,0);
+ const foot=state.y+16;
+ ctx.fillStyle="#10182062";ctx.beginPath();ctx.ellipse(state.x,foot,12,4,0,0,Math.PI*2);ctx.fill();
+ if(state.mode==="hana"&&YK_HANA_WALK.ready()){
+  YK_HANA_WALK.draw(ctx,state.x,foot,state.dir,state.frame,48);
+ }else if(sdReady){
+  const row={d:0,u:1,r:2,l:3}[state.dir],col=state.frame===1?0:state.frame===0?1:2;
+  ctx.drawImage(sd,col*32,row*32,32,32,state.x-16,foot-32,32,32);
+ }
+ ctx.restore();
+ $("pose").textContent=labels[state.dir]+"・"+(state.frame===1?"待機":state.frame===0?"一歩目":"二歩目");
+ if(state.mode==="hana"&&!YK_HANA_WALK.ready())$("status").textContent="新歩行アトラスを読み込んでいます。";
+}
+$("variant").addEventListener("change",e=>{state.mode=e.target.value;draw();$("status").textContent=(state.mode==="hana"?"新歩行":"旧SD")+"に切り替えました（マス座標と衝突判定は不変）。"});
+document.querySelectorAll("[data-dir]").forEach(b=>b.addEventListener("click",()=>tryMove(b.dataset.dir)));
+document.addEventListener("keydown",e=>{const d={ArrowUp:"u",ArrowDown:"d",ArrowLeft:"l",ArrowRight:"r"}[e.key];if(d){e.preventDefault();tryMove(d)}});
+let start=null;
+$("stage").addEventListener("pointerdown",e=>{start={x:e.clientX,y:e.clientY};});
+$("stage").addEventListener("pointerup",e=>{
+ if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;start=null;
+ if(Math.hypot(dx,dy)<18)return;tryMove(Math.abs(dx)>Math.abs(dy)?(dx>0?"r":"l"):(dy>0?"d":"u"));
+});
+})();
+</script>
+</body>
+</html>
