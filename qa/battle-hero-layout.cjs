@@ -8,7 +8,7 @@ module.exports=async function checkHero(page,assert){
   ["hit","battle-hit-512.png"],["victory","battle-victory-512.png"],
   ["levelup","level-up.png"]
  ];
- await page.evaluate(()=>{window.__heroQaNow=performance.now.bind(performance);
+ await page.evaluate(()=>{window.__qaEval('setBattleHizukiVariant("hana20261107")');window.__heroQaNow=performance.now.bind(performance);
   const now=performance.now();Object.defineProperty(performance,"now",{configurable:true,value:()=>now});
   window.__qaEval("resetBattleAnimation()");});
  try{
@@ -77,6 +77,24 @@ module.exports=async function checkHero(page,assert){
     }
    }
   }
+  // Functional switch uses the same production state and actor rendering path.
+  await page.locator("#battleHizukiLiveSelect").selectOption("legacy");
+  await page.waitForFunction(()=>document.getElementById("battleHeroOverlay").src.includes("/battle-expressions-v2/victory-full.png"));
+  assert.equal(await page.locator("#battleHizukiSelect").inputValue(),"legacy","settings control synced");
+  assert.equal(await page.evaluate(()=>localStorage.getItem("yaksha_battle_hizuki_variant_v1")),"legacy","choice persisted separately from saves");
+  assert.equal(await page.evaluate(()=>new URL(location.href).searchParams.get("battleHizuki")),"legacy","URL switch synced");
+  await page.evaluate(()=>window.__qaEval('battle.phase="command";battle.menu="root";battle.levelUpResult=false;battlePose="idle";battleFx=null;renderBattle();'));
+  await page.waitForFunction(()=>document.getElementById("battleHeroOverlay").src.includes("/battle-v2/hizuki_battle_idle_approved.png"));
+  assert(await page.locator("#battleHeroOverlay").evaluate(a=>a.classList.contains("battleHeroLegacy")),"legacy CSS style applied");
+  await page.evaluate(()=>window.__qaEval('battlePose="attack";battleFx={kind:"slash",target:"enemy",start:performance.now()-550,duration:1100,impactDelay:600,amount:null};renderBattle();'));
+  await page.waitForFunction(()=>document.getElementById("battleHeroOverlay").src.includes("/battle-attack-v1/attack-02.png"));
+  await page.evaluate(()=>window.__qaEval('battlePose="skill";battleFx={kind:"petals",target:"enemy",start:performance.now()-550,duration:1100,impactDelay:600,amount:null};renderBattle();'));
+  await page.waitForFunction(()=>document.getElementById("battleHeroOverlay").src.includes("/battle-skill-v1/skill-02.PNG"));
+  await page.locator("#battleHizukiLiveSelect").selectOption("hana20261107");
+  await page.waitForFunction(()=>document.getElementById("battleHeroOverlay").src.includes("/battle-skill-512.png"));
+  assert.equal(await page.locator("#battleHizukiSelect").inputValue(),"hana20261107","new setting synced");
+  assert(!(await page.locator("#battleHeroOverlay").evaluate(a=>a.classList.contains("battleHeroLegacy"))),"new style restored");
+  console.log("PASS legacy/new live switching, attack/skill legacy frames, settings synchronization, URL and preference");
   console.log("PASS Hana six poses + levelup: left foreground (portrait 22%, landscape 36% image anchor), no clipping, safe areas");
   await page.evaluate(()=>{Object.defineProperty(performance,"now",{configurable:true,value:window.__heroQaNow});
    window.__qaEval('resetBattleAnimation();battle.phase="command";battle.menu="root";battleLocked=false;battle.levelUpResult=false;battle.hp=battle.max=99999;battle.rareTrait=null;battlePose="idle";renderBattle();');
