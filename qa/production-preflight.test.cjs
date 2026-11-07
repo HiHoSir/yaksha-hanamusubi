@@ -9,7 +9,7 @@ const scene=JSON.parse(fs.readFileSync(path.join(ROOT,'config/scene-contracts/ho
 let checks=0;
 function pass(label,fn){fn();checks++;console.log('PASS',label)}
 function fail(label,fn,pattern){assert.throws(fn,pattern);checks++;console.log('PASS blocked',label)}
-pass('current runtime and protected art',()=>assert.equal(verifyCanon(),8));
+pass('current runtime and protected art',()=>assert.equal(verifyCanon(),Object.keys(canon.protectedArt).length));
 pass('village scene example is accepted',()=>assert(validateScene(scene).length===6));
 pass('field scene has a separate (grandfathered) visual profile',()=>assert(profile('world-field').objectRoots.includes('assets/field-map-objects-v3/')));
 fail('obsolete Hizuki v2',()=>validateScene({...scene,hero:'assets/characters/hizuki/field-sd-v2/walk-atlas-32.png'},{checkFiles:false}),/Stale\/wrong hero/);
