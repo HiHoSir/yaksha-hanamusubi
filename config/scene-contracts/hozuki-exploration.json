@@ -1,0 +1,18 @@
+{
+  "id": "hozuki-exploration-profile",
+  "profile": "village-exploration",
+  "tileSize": 32,
+  "viewpoint": "topdown-orthographic",
+  "hero": "assets/characters/hizuki/field-sd-v3/walk-atlas-32.png",
+  "objects": [
+    "assets/settlements/common-v1/home.png",
+    "assets/settlements/common-v1/tree.png",
+    "assets/settlements/common-v1/well.png",
+    "assets/settlements/common-v1/rocks.png"
+  ],
+  "ground": [
+    "assets/terrain/grass-v1/grass.png",
+    "assets/settlements/common-v1/wildflowers-4x4.png"
+  ],
+  "scope": "Representative known-good family; not a full inventory of village layout, collision or visual acceptance."
+}
