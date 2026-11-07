@@ -7,7 +7,7 @@
 - 新規・再制作では本書を、従来の「室内58px」「足元をマス中央」「斜め遠近投影に合わせる」「旧base-v1内装画を維持」「建築は常に3分割」の既定値より優先する。外見・役割・世界観の承認内容は引き継ぐ。
 - この規約の登録だけで、既存マップ・セーブ・戦闘・イベントを自動移行しない。対象マップを調査し、改善ブランチで実装・検査してから承認を得て統合する。
 - 茶店の採用基準画像：`design-reference/maps/topview-v1/cyamise-approved.png`。見下ろし角・配色・ドットの密度の参考とする。これは検査用画像であり、床の補修境界や切り抜き輪郭まで完成品質と認定したものではない。
-- 緋月の実画像：`assets/characters/hizuki/field-sd-v1/walk-atlas-32.png`。水色ボブ・金角・衣装などの外見は `docs/characters/HIZUKI_CANON.md` を参照する。外見正本のHD画像と、マップ用SDアトラスを区別する。
+- 緋月の実表示（2026-11-07の現行）：`assets/characters/hizuki/field-sd-v3/walk-atlas-32.png`。旧v1/v2は履歴。水色ボブ・金角・衣装などの外見は `docs/characters/HIZUKI_CANON.md`、実稼働アトラスは `config/production-canon.json` と `js/game.js` で照合する。外見正本のHD画像とマップ用SDアトラスを区別する。
 
 ## 1. 制作前に固定する仕様
 
