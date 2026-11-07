@@ -36,7 +36,7 @@ const game=fs.readFileSync(path.join(root,"js/game.js"),"utf8");
 const village=fs.readFileSync(path.join(root,"js/hozuki-village-game.js"),"utf8");
 const interior=fs.readFileSync(path.join(root,"js/interior-maps.js"),"utf8");
 const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
-assert(game.includes('hizukiArt==="hana"&&YK_HANA_WALK.ready()'),"real field artist switch");
+assert(game.includes('hizukiArt==="hana"&&typeof YK_HANA_WALK!=="undefined"&&YK_HANA_WALK.ready()'),"real field artist switch");
 assert(game.includes('hizukiArt==="hana");return;'),"real village/interior switches");
 assert(village.includes('host.YK_HANA_WALK.draw(wc,'),"village uses shared renderer");
 assert(interior.includes('host.YK_HANA_WALK.draw(c,'),"interior uses shared renderer");
