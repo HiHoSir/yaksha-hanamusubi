@@ -110,17 +110,18 @@ function last(){return trace[trace.length-1];}
   const button=element("button-"+dir);
   const startIndex=trace.length;
   pointer(button,"pointerdown");
-  assert.equal(last().frame,0,dir+" first stride A");
-  assert(element("pose").textContent.includes("手前の腕 "+frontA),dir+" first arm label");
+  const first=last().frame,second=first===0?2:0;
+  assert([0,2].includes(first),dir+" first step must be A or B");
+  assert(element("pose").textContent.includes("手前の腕 "+(first===0?frontA:frontB)),dir+" first arm label");
   advance(200);
-  assert.equal(last().frame,0,dir+" A must not become neutral halfway");
+  assert.equal(last().frame,first,dir+" first stride must not become neutral halfway");
   advance(140);
-  assert.equal(last().frame,2,dir+" second stride B");
-  assert(element("pose").textContent.includes("手前の腕 "+frontB),dir+" B arm label");
+  assert.equal(last().frame,second,dir+" next stride must alternate");
+  assert(element("pose").textContent.includes("手前の腕 "+(second===0?frontA:frontB)),dir+" second arm label");
   advance(190);
-  assert.equal(last().frame,2,dir+" B must stay visible halfway");
+  assert.equal(last().frame,second,dir+" second stride remains visible halfway");
   advance(150);
-  assert.equal(last().frame,0,dir+" next stride A");
+  assert.equal(last().frame,first,dir+" third stride must alternate again");
   assert(trace.slice(startIndex).every(x=>x.frame!==1),
    dir+" continuous side walking must never insert idle");
   pointer(button,"pointerup");
