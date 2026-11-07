@@ -1,0 +1,31 @@
+name: Production canon and art-family preflight
+on:
+  push:
+    branches:
+      - main
+      - 'improve/**'
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  verify-canon:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check qa/production-preflight.cjs
+          node --check qa/production-preflight.test.cjs
+      - name: Current production paths, protected successful art, and scene contracts
+        run: node qa/production-preflight.cjs --check
+      - name: Reproduce rejected old-art and cross-era inputs
+        run: node qa/production-preflight.test.cjs
+      - name: Existing scene entry point and prologue regressions
+        run: |
+          node qa/architecture-guard.cjs
+          node qa/prologue-unit.cjs
