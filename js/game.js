@@ -172,6 +172,43 @@ for(const [pose,file] of Object.entries({victory:"battle-end",levelup:"level-up"
  HIZUKI_BATTLE_EXPRESSIONS[pose]=im;
 }
 // Legacy rear idle art is retired: the approved battle-v2 idle is the single source.
+// Approved Hana battle pose set (independent from field movement and grid).
+const HIZUKI_HANA_BATTLE={};
+for(const pose of ["idle","attack","skill","hit","guard","victory"]){
+ const im=new Image();im.onload=assetLoaded;
+ im.datasetSrc="assets/characters/hizuki/hana-20261107/battle/battle-"+pose+"-512.png";
+ HIZUKI_HANA_BATTLE[pose]=im;
+}
+// Battle-specific user-selectable graphics; never alter field atlases or saved games.
+const BATTLE_HIZUKI_VARIANTS=["hana20261107","legacy"];
+const BATTLE_HIZUKI_PREFERENCE_KEY="yaksha_battle_hizuki_variant_v1";
+function readBattleHizukiPreference(){
+ try{const v=localStorage.getItem(BATTLE_HIZUKI_PREFERENCE_KEY);return BATTLE_HIZUKI_VARIANTS.includes(v)?v:null;}
+ catch{return null;}
+}
+const battleHizukiParam=charSizeParams.get("battleHizuki");
+let battleHizukiVariant=BATTLE_HIZUKI_VARIANTS.includes(battleHizukiParam)?
+ battleHizukiParam:(readBattleHizukiPreference()||"hana20261107");
+function setBattleHizukiVariant(value){
+ if(!BATTLE_HIZUKI_VARIANTS.includes(value))return false;
+ battleHizukiVariant=value;
+ for(const id of ["battleHizukiSelect","battleHizukiLiveSelect"]){
+  const control=$(id);if(control)control.value=value;
+ }
+ try{localStorage.setItem(BATTLE_HIZUKI_PREFERENCE_KEY,value);}catch{}
+ try{
+  const url=new URL(location.href);url.searchParams.set("battleHizuki",value);
+  history.replaceState(null,"",url.pathname+url.search+url.hash);
+ }catch{}
+ ensureBattleAssets();
+ if(battle)renderBattle();
+ return true;
+}
+for(const id of ["battleHizukiSelect","battleHizukiLiveSelect"]){
+ const control=$(id);if(!control)continue;
+ control.value=battleHizukiVariant;
+ control.addEventListener("change",()=>setBattleHizukiVariant(control.value));
+}
 const HIZUKI_BATTLE_IDLE=HIZUKI_BATTLE_FRAMES[0];
 const HIZUKI_4DIR=new Image();
 HIZUKI_4DIR.onload=assetLoaded;
@@ -285,6 +322,7 @@ function ensureImage(im){if(im&&!im.src&&im.datasetSrc)im.src=im.datasetSrc;retu
 function ensureBattleAssets(){
  // Preload every approved heroine animation before the encounter transition.
  for(const im of HIZUKI_BATTLE_FRAMES)ensureImage(im);
+ for(const im of Object.values(HIZUKI_HANA_BATTLE))ensureImage(im);
  for(const im of HIZUKI_SKILL_FRAMES)ensureImage(im);
  for(const im of HIZUKI_ATTACK_FRAMES)ensureImage(im);
  for(const im of Object.values(HIZUKI_BATTLE_EXPRESSIONS))ensureImage(im);
@@ -1492,7 +1530,8 @@ function move(dx,dy,dir){
 }function renderBattlePartyCards(){
  const root=$("battlePartyCards");if(!root)return;
  const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
- const src=layerReady(HIZUKI_BATTLE_FRAMES[0])?HIZUKI_BATTLE_FRAMES[0].src:"";
+ const approvedIdle=battleHizukiVariant==="hana20261107"?HIZUKI_HANA_BATTLE.idle:null;
+ const src=layerReady(approvedIdle)?approvedIdle.src:layerReady(HIZUKI_BATTLE_FRAMES[0])?HIZUKI_BATTLE_FRAMES[0].src:"";
  const fragment=document.createDocumentFragment();
  for(let i=0;i<4;i++){
   const member=members[i],card=document.createElement("div");
@@ -1544,7 +1583,12 @@ function renderBattle(){
   const skillArt=skillCast?HIZUKI_SKILL_FRAMES[skillPhase]:null;
   const attackArt=normalSlash?HIZUKI_ATTACK_FRAMES[attackPhase]:null;
   // Never show the idle pose while a result asset is loading.
-  const image=resultArt?resultArt:(layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0]);
+  // Use the six user-approved Hana sprites without additional generated frames.
+  // Level-up retains the dedicated legacy art until its replacement is approved.
+  const hanaPose=["attack","skill","guard","hit","victory"].includes(battlePose)?battlePose:"idle";
+  const hanaArt=typeof HIZUKI_HANA_BATTLE==="object"?HIZUKI_HANA_BATTLE[hanaPose]:null;
+  const selectedHanaArt=battleHizukiVariant==="hana20261107"&&!(battlePose==="victory"&&battle.levelUpResult)&&layerReady(hanaArt)?hanaArt:null;
+  const image=selectedHanaArt||(resultArt?resultArt:(layerReady(skillArt)?skillArt:layerReady(attackArt)?attackArt:layerReady(HIZUKI_BATTLE_FRAMES[phase])?HIZUKI_BATTLE_FRAMES[phase]:HIZUKI_BATTLE_FRAMES[0]));
   if(!layerReady(image)){const stale=document.getElementById("battleHeroOverlay");if(stale)stale.style.visibility="hidden";return;}
   bg.save();bg.imageSmoothingEnabled=image===attackArt||image===skillArt;
   // Portrait composition: a large heroine on the LEFT, with her face fully visible.
@@ -1586,13 +1630,14 @@ function renderBattle(){
   const displaySrc=image.src;
   if(actor.src!==displaySrc)actor.src=displaySrc;
   actor.style.visibility="visible";
-  actor.classList.toggle("battleHeroVictory",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.victory);
-  actor.classList.toggle("battleHeroResult",!!resultArt);
-  actor.classList.toggle("battleHeroLevelUp",!!resultArt&&image===HIZUKI_BATTLE_EXPRESSIONS.levelup);
+  actor.classList.toggle("battleHeroLegacy",!selectedHanaArt&&!(battlePose==="victory"&&battle.levelUpResult));
+  actor.classList.toggle("battleHeroVictory",battlePose==="victory"&&!battle.levelUpResult);
+  actor.classList.toggle("battleHeroResult",battlePose==="victory");
+  actor.classList.toggle("battleHeroLevelUp",battlePose==="victory"&&!!battle.levelUpResult);
   // 勝利素材だけを差し替え、採用済みの攻撃位置・拡大率とレベルアップ演出を維持。
-  actor.style.transform=(actor.classList.contains("battleHeroLevelUp")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
+  actor.style.transform="translateX(-50%) translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
-  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(0,92,330,338);bg.restore();}
+  if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(212,92,340,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
  }
  const age=battleFx?Math.max(0,performance.now()-battleFx.start):0;
@@ -1610,7 +1655,7 @@ function renderBattle(){
    bg.globalAlpha=1-fade;
    if(!battle.deathReduced)bg.translate(0,-fade*13);
   }
-  enemyArt(bg,483+recoil,224);bg.restore();
+  enemyArt(bg,535+recoil,155);bg.restore();
  }
  drawViewportBattleFx(impactVisible?hitProgress:null);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
@@ -1655,14 +1700,14 @@ function drawViewportBattleFx(progress){
   // The battle canvas is 768x430 with object-fit:contain: account for its letterbox.
   const fit=Math.min(canvasRect.width/BC.width,canvasRect.height/BC.height);
   const contentW=BC.width*fit,contentH=BC.height*fit;
-  x=canvasRect.left-bounds.left+(canvasRect.width-contentW)/2+483*fit;
-  y=canvasRect.top-bounds.top+(canvasRect.height-contentH)/2+185*fit;
+  x=canvasRect.left-bounds.left+(canvasRect.width-contentW)/2+535*fit;
+  y=canvasRect.top-bounds.top+(canvasRect.height-contentH)/2+154*fit;
   scale=Math.max(.7,Math.min(1.65,fit));
  }else{
   const actor=document.getElementById("battleHeroOverlay");
   const rect=actor?.getBoundingClientRect();
-  x=rect?rect.left-bounds.left+rect.width*.48:bounds.width*.25;
-  y=rect?rect.top-bounds.top+rect.height*.42:bounds.height*.55;
+  x=rect?rect.left-bounds.left+rect.width*.5:bounds.width*.5;
+  y=rect?rect.top-bounds.top+rect.height*.4:bounds.height*.6;
   scale=Math.max(.8,Math.min(1.5,bounds.height/430));
  }
  ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
@@ -1671,7 +1716,7 @@ function drawViewportBattleFx(progress){
 }
 function drawBattleFx(c,p,anchorX=null,anchorY=null){
  if(!battleFx||p>=1)return;
- const f=battleFx,x=anchorX??(f.target==="enemy"?483:170),y=anchorY??(f.target==="enemy"?190:205);
+ const f=battleFx,x=anchorX??(f.target==="enemy"?535:384),y=anchorY??(f.target==="enemy"?155:305);
  c.save();
  if(f.amount!==null){c.font='bold 42px sans-serif';c.textAlign='center';c.lineWidth=5;c.strokeStyle='#132136';const label=f.amount<0?'+'+(-f.amount):String(f.amount),fy=y-72-(f.reduced?0:18*p);c.strokeText(label,x,fy);c.fillStyle=f.amount<0?'#aff0bb':'#fff2c6';c.fillText(label,x,fy);}
  c.globalAlpha=(1-p)*.85;c.strokeStyle=f.kind==="petals"?"#ffd0e7":"#fff0b2";c.lineWidth=5;
