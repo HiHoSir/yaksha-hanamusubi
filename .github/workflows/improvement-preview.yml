@@ -49,9 +49,9 @@ jobs:
 
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             case "$REQUESTED_PREVIEW" in
-              improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/natural-cave-tiles)
+              improve/battle-front-center-hizuki|improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/natural-cave-tiles)
                 branches+=("$REQUESTED_PREVIEW") ;;
-              *) echo "::error::Only editor previews or isolated cave QA are supported; historical game snapshots are prohibited: $REQUESTED_PREVIEW"; exit 1 ;;
+              *) echo "::error::Only approved isolated previews are supported; historical game snapshots are prohibited: $REQUESTED_PREVIEW"; exit 1 ;;
             esac
           fi
 
@@ -80,6 +80,31 @@ jobs:
               cp "$stage/branch/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png" "site/previews/$slug/assets/characters/hizuki/field-sd-v3/"
               rm -rf "$stage"
               test -f "site/previews/$slug/previews/natural-cave-walk.html"
+              continue
+            fi
+            # A battle-only page, never a historical game snapshot or production save.
+            # A full branch archive is staged briefly, but only 9 known public
+            # files are placed in the final Pages artifact.
+            if [[ "$slug" == "battle-front-center-hizuki" ]]; then
+              stage="$(mktemp -d)"
+              mv "site/previews/$slug" "$stage/branch"
+              battle_root="site/previews/$slug"
+              mkdir -p "$battle_root/assets/scenes" "$battle_root/assets/enemies" \
+                       "$battle_root/assets/characters/hizuki/hana-20261107/battle"
+              cp "$stage/branch/previews/battle-front-center-hizuki.html" "$battle_root/index.html"
+              cp "$stage/branch/assets/scenes/battle-grass-v1.png" "$battle_root/assets/scenes/"
+              cp "$stage/branch/assets/enemies/redoni.png" "$battle_root/assets/enemies/"
+              for pose in idle attack skill guard hit victory; do
+                cp "$stage/branch/assets/characters/hizuki/hana-20261107/battle/battle-$pose-512.png" \
+                   "$battle_root/assets/characters/hizuki/hana-20261107/battle/"
+              done
+              rm -rf "$stage"
+              test -s "$battle_root/index.html"
+              test -s "$battle_root/assets/characters/hizuki/hana-20261107/battle/battle-victory-512.png"
+              if grep -qi 'localStorage' "$battle_root/index.html"; then
+                echo "::error::Battle preview must not use or change production saves"; exit 1
+              fi
+              echo "Public isolated battle-only preview: $battle_root"
               continue
             fi
             case "$slug" in

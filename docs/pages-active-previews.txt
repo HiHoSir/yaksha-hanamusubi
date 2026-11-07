@@ -1,4 +1,4 @@
-# Pages preview allowlist: editor previews only; no historical game versions.
+# Pages preview allowlist: editor previews and audited minimal QA; no historical game versions.
 # Main / is always the only published production game.
 improve/interior-map-editor-32px
 improve/pixel-editor-touch-workspace
@@ -6,3 +6,6 @@ improve/pixel-editor-mobile-cursor
 
 # Standalone QA only: published by minimal-file route, not a game snapshot.
 improve/natural-cave-tiles
+
+# Standalone battle UI / pose QA only: no game runtime or save-data copy.
+improve/battle-front-center-hizuki
