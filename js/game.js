@@ -1604,7 +1604,7 @@ function renderBattle(){
   actor.classList.toggle("battleHeroResult",battlePose==="victory");
   actor.classList.toggle("battleHeroLevelUp",battlePose==="victory"&&!!battle.levelUpResult);
   // 勝利素材だけを差し替え、採用済みの攻撃位置・拡大率とレベルアップ演出を維持。
-  actor.style.transform=(actor.classList.contains("battleHeroLevelUp")?"translateX(-50%) ":"")+"translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
+  actor.style.transform="translateX(-50%) translate3d("+Math.round(shake+(hit?impact*9:0))+"px,"+Math.round((victory?-7:0)+(hit?impact*7:0))+"px,0) scale("+(1+breath*.32)+")";
   bg.restore();
   if(hit){bg.save();bg.fillStyle="rgba(255,88,106,.16)";bg.fillRect(212,92,340,338);bg.restore();}
   if(victory){bg.save();bg.fillStyle="#ffdf8e";for(let i=0;i<7;i++){const x=70+i*34,y=125+(i%3)*43;bg.fillRect(x,y,4,4);}bg.restore();}
