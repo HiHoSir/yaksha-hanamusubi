@@ -21,7 +21,7 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 </head>
 <body>
 <main>
-<h1>鬼哭の花結び — 緋月・歩行グラフィック比較</h1>
+<h1>鬼哭の花結び — 緋月・歩行グラフィック比較・連続歩行対応</h1>
 <div class="toolbar"><label>歩行画像：
 <select id="variant"><option value="hana">新・80×112原画</option><option value="sd">旧・32px SD</option></select>
 </label><span id="pose">正面・待機</span></div>
@@ -32,7 +32,7 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 <span></span><button data-dir="u" aria-label="上へ歩く">↑</button><span></span>
 <button data-dir="l" aria-label="左へ歩く">←</button><button data-dir="d" aria-label="下へ歩く">↓</button><button data-dir="r" aria-label="右へ歩く">→</button>
 </div>
-<p class="helper">ボタン・スワイプ・キーボードの矢印キーで歩けます。切替後も位置と向きはそのままです。</p>
+<p class="helper">方向ボタンを長押しすると連続歩行、左右の足が交互に動きます。画面上をドラッグしても歩けます。切替時も位置は保持します。</p>
 <p id="status" role="status">地面と歩行素材を読み込んでいます。</p>
 </main>
 <script src="js/hizuki-hana-walk.js"></script>
@@ -41,54 +41,138 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 "use strict";
 const $=id=>document.getElementById(id),view=$("screen"),ctx=view.getContext("2d");
 const ground=new Image(),sd=new Image();
-let terrainReady=false,sdReady=false,collision=new Set(),walk=null;
-const state={x:336,y:528,dir:"d",frame:1,mode:"hana"};
+let terrainReady=false,sdReady=false,collision=new Set(),collisionReady=false;
+const STEP_INTERVAL_MS=190,STEP_SLIDE_MS=166;
+const state={x:336,y:528,fromX:336,fromY:528,stepAt:-1000,stride:0,dir:"d",frame:1,mode:"hana"};
+let holdOwner=null,heldDir=null,repeatTimer=null,idleTimer=null,animationFrame=null;
 const key={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]},labels={u:"背面",d:"正面",l:"左向き",r:"右向き"};
 ground.onload=()=>{terrainReady=true;draw()};ground.onerror=()=>{$("status").textContent="背景読み込みエラー";draw()};
 ground.src="assets/maps/hozuki-village-v1/ground.png";
 sd.onload=()=>{sdReady=true;draw()};sd.src="assets/characters/hizuki/field-sd-v3/walk-atlas-32.png";
 YK_HANA_WALK.ensure(draw);
 fetch("assets/maps/hozuki-village-v1/collision.json").then(r=>{if(!r.ok)throw Error("collision");return r.json()})
- .then(m=>{collision=new Set(m.blocked.map(([x,y])=>x+","+y));draw();})
+ .then(m=>{collision=new Set(m.blocked.map(([x,y])=>x+","+y));collisionReady=true;draw();})
  .catch(()=>{$("status").textContent="衝突データを読めません（移動検査制限あり）";});
+function visiblePosition(at=performance.now()){
+ const t=Math.min(1,Math.max(0,(at-state.stepAt)/STEP_SLIDE_MS));
+ return {x:state.fromX+(state.x-state.fromX)*t,y:state.fromY+(state.y-state.fromY)*t};
+}
+function animate(){
+ animationFrame=null;draw();
+ if(performance.now()-state.stepAt<STEP_SLIDE_MS)
+  animationFrame=requestAnimationFrame(animate);
+}
+function scheduleIdle(){
+ clearTimeout(idleTimer);
+ idleTimer=setTimeout(()=>{if(heldDir===null){state.frame=1;draw();}},STEP_INTERVAL_MS+120);
+}
 function tryMove(dir){
+ if(!collisionReady){$("status").textContent="通行判定を読み込んでいます。";return false;}
  const [dx,dy]=key[dir],nx=state.x+dx*32,ny=state.y+dy*32;
  state.dir=dir;
  if(nx<16||ny<16||nx>=672||ny>=576||collision.has(Math.floor(nx/32)+","+Math.floor(ny/32))){
-  $("status").textContent="その方向は通行できません。";draw();return;
+  $("status").textContent="その方向は通行できません。";draw();return false;
  }
- state.x=nx;state.y=ny;state.frame=state.frame===0?2:0;
- $("status").textContent=(state.mode==="hana"?"新歩行":"旧SD")+" ／ "+labels[dir]+" ／ マス ("+Math.floor(nx/32)+","+Math.floor(ny/32)+")";
- draw();clearTimeout(walk);walk=setTimeout(()=>{state.frame=1;draw()},165);
+ const at=performance.now(),from=visiblePosition(at);
+ state.fromX=from.x;state.fromY=from.y;
+ state.x=nx;state.y=ny;state.stepAt=at;
+ // Keep the stride counter through the idle pose; otherwise each tap repeats
+ // step A and the approved step B can never be inspected.
+ state.stride++;state.frame=state.stride%2===1?0:2;
+ $("status").textContent=(state.mode==="hana"?"新歩行":"旧SD")+" ／ "+labels[dir]+
+  " ／ "+(state.frame===0?"一歩目":"二歩目")+" ／ "+state.stride+"歩 ／ マス ("+
+  Math.floor(nx/32)+","+Math.floor(ny/32)+")";
+ clearTimeout(idleTimer);
+ if(!animationFrame)animationFrame=requestAnimationFrame(animate);
+ draw();
+ if(heldDir===null)scheduleIdle();
+ return true;
+}
+function stopHold(owner=null){
+ if(owner!==null&&owner!==holdOwner)return;
+ clearInterval(repeatTimer);repeatTimer=null;heldDir=null;holdOwner=null;
+ scheduleIdle();
+}
+function startHold(owner,dir){
+ if(!key[dir])return;
+ if(holdOwner===owner&&heldDir===dir)return;
+ stopHold();
+ holdOwner=owner;heldDir=dir;
+ tryMove(dir);
+ repeatTimer=setInterval(()=>{if(heldDir!==null)tryMove(heldDir);},STEP_INTERVAL_MS);
 }
 function draw(){
  const width=view.width,height=view.height,zoom=1.65;
  ctx.clearRect(0,0,width,height);
  ctx.save();ctx.imageSmoothingEnabled=false;
  ctx.fillStyle="#284a43";ctx.fillRect(0,0,width,height);
- ctx.translate(width/2-state.x*zoom,height*.56-state.y*zoom);ctx.scale(zoom,zoom);
+ const visual=visiblePosition();
+ ctx.translate(width/2-visual.x*zoom,height*.56-visual.y*zoom);ctx.scale(zoom,zoom);
  if(terrainReady)ctx.drawImage(ground,0,0);
- const foot=state.y+16;
- ctx.fillStyle="#10182062";ctx.beginPath();ctx.ellipse(state.x,foot,12,4,0,0,Math.PI*2);ctx.fill();
+ const foot=visual.y+16;
+ ctx.fillStyle="#10182062";ctx.beginPath();ctx.ellipse(visual.x,foot,12,4,0,0,Math.PI*2);ctx.fill();
  if(state.mode==="hana"&&YK_HANA_WALK.ready()){
-  YK_HANA_WALK.draw(ctx,state.x,foot,state.dir,state.frame,48);
+  YK_HANA_WALK.draw(ctx,visual.x,foot,state.dir,state.frame,48);
  }else if(sdReady){
   const row={d:0,u:1,r:2,l:3}[state.dir],col=state.frame===1?0:state.frame===0?1:2;
-  ctx.drawImage(sd,col*32,row*32,32,32,state.x-16,foot-32,32,32);
+  ctx.drawImage(sd,col*32,row*32,32,32,visual.x-16,foot-32,32,32);
  }
  ctx.restore();
  $("pose").textContent=labels[state.dir]+"・"+(state.frame===1?"待機":state.frame===0?"一歩目":"二歩目");
  if(state.mode==="hana"&&!YK_HANA_WALK.ready())$("status").textContent="新歩行アトラスを読み込んでいます。";
 }
 $("variant").addEventListener("change",e=>{state.mode=e.target.value;draw();$("status").textContent=(state.mode==="hana"?"新歩行":"旧SD")+"に切り替えました（マス座標と衝突判定は不変）。"});
-document.querySelectorAll("[data-dir]").forEach(b=>b.addEventListener("click",()=>tryMove(b.dataset.dir)));
-document.addEventListener("keydown",e=>{const d={ArrowUp:"u",ArrowDown:"d",ArrowLeft:"l",ArrowRight:"r"}[e.key];if(d){e.preventDefault();tryMove(d)}});
-let start=null;
-$("stage").addEventListener("pointerdown",e=>{start={x:e.clientX,y:e.clientY};});
-$("stage").addEventListener("pointerup",e=>{
- if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;start=null;
- if(Math.hypot(dx,dy)<18)return;tryMove(Math.abs(dx)>Math.abs(dy)?(dx>0?"r":"l"):(dy>0?"d":"u"));
+// iPhone: pointer capture keeps held input active while the thumb moves out of
+// a 44px button. No click handler for pointer-activated taps (prevents double steps).
+document.querySelectorAll("[data-dir]").forEach(button=>{
+ button.addEventListener("pointerdown",e=>{
+  if(e.button!==undefined&&e.button!==0)return;
+  e.preventDefault();
+  button.setPointerCapture?.(e.pointerId);
+  startHold(button,button.dataset.dir);
+ });
+ button.addEventListener("pointerup",()=>stopHold(button));
+ button.addEventListener("pointercancel",()=>stopHold(button));
+ button.addEventListener("lostpointercapture",()=>stopHold(button));
+ button.addEventListener("click",e=>{if(e.detail===0)tryMove(button.dataset.dir);});
 });
+const keyboardDirs={ArrowUp:"u",ArrowDown:"d",ArrowLeft:"l",ArrowRight:"r"};
+document.addEventListener("keydown",e=>{
+ const dir=keyboardDirs[e.key];if(!dir)return;e.preventDefault();
+ if(holdOwner!=="keyboard"||heldDir!==dir)startHold("keyboard",dir);
+});
+document.addEventListener("keyup",e=>{
+ if(keyboardDirs[e.key]===heldDir&&holdOwner==="keyboard")stopHold("keyboard");
+});
+// Drag in the map: a thumb held beyond 18px moves repeatedly and changes
+// direction with the drag, instead of taking exactly one step on pointerup.
+let drag=null;
+const stage=$("stage");
+stage.addEventListener("pointerdown",e=>{
+ if(e.button!==undefined&&e.button!==0)return;
+ drag={id:e.pointerId,x:e.clientX,y:e.clientY,active:false};
+ stage.setPointerCapture?.(e.pointerId);
+});
+stage.addEventListener("pointermove",e=>{
+ if(!drag||e.pointerId!==drag.id)return;
+ const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+ if(Math.hypot(dx,dy)<18){if(drag.active)stopHold(stage);drag.active=false;return;}
+ const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?"r":"l"):(dy>0?"d":"u");
+ drag.active=true;
+ if(holdOwner!==stage||heldDir!==dir)startHold(stage,dir);
+});
+stage.addEventListener("pointerup",e=>{
+ if(!drag||drag.id!==e.pointerId)return;
+ // A short flick that ends before pointermove still moves one grid cell.
+ const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+ if(!drag.active&&Math.hypot(dx,dy)>=18)
+  tryMove(Math.abs(dx)>Math.abs(dy)?(dx>0?"r":"l"):(dy>0?"d":"u"));
+ drag=null;stopHold(stage);
+});
+stage.addEventListener("pointercancel",()=>{drag=null;stopHold(stage)});
+stage.addEventListener("lostpointercapture",()=>{drag=null;stopHold(stage)});
+window.addEventListener("blur",()=>{drag=null;stopHold();});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){drag=null;stopHold();}});
 })();
 </script>
 </body>
