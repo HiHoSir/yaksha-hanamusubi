@@ -53,7 +53,10 @@
     "js/elevation-view.js": "b09c82bb4153f6d303803aacb528d98a11996388",
     "js/prologue.js": "000f1cf33818bf18fe604709a4f0db9849562f19",
     "assets/prologue/pixel-v2/prologue-pixel-v2-complete.mp4": "9956e303da9dc3c5040d36c7c1cea5096f8580da",
-    "assets/characters/hizuki/field-sd-v3/walk-atlas-32.png": "ca625f073cba37b1681a2633220b34f65848772e"
+    "assets/characters/hizuki/field-sd-v3/walk-atlas-32.png": "ca625f073cba37b1681a2633220b34f65848772e",
+    "assets/terrain/grass-v1/grass.png": "eccd740f68a44c0b89a6d54e27d8ac9c5162c69f",
+    "assets/terrain/quarter-v1/horizon.png": "3dd94be0382a85ea67143cf487d34e07117f3de5",
+    "assets/animation/fluid-v1/field-water.png": "4dfda897a95d65cda3269b40fe35b1d485ee36b2"
   },
   "notes": [
     "This is a snapshot of the adopted renderers/movie and current character as of 2026-11-07, not a promise that all legacy field icons share an art style.",
