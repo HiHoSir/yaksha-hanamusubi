@@ -32,7 +32,7 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 <span></span><button data-dir="u" aria-label="上へ歩く">↑</button><span></span>
 <button data-dir="l" aria-label="左へ歩く">←</button><button data-dir="d" aria-label="下へ歩く">↓</button><button data-dir="r" aria-label="右へ歩く">→</button>
 </div>
-<p class="helper">方向ボタン長押しで「歩行A→直立→歩行B→直立」を繰り返します。横向きは手前側の腕が前後するかで確認。画面上のドラッグでも連続移動できます。</p>
+<p class="helper">方向ボタン長押しで「歩行A↔歩行B」を直立なしで交互に表示します。横向きは腕の前後で確認。停止時のみ直立へ戻ります。画面上のドラッグでも連続移動できます。</p>
 <p id="status" role="status">地面と歩行素材を読み込んでいます。</p>
 </main>
 <script src="js/hizuki-hana-walk.js"></script>
@@ -45,10 +45,10 @@ let terrainReady=false,sdReady=false,collision=new Set(),collisionReady=false;
 // Actual production movement cycles A -> idle -> B -> idle.
 const SPEEDS={slow:{step:340,slide:300},normal:{step:190,slide:166}};
 let cadence=SPEEDS.slow;
-function stepFrame(at=performance.now()){
- if(state.frame===1)return 1;
- // Keep A/B visible for the first half of each tile, then pass through idle.
- return at-state.stepAt<cadence.slide*.57?state.frame:1;
+function stepFrame(){
+ // Continuous motion is only A/B. Neutral is reserved for stopped state.
+ // Neither speed mode nor a frame timer inserts idle between the two strides.
+ return state.frame;
 }
 const state={x:336,y:528,fromX:336,fromY:528,stepAt:-1000,stride:0,dir:"d",frame:1,mode:"hana"};
 let holdOwner=null,heldDir=null,repeatTimer=null,idleTimer=null,animationFrame=null;
@@ -126,8 +126,10 @@ function draw(){
  }
  ctx.restore();
  const poseName=poseFrame===1?"直立":poseFrame===0?"歩行A":"歩行B";
- const arm=["l","r"].includes(state.dir)&&poseFrame!==1
-  ? "・手前の腕 "+(poseFrame===0?"後ろ":"前") : "";
+ const side=state.dir==="l"||state.dir==="r";
+ // Left direction uses the horizontally mirrored side-row (opposite screen X).
+ const arm=side&&poseFrame!==1
+  ? "・手前の腕 "+((state.dir==="r") === (poseFrame===2)?"前":"後ろ") : "";
  $("pose").textContent=labels[state.dir]+"・"+poseName+arm;
  if(state.mode==="hana"&&!YK_HANA_WALK.ready())$("status").textContent="新歩行アトラスを読み込んでいます。";
 }
