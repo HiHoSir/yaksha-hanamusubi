@@ -1476,7 +1476,7 @@ function move(dx,dy,dir){
  if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:ladder?400:YK_MOVEMENT.duration(S.area,S.area==='field'?(Number($("speedSelect").value)||1):1)};
  fieldLadderMotion=ladder?{from:YK_ELEVATION.height(YK_WORLD.mapData,startX,startY),to:YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y)}:null;
  if(S.area==='shrine')YK_TENYO.stepSound(S.sound);
- walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
+ walkPhase=(walkPhase+1)%4;S.frame=hizukiArt==="hana"?(walkPhase%2?0:2):[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  const contact=from==="field"?YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y):null;
