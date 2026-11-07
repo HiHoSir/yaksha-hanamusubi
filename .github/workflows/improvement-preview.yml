@@ -49,7 +49,7 @@ jobs:
 
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             case "$REQUESTED_PREVIEW" in
-              improve/battle-front-center-hizuki|improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/natural-cave-tiles)
+              improve/hizuki-hana-walk-toggle|improve/battle-front-center-hizuki|improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/natural-cave-tiles)
                 branches+=("$REQUESTED_PREVIEW") ;;
               *) echo "::error::Only approved isolated previews are supported; historical game snapshots are prohibited: $REQUESTED_PREVIEW"; exit 1 ;;
             esac
@@ -105,6 +105,30 @@ jobs:
                 echo "::error::Battle preview must not use or change production saves"; exit 1
               fi
               echo "Public isolated battle-only preview: $battle_root"
+              continue
+            fi
+            # Minimal isolated 4-way walk QA: only approved public maps/sprites,
+            # no save-data or full game archive in the deployed preview folder.
+            if [[ "$slug" == "hizuki-hana-walk-toggle" ]]; then
+              stage="$(mktemp -d)"
+              mv "site/previews/$slug" "$stage/branch"
+              walk_root="site/previews/$slug"
+              mkdir -p "$walk_root/js" "$walk_root/assets/maps/hozuki-village-v1" \
+                       "$walk_root/assets/characters/hizuki/field-sd-v3" \
+                       "$walk_root/assets/characters/hizuki/hana-20261107/walk"
+              cp "$stage/branch/previews/hizuki-hana-walk-toggle.html" "$walk_root/index.html"
+              cp "$stage/branch/js/hizuki-hana-walk.js" "$walk_root/js/"
+              cp "$stage/branch/assets/maps/hozuki-village-v1/ground.png" "$walk_root/assets/maps/hozuki-village-v1/"
+              cp "$stage/branch/assets/maps/hozuki-village-v1/collision.json" "$walk_root/assets/maps/hozuki-village-v1/"
+              cp "$stage/branch/assets/characters/hizuki/field-sd-v3/walk-atlas-32.png" "$walk_root/assets/characters/hizuki/field-sd-v3/"
+              cp "$stage/branch/assets/characters/hizuki/hana-20261107/walk/walk-atlas-80x112.png" "$walk_root/assets/characters/hizuki/hana-20261107/walk/"
+              rm -rf "$stage"
+              test -s "$walk_root/index.html"
+              test -s "$walk_root/assets/characters/hizuki/hana-20261107/walk/walk-atlas-80x112.png"
+              if grep -qi 'localStorage' "$walk_root/index.html"; then
+                echo "::error::Standalone walk QA must not share production save keys"; exit 1
+              fi
+              echo "Public standalone four-way walk preview: $walk_root"
               continue
             fi
             case "$slug" in
