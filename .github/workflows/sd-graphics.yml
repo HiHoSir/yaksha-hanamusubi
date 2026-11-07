@@ -24,6 +24,7 @@ jobs:
       - run: python3 -m pip install pillow
       - run: python3 qa/approved-walk-assets.py
       - run: python3 qa/hizuki-side-art-inspect.py
+      - run: python3 qa/hizuki-side-leg-fix.py --ci-crop
       - run: node qa/hizuki-hana-walk.cjs
       - run: node qa/hizuki-hana-walk-preview.cjs
       - run: node qa/approved-walk-runtime.cjs
