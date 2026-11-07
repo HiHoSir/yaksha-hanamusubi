@@ -24,7 +24,8 @@ module.exports=async function checkHero(page,assert){
      await page.waitForFunction(file=>{const img=document.getElementById("battleHeroOverlay");return img&&img.complete&&img.naturalWidth>0&&img.src.includes("/"+file);},file);
      const actual=await page.locator("#battleHeroOverlay").evaluate(el=>{
       const r=el.getBoundingClientRect(),s=getComputedStyle(el),panel=document.getElementById("battle").getBoundingClientRect();
-      return {x:r.x,y:r.y,w:r.width,h:r.height,cx:r.x+r.width/2,center:panel.x+panel.width/2,
+      return {x:r.x,y:r.y,w:r.width,h:r.height,cx:r.x+r.width/2,
+       targetCx:panel.x+panel.width*(panel.width>panel.height?.36:.22),
        naturalW:el.naturalWidth,naturalH:el.naturalHeight,position:s.position,fit:s.objectFit,visible:s.visibility};
      });
      assert.equal(actual.position,"absolute","actor must be independent of HUD");
@@ -33,7 +34,27 @@ module.exports=async function checkHero(page,assert){
      if(pose!=="levelup"){
       assert.equal(actual.naturalW,512,"approved 512px source "+pose);
       assert.equal(actual.naturalH,384,"approved 384px source "+pose);
-      assert(Math.abs(actual.cx-actual.center)<28,"hero not centered "+JSON.stringify({size,safe,pose,actual}));
+      // The source PNG includes substantial transparent padding. Its IMAGE
+      // frame anchors to 22% (portrait) / 36% (landscape), which visually
+      // places the occupied sprite at approx. 36% / 42% respectively.
+      assert(Math.abs(actual.cx-actual.targetCx)<8,"hero left foreground anchor shifted "+JSON.stringify({size,safe,pose,actual}));
+      const silhouette=await page.locator("#battleHeroOverlay").evaluate(a=>{
+       const p=document.getElementById("battle").getBoundingClientRect(),r=a.getBoundingClientRect();
+       const c=document.createElement("canvas");c.width=a.naturalWidth;c.height=a.naturalHeight;
+       const ctx=c.getContext("2d");ctx.drawImage(a,0,0);
+       const d=ctx.getImageData(0,0,c.width,c.height).data;
+       let minX=c.width,maxX=-1,minY=c.height;
+       for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){
+        if(d[(y*c.width+x)*4+3]>=16){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);}
+       }
+       return {left:r.left+(minX/c.width)*r.width-p.left,
+        right:r.left+((maxX+1)/c.width)*r.width-p.left,
+        head:r.top+(minY/c.height)*r.height-p.top,screenWidth:p.width,screenHeight:p.height};
+      });
+      assert(silhouette.left>=-2&&silhouette.right<=silhouette.screenWidth+2,
+       "approved sprite is horizontally clipped "+JSON.stringify({size,safe,pose,silhouette}));
+      assert(silhouette.head>=-2&&silhouette.head<silhouette.screenHeight*.83,
+       "hero head clipped/hidden "+JSON.stringify({size,safe,pose,silhouette}));
       assert(actual.y>=-8,"actor head clipped "+pose);
      }
      if(pose==="idle"){
@@ -56,7 +77,7 @@ module.exports=async function checkHero(page,assert){
     }
    }
   }
-  console.log("PASS Hana six poses + levelup: central foreground; portrait/landscape and safe areas");
+  console.log("PASS Hana six poses + levelup: left foreground (portrait 22%, landscape 36% image anchor), no clipping, safe areas");
   await page.evaluate(()=>{Object.defineProperty(performance,"now",{configurable:true,value:window.__heroQaNow});
    window.__qaEval('resetBattleAnimation();battle.phase="command";battle.menu="root";battleLocked=false;battle.levelUpResult=false;battle.hp=battle.max=99999;battle.rareTrait=null;battlePose="idle";renderBattle();');
    window.__heroObserved=[];
