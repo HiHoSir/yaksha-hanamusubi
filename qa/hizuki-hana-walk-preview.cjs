@@ -78,54 +78,55 @@ function last(){return trace[trace.length-1];}
  await flush();
 
  const up=element("button-u");
+ const traceStart=trace.length;
  pointer(up,"pointerdown");
  assert.equal(last().frame,0,"first held step starts with A");
  assert.equal(last().dir,"u");
- assert.equal(intervals.size,1,"long press must install repeating movement");
+ assert.equal(intervals.size,1,"held direction must repeat movement");
  const firstFoot=last().y;
  advance(190);
- assert.equal(last().frame,1,"first step must pass through neutral before B");
+ assert.equal(last().frame,0,"A must remain visible until B: NO in-between idle");
  advance(150);
- assert.equal(last().frame,2,"second full step must display B");
- assert(last().y<firstFoot,"held walking must move across multiple grid cells");
- advance(190);
- assert.equal(last().frame,1,"second step must pass through neutral before A");
- advance(150);
- assert.equal(last().frame,0,"third step must return to A");
+ assert.equal(last().frame,2,"next stride must show B immediately after A");
+ assert(last().y<firstFoot,"held walking advances more than one tile");
  advance(340);
- assert.equal(last().frame,2,"fourth step must display B");
+ assert.equal(last().frame,0,"third step must be A, never idle");
+ advance(340);
+ assert.equal(last().frame,2,"fourth step must be B, never idle");
+ assert(trace.slice(traceStart).every(x=>x.frame===0||x.frame===2),
+  "no neutral frame may be drawn during continuous movement");
  const heldLast=last().y;
  pointer(up,"pointerup");
- assert.equal(intervals.size,0,"releasing button must stop repeated travel");
+ assert.equal(intervals.size,0,"releasing button stops movement");
  up.fire("click",{detail:1});
- assert.equal(last().y,heldLast,"pointer click must not cause extra movement");
+ assert.equal(last().y,heldLast,"touch-generated click must not move again");
  advance(500);
- assert.equal(element("pose").textContent.includes("直立"),true,"release settles on idle");
+ assert.equal(last().frame,1,"stopped character returns to neutral");
+ assert(element("pose").textContent.includes("直立"),"stopped pose label matches");
 
- // Side walking is checked by the near arm: A = arm behind, B = arm ahead.
- // This validates visible frame selection, not merely the stride counter.
- const right=element("button-r");
- pointer(right,"pointerdown");
- assert.equal(last().frame,0);
- assert.equal(element("pose").textContent.includes("手前の腕 後ろ"),true,"right A arm is behind");
- advance(200);
- assert.equal(last().frame,1,"right A passes through idle");
- advance(140);
- assert.equal(last().frame,2);
- assert.equal(element("pose").textContent.includes("手前の腕 前"),true,"right B arm is ahead");
- pointer(right,"pointerup");
- advance(500);
- const left=element("button-l");
- pointer(left,"pointerdown");
- assert.equal(last().frame,0);
- assert.equal(element("pose").textContent.includes("手前の腕 後ろ"),true,"left A arm is behind");
- advance(200);
- assert.equal(last().frame,1,"left A passes through idle");
- advance(140);
- assert.equal(last().frame,2);
- assert.equal(element("pose").textContent.includes("手前の腕 前"),true,"left B arm is ahead");
- pointer(left,"pointerup");
- advance(500);
+ // Use the near-side arm as a visual A/B discriminator.
+ // Right A = behind, right B = forward. Left is horizontal mirror.
+ for(const [dir,frontA,frontB] of [["r","後ろ","前"],["l","前","後ろ"]]){
+  const button=element("button-"+dir);
+  const startIndex=trace.length;
+  pointer(button,"pointerdown");
+  assert.equal(last().frame,0,dir+" first stride A");
+  assert(element("pose").textContent.includes("手前の腕 "+frontA),dir+" first arm label");
+  advance(200);
+  assert.equal(last().frame,0,dir+" A must not become neutral halfway");
+  advance(140);
+  assert.equal(last().frame,2,dir+" second stride B");
+  assert(element("pose").textContent.includes("手前の腕 "+frontB),dir+" B arm label");
+  advance(190);
+  assert.equal(last().frame,2,dir+" B must stay visible halfway");
+  advance(150);
+  assert.equal(last().frame,0,dir+" next stride A");
+  assert(trace.slice(startIndex).every(x=>x.frame!==1),
+   dir+" continuous side walking must never insert idle");
+  pointer(button,"pointerup");
+  advance(500);
+  assert.equal(last().frame,1,dir+" release returns to neutral");
+ }
 
  const unchangedFoot=last().y;
  element("variant").fire("change",{target:{value:"sd"}});
@@ -138,17 +139,16 @@ function last(){return trace[trace.length-1];}
  assert.equal(intervals.size,1,"drag must start continuous walking");
  advance(190);assert.equal(last().dir,"u");
  stage.fire("pointermove",{pointerId:2,clientX:160,clientY:100});
- assert.equal(intervals.size,1,"change of drag direction must not leak timers");
- assert.equal(element("pose").textContent.includes("右向き"),true);
+ assert.equal(intervals.size,1,"changing drag direction must not leak timers");
+ assert(element("pose").textContent.includes("右向き"),"drag turns right");
  stage.fire("pointerup",{pointerId:2,clientX:160,clientY:100});
- assert.equal(intervals.size,0,"end drag must stop repeat");
- fireDocument("keydown","ArrowLeft");assert.equal(intervals.size,1,"keyboard holds must repeat");
- fireDocument("keyup","ArrowLeft");assert.equal(intervals.size,0,"keyboard release stops repeat");
- assert.equal(trace.some(x=>x.dir==="r"&&x.frame===0),true,"side A actually drawn");
- assert.equal(trace.some(x=>x.dir==="r"&&x.frame===2),true,"side B actually drawn");
- assert.equal(trace.some(x=>x.dir==="r"&&x.frame===1),true,"side neutral actually drawn");
- assert.equal(trace.some(x=>x.dir==="l"&&x.frame===0),true,"left A actually drawn");
- assert.equal(trace.some(x=>x.dir==="l"&&x.frame===2),true,"left B actually drawn");
+ assert.equal(intervals.size,0,"end drag stops repeat");
+ fireDocument("keydown","ArrowLeft");assert.equal(intervals.size,1,"keyboard holds repeat");
+ fireDocument("keyup","ArrowLeft");assert.equal(intervals.size,0,"keyboard release stops");
+ for(const dir of ["r","l"]){
+  assert(trace.some(x=>x.dir===dir&&x.frame===0),dir+" A actually drawn");
+  assert(trace.some(x=>x.dir===dir&&x.frame===2),dir+" B actually drawn");
+ }
  assert(!/localStorage|sessionStorage/.test(scripts[0]),"preview must not touch production saves");
- console.log("PASS A→idle→B→idle, visible right/left near-arm swing, selectable slow speed, held buttons, drag, keyboard, art switch and save isolation");
+ console.log("PASS A↔B without intermediate neutral, right/left near-arm alternation, stopped neutral, slow/normal, hold, drag, keyboard, art switch and save isolation");
 })().catch(e=>{console.error(e);process.exitCode=1;});
