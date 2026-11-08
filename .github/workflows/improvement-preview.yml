@@ -265,4 +265,35 @@ jobs:
       - name: Deploy production and previews together
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify PR42 preview over public HTTP
+        if: ${{ github.ref_name == 'improve/suspend-location-field-anchor-20261108' }}
+        env:
+          DEPLOYED_BASE: ${{ steps.deployment.outputs.page_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          slug="suspend-location-field-anchor-20261108"
+          base="${DEPLOYED_BASE%/}/previews/$slug"
+          index="$RUNNER_TEMP/pr42-preview-index.html"
+          save="$RUNNER_TEMP/pr42-preview-save.js"
+          game="$RUNNER_TEMP/pr42-preview-game.js"
+          ok=false
+          for attempt in $(seq 1 16); do
+            if curl --silent --show-error --location --fail --connect-timeout 10 "$base/index.html?qa=$GITHUB_SHA" -o "$index" \
+              && grep -Fq "PR #42・検証用" "$index"; then ok=true; break; fi
+            sleep 4
+          done
+          test "$ok" = true
+          grep -Fq '<base href="../../">' "$index"
+          grep -Fq "src=\"previews/$slug/js/save.js?v=" "$index"
+          grep -Fq "src=\"previews/$slug/js/game.js?v=" "$index"
+          curl --silent --show-error --location --fail "$base/js/save.js?qa=$GITHUB_SHA" -o "$save"
+          curl --silent --show-error --location --fail "$base/js/game.js?qa=$GITHUB_SHA" -o "$game"
+          grep -Fq "const AUTO=\"yaksha_preview_${slug}_auto\"" "$save"
+          grep -Fq "BACKUP=\"yaksha_preview_${slug}_auto_backup\"" "$save"
+          grep -Fq "yaksha_preview_${slug}_slot" "$save"
+          grep -Fq "yaksha_preview_${slug}_yaksha_beta_sound_preference" "$game"
+          if grep -Fq 'const AUTO="yaksha_beta_auto"' "$save"; then exit 1; fi
+          if grep -Fq 'const HANA_WALK_FIELD_SETTING="yaksha_hana_walk_field_variant_v1"' "$game"; then exit 1; fi
+          echo "PASS: deployed PR42 HTML + candidate JS + all scoped save keys (same-origin production data untouched)"
 
