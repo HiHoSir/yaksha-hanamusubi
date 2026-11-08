@@ -156,7 +156,30 @@ for(const pose of ["idle","attack","hit","guard","victory","skill"]){
 }
 // The withheld stardust artwork is intentionally not loaded in public builds.
 // Optional new eight-direction atlas; legacy directional images remain a fallback.
-let hizukiArt=["legacy","pixel","sd"].includes(charSizeParams.get("heroArt"))?charSizeParams.get("heroArt"):"sd";
+// Separate visual preferences; do not alter battle art, collision or save formats.
+const HANA_WALK_FIELD_SETTING="yaksha_hana_walk_field_variant_v1";
+const HANA_WALK_SETTLEMENT_SETTING="yaksha_hana_walk_settlement_variant_v1";
+const WALK_ART_VARIANTS=["hana","sd","pixel","bluebob","legacy"];
+const SETTLEMENT_WALK_VARIANTS=["hana","sd"];
+const validWalkArt=(value,allowed)=>allowed.includes(value)?value:null;
+const readWalkSetting=key=>{try{return localStorage.getItem(key)}catch{return null}};
+const legacyHeroArtParam=charSizeParams.get("heroArt");
+let fieldHizukiArt=
+ validWalkArt(charSizeParams.get("fieldHeroArt"),WALK_ART_VARIANTS)||
+ validWalkArt(legacyHeroArtParam,WALK_ART_VARIANTS)||
+ validWalkArt(readWalkSetting(HANA_WALK_FIELD_SETTING),WALK_ART_VARIANTS)||"sd";
+let settlementHizukiArt=
+ validWalkArt(charSizeParams.get("settlementHeroArt"),SETTLEMENT_WALK_VARIANTS)||
+ validWalkArt(legacyHeroArtParam,SETTLEMENT_WALK_VARIANTS)||
+ validWalkArt(readWalkSetting(HANA_WALK_SETTLEMENT_SETTING),SETTLEMENT_WALK_VARIANTS)||"hana";
+// Village, indoor and shrine renderers share the same approved selection.
+function currentHizukiArt(area=S.area){
+ return area==="field"||area==="debugField"?fieldHizukiArt:settlementHizukiArt;
+}
+function loadSelectedHanaWalk(){
+ if((fieldHizukiArt==="hana"||settlementHizukiArt==="hana")
+    &&typeof YK_HANA_WALK!=="undefined")YK_HANA_WALK.ensure(assetLoaded);
+}
 // Approved coarse pixel-art battle-only idle artwork; separate from field movement sprites.
 const HIZUKI_BATTLE_FRAMES=["idle","windup","strike"].map(p=>{const im=new Image();im.onload=assetLoaded;im.datasetSrc=p==="idle"?"assets/characters/hizuki/battle-v2/hizuki_battle_idle_approved.png?v=15.57.215":`assets/characters/hizuki/battle-v2/${p}-pixel.png?v=15.57.160`;return im;});
 // User-approved original HD attack triptych; keep full-resolution RGBA originals.
@@ -206,14 +229,27 @@ const HIZUKI_FIELD_SD=new Image();
 HIZUKI_FIELD_SD.onload=assetLoaded;
 HIZUKI_FIELD_SD.onerror=()=>{HIZUKI_FIELD_SD.datasetFailed="1";};
 HIZUKI_FIELD_SD.datasetSrc="assets/characters/hizuki/field-sd-v3/walk-atlas-32.png?v=16.1.62";
-const heroArtSelect=$("heroArtSelect");
-heroArtSelect.value=hizukiArt;
-heroArtSelect.addEventListener("change",()=>{
- hizukiArt=heroArtSelect.value;
- const url=new URL(location.href);url.searchParams.set("heroArt",hizukiArt);
+const heroArtSelect=$("heroArtSelect"); // village/interior/shrine
+const fieldHeroArtSelect=$("fieldHeroArtSelect");
+heroArtSelect.value=settlementHizukiArt;
+fieldHeroArtSelect.value=fieldHizukiArt;
+loadSelectedHanaWalk();
+function persistHeroAreaChoice(area,value){
+ const isField=area==="field";
+ const allowed=isField?WALK_ART_VARIANTS:SETTLEMENT_WALK_VARIANTS;
+ if(!allowed.includes(value))return;
+ if(isField)fieldHizukiArt=value;
+ else settlementHizukiArt=value;
+ loadSelectedHanaWalk();
+ try{localStorage.setItem(isField?HANA_WALK_FIELD_SETTING:HANA_WALK_SETTLEMENT_SETTING,value);}catch{}
+ const url=new URL(location.href);
+ url.searchParams.delete("heroArt");
+ url.searchParams.set(isField?"fieldHeroArt":"settlementHeroArt",value);
  history.replaceState(null,"",url.pathname+url.search+url.hash);
  map();titleHero();
-});
+}
+fieldHeroArtSelect.addEventListener("change",()=>persistHeroAreaChoice("field",fieldHeroArtSelect.value));
+heroArtSelect.addEventListener("change",()=>persistHeroAreaChoice("settlement",heroArtSelect.value));
 const npcArtSelect=$("npcArtSelect");
 npcArtSelect.value=npcArt;
 npcArtSelect.addEventListener("change",()=>{
@@ -765,10 +801,18 @@ function enterVillageDoor(door){
 
 function shadow(c,x,y,rx=27,ry=10,a=.28){c.save();c.globalAlpha=a;c.fillStyle="#101820";c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();c.restore()}
 function hero(c,x,y,dir="d",frame=0,outfit="normal",z=1){
+ const hizukiArt=currentHizukiArt();
  z*=characterScale();
  if(hizukiArt==="pixel")ensureImage(HIZUKI_PIXEL);
- if(hizukiArt==="sd")ensureImage(HIZUKI_FIELD_SD);
- if(outfit==="normal"&&hizukiArt==="sd"&&layerReady(HIZUKI_FIELD_SD)){
+ if(hizukiArt==="sd"||hizukiArt==="hana")ensureImage(HIZUKI_FIELD_SD);
+ if(outfit==="normal"&&hizukiArt==="hana"&&typeof YK_HANA_WALK!=="undefined"&&YK_HANA_WALK.ready()){
+  const foot=y+9*z;
+  c.save();c.imageSmoothingEnabled=false;
+  shadow(c,x,foot,21*z,7*z,.28);
+  YK_HANA_WALK.draw(c,x,foot,dir,frame,48*(z/.56));
+  c.restore();return;
+ }
+ if(outfit==="normal"&&(hizukiArt==="sd"||hizukiArt==="hana")&&layerReady(HIZUKI_FIELD_SD)){
   const row=HIZUKI_4DIR_ROW[dir]??0;
   const motion=Math.max(0,Math.min(2,Number(frame)||0));
   // Approved candidate 3: columns neutral/right step/left step. Side views must alternate both steps.
@@ -852,7 +896,7 @@ function villageNpcAtlasHeight(atlas,col,row,child){
  const heroPixels=heroCol===undefined?null:visibleFrameHeight(HIZUKI_8DIR,heroCol*128,128,128,128);
  const npcPixels=visibleFrameHeight(atlas,col*192,row*224,192,224);
  if(!npcPixels)return child?43:54;
- const heroHeight=hizukiArt!=="legacy"&&(layerReady(HIZUKI_4DIR)||layerReady(HIZUKI_PIXEL))?58:heroPixels?heroPixels*(104*.56/312)*4:58;
+ const heroHeight=currentHizukiArt()!=="legacy"&&(layerReady(HIZUKI_4DIR)||layerReady(HIZUKI_PIXEL))?58:heroPixels?heroPixels*(104*.56/312)*4:58;
  const target=heroHeight*(child?.76:.96);
  return Math.max(28,Math.min(120,target*224/npcPixels));
 }
@@ -910,7 +954,7 @@ window.YKCollisionDebug=(enabled=true)=>{window.__YK_COLLISION_DEBUG=!!enabled;r
 function drawWorldTerrain(c){YK_WORLD.draw(c);}
 // Opt-in field collision diagnostics; never changes gameplay or hitboxes.
 // Runtime build fingerprint, independent of the HTML title and query-string label.
-const GAME_JS_BUILD="16.1.73";
+const GAME_JS_BUILD="16.1.91";
 window.__YK_RUNNING_GAME_BUILD=GAME_JS_BUILD;
 function runtimeBuildReport(){
  const htmlBuild=window.__YK_HTML_BUILD||"unknown";
@@ -1008,11 +1052,11 @@ function map(frameTime=performance.now()){
  if(S.area!=="field"&&S.area!=="village"&&!YK_INTERIOR_MAPS.kind(S)&&(!YK_INTERIOR_BASE.area(S)||S.restStopId))ensureNpcAssets();
  if(S.area==='village'){
   YK_HOZUKI.load(assetLoaded);if(YK_HOZUKI.ready())YK_HOZUKI.stabilize(S);
-  YK_HOZUKI.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible);return;
+  YK_HOZUKI.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible,currentHizukiArt()==="hana");return;
  }
  if(YK_INTERIOR_MAPS.kind(S)){
   if(!YK_INTERIOR_MAPS.ready(S)){const id=S.lastInterior;YK_INTERIOR_MAPS.whenReady(S).then(()=>{if(S.lastInterior===id&&YK_INTERIOR_MAPS.kind(S)){YK_INTERIOR_MAPS.stabilize(S);map();}}).catch(()=>message('室内を読み込めません。再入場してください。',2500));return;}
-  YK_INTERIOR_MAPS.stabilize(S);YK_INTERIOR_MAPS.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible,frameTime);return;
+  YK_INTERIOR_MAPS.stabilize(S);YK_INTERIOR_MAPS.draw(g,S,YK_CAMERA.position(S,fieldMotion,frameTime),collisionDebugVisible,frameTime,currentHizukiArt()==="hana");return;
  }
  if(S.area==="debugField"){drawDebugField(g);return;}
  if(S.area==="teahouse"){
@@ -1038,7 +1082,7 @@ function map(frameTime=performance.now()){
   const climbT=fieldLadderMotion&&fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||400),0,1):1;
   const climbHeight=fieldLadderMotion&&fieldMotion?fieldLadderMotion.from+(fieldLadderMotion.to-fieldLadderMotion.from)*climbT:undefined;
   g.save();g.translate(0,32);g.scale(1.2,1.2);
-  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>hero(g,px,py+((hizukiArt==='sd'?14:29)-9*.56)*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
+  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>hero(g,px,py+((['sd','hana'].includes(currentHizukiArt())?(currentHizukiArt()==='hana'?24:14):29)-9*.56)*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
    oceanOutside:true,
    elevationTerrain:true,
   });
@@ -1462,7 +1506,7 @@ function move(dx,dy,dir){
  if(fieldStyle)fieldMotion={x:startX,y:startY,at:performance.now(),duration:ladder?400:YK_MOVEMENT.duration(S.area,S.area==='field'?(Number($("speedSelect").value)||1):1)};
  fieldLadderMotion=ladder?{from:YK_ELEVATION.height(YK_WORLD.mapData,startX,startY),to:YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y)}:null;
  if(S.area==='shrine')YK_TENYO.stepSound(S.sound);
- walkPhase=(walkPhase+1)%4;S.frame=[1,0,1,2][walkPhase];lastMoved=performance.now();
+ walkPhase=(walkPhase+1)%4;S.frame=currentHizukiArt()==="hana"?(walkPhase%2?0:2):[1,0,1,2][walkPhase];lastMoved=performance.now();
  S.walk++;S.encounterSteps++;if(S.encounterGrace>0)S.encounterGrace--;
  const from=S.area,ex=exitArea();
  const contact=from==="field"?YK_AREA_TRANSITIONS.contact(YK_WORLD,S.x,S.y):null;
@@ -2150,7 +2194,17 @@ function loop(t){if(battle&&t-lastBattleMotionPaint>=33){lastBattleMotionPaint=t
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
- }map(motionTime);}else if(idleNpcPaint||idleVillagePaint||(S.area==="shrine"&&YK_TENYO.tickDue(t))){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(!fieldMotion&&S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+ }
+ // Only the approved Hana walking skin passes through its feet-together
+ // frame during the final 40% of EACH 32px step. walkPhase remains the
+ // authoritative A/B stride parity even while S.frame is temporarily idle.
+ if(fieldMotion&&currentHizukiArt()==="hana"&&typeof YK_HANA_WALK!=="undefined"
+    &&typeof YK_HANA_WALK.frameAt==="function"){
+  const stride=walkPhase%2?0:2;
+  S.frame=YK_HANA_WALK.frameAt(stride,
+   motionTime-fieldMotion.at,fieldMotion.duration||144);
+ }
+ map(motionTime);}else if(idleNpcPaint||idleVillagePaint||(S.area==="shrine"&&YK_TENYO.tickDue(t))){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(!fieldMotion&&S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
