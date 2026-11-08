@@ -40,6 +40,10 @@ class Image{
 const app={
  document,window,Image,
  YK_HANA_WALK:{ensure(fn){return true;},ready(){return true;},
+  frameAt(strideFrame,elapsedMs,durationMs,feetTogether=true){
+   if(!feetTogether||strideFrame===1)return strideFrame;
+   return elapsedMs>=durationMs*.6?1:strideFrame;
+  },
   draw(ctx,x,y,dir,frame,height){trace.push({x,y,dir,frame,height});},
   drawSourceProof(ctx,dir,frame){
    const row={d:0,u:1,r:2,l:3}[dir],col=frame===1?0:frame===0?1:2;
