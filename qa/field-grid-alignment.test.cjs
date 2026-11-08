@@ -15,9 +15,9 @@ test('old field saves snap to open cell centers and cannot restore inside a jizo
  const s=w.YK_SAVE.migrate(raw);a(W.walkable(s.x,s.y));a.equal(s.x%32,16);a.equal(s.y%32,16);a.equal(s.gold,4321);a.equal(s.quest,2);
  const p=W.safePosition([W.start[0]+5.2,W.start[1]-3.6]);a.equal(p[0]%32,16);a.equal(p[1]%32,16);
 });
-test('the production field centers the approved heroine silhouette on her movement cell',async()=>{
+test('the production field anchors heroine boots to the terrain contact rather than the sprite center',async()=>{
  const boot=require('./helpers/hozuki-game-runtime.cjs'),b=await boot();try{
-  const p=b.eval(`(()=>{const originalDraw=g.drawImage,originalQuarter=YK_LANDSCAPE.drawQuarter;let result;try{fieldHizukiArt='sd';S.area='field';S.dir='d';S.frame=1;fieldMotion=null;g.drawImage=(...args)=>{if(args[0]===HIZUKI_FIELD_SD&&args.length===9){const [,sx,sy,sw,sh,dx,dy,dw,dh]=args;const bounds=sdFieldBounds(0,0);result={x:dx+(bounds.left+bounds.width/2)*dw/32,y:dy+(bounds.bottom+1-bounds.height/2)*dh/32,height:bounds.height*dh/32};}return originalDraw.apply(g,args);};YK_LANDSCAPE.drawQuarter=(c,m,actor)=>{actor.draw(320,354,1);return true;};map();return result;}finally{g.drawImage=originalDraw;YK_LANDSCAPE.drawQuarter=originalQuarter;}})()`);
-  a(p,'production field drew the approved SD atlas');a(Math.abs(p.x-320)<.001);a(Math.abs(p.y-354)<.001,'hero center must match projected cell center');a(Math.abs(p.height-28)<.001,'approved visible scale is preserved');
+  const p=b.eval(`(()=>{const originalDraw=g.drawImage,originalQuarter=YK_LANDSCAPE.drawQuarter;let result;try{fieldHizukiArt='sd';S.area='field';S.dir='d';S.frame=1;fieldMotion=null;g.drawImage=(...args)=>{if(args[0]===HIZUKI_FIELD_SD&&args.length===9){const [,sx,sy,sw,sh,dx,dy,dw,dh]=args;const bounds=sdFieldBounds(0,0);result={x:dx+(bounds.left+bounds.width/2)*dw/32,y:dy+(bounds.bottom+1)*dh/32,height:bounds.height*dh/32};}return originalDraw.apply(g,args);};YK_LANDSCAPE.drawQuarter=(c,m,actor)=>{actor.draw(320,354,1);return true;};map();return result;}finally{g.drawImage=originalDraw;YK_LANDSCAPE.drawQuarter=originalQuarter;}})()`);
+  a(p,'production field drew the approved SD atlas');a(Math.abs(p.x-320)<.001);a(Math.abs(p.y-354)<.001,'boots must meet projected ground-contact point');a(Math.abs(p.height-28)<.001,'approved visible scale is preserved');
  }finally{b.close();}
 });

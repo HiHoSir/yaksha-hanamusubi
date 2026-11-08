@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - improve/pixel-editor-mobile-cursor
+      - improve/suspend-location-field-anchor-20261108
       - improve/interior-map-editor-32px
       - improve/front-interaction
       - improve/field-grid-alignment
@@ -47,6 +48,12 @@ jobs:
             branches+=("$branch")
           done < production/docs/pages-active-previews.txt
 
+          # This unmerged save-regression preview is assembled only on its own
+          # branch push. Main's production entry and approved preview set stay intact.
+          if [[ "${GITHUB_REF_NAME:-}" == "improve/suspend-location-field-anchor-20261108" ]]; then
+            branches+=("improve/suspend-location-field-anchor-20261108")
+          fi
+
           if [[ -n "$REQUESTED_PREVIEW" ]]; then
             case "$REQUESTED_PREVIEW" in
               improve/hizuki-hana-walk-toggle|improve/battle-front-center-hizuki|improve/interior-map-editor-32px|improve/pixel-editor-touch-workspace|improve/pixel-editor-mobile-cursor|improve/natural-cave-tiles)
@@ -68,7 +75,63 @@ jobs:
             # Full historical game snapshots are prohibited. Editor branches
             # may retain their relative assets, but not unrelated heavyweight
             # game media, source references and test output.
-            if [[ "$slug" == "natural-cave-tiles" ]]; then
+                        # Minimal real-game regression preview: share published main assets
+                      # but load only the candidate game.js and save.js in an isolated
+                      # path and independently namespaced browser storage. Do not deploy
+                      # an entire, unreviewed game snapshot.
+                      if [[ "$slug" == "suspend-location-field-anchor-20261108" ]]; then
+                        stage="$(mktemp -d)"
+                        mv "site/previews/$slug" "$stage/branch"
+                        preview_root="site/previews/$slug"
+                        mkdir -p "$preview_root/js"
+                        cp production/index.html "$preview_root/index.html"
+                        cp "$stage/branch/js/game.js" "$preview_root/js/game.js"
+                        cp "$stage/branch/js/save.js" "$preview_root/js/save.js"
+                        SLUG="$slug" python3 - <<'PY'
+          import os, pathlib
+          slug=os.environ["SLUG"]
+          root=pathlib.Path("site/previews")/slug
+          html=(root/"index.html").read_text()
+          game=(root/"js/game.js").read_text()
+          save=(root/"js/save.js").read_text()
+          def replace_once(text, old, new, scope):
+              if text.count(old)!=1:
+                  raise SystemExit(f"Expected one {scope} token: {old!r}; found {text.count(old)}")
+              return text.replace(old,new,1)
+          # Base makes all unmodified JS/CSS/art load from the production root, while
+          # the two modified scripts load from the preview path after their rewrites.
+          html=replace_once(html,"<head>","<head>\n<base href=\"../../\">","preview base")
+          for name in ("game","save"):
+              html=replace_once(html,"src=\"js/"+name+".js?v=","src=\"previews/"+slug+"/js/"+name+".js?v=","preview script")
+          html=replace_once(html,'fetch("index.html?build-check="+Date.now(),{cache:"no-store"})','fetch("previews/'+slug+'/index.html?build-check="+Date.now(),{cache:"no-store"})',"preview update check")
+          html=replace_once(html,"<body>","<body>\n<div style=\"position:fixed;z-index:99999;top:0;right:0;padding:3px 8px;background:#252c35;color:white;font:11px sans-serif;pointer-events:none\" aria-label=\"QAプレビュー\">PR #42・検証用</div>","preview identity")
+          old='const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", BACKUP="yaksha_beta_auto_backup", VER=14;'
+          new='const AUTO="yaksha_preview_'+slug+'_auto", LEGACY="yaksha_preview_'+slug+'_legacy", BACKUP="yaksha_preview_'+slug+'_auto_backup", VER=14;'
+          save=replace_once(save,old,new,"checkpoint keys including backup")
+          save=save.replace("yaksha_beta_slot","yaksha_preview_"+slug+"_slot")
+          if "yaksha_preview_"+slug+"_slot" not in save: raise SystemExit("Save slot namespace missing")
+          for key in ("yaksha_hana_walk_field_variant_v1","yaksha_hana_walk_settlement_variant_v1","yaksha_beta_sound_preference","yk.debug.fieldCollisionOff","yk.debug.encounterOff"):
+              game=replace_once(game,'"'+key+'"','"yaksha_preview_'+slug+'_'+key+'"',"game setting")
+          unsafe=("yaksha_beta_auto","yaksha_beta_slot","yaksha_beta_sound_preference","yaksha_hana_walk_field_variant_v1\"","yaksha_hana_walk_settlement_variant_v1\"","\"yk.debug.fieldCollisionOff\"","\"yk.debug.encounterOff\"")
+          # Exact-key guards: do not confuse scoped variants that include these strings.
+          if any(x in save for x in ("yaksha_beta_auto","yaksha_beta_slot","LEGACY=\"yaksha_beta\"")):
+              raise SystemExit("Production save namespace leaked into preview")
+          if any(('"'+x+'"') in game for x in ("yaksha_beta_sound_preference","yaksha_hana_walk_field_variant_v1","yaksha_hana_walk_settlement_variant_v1","yk.debug.fieldCollisionOff","yk.debug.encounterOff")):
+              raise SystemExit("Production settings namespace leaked into preview")
+          if html.count('<base href="../../">')!=1: raise SystemExit("Missing relative preview base")
+          (root/"index.html").write_text(html)
+          (root/"js/game.js").write_text(game)
+          (root/"js/save.js").write_text(save)
+          (root/"PREVIEW.txt").write_text("QA-only commit branch: "+slug+"\nsource_sha="+os.environ["GITHUB_SHA"]+"\nBrowser saves and preferences have isolated key names.\n")
+          PY
+                        rm -rf "$stage"
+                        test -s "$preview_root/index.html"
+                        test -s "$preview_root/js/game.js"
+                        test -s "$preview_root/js/save.js"
+                        echo "Isolated, minimal actual-game QA preview assembled: $preview_root"
+                        continue
+                      fi
+                    if [[ "$slug" == "natural-cave-tiles" ]]; then
               # Publish only the standalone walking QA and its required PNGs.
               stage="$(mktemp -d)"
               mv "site/previews/$slug" "$stage/branch"
@@ -202,4 +265,76 @@ jobs:
       - name: Deploy production and previews together
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify live isolated save QA preview and source SHA
+        if: ${{ github.ref_name == 'improve/suspend-location-field-anchor-20261108' }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, time, urllib.request
+          base="https://hihosir.github.io/yaksha-hanamusubi/previews/suspend-location-field-anchor-20261108/"
+          paths=("PREVIEW.txt","index.html","js/save.js","js/game.js")
+          last=None
+          for attempt in range(18):
+              try:
+                  payload={}
+                  for path in paths:
+                      req=urllib.request.Request(base+path+"?qa_sha="+os.environ["GITHUB_SHA"]+"&try="+str(attempt),
+                        headers={"Cache-Control":"no-cache","User-Agent":"yaksha-ci-isolated-preview-smoke"})
+                      with urllib.request.urlopen(req,timeout=15) as response:
+                          if response.status!=200: raise RuntimeError(f"{path}: HTTP {response.status}")
+                          payload[path]=response.read().decode("utf-8")
+                  if "source_sha="+os.environ["GITHUB_SHA"] not in payload["PREVIEW.txt"]:
+                      raise RuntimeError("Deployed preview does not match this exact source commit")
+                  html=payload["index.html"]
+                  if '<base href="../../">' not in html or "previews/suspend-location-field-anchor-20261108/js/save.js" not in html or "previews/suspend-location-field-anchor-20261108/js/game.js" not in html:
+                      raise RuntimeError("Preview HTML does not load isolated scripts")
+                  save=payload["js/save.js"]
+                  if not all("yaksha_preview_suspend-location-field-anchor-20261108_"+name in save for name in ("auto","auto_backup","slot")):
+                      raise RuntimeError("Preview save namespace is missing")
+                  if any(x in save for x in ("yaksha_beta_auto","yaksha_beta_slot",'LEGACY="yaksha_beta"')):
+                      raise RuntimeError("Production save keys leaked")
+                  game=payload["js/game.js"]
+                  for key in ("yaksha_beta_sound_preference","yaksha_hana_walk_field_variant_v1","yaksha_hana_walk_settlement_variant_v1","yk.debug.fieldCollisionOff","yk.debug.encounterOff"):
+                      if '"'+key+'"' in game:
+                          raise RuntimeError("Production preference leaked: "+key)
+                  print("PASS published preview: HTTP 200; source SHA; entrypoint; isolated saves and settings")
+                  break
+              except Exception as e:
+                  last=e
+                  print(f"Preview not ready ({attempt+1}/18): {e}",flush=True)
+                  time.sleep(7)
+          else:
+              raise SystemExit("Live Pages preview verification failed: "+str(last))
+          PY
+      - name: Verify PR42 preview over public HTTP
+        if: ${{ github.ref_name == 'improve/suspend-location-field-anchor-20261108' }}
+        env:
+          DEPLOYED_BASE: ${{ steps.deployment.outputs.page_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          slug="suspend-location-field-anchor-20261108"
+          base="${DEPLOYED_BASE%/}/previews/$slug"
+          index="$RUNNER_TEMP/pr42-preview-index.html"
+          save="$RUNNER_TEMP/pr42-preview-save.js"
+          game="$RUNNER_TEMP/pr42-preview-game.js"
+          ok=false
+          for attempt in $(seq 1 16); do
+            if curl --silent --show-error --location --fail --connect-timeout 10 "$base/index.html?qa=$GITHUB_SHA" -o "$index" \
+              && grep -Fq "PR #42・検証用" "$index"; then ok=true; break; fi
+            sleep 4
+          done
+          test "$ok" = true
+          grep -Fq '<base href="../../">' "$index"
+          grep -Fq "src=\"previews/$slug/js/save.js?v=" "$index"
+          grep -Fq "src=\"previews/$slug/js/game.js?v=" "$index"
+          curl --silent --show-error --location --fail "$base/js/save.js?qa=$GITHUB_SHA" -o "$save"
+          curl --silent --show-error --location --fail "$base/js/game.js?qa=$GITHUB_SHA" -o "$game"
+          grep -Fq "const AUTO=\"yaksha_preview_${slug}_auto\"" "$save"
+          grep -Fq "BACKUP=\"yaksha_preview_${slug}_auto_backup\"" "$save"
+          grep -Fq "yaksha_preview_${slug}_slot" "$save"
+          grep -Fq "yaksha_preview_${slug}_yaksha_beta_sound_preference" "$game"
+          if grep -Fq 'const AUTO="yaksha_beta_auto"' "$save"; then exit 1; fi
+          if grep -Fq 'const HANA_WALK_FIELD_SETTING="yaksha_hana_walk_field_variant_v1"' "$game"; then exit 1; fi
+          echo "PASS: deployed PR42 HTML + candidate JS + all scoped save keys (same-origin production data untouched)"
 

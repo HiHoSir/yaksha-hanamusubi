@@ -2,7 +2,9 @@ name: Field grid and roadside interiors
 on:
   push:
     branches: [main, improve/field-grid-alignment]
-    paths: ['js/world.js', 'js/field-elevation.js', 'js/game.js', 'js/movement-rules.js', 'js/save.js', 'js/interior-maps.js', 'qa/field-*', '.github/workflows/field-grid-alignment.yml']
+    paths: ['js/world.js', 'js/field-elevation.js', 'js/game.js', 'js/movement-rules.js', 'js/save.js', 'js/interior-maps.js', 'qa/field-*', 'qa/suspend-location-regression.cjs', 'qa/save-compat-unit.cjs', 'qa/title-save-selection.cjs', '.github/workflows/field-grid-alignment.yml']
+  pull_request:
+    paths: ['js/world.js', 'js/field-elevation.js', 'js/game.js', 'js/movement-rules.js', 'js/save.js', 'js/interior-maps.js', 'qa/field-*', 'qa/suspend-location-regression.cjs', 'qa/save-compat-unit.cjs', 'qa/title-save-selection.cjs', '.github/workflows/field-grid-alignment.yml']
 permissions:
   contents: read
 jobs:
@@ -14,12 +16,15 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100 jsdom@26.1.0 playwright@1.51.1
+      - run: node qa/save-compat-unit.cjs
+      - run: node qa/suspend-location-regression.cjs
       - run: node --test qa/field-grid-alignment.test.cjs
       - run: node --test qa/field-rest-stops.test.cjs
       - run: node --test qa/hozuki-interiors.test.cjs qa/hozuki-game.test.cjs
       - run: node --test qa/hozuki-interiors-runtime.test.cjs
       - run: node qa/field-elevation.cjs && node qa/field-atomic-movement.cjs && node qa/field-chunk-cache.cjs && node qa/movement-rules-unit.cjs && node qa/runtime-build-contract.cjs
       - run: npx playwright install --with-deps chromium
+      - run: node qa/title-save-selection.cjs
       - run: node qa/field-grid-browser.cjs
       - run: node qa/interior-base.cjs
       - uses: actions/upload-artifact@v4

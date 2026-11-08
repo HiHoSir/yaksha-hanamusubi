@@ -402,7 +402,9 @@ function alignVillageEntryFoot(x,y){
  }
  return [x,y];
 }
-function stabilizeLoadedState(){
+function stabilizeLoadedState({persistDeferred=true}={}){
+ // Loading a save is read-only until the player takes an action. In particular,
+ // async room stabilization may not overwrite the stored checkpoint by itself.
  const area=D.areas[S.area]?S.area:"field";S.area=area;
  S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
  S.encounterGrace=Math.max(Number(S.encounterGrace)||0,D.areas[area]?.grace||0);
@@ -418,7 +420,7 @@ function stabilizeLoadedState(){
    [S.x,S.y]=alignVillageEntryFoot(S.x,S.y);
  }else if(YK_INTERIOR_MAPS.kind(S)){
    if(YK_INTERIOR_MAPS.ready(S))YK_INTERIOR_MAPS.stabilize(S);
-   else {const id=S.lastInterior;YK_INTERIOR_MAPS.whenReady(S).then(()=>{if(S.lastInterior===id&&YK_INTERIOR_MAPS.kind(S)){YK_INTERIOR_MAPS.stabilize(S);YK_SAVE.auto(S);assetLoaded();}}).catch(()=>message('室内を読み込めません。もう一度お試しください。',2500));}
+   else {const id=S.lastInterior;YK_INTERIOR_MAPS.whenReady(S).then(()=>{if(S.lastInterior===id&&YK_INTERIOR_MAPS.kind(S)){YK_INTERIOR_MAPS.stabilize(S);if(persistDeferred)YK_SAVE.auto(S);assetLoaded();}}).catch(()=>message('室内を読み込めません。もう一度お試しください。',2500));}
  }else if(area==="teahouse"||area==="osumiHome"||area==="villageRoom"){
    S.x=clamp(Number(S.x)||384,60,708);S.y=clamp(Number(S.y)||625,90,690);
    if(collision(S.x,S.y)){let safe=null;for(const r of [32,64,96])for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1]])if(!safe&&!collision(S.x+dx*r,S.y+dy*r))safe=[S.x+dx*r,S.y+dy*r];[S.x,S.y]=safe||YK_INTERIOR_BASE.spawn(S);}
@@ -450,11 +452,30 @@ function restoreState(v,persist=true){
  // Restore data first; defer world-dependent stabilization until it is actually available.
  if(S.area==="field"&&(typeof YK_WORLD==="undefined"||!YK_WORLD)){
   S.hp=Math.max(1,Math.min(Number(S.hp)||1,Number(S.maxhp)||100));
-  S.x=clamp(Number(S.x)||230,40,728);S.y=clamp(Number(S.y)||534,50,718);S.frame=1;
+  // The previous provisional 768px clamp corrupted remote field positions
+  // (e.g. Y > 718) before the world module was ready. Keep the raw world grid
+  // coordinate intact, without persisting a guessed location.
+  S.frame=1;
   return S;
  }
- stabilizeLoadedState();if(persist)YK_SAVE.auto(S);return S;
+ stabilizeLoadedState({persistDeferred:persist});
+ if(persist)YK_SAVE.auto(S);
+ return S;
 }
+// On iPhone Safari a page can be suspended without completing another step.
+// Only checkpoint an active play session; never overwrite saved progress when
+// loading title, inspecting settings, showing the intro or previewing debug.
+function checkpointActivePlay(){
+ if($("title").classList.contains("show")
+    ||$("gameover").classList.contains("show")
+    ||S.area==="debugField"
+    ||(typeof YK_PROLOGUE!=="undefined"&&YK_PROLOGUE.active))return false;
+ return YK_SAVE.auto(S);
+}
+window.addEventListener("pagehide",checkpointActivePlay);
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="hidden")checkpointActivePlay();
+});
 function rr(c,x,y,w,h,r,fill,stroke){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.stroke()}}
 function flower(c,x,y,col="#f4a0b8",z=1){c.save();c.translate(x,y);c.fillStyle=col;for(let i=0;i<5;i++){c.rotate(1.256);c.beginPath();c.ellipse(0,-5*z,3*z,6*z,0,0,7);c.fill()}c.fillStyle="#f4d579";c.beginPath();c.arc(0,0,2*z,0,7);c.fill();c.restore()}
 function sakura(c,x,y,z=1){c.save();c.translate(x,y);c.scale(z,z);c.fillStyle="#493225";c.fillRect(-7,2,14,48);c.fillStyle="#64432c";c.fillRect(-2,3,5,46);for(const q of [[-22,-6,27,"#d96f99"],[19,-7,29,"#ed8fb0"],[0,-31,32,"#f0a2bc"],[-3,-52,24,"#e783a7"]]){c.fillStyle=q[3];c.beginPath();c.arc(q[0],q[1],q[2],0,7);c.fill()}for(const p of [[-29,-18],[-6,-48],[22,-31],[31,2],[-10,-5]])flower(c,p[0],p[1],"#ffd1dd",.55);c.restore()}
@@ -1082,7 +1103,14 @@ function map(frameTime=performance.now()){
   const climbT=fieldLadderMotion&&fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||400),0,1):1;
   const climbHeight=fieldLadderMotion&&fieldMotion?fieldLadderMotion.from+(fieldLadderMotion.to-fieldLadderMotion.from)*climbT:undefined;
   g.save();g.translate(0,32);g.scale(1.2,1.2);
-  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>hero(g,px,py+((['sd','hana'].includes(currentHizukiArt())?(currentHizukiArt()==='hana'?24:14):29)-9*.56)*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
+  // Elevation view passes the projected GROUND-CONTACT point as (px,py).
+  // hero() adds 9*scaledZ before placing the shadow and boots, so cancel
+  // exactly that internal offset for every field sprite (SD, Hana and others).
+  // No extra pixel offset: it put the boots below the terrain contact cell.
+  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>{
+   const spriteScale=.56*z;
+   hero(g,px,py-9*spriteScale*characterScale(),S.dir,S.frame,S.outfit,spriteScale);
+  }},1.4,{
    oceanOutside:true,
    elevationTerrain:true,
   });
@@ -1532,7 +1560,11 @@ function move(dx,dy,dir){
  }
  else if(ex&&ex!==S.area){requestAreaExit(ex);}
  else encounter();
- hud(!fieldStyle);if(S.walk%10===0)YK_SAVE.auto(S)
+ hud(!fieldStyle);
+ // Every successful atomic tile move is a genuine checkpoint. Formerly this
+ // ran only every tenth step, so "中断から再開" could load the previous area.
+ // Area-enter callbacks still replace portal-cell checkpoints on completion.
+ YK_SAVE.auto(S);
 }function renderBattlePartyCards(){
  const root=$("battlePartyCards");if(!root)return;
  const members=YK_BATTLE_RULES.partyView({name:"緋月",hp:S.hp,maxhp:S.maxhp,mp:S.mp,maxmp:S.maxmp});
@@ -2104,7 +2136,10 @@ YK_INPUT.tap($("newGame"),startNewGame);
    if(info)YK_INPUT.tap(button,()=>requestAnimationFrame(()=>{
     const saved=YK_SAVE.loadSlot(n);
     if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
-    restoreState(saved,false);
+    // The selected manual journey is now the active session. Commit its
+    // restored position immediately so an abrupt iOS reload cannot resume
+    // an unrelated stale auto checkpoint; the manual slot stays untouched.
+    restoreState(saved,true);
     $("titleLoadSelection").hidden=true;
     $("title").classList.remove("show");
     busy=false;hud();YK_AUDIO.endEncounterAudio();
@@ -2124,7 +2159,7 @@ YK_INPUT.tap($("newGame"),startNewGame);
  YK_INPUT.tap($("resumeSuspend"),()=>requestAnimationFrame(()=>{
   const saved=YK_SAVE.loadAuto();
   if(!saved){$("bootError").textContent="中断セーブがありません。";return;}
-  restoreState(saved);
+  restoreState(saved,false); // Reading a checkpoint must never overwrite it.
   $("titleLoadSelection").hidden=true;
   $("title").classList.remove("show");
   busy=false;hud();YK_AUDIO.endEncounterAudio();

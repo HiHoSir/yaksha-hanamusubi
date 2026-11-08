@@ -62,13 +62,26 @@ assert.equal(save.loadSlot(1).gold,111);
 assert.equal(save.loadSlot(2).gold,1234);
 assert.equal(save.loadSlot(3).gold,333);
 assert.equal(ctx.YK_GAME_STATE.restore(legacy).quest,2);
+// The old primary may be corrupt while the mirrored record is still valid.
+assert.equal(save.loadAuto().gold,777);
+assert.equal(JSON.parse(store.get('yaksha_beta_auto_backup')).gold,initial.gold,
+ 'previous valid checkpoint retained before every update');
 store.set('yaksha_beta_auto','{broken');
-assert.equal(save.loadAuto(),null);
+assert.equal(save.loadAuto().gold,777,'recover from a valid legacy mirror');
+store.set('yaksha_beta','{broken');
+assert.equal(save.loadAuto().gold,initial.gold,'recover from previous known-good backup');
 assert.equal(save.loadSlot(1).gold,111,'corrupt autosave must not damage manual slot');
+// Invalid coordinates are never written over a usable checkpoint.
+const beforeInvalid=store.get('yaksha_beta_auto_backup');
+assert.equal(save.auto({...latest,area:'field',x:NaN}),false);
+assert.equal(store.get('yaksha_beta_auto_backup'),beforeInvalid);
+store.set('yaksha_beta_auto_backup','{broken');
+assert.equal(save.loadAuto(),null,'without any readable record, resume returns no save');
 save.reset();
+assert.equal(store.has('yaksha_beta_auto_backup'),false,'explicit reset removes recovery checkpoint');
 assert.equal(save.loadSlot(2),null);
 assert.equal(store.has('yaksha_beta'),false);
-console.log('Save migration, persistence, slot isolation and corrupt-data contracts OK');
+console.log('Save migration, atomic tile checkpoints, last-known-good backup, mirrored recovery, manual slot isolation and corrupt-data contracts OK');
 
 
 
