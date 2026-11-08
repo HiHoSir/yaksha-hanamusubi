@@ -2164,7 +2164,17 @@ function loop(t){if(battle&&t-lastBattleMotionPaint>=33){lastBattleMotionPaint=t
  const [dx,dy]=movementInput.vector();
  if(dx||dy){const dir=dx<0?"l":dx>0?"r":dy<0?"u":"d";move(dx*22,dy*22,dir);if(fieldMotion)fieldMotion.at=Math.max(deadline,motionTime-32);}
  else S.frame=1;
- }map(motionTime);}else if(idleNpcPaint||idleVillagePaint||(S.area==="shrine"&&YK_TENYO.tickDue(t))){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(!fieldMotion&&S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
+ }
+ // Only the approved Hana walking skin passes through its feet-together
+ // frame during the final 40% of EACH 32px step. walkPhase remains the
+ // authoritative A/B stride parity even while S.frame is temporarily idle.
+ if(fieldMotion&&hizukiArt==="hana"&&typeof YK_HANA_WALK!=="undefined"
+    &&typeof YK_HANA_WALK.frameAt==="function"){
+  const stride=walkPhase%2?0:2;
+  S.frame=YK_HANA_WALK.frameAt(stride,
+   motionTime-fieldMotion.at,fieldMotion.duration||144);
+ }
+ map(motionTime);}else if(idleNpcPaint||idleVillagePaint||(S.area==="shrine"&&YK_TENYO.tickDue(t))){map(t);}if(S.area==="debugField"&&Math.abs(debugTargetAngle-debugAngle)>.001){const dt=Math.min(50,Math.max(0,t-debugCameraTime));debugAngle+=(debugTargetAngle-debugAngle)*(1-Math.pow(.82,dt/16.667));if(Math.abs(debugTargetAngle-debugAngle)<.001)debugAngle=debugTargetAngle;map();}debugCameraTime=t;if(debugMotion){if(t-debugMotion.at>=144){debugMotion=null;S.frame=1;}map();}S.playtime+=Math.min((t-last)/1000,.25);if(!fieldMotion&&S.frame!==1&&t-lastMoved>180){S.frame=1;map()}}last=t;requestAnimationFrame(loop)}
 titleHero();hud();requestAnimationFrame(loop);
 
 // DEBUG MAP — isolated from story/save state.
