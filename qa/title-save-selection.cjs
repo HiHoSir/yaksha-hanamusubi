@@ -48,12 +48,17 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().area),'village','chosen game area should control BGM');
   await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='village',null,{timeout:15000});
   assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().contextState),'running','BGM must be playing after manual save load');
-  assert.equal(await page.evaluate(()=>window.YK_SAVE.loadAuto().gold),777,'manual loading must not overwrite suspension');
+  assert.equal(await page.evaluate(()=>window.YK_SAVE.loadAuto().gold),333,
+   'loading a manual slot immediately establishes the new active suspension checkpoint');
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('yaksha_beta_auto_backup')).gold),777,
+   'the previous autosave survives as a recovery backup');
+  assert.equal(await page.evaluate(()=>window.YK_SAVE.loadSlot(3).gold),333,
+   'manual slot is untouched by automatic checkpointing');
   await page.reload();await ready();
   await page.locator('#resumeSuspend').tap();
   await page.waitForFunction(()=>!document.querySelector('#title').classList.contains('show'));
   assert.equal(await page.evaluate(()=>window.gameState.gold),333,
-   'Safari pagehide checkpoints the last active manual-loaded game, not a stale village autosave');
+   'reloading retains the last active manual-loaded game checkpoint, not a stale autosave');
   assert.equal(await page.evaluate(()=>window.gameState.sound),true,'suspension must preserve device sound preference');
   await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='village',null,{timeout:15000});
   await page.reload();await ready();
@@ -63,6 +68,9 @@ const server=http.createServer((req,res)=>{
   await page.locator('#titleLoadSlots button').first().tap();
   await page.waitForFunction(()=>!document.querySelector('#title').classList.contains('show'));
   assert.equal(await page.evaluate(()=>window.gameState.area),'field','field slot should restore field area');
+  assert.equal(await page.evaluate(()=>window.YK_SAVE.loadAuto().area),'field',
+   'title manual load commits field checkpoint before backgrounding');
+  assert.equal(await page.evaluate(()=>window.YK_SAVE.loadAuto().gold),111);
   await page.waitForFunction(()=>YK_AUDIO.diagnostics().bufferKey==='field',null,{timeout:15000});
   assert.equal(await page.evaluate(()=>YK_AUDIO.diagnostics().contextState),'running','field music must start after slot confirmed');
   await page.reload();await ready();
@@ -81,7 +89,7 @@ const server=http.createServer((req,res)=>{
   assert(await page.locator('#title').isVisible(),'missing suspension keeps title open');
   assert((await page.locator('#bootError').innerText()).includes('中断セーブがありません'));
   assert.deepEqual(errors,[],'unexpected script errors');
-  console.log('PASS title save-selection: manual slot independence, pagehide checkpoint of active field/village area, distinct suspension and missing checkpoint');
+  console.log('PASS title save-selection: immediate field/village session checkpoint, preserved previous backup, untouched manual slots, reload and missing checkpoint');
   await page.close();
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;server.close();});
