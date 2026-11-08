@@ -2132,7 +2132,10 @@ YK_INPUT.tap($("newGame"),startNewGame);
    if(info)YK_INPUT.tap(button,()=>requestAnimationFrame(()=>{
     const saved=YK_SAVE.loadSlot(n);
     if(!saved){$("titleLoadNotice").textContent="記録を読み込めませんでした。";return;}
-    restoreState(saved,false);
+    // The selected manual journey is now the active session. Commit its
+    // restored position immediately so an abrupt iOS reload cannot resume
+    // an unrelated stale auto checkpoint; the manual slot stays untouched.
+    restoreState(saved,true);
     $("titleLoadSelection").hidden=true;
     $("title").classList.remove("show");
     busy=false;hud();YK_AUDIO.endEncounterAudio();
