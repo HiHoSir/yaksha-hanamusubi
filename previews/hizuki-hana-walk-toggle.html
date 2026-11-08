@@ -12,6 +12,12 @@ select,button{background:#213742;color:#fff7d6;border:1px solid #bd9b6a;border-r
 .stage{position:relative;flex:1;min-height:240px;max-height:70dvh;border:2px solid #b4a17c;border-radius:8px;overflow:hidden;background:#233e42;touch-action:none}
 canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:center;image-rendering:pixelated}
 .tag{position:absolute;top:5px;left:6px;font-size:11px;padding:3px 7px;border-radius:4px;background:#0a1925cc;pointer-events:none}
+.sourceProof{position:absolute;top:6px;right:6px;width:min(170px,52%);padding:5px;border:1px solid #f2d378;border-radius:6px;background:#091727ec;color:#ffeed1;pointer-events:none;z-index:2;text-align:center;font-size:11px}
+.sourceProof[hidden]{display:none}
+.sourceProof strong{display:block;margin-bottom:4px;font-size:11px;font-weight:600}
+.sourceProof canvas{width:100%;height:auto;aspect-ratio:240/112;display:block;object-fit:contain;image-rendering:pixelated}
+.sourceProof small{display:block;margin-top:3px;font-size:10px;line-height:1.35;color:#f6ebcb}
+@media(max-width:390px){.sourceProof{width:148px}.sourceProof small{font-size:9px}}
 .controls{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(2,46px);gap:4px;justify-content:center;align-items:center;touch-action:manipulation}
 .controls button{font-size:20px;font-weight:700;min-width:64px;min-height:44px;padding:4px}
 .controls button:active{background:#8b5361}
@@ -27,12 +33,17 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 </label><label>速度：<select id="walkSpeed"><option value="slow" selected>ゆっくり</option><option value="normal">通常</option></select></label><span id="pose">正面・待機</span></div>
 <div class="stage" id="stage" aria-label="鬼灯村のマップで歩行画像を比較">
 <canvas id="screen" width="768" height="640"></canvas><span class="tag">32px移動格子・画像は選択時のみ変更</span>
+<div class="sourceProof" id="sourceProof" aria-label="実際に描画されるアトラス元コマ">
+<strong>使用中の元コマ（黄枠）</strong>
+<canvas id="sourceProofCanvas" width="240" height="112" aria-label="現在の向きの静止・A・Bを並べた元画像"></canvas>
+<small id="sourceProofLabel">読込中</small>
+</div>
 </div>
 <div class="controls" role="group" aria-label="4方向移動">
 <span></span><button data-dir="u" aria-label="上へ歩く">↑</button><span></span>
 <button data-dir="l" aria-label="左へ歩く">←</button><button data-dir="d" aria-label="下へ歩く">↓</button><button data-dir="r" aria-label="右へ歩く">→</button>
 </div>
-<p class="helper">方向ボタン長押しで「歩行A↔歩行B」を直立なしで交互に表示します。横向きは腕の前後で確認。停止時のみ直立へ戻ります。画面上のドラッグでも連続移動できます。</p>
+<p class="helper">方向ボタン長押しで歩行A↔Bを交互に表示。黄枠が実際に描画しているアトラスの列です。左右の腕の振りと照合できます。停止時のみ直立になります。</p>
 <p id="status" role="status">地面と歩行素材を読み込んでいます。</p>
 </main>
 <script src="js/hizuki-hana-walk.js"></script>
@@ -40,6 +51,7 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 (()=>{
 "use strict";
 const $=id=>document.getElementById(id),view=$("screen"),ctx=view.getContext("2d");
+const proofCanvas=$("sourceProofCanvas"),proofCtx=proofCanvas.getContext("2d");
 const ground=new Image(),sd=new Image();
 let terrainReady=false,sdReady=false,collision=new Set(),collisionReady=false;
 // Actual production movement cycles A -> idle -> B -> idle.
@@ -126,11 +138,17 @@ function draw(){
  }
  ctx.restore();
  const poseName=poseFrame===1?"直立":poseFrame===0?"歩行A":"歩行B";
- const side=state.dir==="l"||state.dir==="r";
- // Left direction uses the horizontally mirrored side-row (opposite screen X).
- const arm=side&&poseFrame!==1
-  ? "・手前の腕 "+((state.dir==="r") === (poseFrame===2)?"前":"後ろ") : "";
- $("pose").textContent=labels[state.dir]+"・"+poseName+arm;
+ $("pose").textContent=labels[state.dir]+"・"+poseName;
+ // Proof calls the same sourceCell() as the production sprite drawing.
+ // The yellow outline is not a second independently computed frame index.
+ $("sourceProof").hidden=state.mode!=="hana";
+ if(state.mode==="hana"){
+  const actualCell=YK_HANA_WALK.drawSourceProof(proofCtx,state.dir,poseFrame);
+  if(actualCell){
+   $("sourceProofLabel").textContent=labels[state.dir]+" "+poseName+"："+
+     (actualCell.row+1)+"行目 "+(actualCell.col+1)+"列目";
+  }
+ }
  if(state.mode==="hana"&&!YK_HANA_WALK.ready())$("status").textContent="新歩行アトラスを読み込んでいます。";
 }
 $("variant").addEventListener("change",e=>{state.mode=e.target.value;draw();$("status").textContent=(state.mode==="hana"?"新歩行":"旧SD")+"に切り替えました（マス座標と衝突判定は不変）。"});
