@@ -2,9 +2,9 @@ name: Field grid and roadside interiors
 on:
   push:
     branches: [main, improve/field-grid-alignment]
-    paths: ['js/world.js', 'js/field-elevation.js', 'js/game.js', 'js/movement-rules.js', 'js/save.js', 'js/interior-maps.js', 'qa/field-*', 'qa/suspend-location-regression.cjs', 'qa/save-compat-unit.cjs', '.github/workflows/field-grid-alignment.yml']
+    paths: ['js/world.js', 'js/field-elevation.js', 'js/game.js', 'js/movement-rules.js', 'js/save.js', 'js/interior-maps.js', 'qa/field-*', 'qa/suspend-location-regression.cjs', 'qa/save-compat-unit.cjs', 'qa/title-save-selection.cjs', '.github/workflows/field-grid-alignment.yml']
   pull_request:
-    paths: ['js/world.js', 'js/field-elevation.js', 'js/game.js', 'js/movement-rules.js', 'js/save.js', 'js/interior-maps.js', 'qa/field-*', 'qa/suspend-location-regression.cjs', 'qa/save-compat-unit.cjs', '.github/workflows/field-grid-alignment.yml']
+    paths: ['js/world.js', 'js/field-elevation.js', 'js/game.js', 'js/movement-rules.js', 'js/save.js', 'js/interior-maps.js', 'qa/field-*', 'qa/suspend-location-regression.cjs', 'qa/save-compat-unit.cjs', 'qa/title-save-selection.cjs', '.github/workflows/field-grid-alignment.yml']
 permissions:
   contents: read
 jobs:
@@ -24,6 +24,7 @@ jobs:
       - run: node --test qa/hozuki-interiors-runtime.test.cjs
       - run: node qa/field-elevation.cjs && node qa/field-atomic-movement.cjs && node qa/field-chunk-cache.cjs && node qa/movement-rules-unit.cjs && node qa/runtime-build-contract.cjs
       - run: npx playwright install --with-deps chromium
+      - run: node qa/title-save-selection.cjs
       - run: node qa/field-grid-browser.cjs
       - run: node qa/interior-base.cjs
       - uses: actions/upload-artifact@v4
