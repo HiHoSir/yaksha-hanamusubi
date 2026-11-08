@@ -47,3 +47,25 @@
 
 QA: `qa/hizuki-hana-walk.cjs` で複数の移動時間に対し60%境界の前後とゲーム組込みパスを検証し、
 `qa/hizuki-hana-walk-preview.cjs` で切替比較時の実描画・黄色枠を検証。
+
+## エリア別の表示切替（2026-11-08）
+
+ユーザー方針：「村の中は新グラフィック、フィールドはSDでもよい。ひとまず切替可能にする」。
+
+`js/game.js` の歩行画像選択を、エリアごとに**独立した設定**へ分離。
+- フィールド、フィールド検査：初期値 `sd`。従来選択肢 `hana/sd/pixel/bluebob/legacy` を保持。
+- 鬼灯村、室内（茶店・宿・民家など）、天妖の社とその他探索マップ：初期値 `hana`。比較用に `sd` へ切替可能。
+- 設定UI：`fieldHeroArtSelect`（フィールド）、`heroArtSelect`（村・室内・社）。
+- 保存先：`yaksha_hana_walk_field_variant_v1`、`yaksha_hana_walk_settlement_variant_v1` の2つの独立したlocalStorageキー。
+- URL：`?fieldHeroArt=sd&settlementHeroArt=hana` など。以前の `?heroArt=hana` を明示したリンクは従来どおり両方へ適用できるよう維持。
+- 旧localStorage `yaksha_hana_walk_variant_v1` と、セーブデータ本体は書き換えない。
+- 描画経路で `currentHizukiArt(S.area)` を呼び出すため、マップ遷移時に設定が自動反映される。
+- 新画像には承認済み A → 足揃え → B → 足揃え の60/40%タイミング、SDには既存の歩行タイミングをそのまま適用。
+- 原画、足元アンカー、32px移動格子、速度、当たり判定、敵／戦闘画像は変更しない。
+
+追加検査：`qa/hizuki-walk-area-preferences.cjs` は実ゲームから抽出した設定コードをVMで実行し、
+フィールドSD・村／室内／社Hanaの初期値、独立切替、再読込、URL、旧テストリンク、セーブ非干渉を検証。
+`qa/approved-walk-runtime.cjs` のSD専用VMにはエリア別選択関数のスタブを追加し、旧画像の描画検査を維持。
+
+作業対象：改善ブランチ `improve/hizuki-hana-walk-toggle` / PR #41。
+本編 `main` にはマージ承認まで反映しない。Pagesプレビューと、実ゲームのSafari実機検査を別の検査として扱う。
