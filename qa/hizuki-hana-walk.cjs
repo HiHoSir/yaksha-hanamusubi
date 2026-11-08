@@ -32,6 +32,23 @@ for(const [dir,row] of Object.entries({d:0,u:1,r:2,l:3})){
  }
 }
 assert.equal(calls.length,12);
+for(const stride of [0,2]){
+ for(const duration of [120,190,340,400]){
+  const boundary=duration*.6;
+  assert.equal(atlas.frameAt(stride,0,duration),stride,
+   "active stride starts each movement tile");
+  assert.equal(atlas.frameAt(stride,boundary-.001,duration),stride,
+   "active stride remains until first 60%");
+  assert.equal(atlas.frameAt(stride,boundary,duration),1,
+   "feet-together starts at 60% progress");
+  assert.equal(atlas.frameAt(stride,duration-.001,duration),1,
+   "feet-together remains until next tile");
+  assert.equal(atlas.frameAt(stride,duration,duration,false),stride,
+   "original direct A/B comparison is still selectable");
+ }
+}
+assert.equal(atlas.frameAt(1,10,144),1,"stopped pose remains neutral");
+
 // Prove the preview highlight shares the exact source-cell mapping used by
 // draw(), including the third column of the bottom two directional rows.
 for(const [dir,row] of [["r",2],["l",3]]){
@@ -63,5 +80,11 @@ assert(html.includes('<option value="hana">'),"user setting exists");
 assert(html.includes('js/hizuki-hana-walk.js'),"shared module loaded");
 assert(game.includes('localStorage.setItem(HANA_WALK_SETTING,hizukiArt)'),"selection persists");
 assert(game.includes('S.frame=hizukiArt==="hana"?(walkPhase%2?0:2):[1,0,1,2][walkPhase]'),
- "Hana uses A/B without idle; legacy retains A/idle/B/idle");
-console.log("Hana walking PASS: 240x448 RGBA, 12 frames, feet, draw sizing, field/village/interior toggle and persistence");
+ "Hana retains opposite A/B stride parity each tile; legacy keeps original cycle");
+assert(game.includes('S.frame=YK_HANA_WALK.frameAt(stride,'),
+ "actual exploration loop must calculate approved feet-together pose each frame");
+assert(game.includes('motionTime-fieldMotion.at,fieldMotion.duration||144'),
+ "frame timing uses current grid movement duration and does not slow the character");
+assert(game.includes('if(fieldMotion&&hizukiArt==="hana"'),
+ "only active Hana movement interpolates feet-together; SD remains unchanged");
+console.log("Hana walking PASS: original 12-cell atlas, approved A-neutral-B-neutral timing at 60% of actual movement, field/village/interior and legacy-preserving selector");
