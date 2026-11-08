@@ -81,6 +81,9 @@ function last(){return trace[trace.length-1];}
 (async()=>{
  vm.runInNewContext(scripts[0],app,{filename:"hizuki-hana-walk-toggle.html"});
  await flush();
+ assert.equal(element("walkCycle").value,"neutral","new comparison mode defaults to feet-together");
+ // Existing movement regression tests exercise the original no-neutral mode.
+ element("walkCycle").fire("change",{target:{value:"direct"}});
 
  const up=element("button-u");
  const traceStart=trace.length;
@@ -161,6 +164,40 @@ function last(){return trace[trace.length-1];}
   assert(trace.some(x=>x.dir===dir&&x.frame===0),dir+" A actually drawn");
   assert(trace.some(x=>x.dir===dir&&x.frame===2),dir+" B actually drawn");
  }
+ // The experimental foot-together cycle must visibly draw A -> neutral -> B
+ // -> neutral, while preserving 32px movement and the original atlas.
+ element("walkSpeed").fire("change",{target:{value:"slow"}});
+ element("walkCycle").fire("change",{target:{value:"neutral"}});
+ const right2=element("button-r");
+ const neutralStart=trace.length,proofStart=proofTrace.length;
+ pointer(right2,"pointerdown");
+ const aOrB=last().frame,other=aOrB===0?2:0;
+ assert([0,2].includes(aOrB),"experimental walk starts with a stride");
+ const firstProof=proofTrace.at(-1);
+ assert.equal(firstProof.col,aOrB===0?1:2,"experiment first source uses correct stride");
+ advance(206);
+ assert.equal(last().frame,1,"feet together inserted between strides");
+ assert.equal(proofTrace.at(-1).col,0,"feet-together source highlights idle first column");
+ advance(134);
+ assert.equal(last().frame,other,"other stride follows feet-together");
+ assert.equal(proofTrace.at(-1).col,other===0?1:2,"other stride highlights correct source cell");
+ advance(206);
+ assert.equal(last().frame,1,"feet together again before next alternating stride");
+ assert.equal(proofTrace.at(-1).col,0,"second feet-together highlights idle column");
+ assert(trace.slice(neutralStart).some(x=>x.frame===1),"experiment actually draws idle");
+ assert(proofTrace.slice(proofStart).some(x=>x.col===0),"source proof observes idle");
+ assert.equal(intervals.size,1,"repeat movement remains active in experimental mode");
+ pointer(right2,"pointerup");
+ assert.equal(intervals.size,0,"experimental long press release stops movement");
+ advance(500);
+ assert.equal(last().frame,1,"release settles on idle");
+ element("walkCycle").fire("change",{target:{value:"direct"}});
+ const directStart=trace.length;
+ pointer(right2,"pointerdown");
+ advance(206);
+ assert(trace.slice(directStart).every(x=>x.frame!==1),
+  "direct mode remains available without intermediate idle");
+ pointer(right2,"pointerup");
  assert(!/localStorage|sessionStorage/.test(scripts[0]),"preview must not touch production saves");
- console.log("PASS actual source-cell proof of both lower-right B frames, right/left A↔B, stopped neutral, speed, hold, drag, keyboard, art switch and save isolation");
+ console.log("PASS gait comparison: A-B and A-neutral-B-neutral, source-cell proof, unchanged continuous tile movement, drag, keyboard, art switch and save isolation");
 })().catch(e=>{console.error(e);process.exitCode=1;});
