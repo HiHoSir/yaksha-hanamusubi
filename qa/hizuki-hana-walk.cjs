@@ -72,19 +72,28 @@ const game=fs.readFileSync(path.join(root,"js/game.js"),"utf8");
 const village=fs.readFileSync(path.join(root,"js/hozuki-village-game.js"),"utf8");
 const interior=fs.readFileSync(path.join(root,"js/interior-maps.js"),"utf8");
 const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
+assert(game.includes('const hizukiArt=currentHizukiArt()'),"hero drawer resolves current scene's art");
 assert(game.includes('hizukiArt==="hana"&&typeof YK_HANA_WALK!=="undefined"&&YK_HANA_WALK.ready()'),"real field artist switch");
-assert(game.includes('hizukiArt==="hana");return;'),"real village/interior switches");
+assert(game.includes('collisionDebugVisible,currentHizukiArt()==="hana");return;'),"real village switch");
+assert(game.includes('collisionDebugVisible,frameTime,currentHizukiArt()==="hana");return;'),"real interior switch");
+assert(game.includes('const HANA_WALK_FIELD_SETTING='),"field art preference persists independently");
+assert(game.includes('const HANA_WALK_SETTLEMENT_SETTING='),"village art preference persists independently");
+assert(game.includes('return area==="field"||area==="debugField"?fieldHizukiArt:settlementHizukiArt;'),
+ "field uses SD default while village/interior/shrine use Hana default");
 assert(village.includes('host.YK_HANA_WALK.draw(wc,'),"village uses shared renderer");
 assert(interior.includes('host.YK_HANA_WALK.draw(c,'),"interior uses shared renderer");
-assert(html.includes('<option value="hana">'),"user setting exists");
+assert(html.includes('id="fieldHeroArtSelect"'),"field selector exists");
+assert(html.includes('id="heroArtSelect"'),"village/interior selector exists");
+assert(html.includes('<option value="hana">'),"new artwork selectable");
 assert(html.includes('js/hizuki-hana-walk.js'),"shared module loaded");
-assert(game.includes('localStorage.setItem(HANA_WALK_SETTING,hizukiArt)'),"selection persists");
-assert(game.includes('S.frame=hizukiArt==="hana"?(walkPhase%2?0:2):[1,0,1,2][walkPhase]'),
- "Hana retains opposite A/B stride parity each tile; legacy keeps original cycle");
+assert(game.includes('localStorage.setItem(isField?HANA_WALK_FIELD_SETTING:HANA_WALK_SETTLEMENT_SETTING,value)'),
+ "both visual choices persist independently of game save");
+assert(game.includes('S.frame=currentHizukiArt()==="hana"?(walkPhase%2?0:2):[1,0,1,2][walkPhase]'),
+ "Hana retains A/B stride parity per area; legacy SD keeps original cycle");
 assert(game.includes('S.frame=YK_HANA_WALK.frameAt(stride,'),
  "actual exploration loop must calculate approved feet-together pose each frame");
 assert(game.includes('motionTime-fieldMotion.at,fieldMotion.duration||144'),
  "frame timing uses current grid movement duration and does not slow the character");
-assert(game.includes('if(fieldMotion&&hizukiArt==="hana"'),
+assert(game.includes('if(fieldMotion&&currentHizukiArt()==="hana"'),
  "only active Hana movement interpolates feet-together; SD remains unchanged");
-console.log("Hana walking PASS: original 12-cell atlas, approved A-neutral-B-neutral timing at 60% of actual movement, field/village/interior and legacy-preserving selector");
+console.log("Hana walking PASS: 12-cell atlas, feet-together cadence, independent SD field and Hana village/interior switches, previous SD behavior");
