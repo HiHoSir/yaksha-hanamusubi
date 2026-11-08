@@ -30,7 +30,9 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 <h1>鬼哭の花結び — 緋月・歩行グラフィック比較・連続歩行対応</h1>
 <div class="toolbar"><label>歩行画像：
 <select id="variant"><option value="hana">新・80×112原画</option><option value="sd">旧・32px SD</option></select>
-</label><label>速度：<select id="walkSpeed"><option value="slow" selected>ゆっくり</option><option value="normal">通常</option></select></label><span id="pose">正面・待機</span></div>
+</label><label>速度：<select id="walkSpeed"><option value="slow" selected>ゆっくり</option><option value="normal">通常</option></select></label>
+<label>歩行：<select id="walkCycle" aria-label="歩行コマの再生方法"><option value="neutral" selected>足揃えあり</option><option value="direct">足揃えなし</option></select></label>
+<span id="pose">正面・待機</span></div>
 <div class="stage" id="stage" aria-label="鬼灯村のマップで歩行画像を比較">
 <canvas id="screen" width="768" height="640"></canvas><span class="tag">32px移動格子・画像は選択時のみ変更</span>
 <div class="sourceProof" id="sourceProof" aria-label="実際に描画されるアトラス元コマ">
@@ -43,7 +45,7 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 <span></span><button data-dir="u" aria-label="上へ歩く">↑</button><span></span>
 <button data-dir="l" aria-label="左へ歩く">←</button><button data-dir="d" aria-label="下へ歩く">↓</button><button data-dir="r" aria-label="右へ歩く">→</button>
 </div>
-<p class="helper">方向ボタン長押しで歩行A↔Bを交互に表示。黄枠が実際に描画しているアトラスの列です。左右の腕の振りと照合できます。停止時のみ直立になります。</p>
+<p class="helper">歩行方式を「足揃えあり／なし」で切替。長押しで連続歩行し、黄枠で使用中のコマを確認できます。移動速度・32px格子・アセットは同じです。</p>
 <p id="status" role="status">地面と歩行素材を読み込んでいます。</p>
 </main>
 <script src="js/hizuki-hana-walk.js"></script>
@@ -54,15 +56,18 @@ const $=id=>document.getElementById(id),view=$("screen"),ctx=view.getContext("2d
 const proofCanvas=$("sourceProofCanvas"),proofCtx=proofCanvas.getContext("2d");
 const ground=new Image(),sd=new Image();
 let terrainReady=false,sdReady=false,collision=new Set(),collisionReady=false;
-// Actual production movement cycles A -> idle -> B -> idle.
+// Comparison only: movement and 32px collisions are unchanged in both modes.
+// "neutral": A -> feet-together -> B -> feet-together, once per walking tile.
+// "direct": A -> B without an intermediate neutral frame.
 const SPEEDS={slow:{step:340,slide:300},normal:{step:190,slide:166}};
-let cadence=SPEEDS.slow;
-function stepFrame(){
- // Continuous motion is only A/B. Neutral is reserved for stopped state.
- // Neither speed mode nor a frame timer inserts idle between the two strides.
- return state.frame;
+let cadence=SPEEDS.slow,gaitMode="neutral";
+function stepFrame(at=performance.now()){
+ if(state.frame===1||gaitMode==="direct")return state.frame;
+ // 60% of the step shows its active stride, final 40% feet-together.
+ return at-state.stepAt>=cadence.step*.60?1:state.frame;
 }
 const state={x:336,y:528,fromX:336,fromY:528,stepAt:-1000,stride:0,dir:"d",frame:1,mode:"hana"};
+$("walkCycle").value=gaitMode;
 let holdOwner=null,heldDir=null,repeatTimer=null,idleTimer=null,animationFrame=null;
 const key={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]},labels={u:"背面",d:"正面",l:"左向き",r:"右向き"};
 ground.onload=()=>{terrainReady=true;draw()};ground.onerror=()=>{$("status").textContent="背景読み込みエラー";draw()};
@@ -159,6 +164,11 @@ $("walkSpeed").addEventListener("change",e=>{
   stopHold();startHold(owner,dir);
  }
  draw();
+});
+$("walkCycle").addEventListener("change",e=>{
+ gaitMode=e.target.value==="direct"?"direct":"neutral";
+ draw();
+ $("status").textContent=gaitMode==="neutral"?"足揃えあり：A → 直立 → B → 直立":"足揃えなし：A → B";
 });
 // iPhone: pointer capture keeps held input active while the thumb moves out of
 // a 44px button. No click handler for pointer-activated taps (prevents double steps).
