@@ -12,8 +12,9 @@ assert.equal(stops.length,4);
 const cells=await run(`(()=>{const expected=new Set(YK_WORLD.mapData.decorations.flatMap(o=>o.occupiedTiles.map(p=>p.join(','))));return {actual:[...YK_WORLD.mapData.occupiedTiles].sort(),expected:[...expected].sort(),guides:YK_WORLD.guides.every(g=>!YK_WORLD.walkable(g.x,g.y))};})()`);
 assert.deepEqual(cells.actual,cells.expected);assert(cells.guides);
 await run(`S.area='field';S.x=YK_WORLD.start[0];S.y=YK_WORLD.start[1];fieldMotion=null;S.dir='d';`);
-await run('YK_LANDSCAPE.load(()=>{})');await page.waitForFunction(()=>YK_LANDSCAPE.ready());
-const aligned=await run(`(()=>{const before=YKSpriteOutline.draw;let center;try{YKSpriteOutline.draw=(c,im,sx,sy,sw,sh,dx,dy,dw,dh,...extra)=>{if(im===HIZUKI_FIELD_SD){const b=sdFieldBounds(0,0),v=c.getTransform().transformPoint(new DOMPoint(dx+(b.left+b.width/2)*dw/32,dy+(b.bottom+1-b.height/2)*dh/32));center=[v.x,v.y];}return before(c,im,sx,sy,sw,sh,dx,dy,dw,dh,...extra);};map();const p=YK_LANDSCAPE.project(S.x,S.y,{x:S.x,y:S.y},1.4),h=YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y);return {center,expected:[p.x*1.2,32+1.2*(p.y-h*20*p.scale)]};}finally{YKSpriteOutline.draw=before;}})()`);
+await run('YK_LANDSCAPE.load(()=>{});ensureImage(HIZUKI_FIELD_SD)');await page.waitForFunction(()=>YK_LANDSCAPE.ready());
+await page.waitForFunction(()=>window.__qaEval('layerReady(HIZUKI_FIELD_SD)'));
+const aligned=await run(`(()=>{const before=g.drawImage;let center;try{fieldHizukiArt='sd';g.drawImage=function(...args){if(args[0]===HIZUKI_FIELD_SD&&args.length===9){const [,sx,sy,sw,sh,dx,dy,dw,dh]=args,b=sdFieldBounds(0,0),v=g.getTransform().transformPoint(new DOMPoint(dx+(b.left+b.width/2)*dw/32,dy+(b.bottom+1-b.height/2)*dh/32));center=[v.x,v.y];}return before.apply(g,args);};map();const p=YK_LANDSCAPE.project(S.x,S.y,{x:S.x,y:S.y},1.4),h=YK_ELEVATION.height(YK_WORLD.mapData,S.x,S.y);return {center,expected:[p.x*1.2,32+1.2*(p.y-h*20*p.scale)]};}finally{g.drawImage=before;}})()`);
 assert(aligned.center,'approved hero rendered');assert(aligned.center.every((p,i)=>Math.abs(p-aligned.expected[i])<.01),JSON.stringify(aligned));
 await run('collisionDebugVisible=true;map()');await page.screenshot({path:path.join(out,'field-grid-alignment.png')});await run('collisionDebugVisible=false');
 for(const stop of stops){
