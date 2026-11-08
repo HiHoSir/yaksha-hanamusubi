@@ -122,7 +122,7 @@ jobs:
           (root/"index.html").write_text(html)
           (root/"js/game.js").write_text(game)
           (root/"js/save.js").write_text(save)
-          (root/"PREVIEW.txt").write_text("QA-only commit branch: "+slug+"\nBrowser saves and preferences have isolated key names.\n")
+          (root/"PREVIEW.txt").write_text("QA-only commit branch: "+slug+"\nsource_sha="+os.environ["GITHUB_SHA"]+"\nBrowser saves and preferences have isolated key names.\n")
           PY
                         rm -rf "$stage"
                         test -s "$preview_root/index.html"
@@ -265,6 +265,47 @@ jobs:
       - name: Deploy production and previews together
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify live isolated save QA preview and source SHA
+        if: ${{ github.ref_name == 'improve/suspend-location-field-anchor-20261108' }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, time, urllib.request
+          base="https://hihosir.github.io/yaksha-hanamusubi/previews/suspend-location-field-anchor-20261108/"
+          paths=("PREVIEW.txt","index.html","js/save.js","js/game.js")
+          last=None
+          for attempt in range(18):
+              try:
+                  payload={}
+                  for path in paths:
+                      req=urllib.request.Request(base+path+"?qa_sha="+os.environ["GITHUB_SHA"]+"&try="+str(attempt),
+                        headers={"Cache-Control":"no-cache","User-Agent":"yaksha-ci-isolated-preview-smoke"})
+                      with urllib.request.urlopen(req,timeout=15) as response:
+                          if response.status!=200: raise RuntimeError(f"{path}: HTTP {response.status}")
+                          payload[path]=response.read().decode("utf-8")
+                  if "source_sha="+os.environ["GITHUB_SHA"] not in payload["PREVIEW.txt"]:
+                      raise RuntimeError("Deployed preview does not match this exact source commit")
+                  html=payload["index.html"]
+                  if '<base href="../../">' not in html or "previews/suspend-location-field-anchor-20261108/js/save.js" not in html or "previews/suspend-location-field-anchor-20261108/js/game.js" not in html:
+                      raise RuntimeError("Preview HTML does not load isolated scripts")
+                  save=payload["js/save.js"]
+                  if not all("yaksha_preview_suspend-location-field-anchor-20261108_"+name in save for name in ("auto","auto_backup","slot")):
+                      raise RuntimeError("Preview save namespace is missing")
+                  if any(x in save for x in ("yaksha_beta_auto","yaksha_beta_slot",'LEGACY="yaksha_beta"')):
+                      raise RuntimeError("Production save keys leaked")
+                  game=payload["js/game.js"]
+                  for key in ("yaksha_beta_sound_preference","yaksha_hana_walk_field_variant_v1","yaksha_hana_walk_settlement_variant_v1","yk.debug.fieldCollisionOff","yk.debug.encounterOff"):
+                      if '"'+key+'"' in game:
+                          raise RuntimeError("Production preference leaked: "+key)
+                  print("PASS published preview: HTTP 200; source SHA; entrypoint; isolated saves and settings")
+                  break
+              except Exception as e:
+                  last=e
+                  print(f"Preview not ready ({attempt+1}/18): {e}",flush=True)
+                  time.sleep(7)
+          else:
+              raise SystemExit("Live Pages preview verification failed: "+str(last))
+          PY
       - name: Verify PR42 preview over public HTTP
         if: ${{ github.ref_name == 'improve/suspend-location-field-anchor-20261108' }}
         env:
