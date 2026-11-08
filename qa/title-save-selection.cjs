@@ -16,6 +16,10 @@ const server=http.createServer((req,res)=>{
   const page=await browser.newPage({viewport:{width:393,height:667},isMobile:true,hasTouch:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
+   // addInitScript runs again on every reload. Never re-seed stale village
+   // autosaves after the game has written a newer active field checkpoint.
+   if(sessionStorage.getItem('__qa_title_save_seeded_v1')==='1')return;
+   sessionStorage.setItem('__qa_title_save_seeded_v1','1');
    const common={saveVersion:14,worldRevision:119,area:'village',x:768,y:920,lv:3,quest:2,hp:70,maxhp:70,mp:12,maxmp:12,outfit:'normal',sound:false};
    localStorage.setItem('yaksha_beta_auto',JSON.stringify({...common,gold:777,lv:7}));
    localStorage.setItem('yaksha_beta_slot1',JSON.stringify({...common,area:'field',x:1072,y:2192,gold:111,lv:1}));
