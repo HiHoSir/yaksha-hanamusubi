@@ -28,13 +28,15 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 <body>
 <main>
 <h1>鬼哭の花結び — 緋月・歩行グラフィック比較・連続歩行対応</h1>
-<div class="toolbar"><label>歩行画像：
-<select id="variant"><option value="hana">新・80×112原画</option><option value="sd">旧・32px SD</option></select>
+<div class="toolbar"><label>場面別設定：
+<select id="scenePreset" aria-label="フィールドまたは村の画像設定を表示"><option value="village">村・室内・社</option><option value="field">フィールド</option></select></label>
+<label>この場面の画像：
+<select id="variant"><option value="hana">新・80×112原画</option><option value="sd">SD・32px</option></select>
 </label><label>速度：<select id="walkSpeed"><option value="slow" selected>ゆっくり</option><option value="normal">通常</option></select></label>
 <label>歩行：<select id="walkCycle" aria-label="歩行コマの再生方法"><option value="neutral" selected>足揃えあり</option><option value="direct">足揃えなし</option></select></label>
 <span id="pose">正面・待機</span></div>
 <div class="stage" id="stage" aria-label="鬼灯村のマップで歩行画像を比較">
-<canvas id="screen" width="768" height="640"></canvas><span class="tag">32px移動格子・画像は選択時のみ変更</span>
+<canvas id="screen" width="768" height="640"></canvas><span class="tag">※背景は村固定。歩行画像の場面別設定を比較</span>
 <div class="sourceProof" id="sourceProof" aria-label="実際に描画されるアトラス元コマ">
 <strong>使用中の元コマ（黄枠）</strong>
 <canvas id="sourceProofCanvas" width="240" height="112" aria-label="現在の向きの静止・A・Bを並べた元画像"></canvas>
@@ -45,7 +47,7 @@ canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:cen
 <span></span><button data-dir="u" aria-label="上へ歩く">↑</button><span></span>
 <button data-dir="l" aria-label="左へ歩く">←</button><button data-dir="d" aria-label="下へ歩く">↓</button><button data-dir="r" aria-label="右へ歩く">→</button>
 </div>
-<p class="helper">歩行方式を「足揃えあり／なし」で切替。長押しで連続歩行し、黄枠で使用中のコマを確認できます。移動速度・32px格子・アセットは同じです。</p>
+<p class="helper">場面別に「フィールドSD／村・室内は新」を比較できます。背景は鬼灯村固定です。長押し連続歩行・足揃えありのまま画像だけ切替でき、設定はこの検査ページ内のみです。</p>
 <p id="status" role="status">地面と歩行素材を読み込んでいます。</p>
 </main>
 <script src="js/hizuki-hana-walk.js"></script>
@@ -66,6 +68,10 @@ function stepFrame(at=performance.now()){
  return YK_HANA_WALK.frameAt(state.frame,at-state.stepAt,cadence.step,gaitMode==="neutral");
 }
 const state={x:336,y:528,fromX:336,fromY:528,stepAt:-1000,stride:0,dir:"d",frame:1,mode:"hana"};
+// Isolated preview preferences are in memory only; production save data is never read.
+const artByArea={field:"sd",village:"hana"};
+$("scenePreset").value="village";
+$("variant").value=artByArea.village;
 $("walkCycle").value=gaitMode;
 let holdOwner=null,heldDir=null,repeatTimer=null,idleTimer=null,animationFrame=null;
 const key={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]},labels={u:"背面",d:"正面",l:"左向き",r:"右向き"};
@@ -155,7 +161,23 @@ function draw(){
  }
  if(state.mode==="hana"&&!YK_HANA_WALK.ready())$("status").textContent="新歩行アトラスを読み込んでいます。";
 }
-$("variant").addEventListener("change",e=>{state.mode=e.target.value;draw();$("status").textContent=(state.mode==="hana"?"新歩行":"旧SD")+"に切り替えました（マス座標と衝突判定は不変）。"});
+$("scenePreset").addEventListener("change",e=>{
+ const area=e.target.value==="field"?"field":"village";
+ const art=artByArea[area];
+ state.mode=art;
+ $("variant").value=art;
+ draw();
+ $("status").textContent=(area==="field"?"フィールド":"村・室内・社")+"の設定："+
+  (art==="hana"?"新歩行":"SD")+"。背景は村固定・表示画像のみ切替。";
+});
+$("variant").addEventListener("change",e=>{
+ const art=e.target.value==="sd"?"sd":"hana";
+ const area=$("scenePreset").value==="field"?"field":"village";
+ artByArea[area]=art;state.mode=art;
+ draw();
+ $("status").textContent=(area==="field"?"フィールド":"村・室内・社")+
+  "の歩行画像を"+(art==="hana"?"新":"SD")+"に変更（他の場面設定はそのまま）。";
+});
 $("walkSpeed").addEventListener("change",e=>{
  cadence=SPEEDS[e.target.value]||SPEEDS.slow;
  if(heldDir!==null){
