@@ -66,13 +66,15 @@ function loadAuto(){
 function auto(s){
  if(!s||!YK_DATA.areas[s.area]||!Number.isFinite(s.x)||!Number.isFinite(s.y))return false;
  try{
-  // Preserve the previous valid checkpoint *before* overwriting the latest.
-  // This does not modify the manual save slots or change serialization.
-  const prior=localStorage.getItem(AUTO);
-  if(parseAuto(prior))localStorage.setItem(BACKUP,prior);
+  // Backups are best-effort: if Safari storage quota is nearly full,
+  // losing backup capacity must never prevent committing the current save.
+  try{
+   const prior=localStorage.getItem(AUTO);
+   if(parseAuto(prior))localStorage.setItem(BACKUP,prior);
+  }catch{}
   const stamp=Date.now(),serialized=JSON.stringify({...s,lastSave:stamp});
-  localStorage.setItem(AUTO,serialized);
-  localStorage.setItem(LEGACY,serialized);
+  localStorage.setItem(AUTO,serialized); // authoritative checkpoint first
+  try{localStorage.setItem(LEGACY,serialized);}catch{} // optional old mirror
   s.lastSave=stamp;
   return true;
  }catch{return false}
