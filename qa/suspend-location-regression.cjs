@@ -5,8 +5,8 @@ const fs=require("node:fs");
 const vm=require("node:vm");
 const boot=require("./helpers/hozuki-game-runtime.cjs");
 const source=fs.readFileSync("js/game.js","utf8");
-assert(source.includes("const fieldFootOffset=currentHizukiArt()==='sd'?14:29;"),
- "SD field anchor stays +14 and optional Hana retains former +29");
+assert(source.includes("py-9*spriteScale*characterScale()")&&!source.includes("const fieldFootOffset="),
+ "field boots use projected terrain contact for every sprite, without per-skin offset");
 assert(!source.includes("if(S.walk%10===0)YK_SAVE.auto(S)"),
  "successful grid steps must no longer leave stale ten-step autosaves");
 assert(source.includes("hud(!fieldStyle);\n // Every successful atomic tile move"),
@@ -106,5 +106,5 @@ function missingWorldShouldNotClamp(){
 (async()=>{
  missingWorldShouldNotClamp();
  await actualGame();
- console.log("PASS title suspension restores field location, tile-level checkpoint and backup, pagehide, title guard, save slots and field anchor");
+ console.log("PASS title suspension restores field location, tile-level checkpoint and backup, pagehide, title guard, save slots and terrain-contact anchor");
 })().catch(e=>{console.error(e);process.exitCode=1});
