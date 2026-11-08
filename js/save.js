@@ -1,5 +1,5 @@
 window.YK_SAVE=(()=>{
-const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=14;
+const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", BACKUP="yaksha_beta_auto_backup", VER=14;
 const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:3,vegetables:{},harvests:{},relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:70,maxhp:70,mp:12,maxmp:12,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:10,def:3,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
@@ -41,12 +41,43 @@ function migrate(raw){
  s.saveVersion=VER;s.encounterSteps=Number(s.encounterSteps)||0;s.encounterGrace=Number(s.encounterGrace)||0;s.teaVisits=Number(s.teaVisits)||0;
  return s;
 }
-function loadAuto(){try{const raw=localStorage.getItem(AUTO)||localStorage.getItem(LEGACY);return raw?migrate(JSON.parse(raw)):null}catch(e){return null}}
-function auto(s){try{s.lastSave=Date.now();localStorage.setItem(AUTO,JSON.stringify(s));localStorage.setItem(LEGACY,JSON.stringify(s));return true}catch(e){return false}}
+// Prefer the current checkpoint, then the legacy mirror, then one preserved
+// previous checkpoint. A malformed newer value must never make all older
+// valid records unreachable. No recovery path writes over a stored record.
+function readableAuto(raw){
+ if(!raw)return null;
+ try{
+  const parsed=JSON.parse(raw);
+  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed)
+     ||!Number.isFinite(parsed.x)||!Number.isFinite(parsed.y)
+     ||!YK_DATA.areas[parsed.area])return null;
+  return migrate(parsed);
+ }catch{return null}
+}
+function loadAuto(){
+ for(const key of [AUTO,LEGACY,BACKUP]){
+  try{const saved=readableAuto(localStorage.getItem(key));if(saved)return saved;}catch{}
+ }
+ return null;
+}
+function auto(s){
+ if(!s||!YK_DATA.areas[s.area]||!Number.isFinite(s.x)||!Number.isFinite(s.y))return false;
+ try{
+  // Preserve the previous valid checkpoint *before* overwriting the latest.
+  // This does not modify the manual save slots or change serialization.
+  const prior=localStorage.getItem(AUTO);
+  if(readableAuto(prior))localStorage.setItem(BACKUP,prior);
+  const serialized=JSON.stringify({...s,lastSave:Date.now()});
+  localStorage.setItem(AUTO,serialized);
+  localStorage.setItem(LEGACY,serialized);
+  s.lastSave=JSON.parse(serialized).lastSave;
+  return true;
+ }catch{return false}
+}
 function saveSlot(n,s){try{s.lastSave=Date.now();localStorage.setItem("yaksha_beta_slot"+n,JSON.stringify(s));return true}catch(e){return false}}
 function loadSlot(n){try{const r=localStorage.getItem("yaksha_beta_slot"+n);return r?migrate(JSON.parse(r)):null}catch(e){return null}}
 function slotInfo(n){const s=loadSlot(n);return s?{lv:s.lv,area:(YK_DATA.areas[s.area]||{}).name||s.area,time:s.lastSave}:null}
-function reset(){[AUTO,LEGACY,"yaksha_beta_slot1","yaksha_beta_slot2","yaksha_beta_slot3"].forEach(k=>localStorage.removeItem(k))}
+function reset(){[AUTO,LEGACY,BACKUP,"yaksha_beta_slot1","yaksha_beta_slot2","yaksha_beta_slot3"].forEach(k=>localStorage.removeItem(k))}
 return {fresh,migrate,loadAuto,auto,saveSlot,loadSlot,slotInfo,reset};
 })();
 
