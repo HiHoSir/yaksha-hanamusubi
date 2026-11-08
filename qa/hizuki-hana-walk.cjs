@@ -32,6 +32,25 @@ for(const [dir,row] of Object.entries({d:0,u:1,r:2,l:3})){
  }
 }
 assert.equal(calls.length,12);
+// Prove the preview highlight shares the exact source-cell mapping used by
+// draw(), including the third column of the bottom two directional rows.
+for(const [dir,row] of [["r",2],["l",3]]){
+ for(const [frame,col] of [[1,0],[0,1],[2,2]]){
+  const cell=atlas.sourceCell(dir,frame);
+  assert.deepEqual([cell.x,cell.y,cell.w,cell.h],[col*80,row*112,80,112],
+   dir+" "+frame+" crop coordinates");
+  const marks=[];
+  const c={save(){},restore(){},clearRect(){},fillRect(){},drawImage(...args){marks.push(args);},
+   strokeRect(...args){marks.push(["outline",...args]);}};
+  const selected=atlas.drawSourceProof(c,dir,frame);
+  assert.deepEqual([selected.row,selected.col],[row,col]);
+  const draw=marks.find(x=>x.length===9);
+  assert(draw&&draw[2]===row*112,"full direction row drawn");
+  const stroke=marks.find(x=>x[0]==="outline");
+  assert(stroke&&stroke[1]===col*80+1.5,"yellow source highlight selects same column");
+ }
+}
+
 const game=fs.readFileSync(path.join(root,"js/game.js"),"utf8");
 const village=fs.readFileSync(path.join(root,"js/hozuki-village-game.js"),"utf8");
 const interior=fs.readFileSync(path.join(root,"js/interior-maps.js"),"utf8");
