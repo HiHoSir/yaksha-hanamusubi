@@ -151,6 +151,26 @@ function last(){return trace[trace.length-1];}
  assert.equal(element("sourceProof").hidden,true,"proof hidden when legacy sprite selected");
  element("variant").fire("change",{target:{value:"hana"}});
  assert.equal(element("sourceProof").hidden,false,"proof visible for new sprites");
+ // Area preview mimics the settings preference split; field and village must
+ // retain independent choices without changing location/collision or saves.
+ assert.equal(element("scenePreset").value,"village");
+ assert.equal(element("variant").value,"hana");
+ const scene=element("scenePreset");
+ scene.value="field";scene.fire("change",{target:scene});
+ assert.equal(element("variant").value,"sd","field initially shows SD");
+ assert.equal(element("sourceProof").hidden,true,"field SD hides Hana source overlay");
+ const variant=element("variant");
+ variant.value="hana";variant.fire("change",{target:variant});
+ assert.equal(element("sourceProof").hidden,false,"field can choose Hana");
+ scene.value="village";scene.fire("change",{target:scene});
+ assert.equal(variant.value,"hana","changing field does not change village Hana default");
+ variant.value="sd";variant.fire("change",{target:variant});
+ scene.value="field";scene.fire("change",{target:scene});
+ assert.equal(variant.value,"hana","field Hana retained after village toggled");
+ scene.value="village";scene.fire("change",{target:scene});
+ assert.equal(variant.value,"sd","village SD retained separately");
+ variant.value="hana";variant.fire("change",{target:variant});
+ assert.equal(element("sourceProof").hidden,false,"village reselects Hana");
  element("walkSpeed").fire("change",{target:{value:"normal"}});
  const stage=element("stage");
  pointer(stage,"pointerdown",{clientX:100,clientY:100,pointerId:2});
@@ -203,5 +223,5 @@ function last(){return trace[trace.length-1];}
   "direct mode remains available without intermediate idle");
  pointer(right2,"pointerup");
  assert(!/localStorage|sessionStorage/.test(scripts[0]),"preview must not touch production saves");
- console.log("PASS gait comparison: A-B and A-neutral-B-neutral, source-cell proof, unchanged continuous tile movement, drag, keyboard, art switch and save isolation");
+ console.log("PASS split field/village art preferences, gait A-B and A-neutral-B-neutral, source-cell proof, movement, drag, keyboard and save isolation");
 })().catch(e=>{console.error(e);process.exitCode=1;});
