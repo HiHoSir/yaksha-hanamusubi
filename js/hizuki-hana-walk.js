@@ -29,6 +29,14 @@
   }
   return false;
  }
+ // Shared walking cadence used by production rendering and the preview.
+ // Every grid step begins as A or B; its last 40% shows feet together.
+ // Motion speed and collision positions are not affected by the visual pose.
+ function frameAt(strideFrame,elapsedMs,durationMs,feetTogether=true){
+  if(!feetTogether||strideFrame===1)return strideFrame;
+  const duration=Number.isFinite(durationMs)&&durationMs>0?durationMs:1;
+  return elapsedMs>=duration*.6?1:strideFrame;
+ }
  // One source-cell resolver for both actual rendering and the proof overlay.
  function sourceCell(dir="d",frame=1){
   const row=ROW[dir]??0;
@@ -65,5 +73,5 @@
   ctx.restore();
   return cell;
  }
- return {PATH,CELL_W,CELL_H,FOOT_X,FOOT_Y,ROW,ready,ensure,sourceCell,draw,drawSourceProof};
+ return {PATH,CELL_W,CELL_H,FOOT_X,FOOT_Y,ROW,ready,ensure,sourceCell,frameAt,draw,drawSourceProof};
 });
