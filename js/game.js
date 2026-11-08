@@ -1103,10 +1103,14 @@ function map(frameTime=performance.now()){
   const climbT=fieldLadderMotion&&fieldMotion?clamp((frameTime-fieldMotion.at)/(fieldMotion.duration||400),0,1):1;
   const climbHeight=fieldLadderMotion&&fieldMotion?fieldLadderMotion.from+(fieldLadderMotion.to-fieldLadderMotion.from)*climbT:undefined;
   g.save();g.translate(0,32);g.scale(1.2,1.2);
-  // The original field artist anchoring is +14 (SD) / +29 (non-SD).
-  // Keep +29 for the optional Hana skin; +24 was a regression in PR #41.
-  const fieldFootOffset=currentHizukiArt()==='sd'?14:29;
-  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>hero(g,px,py+(fieldFootOffset-9*.56)*z,S.dir,S.frame,S.outfit,.56*z)},1.4,{
+  // Elevation view passes the projected GROUND-CONTACT point as (px,py).
+  // hero() adds 9*scaledZ before placing the shadow and boots, so cancel
+  // exactly that internal offset for every field sprite (SD, Hana and others).
+  // No extra pixel offset: it put the boots below the terrain contact cell.
+  const ready=YK_LANDSCAPE.drawQuarter(g,YK_WORLD.mapData,{x,foot:y,height:climbHeight,draw:(px,py,z)=>{
+   const spriteScale=.56*z;
+   hero(g,px,py-9*spriteScale*characterScale(),S.dir,S.frame,S.outfit,spriteScale);
+  }},1.4,{
    oceanOutside:true,
    elevationTerrain:true,
   });
