@@ -157,7 +157,8 @@
   <h2>設定</h2>
   <label class="toggle"><span>BGM・効果音・会話音声</span><input id="soundToggle" type="checkbox" checked></label>
   <label class="toggle"><span>移動速度</span><select id="speedSelect"><option value="1">標準</option><option value="1.35">速い</option></select></label>
-  <label class="toggle"><span>主人公の歩行画像</span><select id="heroArtSelect"><option value="hana">新・花結びの歩行（80×112原画）</option><option value="bluebob">緋月・水色髪</option><option value="sd">緋月・フィールドSD（試用）</option><option value="pixel">おまけ・ドット絵</option><option value="legacy">旧素材（比較用）</option></select></label>
+  <label class="toggle"><span>フィールドの緋月</span><select id="fieldHeroArtSelect" aria-label="フィールド歩行画像"><option value="sd">SD・32px（初期設定）</option><option value="hana">新・80×112歩行</option><option value="bluebob">緋月・水色髪</option><option value="pixel">おまけ・ドット絵</option><option value="legacy">旧素材（比較用）</option></select></label>
+  <label class="toggle"><span>村・室内・社の緋月</span><select id="heroArtSelect" aria-label="村と室内の歩行画像"><option value="hana">新・80×112歩行（初期設定）</option><option value="sd">SD・32px</option></select></label>
   <label class="toggle"><span>村人の素材</span><select id="npcArtSelect"><option value="illustration">新イラスト（村人5種類）</option><option value="legacy">旧素材（比較用）</option></select></label>
   <details><summary>開発・検査用設定</summary><p><a href="elevation-lab.html" style="color:#ffe3a1">高低差の検証マップを開く</a></p><label class="toggle"><span>通常エンカウント OFF（探索検査）</span><input id="encounterDebugOff" type="checkbox"></label><label class="toggle"><span>地形無視（フィールド探索検査）</span><input id="fieldCollisionDebugOff" type="checkbox"></label><p class="menuHelp">ランダム戦闘だけを停止します。イベント・ボス戦は対象外です。設定は端末に保存されます。地形無視はフィールドの地形・障害物判定だけを解除し、画面外への移動は防ぎます。</p></details>
   <button id="resetBtn" class="danger">セーブデータ初期化</button>
