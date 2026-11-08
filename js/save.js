@@ -44,15 +44,18 @@ function migrate(raw){
 // Prefer the current checkpoint, then the legacy mirror, then one preserved
 // previous checkpoint. A malformed newer value must never make all older
 // valid records unreachable. No recovery path writes over a stored record.
-function readableAuto(raw){
+function parseAuto(raw){
  if(!raw)return null;
  try{
   const parsed=JSON.parse(raw);
-  if(!parsed||typeof parsed!=="object"||Array.isArray(parsed)
-     ||!Number.isFinite(parsed.x)||!Number.isFinite(parsed.y)
-     ||!YK_DATA.areas[parsed.area])return null;
-  return migrate(parsed);
+  return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)
+    &&Number.isFinite(parsed.x)&&Number.isFinite(parsed.y)
+    &&YK_DATA.areas[parsed.area]?parsed:null;
  }catch{return null}
+}
+function readableAuto(raw){
+ const parsed=parseAuto(raw);
+ return parsed?migrate(parsed):null;
 }
 function loadAuto(){
  for(const key of [AUTO,LEGACY,BACKUP]){
@@ -66,11 +69,11 @@ function auto(s){
   // Preserve the previous valid checkpoint *before* overwriting the latest.
   // This does not modify the manual save slots or change serialization.
   const prior=localStorage.getItem(AUTO);
-  if(readableAuto(prior))localStorage.setItem(BACKUP,prior);
-  const serialized=JSON.stringify({...s,lastSave:Date.now()});
+  if(parseAuto(prior))localStorage.setItem(BACKUP,prior);
+  const stamp=Date.now(),serialized=JSON.stringify({...s,lastSave:stamp});
   localStorage.setItem(AUTO,serialized);
   localStorage.setItem(LEGACY,serialized);
-  s.lastSave=JSON.parse(serialized).lastSave;
+  s.lastSave=stamp;
   return true;
  }catch{return false}
 }
