@@ -62,9 +62,8 @@ let terrainReady=false,sdReady=false,collision=new Set(),collisionReady=false;
 const SPEEDS={slow:{step:340,slide:300},normal:{step:190,slide:166}};
 let cadence=SPEEDS.slow,gaitMode="neutral";
 function stepFrame(at=performance.now()){
- if(state.frame===1||gaitMode==="direct")return state.frame;
- // 60% of the step shows its active stride, final 40% feet-together.
- return at-state.stepAt>=cadence.step*.60?1:state.frame;
+ // Same cadence helper is now used in the actual game, avoiding preview drift.
+ return YK_HANA_WALK.frameAt(state.frame,at-state.stepAt,cadence.step,gaitMode==="neutral");
 }
 const state={x:336,y:528,fromX:336,fromY:528,stepAt:-1000,stride:0,dir:"d",frame:1,mode:"hana"};
 $("walkCycle").value=gaitMode;
