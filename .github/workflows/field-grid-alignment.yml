@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --package-lock=false @napi-rs/canvas@0.1.100 jsdom@26.1.0 playwright@1.51.1
+      - run: node qa/save-compat-unit.cjs
       - run: node qa/suspend-location-regression.cjs
       - run: node --test qa/field-grid-alignment.test.cjs
       - run: node --test qa/field-rest-stops.test.cjs
