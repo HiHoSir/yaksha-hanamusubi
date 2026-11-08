@@ -2,9 +2,9 @@ name: SD graphics
 on:
   push:
     branches: [main]
-    paths: ['js/game.js', 'js/hizuki-hana-walk.js', 'qa/hizuki-hana-walk.cjs', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'assets/characters/hizuki/field-sd-v3/**', 'assets/characters/tenyo-npc-v3/**', 'js/tenyo-npc-art.js', 'qa/approved-walk-assets.py', 'qa/approved-walk-runtime.cjs', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
+    paths: ['js/game.js', 'js/hizuki-hana-walk.js', 'qa/hizuki-hana-walk.cjs', 'qa/hizuki-walk-area-preferences.cjs', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'assets/characters/hizuki/field-sd-v3/**', 'assets/characters/tenyo-npc-v3/**', 'js/tenyo-npc-art.js', 'qa/approved-walk-assets.py', 'qa/approved-walk-runtime.cjs', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
   pull_request:
-    paths: ['js/game.js', 'js/hizuki-hana-walk.js', 'qa/hizuki-hana-walk.cjs', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'assets/characters/hizuki/field-sd-v3/**', 'assets/characters/tenyo-npc-v3/**', 'js/tenyo-npc-art.js', 'qa/approved-walk-assets.py', 'qa/approved-walk-runtime.cjs', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
+    paths: ['js/game.js', 'js/hizuki-hana-walk.js', 'qa/hizuki-hana-walk.cjs', 'qa/hizuki-walk-area-preferences.cjs', 'js/sprite-outline.js', 'js/hozuki-village-*.js', 'js/settlement-map/render.js', 'assets/characters/hizuki/field-sd-v2/**', 'assets/characters/hizuki/field-sd-v3/**', 'assets/characters/tenyo-npc-v3/**', 'js/tenyo-npc-art.js', 'qa/approved-walk-assets.py', 'qa/approved-walk-runtime.cjs', 'qa/*outline*.cjs', '.github/workflows/sd-graphics.yml']
 permissions:
   contents: read
 jobs:
@@ -24,6 +24,7 @@ jobs:
       - run: python3 -m pip install pillow
       - run: python3 qa/approved-walk-assets.py
       - run: node qa/hizuki-hana-walk.cjs
+      - run: node qa/hizuki-walk-area-preferences.cjs
       - run: node qa/hizuki-hana-walk-preview.cjs
       - run: node qa/approved-walk-runtime.cjs
         env:
