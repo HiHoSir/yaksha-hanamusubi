@@ -90,8 +90,11 @@ const server=http.createServer((req,res)=>{
    localStorage.removeItem('yaksha_beta_auto_backup');
   });
   await page.locator('#resumeSuspend').tap();
+  // The title handler deliberately runs on the next animation frame to avoid
+  // a synthetic click landing on a newly revealed control. Wait for that UI
+  // update rather than reading #bootError immediately after the tap.
+  await page.waitForFunction(()=>document.querySelector('#bootError')?.textContent.includes('中断セーブがありません'));
   assert(await page.locator('#title').isVisible(),'missing suspension keeps title open');
-  assert((await page.locator('#bootError').innerText()).includes('中断セーブがありません'));
   assert.deepEqual(errors,[],'unexpected script errors');
   console.log('PASS title save-selection: immediate field/village session checkpoint, preserved previous backup, untouched manual slots, reload and missing checkpoint');
   await page.close();
