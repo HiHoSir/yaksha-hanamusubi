@@ -54,7 +54,37 @@ const evaluate=function evaluate(d){
   warnings.push("No live battle code, save migration, or Pages QA included in design-only data");
   return {issues,warnings,combats,pass:issues.length===0};
 };
+// Cross-check the exact source v2 JSON; never silently diverge from the user-approved figures.
+const original=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/battle/hizuki-status-v2.json'),'utf8'));
+const sourceIssues=[];
+const requireSource=(cond,message)=>{if(!cond)sourceIssues.push(message);};
+requireSource(original.format==='yaksha-hanamusubi-status-v2','v2 source marker');
+requireSource(original.formula_branch.startsWith('B'),'B formula source branch');
+requireSource(original.damage_formula.includes('floor(攻/2 - 守/4)'),'source physical formula');
+for(const srcTier of original.equipment_tiers){
+ const tier=data.proposals.tiers.find(t=>t.id===srcTier.tier);
+ requireSource(!!tier,'missing tier '+srcTier.tier);
+ if(tier) {
+  requireSource(tier.weaponAtk===srcTier.weapon_bonus,'weapon bonus drift '+srcTier.tier);
+  requireSource(tier.armorDef===srcTier.armor_bonus,'armor bonus drift '+srcTier.tier);
+ }
+}
+for(const [field,src] of [['hp','体力'],['mp','技'],['atk','攻'],['def','守'],['speed','はやさ']]){
+ requireSource(data.confirmed.baseline.dan1[field]===original.base_dan1[src],'base stat drift '+field);
+ requireSource(data.confirmed.baseline.growth[field]===original.growth_per_dan[src],'growth drift '+field);
+}
+const calculate=(dan,tier,enemyDef)=>{
+ const base=original.base_stats_by_dan[String(dan)];
+ const t=original.equipment_tiers.find(x=>x.tier===tier);
+ return Math.floor((base['攻']+t.weapon_bonus)/2-enemyDef/4);
+};
+for(const b of original.benchmarks){
+ const r=calculate(b.dan,b.tier,b.enemy.def);
+ requireSource(r===b.proper.damage_dealt,'original benchmark damage drift at dan '+b.dan);
+}
 const result=evaluate(data);
+result.issues.push(...sourceIssues);
+result.pass=result.issues.length===0;
 for(const row of result.combats) console.log(`${row.enemy} | 段${row.dan} ${row.tier} | ${row.turns}発撃破 | 被ダメ${row.taken} (${row.pct}%)`);
 for(const warning of result.warnings) console.warn('WARN: '+warning);
 if(!result.pass){for(const issue of result.issues) console.error('FAIL: '+issue);process.exitCode=1;}
