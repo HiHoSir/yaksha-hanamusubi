@@ -40,7 +40,7 @@ function migrate(raw){
  YK_EQUIPMENT.migrate(s,raw);
  s.awakening=Math.max(0,Math.min(2,Math.floor(Number(s.awakening)||0)));
  s.lastTown='village';
- YK_BATTLE_V2.refresh(s,raw?.balanceRevision!==2);
+ if(typeof YK_BATTLE_V2!=='undefined')YK_BATTLE_V2.refresh(s,raw?.balanceRevision!==2);
  s.saveVersion=VER;s.encounterSteps=Number(s.encounterSteps)||0;s.encounterGrace=Number(s.encounterGrace)||0;s.teaVisits=Number(s.teaVisits)||0;
  return s;
 }
