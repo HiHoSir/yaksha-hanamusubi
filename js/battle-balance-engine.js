@@ -14,7 +14,7 @@ function hero(data,dan=1,tierId='T0',awakening=0){
   def:Math.round(b.def+g.def*n)+t.armorDef,
   speed:Math.round(b.speed+g.speed*n)
  };
- for(let i=0;i<awakening;i++){const a=c.awakening[i];for(const [key,value] of Object.entries(a)){if(typeof value==='number'&&key in stats)stats[key]+=value;}}
+ for(let i=0;i<awakening;i++){const a=c.awakening[i];for(const [key,value] of Object.entries(a)){const dest=key==='hp'?'maxhp':key;if(typeof value==='number'&&dest in stats)stats[dest]+=value;}}
  return {...stats,hp:stats.maxhp,mp:stats.maxmp,xp:0,gold:0};
 }
 function damage(atk,def,random=Math.random){
