@@ -342,24 +342,24 @@ function rareReady(r){
  return layerReady(RARE_ART[r.id]?.intact);
 }
 function relicBonus(stat){return (D.relics[S.equippedRelic]?.[stat]||0)+YK_EQUIPMENT.bonus(S,stat);}
-function enemyArt(c,x,y,debugSmoothing=null){
- const name=battle?.baseName||battle?.name||"",profile=D.enemyProfiles?.[name];
+function enemyArt(c,x,y,debugSmoothing=null,member=battle,groupScale=1){
+ const name=member?.baseName||member?.name||"",profile=D.enemyProfiles?.[name];
  const kind=/狐/.test(name)?"ninefox":/磯|泡|水|滝/.test(name)?"umibozu":/木|蜘蛛/.test(name)?"yokai_flower":"redoni";
  const dedicated=profile?.art&&ENEMY_ART[profile.art],fallback=B9EN[profile?.fallback||kind];
  const atlasIndex=Number.isInteger(profile?.atlas)?profile.atlas:null,atlasReady=atlasIndex!==null&&layerReady(ENEMY_ATLAS);
- const rareDef=battle?.rareId?Object.values(D.rareKinds).find(r=>r.id===battle.rareId):null;
+ const rareDef=member?.rareId?Object.values(D.rareKinds).find(r=>r.id===battle.rareId):null;
  const variantIndex=Number.isInteger(rareDef?.variantAtlas)?rareDef.variantAtlas:null;
  const wornVariantReady=false; // damaged clothing visuals disabled
  const variantReady=variantIndex!==null&&layerReady(VARIANT_ATLAS);
- const rareLegacy=battle?.rareId?RARE_ART[battle.rareId]?.intact:null;
- const hd=HD_RARE_ART[battle?.rareId]?.intact;
- const bossArt=battle?.boss?KAGEKYUBI_ART:null;
- const normalArt=!battle?.rareId&&!battle?.boss?REDESIGNED_ENEMY_ART[name]:null;
+ const rareLegacy=member?.rareId?RARE_ART[battle.rareId]?.intact:null;
+ const hd=HD_RARE_ART[member?.rareId]?.intact;
+ const bossArt=member?.boss?KAGEKYUBI_ART:null;
+ const normalArt=!member?.rareId&&!member?.boss?REDESIGNED_ENEMY_ART[name==='灯火狐'?'鬼火':name]:null;
  const highResReady=(!!normalArt&&layerReady(normalArt))||(!!bossArt&&layerReady(bossArt))||(!!hd&&layerReady(hd));
- const im=highResReady?(normalArt&&layerReady(normalArt)?normalArt:(bossArt&&layerReady(bossArt)?bossArt:hd)):(battle?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback)));if(!layerReady(im))return;
+ const im=highResReady?(normalArt&&layerReady(normalArt)?normalArt:(bossArt&&layerReady(bossArt)?bossArt:hd)):(member?.rareId?(wornVariantReady?VARIANT_WORN_ATLAS:(variantReady?VARIANT_ATLAS:rareLegacy)):(atlasReady?ENEMY_ATLAS:(layerReady(dedicated)?dedicated:fallback)));if(!layerReady(im))return;
  const bakedAtlas=!highResReady&&(wornVariantReady||variantReady||atlasReady);
  const cell=bakedAtlas?128:null;
- const scale=bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1);
+ const scale=groupScale*(bakedAtlas?Math.min(210/cell,220/cell)*(profile?.scale||1):Math.min(210/im.naturalWidth,220/im.naturalHeight)*(profile?.scale||1));
  const w=(bakedAtlas?cell:im.naturalWidth)*scale,h=(bakedAtlas?cell:im.naturalHeight)*scale;
  let ox=0,oy=0;
  const baseY=y+65+(profile?.yOffset||0);
@@ -370,7 +370,7 @@ function enemyArt(c,x,y,debugSmoothing=null){
   const rush=Math.sin(p*Math.PI); ox=(profile?.style==="trickster"?-16:-26)*rush;oy=-Math.sin(p*Math.PI)*8;
  }
  // Enemy contact shadows are baked into the sprite assets; no runtime shadow.
- c.save();c.imageSmoothingEnabled=debugSmoothing===null?(highResReady?true:(bakedAtlas?false:(!!battle?.rareId||layerReady(dedicated)))):debugSmoothing;c.imageSmoothingQuality="high";
+ c.save();c.imageSmoothingEnabled=debugSmoothing===null?(highResReady?true:(bakedAtlas?false:(!!member?.rareId||layerReady(dedicated)))):debugSmoothing;c.imageSmoothingQuality="high";
  if(highResReady){c.drawImage(im,x+ox-w/2,baseY+oy-h,w,h);}
  else if(wornVariantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
  else if(variantReady){const sx=(variantIndex%VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL,sy=Math.floor(variantIndex/VARIANT_ATLAS_COLS)*VARIANT_ATLAS_CELL;c.drawImage(im,sx,sy,VARIANT_ATLAS_CELL,VARIANT_ATLAS_CELL,x+ox-w/2,baseY+oy-h,w,h);}
@@ -379,7 +379,7 @@ function enemyArt(c,x,y,debugSmoothing=null){
 }
 function cover(c,im,w,h,alpha=1){if(!im||!im.complete||!im.naturalWidth)return false;const r=Math.max(w/im.naturalWidth,h/im.naturalHeight),sw=w/r,sh=h/r,sx=(im.naturalWidth-sw)/2,sy=(im.naturalHeight-sh)/2;c.save();c.globalAlpha=alpha;c.drawImage(im,sx,sy,sw,sh,0,0,w,h);c.restore();return true}
 let villageDoorMotion=null,villagePaintAt=0,npcPaintAt=0;
-const D=YK_DATA,E=YK_EQUIPMENT, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const D=YK_DATA,E=YK_EQUIPMENT,B=YK_BATTLE_V2, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const areaOrder=["village","shrine","cove","forest","waterfall","fox"];
 function state(v){
  villageDoorMotion=null;fieldMotion=null;$("pad").classList.remove("dialogActive");$("cancel").disabled=false;$("pad").classList.remove("battleActive");
@@ -1333,27 +1333,55 @@ function setEncounterDebugOff(value){
  try{localStorage.setItem(encounterDebugKey,encounterDebugOff?"1":"0");}catch(_){}
  syncEncounterDebug();
 }
+function selectBattleTarget(index){
+ if(!battle?.enemies?.[index]||battle.enemies[index].hp<=0)return null;
+ const m=battle.enemies[index];battle.activeIndex=index;
+ Object.assign(battle,{name:m.name,baseName:m.baseName,hp:m.hp,max:m.max,atk:m.atk,def:m.def,
+  rareId:m.rareId||null,rareTrait:m.rareTrait||null,rareTraitChance:m.rareTraitChance||0});
+ return m;
+}
 function beginEncounter(force=false,boss=false){
  battleTrace("beginEncounter",String(force));
  if(!force&&encounterDebugOff)return false;
  ensureBattleAssets();
- const area=D.areas[S.area],pool=D.enemies[S.area];
- if(!area||!pool?.length||(!force&&area.encounter<=0))return false;
+ const area=D.areas[S.area],region=B.regionFor(S,YK_WORLD);
+ if(!area||!region||(!force&&area.encounter<=0))return false;
  if(!force&&S.area==="field"&&YK_WORLD.near(S.x,S.y))return false;
  if(!force&&(S.encounterGrace>0||S.encounterSteps<(area.min||12)))return false;
  if(!force&&Math.random()>=area.encounter)return false;
- const e=boss?["影九尾",320,24,180,120]:pool[Math.floor(Math.random()*pool.length)];
- const variant=boss?null:D.rareKinds[e[0]],rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
- const rareHp=rare?Math.ceil(e[1]*(rare.hpMultiplier||1)):e[1],rareAtk=rare?Math.ceil(e[2]*(rare.atkMultiplier||1)):e[2];
- fieldMotion=null;resetBattleAnimation();battle={boss:!!boss,name:rare?rare.name:e[0],baseName:e[0],rareId:rare?.id||null,rareTrait:rare?.trait||null,rareTraitChance:rare?.traitChance||0,clothingBroken:false,hp:rareHp,max:rareHp,atk:rareAtk,def:boss?10:(D.enemyDefense?.[e[0]]||0),xp:e[3],gold:rare?Math.ceil(e[4]*D.rareRules.goldMultiplier):e[4]};
- S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
+ let encounterData=B.encounter(region);
+ if(boss){
+  const spec=B.data.proposals.enemies.find(e=>e.id==='shadow_ninefox');
+  if(!spec)throw Error('九尾の敵データがありません');
+  const m={id:'boss-ninefox',baseId:spec.id,name:'影九尾',baseName:'影九尾',
+   hp:spec.hp,max:spec.hp,maxhp:spec.hp,atk:spec.atk,def:spec.def,speed:spec.speed,
+   xp:180,gold:120,rareId:null,rareTrait:null,rareTraitChance:0};
+  encounterData={region,enemies:[m],display:m.name};
+ }
+ if(!encounterData)return false;
+ const enemies=encounterData.enemies;
+ if(!boss&&enemies.length===1){
+  const e=enemies[0],variant=D.rareKinds[e.baseName];
+  const rare=rareReady(variant)&&Math.random()<D.rareRules.chance?variant:null;
+  if(rare){
+   e.name=rare.name;e.rareId=rare.id;e.rareTrait=rare.trait||null;e.rareTraitChance=rare.traitChance||0;
+   e.hp=e.max=e.maxhp=Math.ceil(e.hp*(rare.hpMultiplier||1));
+   e.atk=Math.ceil(e.atk*(rare.atkMultiplier||1));
+   e.gold=Math.ceil(e.gold*D.rareRules.goldMultiplier);
+  }
+ }
+ const first=enemies[0];fieldMotion=null;resetBattleAnimation();
+ battle={boss:!!boss,enemies,activeIndex:0,name:first.name,baseName:first.baseName,
+  rareId:first.rareId||null,rareTrait:first.rareTrait||null,rareTraitChance:first.rareTraitChance||0,
+  clothingBroken:false,hp:first.hp,max:first.max,atk:first.atk,def:first.def,
+  xp:enemies.reduce((sum,e)=>sum+e.xp,0),gold:enemies.reduce((sum,e)=>sum+e.gold,0)};
+ S.battles++;S.encounterSteps=0;busy=true;battleCursor=0;battleLocked=true;
+ battle.menu="root";battle.turn=1;$("pad").classList.add("battleActive");
  YK_INPUT.stopAll();S.frame=1;
- $("battleText").textContent=battle.name+"が あらわれた！";
+ $("battleText").textContent=enemies.length>1?first.baseName+"が "+enemies.length+"体 あらわれた！":first.name+"が あらわれた！";
  YK_AUDIO.stopBgmForEncounter();encounterChime();
- // Register the unlock before drawing the transition: a rendering exception must never strand the field in busy mode.
  battleLater(()=>{if(!battle)return;document.getElementById("ykEncounterFrame")?.remove();const panel=$("battle");panel.classList.add("show");panel.style.transition="";panel.style.opacity="";battleLocked=false;battleTrace("unlock");YK_AUDIO.startBattleMusic?.();try{selectCmd(0);renderBattle();battleTrace("unlock.render.ok")}catch(error){battleTrace("unlock.render.error",String(error));console.error("Battle entry final render failed",error);$("battleText").textContent="戦闘画面の描画に失敗しました。コマンドを選んでください。"}},2390);
- encounterDissolve();
- return true;
+ encounterDissolve();return true;
 }
 function encounter(){return beginEncounter()}
 // Explicit QA-only encounter entry. Normal gameplay rules are unchanged.
@@ -1644,23 +1672,28 @@ function renderBattle(){
  const hitProgress=battleFx?Math.min(1,Math.max(0,(age-impactDelay)/(battleFx.duration-impactDelay))):1;
  const impactVisible=!!battleFx&&age>=impactDelay;
  const recoil=impactVisible&&battleFx.target==="enemy"&&!battleFx.reduced?Math.sin(hitProgress*Math.PI*8)*7*(1-hitProgress):0;
- // Death owns its clock: clearing an impact effect must never truncate the fade.
  const deathAge=battle.defeatedAt==null?0:Math.max(0,performance.now()-battle.defeatedAt);
- const dying=battle.hp<=0&&battle.defeatedAt!=null;
- if(battle.hp>0||dying&&deathAge<BATTLE_PACE.deathHold+BATTLE_PACE.deathFade){
+ const dying=battle.enemies.every(e=>e.hp<=0)&&battle.defeatedAt!=null;
+ if(!dying||deathAge<BATTLE_PACE.deathHold+BATTLE_PACE.deathFade){
   bg.save();
   if(dying){
    const fade=Math.max(0,Math.min(1,(deathAge-BATTLE_PACE.deathHold)/BATTLE_PACE.deathFade));
    bg.globalAlpha=1-fade;
    if(!battle.deathReduced)bg.translate(0,-fade*13);
   }
-  enemyArt(bg,483+recoil,224);bg.restore();
+  const pair=battle.enemies.length>1;
+  for(const [index,m] of battle.enemies.entries()){
+   if(m.hp<=0&&!dying)continue;
+   const x=pair?(index===0?398:570):483;
+   enemyArt(bg,x+(index===battle.activeIndex?recoil:0),pair?226:224,null,m,pair?.77:1);
+  }
+  bg.restore();
  }
  drawViewportBattleFx(impactVisible?hitProgress:null);
  const targeting=battle.menu==="target"&&battle.phase!=="result";
  $("enemyTargetInfo").hidden=!targeting;
  $("battlePhaseLabel").textContent=targeting?"標的を選ぶ":battle.phase==="result"?"戦闘結果":"戦闘";
- $("enemyName").textContent=targeting?battle.name+(battle.rareId?"【特異種】":""):"";$("enemyHp").textContent=targeting?Math.max(0,battle.hp)+"/"+battle.max:"";$("battleHp").textContent=S.hp+"/"+S.maxhp;
+ $("enemyName").textContent=targeting?battle.name+(battle.rareId?"【特異種】":"")+(battle.enemies.length>1?"（"+(battle.activeIndex+1)+"体目）":""):"";$("enemyHp").textContent=targeting?Math.max(0,battle.hp)+"/"+battle.max:"";$("battleHp").textContent=S.hp+"/"+S.maxhp;
  $("battleMp").textContent=S.mp+"/"+S.maxmp;$("battleLevel").textContent=S.lv;
  $("battleHpBar").style.width=(100*S.hp/S.maxhp)+"%";$("battleMpBar").style.width=(100*S.mp/S.maxmp)+"%";
  $("battleHpBar").style.background=S.hp/S.maxhp<.25?"#e27268":"#8bc88a";renderBattlePartyCards();renderBattleCommands();
@@ -1733,8 +1766,8 @@ function drawBattleFx(c,p,anchorX=null,anchorY=null){
 const BATTLE_ROOT=[['attack','戦う','武器で攻撃する'],['skill','術','技を使う術を選ぶ'],['item','道具','回復の道具を選ぶ'],['guard','守る','次の敵の一撃を半減する'],['escape','逃げる','戦いから離れる（失敗することもある）']];
 function battleChoices(){
  if(battle?.phase==='result')return [['finish','旅を続ける','A / B：結果を閉じる']];
- if(battle?.menu==='target')return [['target-0',battle.name,'標的を決定して攻撃'],['back','戻る','選択を取り消す']];
- if(battle?.menu==='skill')return [['bloom','花結び　技4','花びらの力で敵に攻撃'],['heal','花癒し　技3','体を30＋段×2回復'],['back','戻る','コマンドに戻る']];
+ if(battle?.menu==='target')return [...battle.enemies.flatMap((m,i)=>m.hp>0?[['target-'+i,m.name+(battle.enemies.length>1?' '+(i+1):''),'標的を決定して攻撃']]:[]),['back','戻る','選択を取り消す']];
+ if(battle?.menu==='skill')return [...(S.lv>=3?[['bloom','糸遊　技3','陽炎の術で敵に攻撃']]:[]),['heal','つむぎ　技5','体力を約30%回復'],['back','戻る','コマンドに戻る']];
  if(battle?.menu==='item')return [['herb','薬草　×'+S.potions,'体を35回復（お守りで増加）'],['back','戻る','コマンドに戻る']];
  return BATTLE_ROOT;
 }
@@ -1758,39 +1791,41 @@ function cmd(n){
  if(n==='back'){battleBack();return;}
  if(n==='skill'||n==='item'){battle.menu=n;battleCursor=0;renderBattleCommands();return;}
  if(n==='attack'||n==='bloom'){battle.targetFrom=n;battle.menu='target';battleCursor=0;renderBattle();return;}
- if(n==='target-0'){n=battle.targetFrom||'attack';}
+ if(/^target-[01]$/.test(n)){const index=Number(n.slice(-1));if(!selectBattleTarget(index))return;n=battle.targetFrom||'attack';}
 
  if(!['attack','bloom','heal','herb','guard','escape'].includes(n))return;
- const check=YK_BATTLE_RULES.validateCommand(n,S);
+ const cost=n==='bloom'?3:n==='heal'?5:0;
+  const check=(n==='bloom'||n==='heal')?(S.mp<cost?{ok:false,message:'技が足りない！'}:n==='heal'&&S.hp>=S.maxhp?{ok:false,message:'体は満ちている。'}:{ok:true,cost,action:n==='bloom'?'skill':'heal'}):YK_BATTLE_RULES.validateCommand(n,S);
  if(!check.ok){$('battleText').textContent=check.message;return;}
  S.mp-=check.cost;battle.menu='root';battleCursor=0;
  n=check.action;
  battleLocked=true;
  renderBattleCommands();
  if(n==='guard'){battle.guarding=true;battlePose="guard";$('battleText').textContent='緋月は 身を守っている！';renderBattle();YK_AUDIO.battleSe?.("guard");battleLater(foe,BATTLE_PACE.actionRead);return;}
- if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,30+S.lv*2);S.hp+=amount;$('battleText').textContent='花癒し！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);return;}
+ if(n==='heal'){const amount=Math.min(S.maxhp-S.hp,Math.ceil(S.maxhp*.3));S.hp+=amount;$('battleText').textContent='つむぎ！ 体が'+amount+'回復した。';startBattleFx('petals','hero',-amount);YK_AUDIO.battleSe?.("heal");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);return;}
  if(n==="attack"||n==="skill"){
   battlePose=n==="skill"?"skill":"attack";
-  $("battleText").textContent=n==="skill"?"緋月の 花結び！":"緋月の攻撃！";
+  $("battleText").textContent=n==="skill"?"緋月の 糸遊！":"緋月の攻撃！";
   // Wind-up art is shown first; HP, damage text and sound start on contact.
   const fx=startBattleFx(n==="skill"?"petals":"slash","enemy",null,BATTLE_PACE.windup);
   renderBattle();
   battleLater(()=>{
-   const d=YK_BATTLE_RULES.allyDamage(n,S.lv,S.atk,relicBonus(n==="skill"?"skill":"atk"),Math.random,battle.def||0);
+   const d=n==='skill'?B.skillDamage(S.lv,relicBonus('skill')):B.physical(S.atk+relicBonus('atk'),battle.def||0,Math.random);
    if(battle.rareTrait==="leafDodge"&&Math.random()<battle.rareTraitChance){
     $("battleText").textContent=`${battle.name}は木の葉に紛れて攻撃をかわした！`;
     battlePose="idle";startBattleFx("petals","enemy");renderBattle();battleLater(foe,BATTLE_PACE.actionRead);return;
    }
    const guarded=battle.rareTrait==="shellGuard"&&Math.random()<battle.rareTraitChance;
    const amount=guarded?YK_BATTLE_RULES.shellDamage(d):d;
-   battle.hp=Math.max(0,battle.hp-amount);fx.amount=amount;
+   battle.hp=Math.max(0,battle.hp-amount);battle.enemies[battle.activeIndex].hp=battle.hp;fx.amount=amount;
    $("battleText").textContent=guarded?`${battle.name}は大鋏で防いだ！ ${amount}ダメージ`:`${battle.name}に ${amount}ダメージ！`;
    YK_AUDIO.battleSe?.(n==="skill"?"skill":"slash");
-   if(battle.hp<=0){battle.defeatedAt=performance.now();battle.deathReduced=fx.reduced;}
+   const allDefeated=battle.enemies.every(e=>e.hp<=0);
+    if(allDefeated){battle.defeatedAt=performance.now();battle.deathReduced=fx.reduced;}
    renderBattle();
    battleLater(()=>{battlePose="idle";renderBattle()},BATTLE_PACE.impact);
    // Guarded lethal hits use the same complete death sequence as ordinary hits.
-   battleLater(battle.hp<=0?win:foe,battle.hp<=0?BATTLE_PACE.deathHold+BATTLE_PACE.deathFade+BATTLE_PACE.deathRest:BATTLE_PACE.actionRead);
+   battleLater(allDefeated?win:foe,allDefeated?BATTLE_PACE.deathHold+BATTLE_PACE.deathFade+BATTLE_PACE.deathRest:BATTLE_PACE.actionRead);
   },BATTLE_PACE.windup);
  }else if(n==="item"){
   S.potions--;const healed=Math.min(S.maxhp-S.hp,35+relicBonus("heal"));S.hp+=healed;
@@ -1802,33 +1837,57 @@ function cmd(n){
 }
 function foe(){
  if(!battle)return;
- battleLocked=true;battlePose=battle.guarding?"guard":"idle";
- const profile=D.enemyProfiles?.[battle.baseName],variance=profile?.variance??5;
- const foxfire=(battle.boss&&Math.random()<(battle.hp<=battle.maxhp*.5?.55:.3))||(battle.rareTrait==="foxfire"&&Math.random()<battle.rareTraitChance);
- const action=foxfire?`${battle.name}の妖火！`:`${battle.name}の${profile?.attack||"攻撃"}！`;
- $("battleText").textContent=action;renderBattle();
- battleLater(()=>{
-  const d=YK_BATTLE_RULES.foeDamage(battle.atk,S.def+relicBonus("def"),variance,foxfire,battle.guarding,Math.random);battle.guarding=false;
-  S.hp=Math.max(0,S.hp-d);battlePose="hit";$("battleText").textContent=action+` 緋月に ${d}ダメージ`;
-  startBattleFx(foxfire?"petals":(profile?.fx||"impact"),"hero",d);renderBattle();YK_AUDIO.battleSe?.("hit");
-  battleLater(()=>{battlePose="idle";renderBattle()},BATTLE_PACE.impact);
-  battleLater(()=>{if(S.hp<=0)return defeat();battleLocked=false;YK_BATTLE_RULES.nextTurn(battle);renderBattle()},BATTLE_PACE.actionRead);
- },BATTLE_PACE.enemyWindup);
+ battleLocked=true;const living=battle.enemies.filter(e=>e.hp>0),guarding=!!battle.guarding;
+ const run=i=>{
+  if(!battle)return;
+  if(i>=living.length){
+   battle.guarding=false;battlePose='idle';battleLocked=false;
+   YK_BATTLE_RULES.nextTurn(battle);renderBattle();return;
+  }
+  const member=living[i],index=battle.enemies.indexOf(member);
+  selectBattleTarget(index);battlePose=guarding?'guard':'idle';
+  const profile=D.enemyProfiles?.[member.baseName];
+  const foxfire=(battle.boss&&Math.random()<(member.hp<=member.max*.5?.55:.3))||(member.rareTrait==='foxfire'&&Math.random()<member.rareTraitChance);
+  const action=foxfire?member.name+'の妖火！':member.name+'の'+(profile?.attack||'攻撃')+'！';
+  $('battleText').textContent=action;renderBattle();
+  battleLater(()=>{
+   if(!battle)return;
+   const raw=B.physical(member.atk,S.def+relicBonus('def'),Math.random);
+   const enhanced=foxfire?Math.ceil(raw*1.35):raw;
+   const damage=guarding?Math.max(1,Math.floor(enhanced/2)):enhanced;
+   S.hp=Math.max(0,S.hp-damage);battlePose='hit';
+   $('battleText').textContent=action+' 緋月に '+damage+'ダメージ';
+   startBattleFx(foxfire?'petals':(profile?.fx||'impact'),'hero',damage);
+   renderBattle();YK_AUDIO.battleSe?.('hit');
+   battleLater(()=>{if(!battle)return;battlePose='idle';renderBattle()},BATTLE_PACE.impact);
+   battleLater(()=>{if(!battle)return;if(S.hp<=0)return defeat();run(i+1)},BATTLE_PACE.actionRead);
+  },BATTLE_PACE.enemyWindup);
+ };
+ run(0);
 }
-
 function win(){
  if(!battle||battle.rewarded)return;
  battle.rewarded=true;YK_BATTLE_RULES.grantVictoryBase(S,battle);
  let loot=YK_BATTLE_RULES.grantRareLoot(S,battle,D.rareRules,D.relics,Math.random);
- const equipmentDrop=E.drop(S,battle.baseName);if(equipmentDrop)loot+=` ／ ${E.items[equipmentDrop].name}を入手！`;
- battle.rewardText=`${battle.name}を こらしめた！ 心の数 ${battle.xp} ／ ${battle.gold}両${loot}`;
- battle.levelUpResult=!!YK_BATTLE_RULES.applyLevelUps(S);
+ for(const enemy of battle.enemies){const item=E.drop(S,enemy.baseName);if(item)loot+=' ／ '+E.items[item].name+'を入手！';}
+ const allNames=battle.enemies.length===1?battle.enemies[0].name:battle.enemies[0].baseName+' '+battle.enemies.length+'体';
+ battle.rewardText=allNames+'を こらしめた！ 心の数 '+battle.xp+' ／ '+battle.gold+'両'+loot;
+ battle.levelUpResult=B.levelUp(S)>0;
  if(battle.levelUpResult)battle.rewardText+=' ／ '+S.lv+'段に上がった！ 体と技が全回復。';
- $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),1100);battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.("victory");
+ $('battleText').textContent=battle.rewardText;YK_BATTLE_RULES.enterResult(battle,performance.now(),1100);
+ battleLocked=false;battlePose='victory';battleCursor=0;YK_AUDIO.battleSe?.('victory');
  YK_SAVE.auto(S);renderBattle();
 }
 function endBattle(){battleTrace("endBattle");YK_AUDIO.endEncounterAudio();$("pad").classList.remove("battleActive");const reward=battle?.rewardText,wasBoss=!!battle?.boss;resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");busy=false;S.encounterGrace=D.areas[S.area]?.grace||8;YK_SAVE.auto(S);hud();if(wasBoss&&reward){const event=D.story[S.quest];if(event?.area==="fox"){const stage=S.quest;talk({n:"白狐の使い",t:event.lines},()=>{if(YK_STORY_EVENTS.complete(S,event,stage)){YK_SAVE.auto(S);message(event.unlock,4200)}},120)}}}
-function defeat(){battleTrace("defeat");YK_AUDIO.endEncounterAudio({resumeBgm:false});$("pad").classList.remove("battleActive");resetBattleAnimation();battle=null;battleLocked=false;$("battle").classList.remove("show");YK_INPUT.stopAll();$("gameover").classList.add("show");busy=true}
+function defeat(){
+ battleTrace('defeat');YK_AUDIO.endEncounterAudio({resumeBgm:false});
+ $('pad').classList.remove('battleActive');resetBattleAnimation();
+ battle=null;battleLocked=false;$('battle').classList.remove('show');YK_INPUT.stopAll();
+ const lost=Math.floor(Math.max(0,S.gold)*.25);S.gold=Math.max(0,S.gold-lost);
+ S.area='village';YK_HOZUKI.enter(S);S.lastTown='village';
+ S.hp=S.maxhp;S.mp=S.maxmp;S.encounterGrace=99;busy=false;
+ YK_SAVE.auto(S);hud();message('力尽きた……鬼灯村に戻った。 '+lost+'両を失った。',4000);
+}
 function renderRelics(){
  const owned=Object.entries(D.relics).filter(([id])=>S.relics[id]);
  $("itemsPanel").innerHTML=`<button id="fieldHerb">薬草を使う</button><p>薬草 × ${S.potions}　潮花の花びら × ${S.petals}</p><p>お守り：${D.relics[S.equippedRelic]?.name||"なし"}（1つ装備・衣装の見た目はそのまま）</p><div class="relicChoices">`+owned.map(([id,r])=>`<button data-relic="${id}" aria-pressed="${S.equippedRelic===id}">${S.equippedRelic===id?"装備中：":""}${r.name} × ${S.relics[id]}<small>${r.text}</small></button>`).join("")+`<button data-relic="">外す</button></div>`;
@@ -1836,14 +1895,14 @@ function renderRelics(){
  YK_INPUT.tap($('fieldHerb'),()=>{if(S.potions<=0)return message('薬草を持っていない。',1400);if(S.hp>=S.maxhp)return message('体は満ちている。',1400);S.potions--;S.hp=Math.min(S.maxhp,S.hp+35+relicBonus('heal'));YK_SAVE.auto(S);renderStatus();renderRelics();hud(false);});
  document.querySelectorAll("[data-relic]").forEach(b=>YK_INPUT.tap(b,()=>{const id=b.dataset.relic;S.equippedRelic=Object.hasOwn(D.relics,id)&&S.relics[id]?id:null;YK_SAVE.auto(S);busy=false;menu("items");}));
 }
-const FIELD_COMMANDS=[['skill','じゅつ','花癒し：技3で体を32回復'],['items','どうぐ','薬草やお守りを確かめる'],['equipment','そうび','武器や防具を身につける'],['status','つよさ','段・体・技と旅の目的を確かめる'],['map','ちず','目的地と街道を確かめる'],['save','きろく','旅の記録を残す'],['outfits','おまけ','衣装を選ぶ'],['exit','もどる','旅へ戻る']];
+const FIELD_COMMANDS=[['skill','じゅつ','つむぎ：技5で最大体力30%回復'],['items','どうぐ','薬草やお守りを確かめる'],['equipment','そうび','武器や防具を身につける'],['status','つよさ','段・体・技と旅の目的を確かめる'],['map','ちず','目的地と街道を確かめる'],['save','きろく','旅の記録を残す'],['outfits','おまけ','衣装を選ぶ'],['exit','もどる','旅へ戻る']];
 let fieldCursor=0;
 function openCommands(){if(busy||fieldEntryWaiting)return false;YK_INPUT.stopAll();fieldMotion=null;S.frame=1;busy=true;fieldCursor=0;$('commandMenu').classList.add('show');renderCommands();return true;}
 function renderCommands(){$('commandStatus').textContent=`緋月　${S.lv}段　${S.gold}両`;$('fieldCommands').innerHTML=FIELD_COMMANDS.map(([id,label],i)=>`<button data-field-command="${id}" class="${i===fieldCursor?'selected':''}">${i===fieldCursor?'▶ ':''}${label}</button>`).join('');document.querySelectorAll('[data-field-command]').forEach((b,i)=>YK_INPUT.tap(b,()=>{fieldCursor=i;fieldConfirm();}));$('commandHelp').textContent=FIELD_COMMANDS[fieldCursor][2]+' ／ A 決定・B 戻る';}
 function fieldPad(dir){if(!$('commandMenu').classList.contains('show'))return false;const row=Math.floor(fieldCursor/2),next=dir==='u'?fieldCursor-2:dir==='d'?fieldCursor+2:row*2+(dir==='l'?0:1);if(next>=0&&next<FIELD_COMMANDS.length)fieldCursor=next;renderCommands();return true;}
 function fieldConfirm(){const id=FIELD_COMMANDS[fieldCursor][0];close('commandMenu');
  if(id==='exit')return;
- if(id==='skill'){if(S.hp>=S.maxhp)return message('体は満ちている。',1400);if(S.mp<3)return message('技が足りない。',1400);S.mp-=3;S.hp=Math.min(S.maxhp,S.hp+32+relicBonus('heal'));YK_SAVE.auto(S);hud();message('花癒しの術で体が回復した。',1800);return;}
+ if(id==='skill'){if(S.hp>=S.maxhp)return message('体は満ちている。',1400);if(S.mp<5)return message('技が足りない。',1400);S.mp-=5;S.hp=Math.min(S.maxhp,S.hp+Math.ceil(S.maxhp*.3));YK_SAVE.auto(S);hud();message('つむぎの術で体が回復した。',1800);return;}
  if(id==='map')return worldMap();if(id==='save'){busy=true;slots();$('saveMenu').classList.add('show');return;}menu(id);
 }
 function menu(section=null){if(busy||fieldEntryWaiting)return;YK_INPUT.stopAll();busy=true;renderStatus();renderEquipment();renderRelics();$("recordPanel").textContent=`歩数 ${S.walk} / 戦闘 ${S.battles} / 勝利 ${S.wins}`;$("outfits").innerHTML=Object.entries(D.outfits).map(([k,v])=>`<button data-outfit="${k}" class="${S.outfit===k?"selected":""}"><img src="assets/characters/yashahime/${HERO_FOLDERS[k]}/front-neutral.png" alt="" loading="lazy"><span>${v.name}</span></button>`).join("");document.querySelectorAll("[data-outfit]").forEach(b=>YK_INPUT.tap(b,()=>{S.outfit=D.outfits[b.dataset.outfit]?b.dataset.outfit:"normal";YK_SAVE.auto(S);$("menu").classList.remove("show");busy=false;hud();menu("outfits")}));$("menu").classList.add("show");$('detailTitle').textContent=FIELD_COMMANDS.find(c=>c[0]===section)?.[1]||'つよさ';document.querySelectorAll('[data-menu-section]').forEach(el=>el.style.display=!section||el.dataset.menuSection===section?'':'none');}
@@ -1862,7 +1921,7 @@ function openNearbyChest(){
  if(!c)return false;const result=E.open(S,c.id);if(result.ok)YK_SAVE.auto(S);message(result.text,3500);map();return true;
 }
 function renderStatus(){
- $('statusPanel').innerHTML=`緋月　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus('atk')}　守備力 ${S.def+relicBonus('def')}<br>旅の目的：${D.story[S.quest]?.objective||"巡った土地を訪ねる"}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,S.lv*40-S.xp)}<br>所持金 ${S.gold}両<br>武器：${E.items[S.equipment.weapon]?.name||'素手'}`;
+ $('statusPanel').innerHTML=`緋月　${S.lv}段<br>体 ${S.hp}/${S.maxhp}　技 ${S.mp}/${S.maxmp}<br>攻撃力 ${S.atk+relicBonus('atk')}　守備力 ${S.def+relicBonus('def')}<br>旅の目的：${D.story[S.quest]?.objective||"巡った土地を訪ねる"}<br>心の数 ${S.xp} ／ 次の段まで ${Math.max(0,B.nextHeart(S.lv)-S.xp)}<br>所持金 ${S.gold}両<br>武器：${E.items[S.equipment.weapon]?.name||'素手'}`;
 }
 function equipmentDelta(item,slot){
  const current=E.items[S.equipment[slot]]||{};

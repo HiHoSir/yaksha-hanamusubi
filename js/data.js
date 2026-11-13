@@ -9,7 +9,7 @@ const areas={
  teahouse:{name:"花見茶屋",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
  osumiHome:{name:"お澄の家",ground:"#6b4932",path:"#b78a58",water:"#5599aa",encounter:0,min:9999,grace:0},
  villageRoom:{name:"里の建物",ground:"#6b4932",encounter:0,min:9999,grace:0},
- shrine:{name:"天妖の社",ground:"#557f57",path:"#a79a72",water:"#467f90",encounter:.028,min:20,grace:12},
+ shrine:{name:"天妖の社",ground:"#557f57",path:"#a79a72",water:"#467f90",encounter:0,min:20,grace:12},
  cove:{name:"海の入り江",ground:"#c6b783",path:"#e0c996",water:"#3e8ea7",encounter:.035,min:17,grace:10},
  forest:{name:"忘れの森",ground:"#426d49",path:"#82795c",water:"#3f7882",encounter:.052,min:12,grace:10},
  waterfall:{name:"龍神の滝",ground:"#50765d",path:"#9d997c",water:"#4f9fb8",encounter:.04,min:15,grace:10},
@@ -40,6 +40,7 @@ const enemyProfiles={
  "影九尾":{atlas:9,fallback:"ninefox",style:"boss",scale:1.08,attack:"影尾の一閃",fx:"impact",variance:3}
 };
 // Static artwork must exist for both states before a variant enters the encounter pool.
+enemyProfiles['灯火狐']={...enemyProfiles['鬼火']};
 const rareKinds={
  "野の小鬼":{id:"oni",name:"紅角の鬼女",variantAtlas:0},
  "化け狸":{id:"tanuki",name:"葉隠れ狸女",variantAtlas:1,hpMultiplier:1.35,atkMultiplier:1.15,trait:"leafDodge",traitChance:.22},
