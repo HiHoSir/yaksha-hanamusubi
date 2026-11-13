@@ -1767,7 +1767,7 @@ const BATTLE_ROOT=[['attack','戦う','武器で攻撃する'],['skill','術','�
 function battleChoices(){
  if(battle?.phase==='result')return [['finish','旅を続ける','A / B：結果を閉じる']];
  if(battle?.menu==='target')return [...battle.enemies.flatMap((m,i)=>m.hp>0?[['target-'+i,m.name+(battle.enemies.length>1?' '+(i+1):''),'標的を決定して攻撃']]:[]),['back','戻る','選択を取り消す']];
- if(battle?.menu==='skill')return [...(S.lv>=3?[['bloom','糸遊　技3','陽炎の術で敵に攻撃']]:[]),['heal','つむぎ　技5','体力を約30%回復'],['back','戻る','コマンドに戻る']];
+ if(battle?.menu==='skill')return [S.lv>=3?['bloom','糸遊　技3','陽炎の術で敵に攻撃']:['locked','糸遊（段3で習得）','まだ使えない術'],['heal','つむぎ　技5','体力を約30%回復'],['back','戻る','コマンドに戻る']];
  if(battle?.menu==='item')return [['herb','薬草　×'+S.potions,'体を35回復（お守りで増加）'],['back','戻る','コマンドに戻る']];
  return BATTLE_ROOT;
 }
@@ -1775,7 +1775,7 @@ function renderBattleCommands(){
  const commandsEl=document.querySelector('#battle .battleCommands');
  if(commandsEl){const acting=!!battleLocked;commandsEl.classList.toggle('battleActing',acting);commandsEl.setAttribute('aria-hidden',String(acting));}
  const choices=battleChoices();battleCursor=Math.min(battleCursor,choices.length-1);
- document.querySelectorAll('[data-cmd]').forEach((b,n)=>{const choice=choices[n];b.style.display=choice?'':'none';b.disabled=battleLocked;b.classList.toggle('selected',n===battleCursor);if(choice)b.textContent=choice[1];});
+ document.querySelectorAll('[data-cmd]').forEach((b,n)=>{const choice=choices[n];b.style.display=choice?'':'none';b.disabled=battleLocked||choice?.[0]==='locked';b.classList.toggle('selected',n===battleCursor);if(choice)b.textContent=choice[1];});
  $('battleHelp').textContent=battleLocked?'行動中…':choices[battleCursor][2]+' ／ A：決定　B：戻る';
 }
 function selectCmd(i){if(!battle||battleLocked)return;const n=battleChoices().length;battleCursor=(i+n)%n;renderBattleCommands();}
