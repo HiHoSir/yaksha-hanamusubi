@@ -6,12 +6,18 @@ on:
       - 'docs/battle/hizuki-status-v2.json'
       - 'docs/battle/balance-v2-draft.json'
       - 'qa/battle-balance-design.cjs'
+      - 'qa/battle-balance-engine.cjs'
+      - 'js/battle-balance-engine.js'
+      - 'previews/battle-balance-v2.html'
       - '.github/workflows/battle-balance-design.yml'
   pull_request:
     paths:
       - 'docs/battle/hizuki-status-v2.json'
       - 'docs/battle/balance-v2-draft.json'
       - 'qa/battle-balance-design.cjs'
+      - 'qa/battle-balance-engine.cjs'
+      - 'js/battle-balance-engine.js'
+      - 'previews/battle-balance-v2.html'
       - '.github/workflows/battle-balance-design.yml'
   workflow_dispatch:
 
@@ -29,3 +35,5 @@ jobs:
           node-version: '22'
       - name: Check draft balance against approved v2 source
         run: node qa/battle-balance-design.cjs
+      - name: Test playable two-enemy B-v2 engine
+        run: node qa/battle-balance-engine.cjs
