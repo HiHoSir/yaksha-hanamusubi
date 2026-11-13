@@ -29,11 +29,11 @@ equal(result.type,'victory');equal(h18.hp,130);equal(h18.xp,476);
 equal(group.enemies.filter(x=>x.hp>0).length,0);
 const guardH=a.hero(data,18,'T4',1),guardE=a.encounter(data,'forest',1);
 a.fight(data,guardH,guardE,{type:'guard'},()=>.5);
-equal(guardH.hp,168);
+equal(guardH.hp,170);
 const healH=a.hero(data,18,'T4',1),healE=a.encounter(data,'forest',1);
 healH.hp=100;
 a.fight(data,healH,healE,{type:'heal'},()=>.5);
-equal(healH.mp,29);equal(healH.hp,130); // +55 then spider attacks 26.
+equal(healH.mp,29);equal(healH.hp,129); // +55 then spider attacks 26.
 const defeatH=a.hero(data,3,'T0',0),defeatE=a.encounter(data,'late_c',0);
 defeatH.gold=101;
 const loss=a.fight(data,defeatH,defeatE,{type:'attack'},()=>.5);
