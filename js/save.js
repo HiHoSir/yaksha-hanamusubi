@@ -1,6 +1,6 @@
 window.YK_SAVE=(()=>{
-const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=15;
-const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:3,vegetables:{},harvests:{},relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:26,maxhp:26,mp:12,maxmp:12,lv:1,xp:0,gold:30,balanceRevision:2,awakening:0,lastTown:'village',speed:9,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:9,def:6,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
+const AUTO="yaksha_beta_auto", LEGACY="yaksha_beta", VER=14;
+const fresh=()=>({saveVersion:VER,...YK_EQUIPMENT.fresh(),villageRevision:3,vegetables:{},harvests:{},relics:{},rareWins:{},equippedRelic:null,x:YK_WORLD.start[0],y:YK_WORLD.start[1],worldRevision:YK_WORLD.revision,worldPosition:YK_WORLD.start.slice(),visitedAreas:{field:true},destination:"village",dir:"d",frame:0,area:"field",hp:70,maxhp:70,mp:12,maxmp:12,lv:1,xp:0,gold:30,potions:2,petals:0,outfit:"normal",walk:0,quest:0,boss:false,atk:10,def:3,charm:false,weapon:"花守りの杖",chests:{},sound:true,playtime:0,battles:0,wins:0,encounterSteps:0,encounterGrace:0,teaVisits:0,lastSave:Date.now()});
 function migrate(raw){
  const s=Object.assign(fresh(),raw||{});
  if(!YK_DATA.areas[s.area])s.area="field";
@@ -38,9 +38,6 @@ function migrate(raw){
  if(!Object.hasOwn(YK_DATA.relics,s.equippedRelic)||!s.relics[s.equippedRelic])s.equippedRelic=null;
  s.chests=s.chests&&typeof s.chests==="object"&&!Array.isArray(s.chests)?s.chests:{};
  YK_EQUIPMENT.migrate(s,raw);
- s.awakening=Math.max(0,Math.min(2,Math.floor(Number(s.awakening)||0)));
- s.lastTown='village';
- if(typeof YK_BATTLE_V2!=='undefined')YK_BATTLE_V2.refresh(s,raw?.balanceRevision!==2);
  s.saveVersion=VER;s.encounterSteps=Number(s.encounterSteps)||0;s.encounterGrace=Number(s.encounterGrace)||0;s.teaVisits=Number(s.teaVisits)||0;
  return s;
 }

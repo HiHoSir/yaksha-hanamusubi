@@ -25,14 +25,14 @@ for(const worldRevision of [109,110,111,112,113,118]){
  assert.equal(prior.gold,321);assert.equal(prior.quest,2);
 }
 const initial=save.fresh();
-assert.equal(initial.saveVersion,15);
+assert.equal(initial.saveVersion,14);
 assert.ok(Array.isArray(initial.worldPosition));
 const legacy={...JSON.parse(JSON.stringify(initial)),saveVersion:9,area:'village',villageRevision:1,worldRevision:87,quest:2,petals:7,gold:1234,chests:{opened:true},outfit:'removed-costume'};
 const migrated=save.migrate(legacy);
 assert.equal(migrated.quest,2);assert.equal(migrated.petals,7);assert.equal(migrated.gold,1234);
 assert.equal(migrated.chests.opened,true);
 assert.equal(migrated.outfit,'normal');assert.equal(migrated.villageRevision,3);
-assert.equal(migrated.saveVersion,15);
+assert.equal(migrated.saveVersion,14);
 assert.equal(migrated.x,768);assert.equal(migrated.y,1190);
 assert.equal(migrated.visitedAreas.village,true);
 assert.equal(save.auto(initial),true);

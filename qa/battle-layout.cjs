@@ -12,7 +12,7 @@ const server=http.createServer((req,res)=>{
  try{for(const height of [852,667]){
  const context=await browser.newContext({viewport:{width:393,height},isMobile:true,hasTouch:true,deviceScaleFactor:1});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.YK_LANDSCAPE?.ready());
- await page.evaluate(()=>{window.__qaEval('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;S.area="field";S.encounterGrace=0;S.encounterSteps=100;Math.random=()=>0;if(!beginEncounter(true))throw Error("forced battle setup failed");battle.hp=battle.max=999;battle.enemies[0].hp=battle.enemies[0].max=999;');});
+ await page.evaluate(()=>{window.__qaEval('state(YK_SAVE.fresh());$("title").classList.remove("show");busy=false;S.area="field";S.encounterGrace=0;S.encounterSteps=100;Math.random=()=>0;if(!beginEncounter(true))throw Error("forced battle setup failed");battle.hp=battle.max=999;');});
  await page.waitForFunction(()=>window.__qaEval('layerReady(B9EN.redoni)'));await page.waitForFunction(()=>window.__qaEval('!battleLocked'),null,{timeout:6000});await page.evaluate(()=>window.__qaEval('renderBattle()'));
  // The battle is a full-screen overlay: field controls are intentionally behind it.
  // Verify the actual battle command touch targets instead of the hidden field pad.
@@ -47,7 +47,7 @@ const server=http.createServer((req,res)=>{
 
  await page.evaluate(()=>window.__qaEval('state(YK_SAVE.fresh());busy=false;S.area="villageRoom";S.lastInterior="shop";S.x=384;S.y=400;S.dir="u";S.gold=1000;action();'));
  await page.locator('[data-shop-item="short_blade"]').tap();
- assert.equal(await page.evaluate(()=>window.gameState.gold),await page.evaluate(()=>1000-YK_EQUIPMENT.items.short_blade.price));
+ assert.equal(await page.evaluate(()=>window.gameState.gold),955);
  assert.equal(await page.evaluate(()=>window.gameState.equipmentInventory.short_blade),1);
  await page.screenshot({path:path.join(__dirname,'results/autotile/shop-mobile-'+height+'.png')});
  await page.locator('[data-close="shop"]').tap();await page.locator('#bookBtn').tap();await page.locator('[data-field-command="equipment"]').tap();
